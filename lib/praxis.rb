@@ -1,11 +1,16 @@
+require 'rack'
+
 require 'attributor'
 require 'active_support/inflector'
+
 $:.unshift File.dirname(__FILE__)
 
 module Praxis
+  autoload :Application, 'praxis/application'
   autoload :Controller, 'praxis/controller'
   autoload :Response, 'praxis/response'
   autoload :Request, 'praxis/request'
+  autoload :Router, 'praxis/router'
 
   module Skeletor
     autoload :ResponseDefinition, 'praxis/skeletor/response_definition'

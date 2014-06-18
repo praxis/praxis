@@ -56,6 +56,7 @@ GEM
     lumberjack (1.0.6)
     method_source (0.8.2)
     multi_json (1.10.1)
+    mustermann (0.2.0)
     pry (0.9.12.6)
       coderay (~> 1.0)
       method_source (~> 0.8)
@@ -67,8 +68,6 @@ GEM
       binding_of_caller (>= 0.7)
       pry (>= 0.9.11)
     rack (1.5.2)
-    rack-mount (0.8.3)
-      rack (>= 1.0.0)
     rack-test (0.6.2)
       rack (>= 1.0)
     rake (10.3.2)
@@ -109,10 +108,11 @@ DEPENDENCIES
   fuubar
   guard
   guard-rspec
+  mustermann
   pry
   pry-byebug
   pry-stack_explorer
-  rack-mount
+  rack
   rack-test
   rake
   rspec

@@ -7,15 +7,16 @@ module Praxis
     included do
       attr_reader :request
       attr_accessor :response
+      Application.instance.controllers << self
     end
 
     module ClassMethods
       def action(name)
-        config.actions.fetch(name)
+        api_resource.actions.fetch(name)
       end
 
-      def config
-        (self.name + "Config").constantize
+      def api_resource
+        ("ApiResources::" + self.name).constantize
       end
     end
 

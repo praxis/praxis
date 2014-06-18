@@ -19,7 +19,7 @@ module Praxis
     end
 
     def self.definition
-      ApiRoot.response(self.response_name)
+      ApiResource.response(self.response_name)
     end
 
     def definition

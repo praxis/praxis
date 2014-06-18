@@ -1,12 +1,11 @@
 source 'https://rubygems.org'
 
-# Underlying frameworks
-gem 'rack-mount'
-
 #gem 'skeletor', path: '../../skeletor'
 gem 'taylor', path: '../../taylor'
 gem 'attributor', path: '../../attributor'
 
+gem 'rack'
+gem 'mustermann'
 gem 'activesupport'
 
 # Add dependencies to develop your gem here.

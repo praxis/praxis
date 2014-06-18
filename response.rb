@@ -2,7 +2,13 @@
 
 class Response
 
-  attr_reader :name, :status, :headers, :body
+  attr_accessor :name, :status, :headers, :body, :extra_data
+
+  @@responses = []
+
+  def self.inherited(klass)
+    @@responses << klass
+  end
 
   def self.response_name=(response_name)
     @response_name = response_name
@@ -10,6 +16,21 @@ class Response
 
   def self.response_name
     @response_name
+  end
+
+  def self.response_for(response)
+    return response if response.response_name == response.name
+
+    klass = @@responses.find { |klass| klass.response_name == response.name }
+    if klass.nil? 
+      raise "No response defined with name: #{response.name}"
+    end
+
+    klass.new(
+      status: response.status,
+      headers: response.headers,
+      body: response.body
+    )
   end
 
   def self.definition
@@ -20,12 +41,16 @@ class Response
     self.class.definition
   end
 
+  def response_name
+    self.class.response_name
+  end
 
-  def initialize(status:200, headers:{}, body:'')
+  def initialize(status:200, headers:{}, body:'', **extra_data)
     @name = self.class.response_name
     @status = status
     @headers = headers
     @body = body
+    @extra_data = extra_data
   end
 
   def to_rack
@@ -72,7 +97,7 @@ class Response
     end
 
     conf_class = action.controller_config
-    
+
     extracted_mime = self.headers['Content-Type']
     # Support "+json" and options like ";type=collection"
     extracted_mime = extracted_mime && extracted_mime.split('+').first.split(';').first

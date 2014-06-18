@@ -5,6 +5,7 @@ module Controller
 
   included do
     attr_reader :request
+    attr_accessor :response
   end
 
   module ClassMethods
@@ -19,6 +20,7 @@ module Controller
 
   def initialize(request)
     @request = request
+    @response = DefaultResponse.new
   end
 
 end

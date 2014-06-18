@@ -72,28 +72,14 @@ class Instances
   include Controller
 
   def index(**params)
-    #body = JSON.pretty_generate(params)
-    body = params
-    [200, {}, body]
+    response.headers['Content-Type'] = 'application/json'
+    JSON.generate(params)
   end
 
   def show(id:, junk:, **params)
-    body = {id: id, junk: junk, params: params}
-    #body = JSON.pretty_generate()
-
-
-
-    headers = {'Content-Type' => 'application/json'}
-    status = 200
-    
-    DefaultResponse.new(
-     body: body, 
-     headers:headers,
-     status: status,
-    )
-    response.body = body
-    response.name = :not_found
-    return response
+    response.body = {id: id, junk: junk, params: params}
+    response.headers['Content-Type'] = 'application/json'
+    response
   end
 
 end
@@ -117,6 +103,7 @@ def coalesce_inputs!(request)
 end
 
 def load_headers(action, request)
+  return unless action.headers
   defined_headers = action.headers.attributes.keys.each_with_object(Hash.new) do |name, hash|
     env_name = if name == :CONTENT_TYPE || name == :CONTENT_LENGTH
       name.to_s
@@ -138,6 +125,7 @@ def load_payload(action_config, request)
 end
 
 def validate_headers(request)
+  return unless request.headers
   errors = request.headers.validate(CONTEXT_FOR[:headers])
   raise "nope: #{errors}" if errors.any?
 end
@@ -156,8 +144,7 @@ def validate_response(action, response)
   response.validate(action)
 end
 
-
-def dispatch(controller, action, request)
+def setup_request(action, request)
   coalesce_inputs!(request)
 
   load_headers(action, request)
@@ -183,8 +170,22 @@ def dispatch(controller, action, request)
   if action.payload
     params[:payload] = request.payload
   end
+end
 
-  response = controller.new(request).send(action.name, **params)
+def dispatch(controller, action, request)
+  setup_request(action, request)
+  
+  controller_instance = controller.new(request)
+  response = controller_instance.send(action.name, **params)
+
+  if response.kind_of? String
+    body = response
+    response = controller_instance.response
+    response.body = body
+  end
+
+  response = Response.response_for(response)
+
   response.handle
 
   # TODO: do some verification of response
@@ -220,8 +221,9 @@ route_set = Rack::Mount::RouteSet.new do |set|
 end
 
 
-env = Rack::MockRequest.env_for('/instances/1?junk=foo')
-env['rack.input'] = StringIO.new('something=given')
+#env = Rack::MockRequest.env_for('/instances/1?junk=foo')
+#env['rack.input'] = StringIO.new('something=given')
+env = Rack::MockRequest.env_for('/instances')
 env['HTTP_VERSION'] = 'HTTP/1.1'
 
 status, headers, body = route_set.call(env)

@@ -6,12 +6,9 @@ require 'bundler/setup'
 require 'pry'
 
 require 'rack/mount'
-require 'skeletor'
 
+require_relative 'lib/praxis'
 
-require_relative 'controller'
-require_relative 'response'
-require_relative 'request'
 
 CONTEXT_FOR = {
   params: [Attributor::AttributeResolver::ROOT_PREFIX, "params".freeze],
@@ -20,12 +17,34 @@ CONTEXT_FOR = {
 }.freeze
 
 
+class DefaultResponse < Praxis::Response
+  self.response_name = :default
+
+  def handle
+    @status = 200
+    puts "handling: #{@name}"
+  end
+
+end
+
+
+class NotFoundResponse < Praxis::Response
+  self.response_name = :not_found
+
+  def handle
+    @status = 404
+    puts "handling: #{@name}"
+  end
+
+end
+
+
 class ApiRoot
   @responses = Hash.new
 
   def self.response(name, &block)
     return @responses[name] unless block_given?
-    @responses[name] =  Skeletor::ResponseDefinition.new(name,&block)
+    @responses[name] =  Praxis::Skeletor::ResponseDefinition.new(name,&block)
   end
 
   response :default do
@@ -33,11 +52,14 @@ class ApiRoot
     status 200
   end
 
+  response :not_found do
+    status 404
+  end
 end
 
 
 
-class InstancesConfig  < Skeletor::RestfulSinatraApplicationConfig
+class InstancesConfig  < Praxis::Skeletor::RestfulSinatraApplicationConfig
   mime_type 'application/json'
 
   action :index do
@@ -65,11 +87,16 @@ class InstancesConfig  < Skeletor::RestfulSinatraApplicationConfig
       attribute :optional, String, default: "not given"
     end
   end
+
+  action :initialize do
+  end
+
 end
 
 
 class Instances
-  include Controller
+  include Praxis::Controller
+
 
   def index(**params)
     response.headers['Content-Type'] = 'application/json'
@@ -79,6 +106,7 @@ class Instances
   def show(id:, junk:, **params)
     response.body = {id: id, junk: junk, params: params}
     response.headers['Content-Type'] = 'application/json'
+
     response
   end
 
@@ -86,21 +114,12 @@ end
 
 
 
-class DefaultResponse < Response
-  self.response_name = :default
-
-  def handle
-    @status = 200
-    puts "handling: #{@name}"
-  end
-
-end
-
 
 def coalesce_inputs!(request)
   request.raw_params
   request.raw_payload
 end
+
 
 def load_headers(action, request)
   return unless action.headers
@@ -120,29 +139,31 @@ def load_params(action_config, request)
   request.params = action_config.params.load(request.raw_params)
 end
 
+
 def load_payload(action_config, request)
   request.payload = action_config.payload.load(request.raw_payload)
 end
 
+
 def validate_headers(request)
   return unless request.headers
   errors = request.headers.validate(CONTEXT_FOR[:headers])
-  raise "nope: #{errors}" if errors.any?
+  raise "nope: #{errors.inspect}" if errors.any?
 end
+
 
 def validate_params(request)
   errors = request.params.validate(CONTEXT_FOR[:params])
-  raise "nope: #{errors}" if errors.any?
+  raise "nope: #{errors.inspect}" if errors.any?
 end
+
 
 def validate_payload(request)
   errors = request.params.validate(CONTEXT_FOR[:payload])
-  raise "nope: #{errors}" if errors.any?
+  raise "nope: #{errors.inspect}" if errors.any?
 end
 
-def validate_response(action, response)
-  response.validate(action)
-end
+
 
 def setup_request(action, request)
   coalesce_inputs!(request)
@@ -170,26 +191,27 @@ def setup_request(action, request)
   if action.payload
     params[:payload] = request.payload
   end
+
+  params
 end
 
+
 def dispatch(controller, action, request)
-  setup_request(action, request)
+  params = setup_request(action, request)
   
   controller_instance = controller.new(request)
   response = controller_instance.send(action.name, **params)
 
   if response.kind_of? String
-    body = response
-    response = controller_instance.response
-    response.body = body
+    controller_instance.response.body = response
+  else
+    controller_instance.response = response
   end
 
-  response = Response.response_for(response)
-
+  response = controller_instance.response
+  
   response.handle
-
-  # TODO: do some verification of response
-  validate_response(action, response)
+  response.validate(action)
 
   response.to_rack
 end
@@ -203,7 +225,7 @@ def target_factory(controller, action_name)
   end
 
   Proc.new do |env|
-    dispatch(controller, action, Request.new(env))
+    dispatch(controller, action, Praxis::Request.new(env))
   end
 end
 
@@ -221,9 +243,9 @@ route_set = Rack::Mount::RouteSet.new do |set|
 end
 
 
-#env = Rack::MockRequest.env_for('/instances/1?junk=foo')
-#env['rack.input'] = StringIO.new('something=given')
-env = Rack::MockRequest.env_for('/instances')
+env = Rack::MockRequest.env_for('/instances/1?junk=foo')
+env['rack.input'] = StringIO.new('something=given')
+#env = Rack::MockRequest.env_for('/instances')
 env['HTTP_VERSION'] = 'HTTP/1.1'
 
 status, headers, body = route_set.call(env)
@@ -231,3 +253,6 @@ puts "status: #{status}"
 puts "headers: #{headers}"
 puts "----------"
 pp body
+
+
+

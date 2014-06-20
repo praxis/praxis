@@ -1,4 +1,6 @@
 require 'active_support/concern'
+require 'active_support/inflector'
+
 module Praxis
 
   module Controller
@@ -11,18 +13,26 @@ module Praxis
     end
 
     module ClassMethods
-      def action(name)
-        api_resource.actions.fetch(name)
+
+      def implements(definition)
+        define_singleton_method(:definition) do
+          definition
+        end
       end
 
-      def api_resource
-        ("ApiResources::" + self.name).constantize
+      def actions
+        definition.actions
       end
+
+      def action(name)
+        actions.fetch(name)
+      end
+
     end
 
-    def initialize(request)
+    def initialize(request, response=Responses::Default.new)
       @request = request
-      @response = DefaultResponse.new
+      @response = response
     end
 
   end

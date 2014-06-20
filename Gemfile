@@ -13,20 +13,22 @@ gem 'activesupport'
 group :development, :test do
   gem 'rake'
   gem 'rspec'
-
+  gem 'rspec-given'
   gem 'bundler'
 
   gem 'guard'
   gem 'guard-rspec'
-
+  gem 'guard-bundler'
+  
   gem 'pry'
   gem 'pry-byebug'
   gem 'pry-stack_explorer'
 end
 
 group :test do
+
   gem 'rack-test', :require => 'rack/test'
   gem 'simplecov', :require => false
 
-  gem 'fuubar'
+  gem 'fuubar', '2.0.0.rc1'
 end

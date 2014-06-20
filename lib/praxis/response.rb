@@ -2,20 +2,11 @@
 module Praxis
   class Response
 
-    attr_accessor :name, :status, :headers, :body, :extra_data
+    attr_accessor :name, :status, :headers, :body, :extra_data,
+      :request
 
-    @@responses = []
-
-    def self.inherited(klass)
-      @@responses << klass
-    end
-
-    def self.response_name=(response_name)
-      @response_name = response_name
-    end
-
-    def self.response_name
-      @response_name
+    class << self
+      attr_accessor :response_name
     end
 
     def self.definition
@@ -39,6 +30,12 @@ module Praxis
     end
 
     def to_rack
+      case @body
+      when Hash
+        @body = JSON.pretty_generate(@body)
+      end
+
+      @body = Array(body)
       [@status, @headers, @body]
     end
 
@@ -83,22 +80,25 @@ module Praxis
 
       conf_class = action.controller_config
 
-      extracted_mime = self.headers['Content-Type']
+      extracted_identifier = self.headers['Content-Type']
       # Support "+json" and options like ";type=collection"
-      extracted_mime = extracted_mime && extracted_mime.split('+').first.split(';').first
-      if mt = definition.media_type
+      extracted_identifier = extracted_identifier && extracted_identifier.split('+').first.split(';').first
+
+      if definition.media_type == :controller_defined
+        conf_class.media_type === extracted_identifier
+      end
+
+      if (mt = definition.media_type)
         if mt == :controller_defined
           mt = conf_class.media_type
           raise "Error validating content type: this controller (#{conf_class}) doesn't have any associated media_type" unless mt
         end
-        raise "Bad Content-Type: returned type #{extracted_mime} does not match type #{mt.mime_type} as described in response: #{definition.name}" unless  extracted_mime == mt.mime_type
-      elsif mime = definition.mime_type
-        if mime == :controller_defined
-          mime = conf_class.mime_type
-          raise "Error validating content type: this controller #{conf_class} doesn't have any associated mime_type" unless mime
+
+        unless mt === extracted_identifier
+          raise "Bad Content-Type: returned type #{extracted_identifier} does not match type #{mt.identifier} as described in response: #{definition.name}"
         end
-        raise "Bad mime-type: returned type #{extracted_mime} does not match type #{mime} as described in response: #{definition.name}" unless  mime == extracted_mime
       end
+
     end
 
   end

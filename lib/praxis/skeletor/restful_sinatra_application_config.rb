@@ -24,7 +24,7 @@ module Praxis
         # #93 - Revisit whether we can just use ActiveSupport instead
         class_name = self.name.split("::").last || ""
 
-        class_name.gsub!(%r{Config$},'')
+        # class_name.gsub!(%r{Config$},'')
         # perform ActiveSupport-like "underscore" operation on the string
         class_name.gsub!(%r/(?:([A-Za-z\d])|^)((?=a)b)(?=\b|[^a-z])/) { "#{$1}#{$1 && '_'}#{$2.downcase}" }
         class_name.gsub!(%r/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
@@ -36,24 +36,12 @@ module Praxis
       end
 
       def self.configure_default_routing
-        @mount_path = Regexp.new("^/" + self.route_base)
         @parent = nil
         @route_prefix = "/" + self.route_base
       end
 
       def self.route_prefix
         @route_prefix
-      end
-
-
-      def self.mount_path=(path)
-        raise ArgumentError, "mount_path must be a Regexp" if !path.kind_of?(Regexp)
-        raise ArgumentError, "invalid regexp for mount_path: #{path.inspect}" unless path.inspect[0..3] == /^\//.inspect[0..3]
-        @mount_path = path
-      end
-
-      def self.mount_path
-        @mount_path
       end
 
       def self.api_version
@@ -74,16 +62,7 @@ module Praxis
       end
 
 
-      def self.routing(route_prefix: nil, mount_path: nil, parent: nil)
-        if mount_path
-          @parent = nil
-          @route_prefix = ""
-          self.mount_path = mount_path
-          raise ArgumentError, "can not specify route_prefix if mount_path is provided" if route_prefix
-          raise ArgumentError, "can not specify parent if mount_path is provided" if parent
-          return
-        end
-
+      def self.routing(route_prefix: nil, parent: nil)
         if parent && !route_prefix
           @parent = parent
           if parent < RestfulSinatraApplication #support legacy mode, where controller classes are passed, instead of Configs
@@ -91,7 +70,6 @@ module Praxis
             @parent = parent.config_class 
           end
           @route_prefix = "#{self.parent.route_prefix}/:#{self.parent_id_param_name}/#{self.route_base}"
-          self.mount_path = /^#{self.parent.route_prefix}\/[^\/]+\/#{self.route_base}/
           return
         end
 
@@ -111,7 +89,6 @@ module Praxis
             segment.gsub(/(:\w+)/) { |m| '(.*?)' }
           end
 
-          self.mount_path = %r{^#{segments.join('/')}}
           return
         end
         raise ArgumentError, "No routing parameters. You don't want this controller routed at all?"
@@ -197,59 +174,8 @@ module Praxis
            raise "Response definition for #{name} requires a block" unless block_given?
            responses[name] =  ResponseDefinition.new(name,&block)
         end
-       
-        # for each ancestor of app_class
-        # grab its config and get common response specs
-        # and accumulate those: list of response specs
-        def compile_inherited_responses( app_class )
-          ancestors = app_class.ancestors
-          app_ancestors = ancestors.select { |k| k < RestfulSinatraApplication || k == RestfulSinatraApplication }
-          reversed_app_ancestors = app_ancestors.reverse # Reverse for top-down inheritance
-          compiled_responses = reversed_app_ancestors.reduce({}) do |memo, ancestor|
-            memo.merge!(ancestor.config_class.responses)
-          end
-          compiled_responses
-        end
-
-        def finalize_responses!(app_class)
-          explicit = settings[:strict_responses]
-          # for each ancestor of app_class
-          # grab its config and get common response specs
-          # and accumulate those: list of response specs
-          compiled_responses = compile_inherited_responses( app_class )
-
-          # For each our actions:
-          # inject as many specs as defined.
-          actions.each do |action_name, action|
-            action_responses = action.responses
-            if explicit # Only bring in the specs for response names that have been explicitly defined
-              action_responses.each do |action_name,action_definition|
-                action_responses[action_name] = compiled_responses[action_name] if action_definition.nil?
-                raise "Could not find an inheritable response spec for #{action_name} in #{app_class.name}" unless action_responses[action_name]
-              end
-            else # Merge (non-override) ALL responses found in the inheritance
-              action_responses.merge! (compiled_responses) { | k, old_val, new_val | old_val || new_val}
-            end
-          end
-        end
-      end
-
-      # System-wide response definitions
-      response :default do
-        status 200
-        mime_type :controller_defined
-      end
-
-      response :validation do
-        description "When parameter validation hits..."
-        status 400
-        mime_type "application/json"
-      end
-
-      response :internal_server_error do
-        description "Internal Server Error"
-        status 500
-        # don't set mime_type here
+      
+        
       end
 
     end

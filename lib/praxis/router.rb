@@ -3,21 +3,53 @@ require 'mustermann/router/rack'
 module Praxis
 
   class Router
+    attr_reader :request_class
 
-    def initialize
-      @routes = Hash.new do |hash, key|
-        hash[key] = Mustermann::Router::Rack.new(params_key: 'rack.routing_args')
+    class RequestRouter < Mustermann::Router::Simple
+      def initialize(default: nil, **options, &block)
+        options[:default] = [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found"]] unless options.include? :default
+        super(**options, &block)
+      end
+
+      def invoke(callback, request, params, pattern)
+        request.route_params = params
+        callback.call(request)
+      end
+
+      def string_for(request)
+        request.path
       end
     end
 
-    def add_route(target, path_info:, request_method:'GET', **conditions)
-      warn 'conditions not supported yet' if conditions.any?
-      @routes[request_method].on(path_info, call: target)
+
+    def initialize(request_class: Praxis::Request)
+      @routes = Hash.new do |hash, version|
+        hash[version] = Hash.new do |subhash, verb|
+          subhash[verb] = RequestRouter.new
+        end
+      end
+      @request_class = request_class
     end
 
-    def call(env)
-      verb = env['REQUEST_METHOD'.freeze]
-      @routes[verb].call(env)
+    def add_route(target, version: 'n/a'.freeze, path:, verb:'GET', **conditions)
+      warn 'other conditions not supported yet' if conditions.any?
+      @routes[version][verb].on(path, call: target)
+    end
+
+    def call(env_or_request)
+      request = case env_or_request
+      when Hash
+        request_class.new(env_or_request)
+      when request_class
+        env_or_request
+      else
+        raise ArgumentError, "received #{env_or_request.class}"
+      end
+
+      version = request.version
+      verb = request.verb
+
+      @routes[version][verb].call(request)
     end
 
   end

@@ -50,35 +50,38 @@ module Praxis
         @responses={}
         @urls_for_compatibility = [] # Deprecate, once everybody uses the new routing configs
         @controller_config = controller_config
-        @reference_media_type = opts.delete(:media_type)
+        unless (media_type = opts.delete(:media_type)).kind_of?(SimpleMediaType)
+          @reference_media_type = media_type
+        end
         #TODO: I don't know that we need to get "options" passed in...any option should be basically expressed in the allowed DSL...
         raise "Unsupported option/s (#{opts.join(',')}) for defining actions found in action #{name}" if opts.size > 0
         self.instance_eval(&block) if block_given?
       end
 
-      def urls
-        if @routing_config
-          @routing_config.urls
-        else
-          @urls_for_compatibility
-        end
-      end
-      def urls=(array)
-        @urls_for_compatibility = array
-      end
-      # TODO: allow params/payload attibutor types
-      # ONLY To respond to the Types in param/payload calls
-      # For "Collection" or "Model" ...
-      def method_missing(method_name, *args)
-        # TODO: call Attributor to construct the right "type class" of method_name
-        super
-      end
+      # def urls
+      #   if @routing_config
+      #     @routing_config.urls
+      #   else
+      #     @urls_for_compatibility
+      #   end
+      # end
+      #def urls=(array)
+      #  @urls_for_compatibility = array
+      #end
+      
+      # # TODO: allow params/payload attibutor types
+      # # ONLY To respond to the Types in param/payload calls
+      # # For "Collection" or "Model" ...
+      # def method_missing(method_name, *args)
+      #   # TODO: call Attributor to construct the right "type class" of method_name
+      #   super
+      # end
 
-      # For "Collection.of(...)"
-      def self.const_missing(class_name)
-        # TODO: call Attributor to construct the right "type class" of class_name
-        super
-      end
+      # # For "Collection.of(...)"
+      # def self.const_missing(class_name)
+      #   # TODO: call Attributor to construct the right "type class" of class_name
+      #   super
+      # end
 
       def create_attribute( type=Attributor::Struct, opts={}, &block)
         if type.kind_of? ::Hash
@@ -138,6 +141,7 @@ module Praxis
           @headers = create_attribute(type, opts.merge(dsl_compiler: HeadersDSLCompiler ), &block)
         end
       end
+      
       def routing(&block)
         @routing_config = RestfulRoutingConfig.new(name, controller_config, &block)
       end
@@ -154,7 +158,7 @@ module Praxis
         end
       end
 
-      def description( text = nil )
+      def description(text = nil)
         @description = text if text
         @description
       end

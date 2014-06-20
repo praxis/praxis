@@ -11,7 +11,6 @@ module Praxis
         instance_eval(&block)
       end
 
-
       def get(path, opts={})     add_route 'GET',     path, opts end
       def put(path, opts={})     add_route 'PUT',     path, opts end
       def post(path, opts={})    add_route 'POST',    path, opts end

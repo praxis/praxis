@@ -22,10 +22,14 @@ module Praxis
         @spec[:status] = code
       end
 
-      def media_type(mt=nil)
-        return @spec[:media_type] if mt.nil?
-        raise "Invalid mediatype (#{mt.inspect})" unless ( mt.class == Class && (mt < MediaType) || mt == :controller_defined )
-        @spec[:media_type] = mt
+      def media_type(media_type=nil)
+        return @spec[:media_type] if media_type.nil?
+        
+        if media_type.kind_of?(String)
+          media_type = SimpleMediaType.new(media_type)
+        end
+
+        @spec[:media_type] = media_type
       end
 
       def location(loc=nil)
@@ -42,13 +46,6 @@ module Praxis
         @spec[:headers] = hdrs
       end
 
-      def mime_type( mime = nil)
-        if mime.nil?
-          return @spec[:mime_type] if @spec[:mime_type]
-          return (@spec[:media_type] ) ? @spec[:media_type].mime_type : nil
-        end
-        @spec[:mime_type] = mime
-      end
 
       def multipart(mode=nil, &block)
         return @spec[:multipart] if mode.nil?

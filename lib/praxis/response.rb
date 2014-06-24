@@ -10,7 +10,7 @@ module Praxis
     end
 
     def self.definition
-      ApiResource.response(self.response_name)
+      ApiDefinition.instance.response(self.response_name)
     end
 
     def definition
@@ -38,6 +38,7 @@ module Praxis
       @body = Array(body)
       [@status, @headers, @body]
     end
+
 
     def validate(action)
       # Validate status code if defined in the spec

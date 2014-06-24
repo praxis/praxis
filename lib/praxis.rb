@@ -11,7 +11,7 @@ module Praxis
   autoload :Response, 'praxis/response'
   autoload :Request, 'praxis/request'
   autoload :Router, 'praxis/router'
-  autoload :ApiResource, 'praxis/api_resource'
+  autoload :ApiDefinition, 'praxis/api_definition'
   autoload :Dispatcher, 'praxis/dispatcher'
   autoload :ResourceDefinition, 'praxis/resource_definition'
 

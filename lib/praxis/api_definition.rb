@@ -1,12 +1,22 @@
+require 'singleton'
+
 module Praxis
 
-  class ApiResource
-    @responses = Hash.new
+  class ApiDefinition
+    include Singleton
+    
+    def initialize
+      @responses = Hash.new
+    end
 
-    def self.response(name, group: :default, &block)
+    def response(name, group: :default, &block)
       return @responses[name] unless block_given?
 
       @responses[name] = Praxis::Skeletor::ResponseDefinition.new(name,group:group, &block)
+    end
+
+    def self.response(name, group: :default, &block)
+      instance.response(name, group: :default, &block)
     end
 
     response :default do

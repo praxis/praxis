@@ -1,0 +1,10 @@
+#! /usr/bin/env ruby
+
+require 'bundler'
+
+path_to_praxis    = Bundler.rubygems.find_name('praxis').first.full_gem_path
+path_to_generator = '%s/tasks/praxis_app_generator.thor' % path_to_praxis
+
+load path_to_generator
+
+PraxisAppGenerator.start(ARGV)

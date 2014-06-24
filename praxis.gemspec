@@ -14,13 +14,22 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '~> 2.0'
   s.summary = %q{Building APIs the way you want it.}
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 3
+  s.add_dependency 'rack'
+  s.add_dependency 'mustermann'
+  s.add_dependency 'activesupport'
+  s.add_dependency 'ruport'
+  s.add_dependency 'pry'
 
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-    else
-    end
-  else
-  end
+  s.add_development_dependency 'rake'
+  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'rspec-its'
+  s.add_development_dependency 'bundler'
+  s.add_development_dependency 'guard'
+  s.add_development_dependency 'guard-rspec'
+  s.add_development_dependency 'guard-bundler'
+  s.add_development_dependency 'pry-byebug'
+  s.add_development_dependency 'pry-stack_explorer'
+  s.add_development_dependency 'rack-test'
+  s.add_development_dependency 'simplecov'
+  s.add_development_dependency 'fuubar', '2.0.0.rc1'
 end
-

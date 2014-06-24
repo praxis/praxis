@@ -45,7 +45,6 @@ module Praxis
       end
     end
 
-
     def coalesce_inputs!
       self.raw_params
       self.raw_payload
@@ -69,7 +68,6 @@ module Praxis
       self.headers = action.headers.load(defined_headers, context)
     end
 
-
     def load_params(context)
       self.params = action.params.load(self.raw_params, context)
     end
@@ -84,12 +82,10 @@ module Praxis
       raise "nope: #{errors.inspect}" if errors.any?
     end
 
-
     def validate_params(context)
       errors = self.params.validate(context)
       raise "nope: #{errors.inspect}" if errors.any?
     end
-
 
     def validate_payload(context)
       errors = self.payload.validate(context)

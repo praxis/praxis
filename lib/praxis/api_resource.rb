@@ -3,9 +3,10 @@ module Praxis
   class ApiResource
     @responses = Hash.new
 
-    def self.response(name, &block)
+    def self.response(name, group: :default, &block)
       return @responses[name] unless block_given?
-      @responses[name] = Praxis::Skeletor::ResponseDefinition.new(name,&block)
+
+      @responses[name] = Praxis::Skeletor::ResponseDefinition.new(name,group:group, &block)
     end
 
     response :default do
@@ -16,7 +17,6 @@ module Praxis
     response :not_found do
       status 404
     end
-
 
     response :validation do
       description "When parameter validation hits..."

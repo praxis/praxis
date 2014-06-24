@@ -8,18 +8,21 @@ gem 'rack'
 gem 'mustermann'
 gem 'activesupport'
 
+gem 'ruport'
+
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
 group :development, :test do
   gem 'rake'
   gem 'rspec'
-  gem 'rspec-given'
+  gem 'rspec-its'
   gem 'bundler'
 
   gem 'guard'
   gem 'guard-rspec'
   gem 'guard-bundler'
   
+
   gem 'pry'
   gem 'pry-byebug'
   gem 'pry-stack_explorer'

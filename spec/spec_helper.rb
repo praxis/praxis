@@ -9,7 +9,7 @@ require 'praxis'
 
 require 'rack/test'
 
-require 'rspec/given'
+require 'rspec/its'
 
 
 Dir["#{File.dirname(__FILE__)}/support/*.rb"].each do |file|

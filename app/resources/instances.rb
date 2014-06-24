@@ -1,12 +1,24 @@
 module ApiResources
-  class Instances  #< Praxis::Skeletor::RestfulSinatraApplicationConfig
+  class Instances
     include Praxis::ResourceDefinition
 
     media_type 'application/json'
     version '1.0'
-    
+
+    #response_groups :premium
+    #responses :instance_limit_reached
+    #responses :pay_us_money
+
+    routing do
+      prefix '/clouds/:cloud_id/instances'
+    end
+
+    params do
+      attribute :cloud_id, Integer, required: true
+    end
+
     action :index do
-      routing do 
+      routing do
         get ''
       end
     end
@@ -15,9 +27,9 @@ module ApiResources
       routing do
         get '/:id'
       end
-      #headers do
-      #  header :version
-      #end
+      headers do
+        header :host
+      end
       params do
         attribute :id, Integer, required: true, min: 1
         attribute :junk, String, default: ''
@@ -28,7 +40,6 @@ module ApiResources
         attribute :optional, String, default: "not given"
       end
     end
-
 
   end
 end

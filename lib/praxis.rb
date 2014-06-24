@@ -14,10 +14,24 @@ module Praxis
   autoload :ApiResource, 'praxis/api_resource'
   autoload :Dispatcher, 'praxis/dispatcher'
   autoload :ResourceDefinition, 'praxis/resource_definition'
-  
+
+  autoload :Bootloader, 'praxis/bootloader'
+  autoload :Plugin, 'praxis/plugin'
+  autoload :FileGroup,'praxis/file_group'
+
   module Responses
     autoload :Default, 'praxis/responses/default'
     autoload :NotFound, 'praxis/responses/not_found'
+  end
+
+
+  module BootloaderStages
+    autoload :Stage,       'praxis/bootloader_stages/stage'
+    autoload :FileLoader, 'praxis/bootloader_stages/file_loader'
+    autoload :Environment, 'praxis/bootloader_stages/environment'
+    autoload :AppLoader, 'praxis/bootloader_stages/app_loader'
+    autoload :WarnUnloadedFiles, 'praxis/bootloader_stages/warn_unloaded_files'
+    autoload :Routing, 'praxis/bootloader_stages/routing'
   end
 
   module Skeletor
@@ -26,18 +40,7 @@ module Praxis
     autoload :RestfulSinatraApplicationConfig, 'praxis/skeletor/restful_sinatra_application_config'
     autoload :RestfulRoutingConfig, 'praxis/skeletor/restful_routing_config'
 
-    autoload :Bootloader, 'praxis/skeletor/bootloader'
-    autoload :Plugin, 'praxis/skeletor/plugin'
-    autoload :FileGroup,'praxis/skeletor/file_group'
 
-    module BootloaderStages
-      autoload :Stage,       'praxis/skeletor/bootloader_stages/stage'
-      autoload :FileLoader, 'praxis/skeletor/bootloader_stages/file_loader'
-      autoload :Environment, 'praxis/skeletor/bootloader_stages/environment'
-      autoload :AppLoader, 'praxis/skeletor/bootloader_stages/app_loader'
-      autoload :WarnUnloadedFiles, 'praxis/skeletor/bootloader_stages/warn_unloaded_files'
-      autoload :Routing, 'praxis/skeletor/bootloader_stages/routing'
-    end
 
   end
 end

@@ -1,6 +1,6 @@
 module Praxis
 
-  module Skeletor
+
 
     class Bootloader
 
@@ -81,5 +81,5 @@ module Praxis
 
     end
 
-  end
+
 end

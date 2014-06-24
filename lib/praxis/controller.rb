@@ -18,6 +18,7 @@ module Praxis
         define_singleton_method(:definition) do
           definition
         end
+        definition.controller = self
       end
 
       def actions

@@ -5,14 +5,16 @@ module Praxis
   class Application
     include Singleton
 
-    attr_reader :router, :controllers
+    attr_reader :router, :controllers, :resource_definitions
     attr_accessor :file_layout, :root, :config, :bootloader, :plugins, :loaded_files
 
     def initialize
       @controllers = Set.new
+      @resource_definitions = Set.new
+      
       @router = Router.new
 
-      @bootloader = Skeletor::Bootloader.new(self)
+      @bootloader = Bootloader.new(self)
       @file_layout = nil
       @plugins = Array.new
       @loaded_files = Set.new

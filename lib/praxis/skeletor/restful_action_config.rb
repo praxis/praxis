@@ -42,53 +42,55 @@ module Praxis
 
       end
 
-      attr_accessor :name, :responses, :controller_config, :routing_config #mime_type, media_type  #params, payload
+      attr_accessor :name, :controller_config, :routing_config #mime_type, media_type  #params, payload
 
       def initialize(name, controller_config, opts={}, &block)
         # TODO: I think we can get away without a name...and just storing the configuration (RestfulSinatraApplicationConfig.action already keys this config off of the action name)
         @name = name
-        @responses={}
-        @urls_for_compatibility = [] # Deprecate, once everybody uses the new routing configs
+        @responses=Set.new
+        @response_groups = Set.new
         @controller_config = controller_config
         unless (media_type = opts.delete(:media_type)).kind_of?(SimpleMediaType)
           @reference_media_type = media_type
         end
         #TODO: I don't know that we need to get "options" passed in...any option should be basically expressed in the allowed DSL...
         raise "Unsupported option/s (#{opts.join(',')}) for defining actions found in action #{name}" if opts.size > 0
+
+
+        if controller_config.params_config
+          saved_type, saved_opts, saved_block = controller_config.params_config
+          @params = create_attribute(saved_type, saved_opts, &saved_block)
+        end
+
+        if controller_config.payload_config
+          saved_type, saved_opts, saved_block = controller_config.payload_config
+          @payload = create_attribute(saved_type, saved_opts, &saved_block)
+        end
+
+        if controller_config.headers_config
+          saved_type, saved_opts, saved_block = controller_config.headers_config
+          @headers = create_attribute(saved_opts, &saved_block)
+        end
+
         self.instance_eval(&block) if block_given?
+
+
       end
 
-      # def urls
-      #   if @routing_config
-      #     @routing_config.urls
-      #   else
-      #     @urls_for_compatibility
-      #   end
-      # end
-      #def urls=(array)
-      #  @urls_for_compatibility = array
-      #end
-      
-      # # TODO: allow params/payload attibutor types
-      # # ONLY To respond to the Types in param/payload calls
-      # # For "Collection" or "Model" ...
-      # def method_missing(method_name, *args)
-      #   # TODO: call Attributor to construct the right "type class" of method_name
-      #   super
-      # end
 
-      # # For "Collection.of(...)"
-      # def self.const_missing(class_name)
-      #   # TODO: call Attributor to construct the right "type class" of class_name
-      #   super
-      # end
+      def responses(*responses)
+        @responses.merge(responses)
+      end
 
-      def create_attribute( type=Attributor::Struct, opts={}, &block)
-        if type.kind_of? ::Hash
-          opts = type
-          type = Attributor::Struct
-        elsif( type.nil? )
-          type = Attributor::Struct if type.nil?
+      def response_groups(*response_groups)
+        @response_groups.merge(response_groups)
+      end
+
+
+
+      def create_attribute(type=Attributor::Struct, **opts, &block)
+        unless opts[:reference]
+          opts[:reference] = @reference_media_type if @reference_media_type && block
         end
 
         return Attributor::Attribute.new(type, opts, &block)
@@ -103,59 +105,45 @@ module Praxis
         self.instance_eval(&Skeletor.traits[trait_name])
       end
 
-      def params(type=Attributor::Struct, opts={}, &block)
+      def params(type=Attributor::Struct, **opts, &block)
         return @params if !block && type == Attributor::Struct
+
         if @params
-          opts = type if type.kind_of? ::Hash
+          unless type == Attributor::Struct && @params.type < Attributor::Struct
+            raise 'type mismatch'
+          end
           update_attribute(@params, opts, block)
         else
-          #raise "Params have already been defined for this action: #{name}" if @params
-          unless opts[:reference]
-            opts[:reference] = @reference_media_type if @reference_media_type && block
-          end
-          @params = create_attribute(type, opts, &block)
+          @params = create_attribute(type, **opts, &block)
         end
       end
 
-      def payload( type=Attributor::Struct, opts={}, &block)
+      def payload(type=Attributor::Struct, **opts, &block)
         return @payload if !block && type == Attributor::Struct
 
         if @payload
-          opts = type if type.kind_of? ::Hash
+          unless type == Attributor::Struct && @payload.type < Attributor::Struct
+            raise 'type mismatch'
+          end
           update_attribute(@payload, opts, block)
         else
-          unless opts[:reference]
-            opts[:reference] = @reference_media_type if @reference_media_type && block
-          end
-          @payload = create_attribute(type, opts, &block)
+          @payload = create_attribute(type, **opts, &block)
         end
       end
 
-      def headers( type=Attributor::Struct, opts={}, &block)
+
+      def headers(**opts, &block)
         return @headers unless block
 
         if @headers
-          opts = type if type.kind_of? ::Hash
           update_attribute(@headers, opts, block)
         else
-          @headers = create_attribute(type, opts.merge(dsl_compiler: HeadersDSLCompiler ), &block)
+          @headers = create_attribute(dsl_compiler: HeadersDSLCompiler, **opts, &block)
         end
       end
-      
+
       def routing(&block)
         @routing_config = RestfulRoutingConfig.new(name, controller_config, &block)
-      end
-
-      #########################
-
-      def response( *names , &block )
-        if block_given?
-          raise "response definition can only take 1 name" if names.size > 1
-          name = names.first
-          responses[name] = ResponseDefinition.new(name,&block)
-        else
-          names.each {|name| responses[name] = nil }
-        end
       end
 
       def description(text = nil)
@@ -171,7 +159,7 @@ module Praxis
           hash[:headers] = headers.describe if headers
           hash[:params] = params.describe if params
           hash[:payload] = payload.describe if payload
-          hash[:responses] = responses.inject({}) do |memo, kv|
+          hash[:responses] = all_responses.inject({}) do |memo, kv|
             memo[kv[0]] = kv[1].describe
             memo
           end

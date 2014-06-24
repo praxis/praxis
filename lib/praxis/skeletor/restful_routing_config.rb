@@ -8,7 +8,21 @@ module Praxis
         @name = name
         @controller_config = controller_config
         @routes = []
+
+        @prefix = "/" + controller_config.name.split("::").last.underscore
+
+
+        if controller_config.routing_config
+          instance_eval(&controller_config.routing_config)
+        end
+
+
         instance_eval(&block)
+      end
+
+      def prefix(prefix=nil)
+        return @prefix unless prefix
+        @prefix = prefix
       end
 
       def get(path, opts={})     add_route 'GET',     path, opts end
@@ -22,7 +36,7 @@ module Praxis
 
       def add_route(verb, path, options={})
         if path.respond_to?(:to_str)
-          path = "#{controller_config.route_prefix}#{path.to_str}"
+          path = "#{@prefix}#{path.to_str}"
         end
         @routes << [verb, path, options]
       end

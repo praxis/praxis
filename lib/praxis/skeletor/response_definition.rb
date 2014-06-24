@@ -3,10 +3,11 @@ module Praxis
   module Skeletor
     # Response spec DSL container
     class ResponseDefinition
-      attr_reader :name
+      attr_reader :name, :group
 
-      def initialize(response_name, spec={}, &block)
+      def initialize(response_name, group:, **spec, &block)
         @spec = spec
+        @group = group
         @name = response_name
         self.instance_eval(&block) if block_given?
         raise "Status code is required for a response specification" if self.status.nil?
@@ -45,7 +46,6 @@ module Praxis
         end
         @spec[:headers] = hdrs
       end
-
 
       def multipart(mode=nil, &block)
         return @spec[:multipart] if mode.nil?

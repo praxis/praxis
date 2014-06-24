@@ -1,4 +1,4 @@
-module Skeletor
+module Praxis
 
   # one instance is created per use.
   class Plugin

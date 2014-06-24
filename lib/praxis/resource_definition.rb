@@ -1,11 +1,13 @@
 require 'active_support/concern'
 require 'active_support/inflector'
 
-#require 'struct'
-
 SimpleMediaType = Struct.new(:identifier) do
   def ===(other_thing)
     identifier == other_thing
+  end
+
+  def describe
+    'todo' # TODO: replace todo
   end
 end
 
@@ -16,17 +18,20 @@ module Praxis
     included do
       @version = 'n/a'.freeze
       @actions = Hash.new
-      @route_prefix = "/" + route_base
+      @responses = Set.new
+      @response_groups = Set[:default]
+      @routing_config
+      Application.instance.resource_definitions << self
     end
 
     module ClassMethods
+      attr_reader :actions
+      attr_reader :routing_config, :params_config, :payload_config, :headers_config
 
-      def actions
-        @actions
-      end
+      attr_accessor :controller
 
-      def route_prefix
-        @route_prefix
+      def routing(&block)
+        @routing_config = block #Skeletor::RestfulRoutingConfig.new(name, self, &block)
       end
 
       def media_type(media_type=nil)
@@ -49,11 +54,38 @@ module Praxis
         @actions[name] = Skeletor::RestfulActionConfig.new(name, self, opts, &block)
       end
 
-      def route_base
-        class_name = self.name.split("::").last || ""
-        class_name.underscore
+      def params(type=Attributor::Struct, **opts, &block)
+        @params_config = [type, opts, block]
       end
 
+      def payload(type=Attributor::Struct, **opts, &block)
+        @payload_config = [type, opts, block]
+      end
+
+      def headers(**opts, &block)
+        @headers_config = [opts, block]
+      end
+
+      def description(text=nil)
+        @description = text if text
+        @description
+      end
+
+      def responses(*responses)
+        @responses.merge(responses)
+      end
+
+      def response_groups(*response_groups)
+        @response_groups.merge(response_groups)
+      end
+
+      def describe
+        {}.tap do |hash|
+          hash[:description] = description
+          hash[:media_type] = media_type.describe if media_type
+          hash[:actions] = actions.values.map(&:describe)
+        end
+      end
     end
 
   end

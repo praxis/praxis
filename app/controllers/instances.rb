@@ -8,9 +8,9 @@ class Instances
     JSON.generate(params)
   end
 
-  def show(id:, junk:, **other_params)
+  def show(cloud_id:, id:, junk:, **other_params)
     payload = request.payload
-    response.body = {id: id, junk: junk, other_params: other_params, payload: payload.dump}
+    response.body = {cloud_id: cloud_id, id: id, junk: junk, other_params: other_params, payload: payload.dump}
     response.headers['Content-Type'] = 'application/json'
     response
   end

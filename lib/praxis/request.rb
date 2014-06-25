@@ -11,8 +11,8 @@ module Praxis
       @route_params = {}
       load_version
     end
-    
-    def path 
+
+    def path
       @env['PATH_INFO'.freeze]
     end
 
@@ -52,8 +52,8 @@ module Praxis
     end
 
     def load_version
-      @version = env.fetch("HTTP_X_API_VERSION".freeze, 
-        @query.fetch('api_version'.freeze, 'n/a'.freeze))
+      @version = env.fetch("HTTP_X_API_VERSION".freeze,
+                           @query.fetch('api_version'.freeze, 'n/a'.freeze))
     end
 
     def load_headers(context)
@@ -86,11 +86,13 @@ module Praxis
     end
 
     def validate_params(context)
+      return unless action.params
       errors = self.params.validate(context)
       raise "nope: #{errors.inspect}" if errors.any?
     end
 
     def validate_payload(context)
+      return unless action.payload
       errors = self.payload.validate(context)
       raise "nope: #{errors.inspect}" if errors.any?
     end

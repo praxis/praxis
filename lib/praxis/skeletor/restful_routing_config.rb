@@ -11,11 +11,9 @@ module Praxis
 
         @prefix = "/" + controller_config.name.split("::").last.underscore
 
-
         if controller_config.routing_config
           instance_eval(&controller_config.routing_config)
         end
-
 
         instance_eval(&block)
       end

@@ -18,13 +18,13 @@ rackup
 
 ## Philosophy
 Praxis is a practical implementation of a few guiding principles. In part:
-1. ### REST APIs should be consistent
+### REST APIs should be consistent
 REST APIs should follow consistent design in patterns and action semantics. This includes software patterns for creating applications like code organization; application patterns like logging, middleware, query filtering, and application bootstrapping; and API routing structures and REST verb semantics for exposed resources.
-2. ### Apps should focus on real business logic
+### Apps should focus on real business logic
 Applications should be able to focus on application logic, avoiding most of the boilerplate code required to build API services.
-3. ### API design should be separate from implementation
+### API design should be separate from implementation
 Applications should maintain separation of concerns between API design and implementation. An API designer should be able to fully construct an API skeleton without writing a single line of application code.
-4. ### APIs must have great documentation
+### APIs must have great documentation
 It should be possible to generate consistent and detailed documentation. This should be done by inspecting real code, to avoid relying on humans to do a good job keeping the docs and the code in sync everytime they make code changes.
 
 ## Mailing List

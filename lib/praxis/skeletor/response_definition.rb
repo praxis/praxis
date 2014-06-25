@@ -56,12 +56,6 @@ module Praxis
         @spec[:multipart] = ResponseDefinition.new(mode, {status:200}, &block)
       end
 
-      def use(name)
-        raise "Behavior #{name} not found in the system" unless $behaviors.has_key? name
-        puts "USING BEHAVIOR: #{name} out of #{$behaviors.keys.size} available"
-        self.instance_eval(&$behaviors[name])
-      end
-
       def describe
         location_type = location.is_a?(Regexp) ? 'regexp' : 'string'
         location_value = location.is_a?(Regexp) ? location.inspect : location

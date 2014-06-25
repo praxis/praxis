@@ -1,9 +1,8 @@
 
 module Praxis
   class Response
-
-    attr_accessor :name, :status, :headers, :body, :extra_data,
-      :request
+    
+    attr_accessor :name, :status, :headers, :body, :request
 
     class << self
       attr_accessor :response_name
@@ -21,12 +20,11 @@ module Praxis
       self.class.response_name
     end
 
-    def initialize(status:200, headers:{}, body:'', **extra_data)
+    def initialize(status:200, headers:{}, body:'')
       @name = self.class.response_name
       @status = status
       @headers = headers
       @body = body
-      @extra_data = extra_data
     end
 
     def to_rack
@@ -42,6 +40,7 @@ module Praxis
 
     def validate(action)
       # Validate status code if defined in the spec
+
       if definition.status && self.status != definition.status
         raise "Invalid response code detected. Response #{definition.name} dictates status of #{definition.status} but this response is returning #{self.status}."
       end

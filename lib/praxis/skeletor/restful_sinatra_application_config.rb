@@ -1,11 +1,4 @@
-module Attributor
-  class DSLCompiler
-    def use(name)
-      raise "Trait #{name} not found in the system" unless Skeletor.traits.has_key? name
-      self.instance_eval(&Skeletor.traits[name])
-    end
-  end
-end
+
 
 # # Defines a simple DSL for describing a RESTful API.
 # module Praxis

@@ -8,6 +8,8 @@ module ApiResources
     #response_groups :premium
     #responses :instance_limit_reached
     #responses :pay_us_money
+    
+    use :authenticated
 
     routing do
       prefix '/clouds/:cloud_id/instances'
@@ -27,9 +29,9 @@ module ApiResources
       routing do
         get '/:id'
       end
-      headers do
-        header :host
-      end
+
+      responses :other_response
+
       params do
         attribute :id, Integer, required: true, min: 1
         attribute :junk, String, default: ''

@@ -56,24 +56,22 @@ module Praxis
         #TODO: I don't know that we need to get "options" passed in...any option should be basically expressed in the allowed DSL...
         raise "Unsupported option/s (#{opts.join(',')}) for defining actions found in action #{name}" if opts.size > 0
 
-
         if controller_config.params_config
           saved_type, saved_opts, saved_block = controller_config.params_config
-          @params = create_attribute(saved_type, saved_opts, &saved_block)
+          @params = create_attribute(saved_type, **saved_opts, &saved_block)
         end
 
         if controller_config.payload_config
           saved_type, saved_opts, saved_block = controller_config.payload_config
-          @payload = create_attribute(saved_type, saved_opts, &saved_block)
+          @payload = create_attribute(saved_type, **saved_opts, &saved_block)
         end
 
         if controller_config.headers_config
-          saved_type, saved_opts, saved_block = controller_config.headers_config
-          @headers = create_attribute(saved_opts, &saved_block)
+          saved_opts, saved_block = controller_config.headers_config
+          @headers = create_attribute(dsl_compiler: HeadersDSLCompiler, **saved_opts, &saved_block)
         end
 
         self.instance_eval(&block) if block_given?
-
 
       end
 
@@ -82,11 +80,17 @@ module Praxis
         @responses.merge(responses)
       end
 
+
       def response_groups(*response_groups)
         @response_groups.merge(response_groups)
       end
 
+      def allowed_responses
+        names = @responses + controller_config.responses
+        groups = @response_groups + controller_config.response_groups
 
+        @allowed_responses = ApiDefinition.instance.responses(names: names, groups: groups)
+      end
 
       def create_attribute(type=Attributor::Struct, **opts, &block)
         unless opts[:reference]
@@ -102,7 +106,8 @@ module Praxis
       end
 
       def use(trait_name)
-        self.instance_eval(&Skeletor.traits[trait_name])
+        raise "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.has_key? trait_name
+        self.instance_eval(&ApiDefinition.instance.traits[trait_name])
       end
 
       def params(type=Attributor::Struct, **opts, &block)
@@ -159,8 +164,8 @@ module Praxis
           hash[:headers] = headers.describe if headers
           hash[:params] = params.describe if params
           hash[:payload] = payload.describe if payload
-          hash[:responses] = all_responses.inject({}) do |memo, kv|
-            memo[kv[0]] = kv[1].describe
+          hash[:responses] = allowed_responses.inject({}) do |memo, response|
+            memo[response.name] = response.describe
             memo
           end
         end

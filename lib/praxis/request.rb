@@ -4,6 +4,7 @@ module Praxis
     attr_reader :env, :query, :version
     attr_accessor :route_params, :action
 
+
     def initialize(env)
       @env = env
       @query = Rack::Utils.parse_nested_query(env['QUERY_STRING'.freeze])

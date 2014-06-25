@@ -1,15 +1,7 @@
 require 'active_support/concern'
 require 'active_support/inflector'
 
-SimpleMediaType = Struct.new(:identifier) do
-  def ===(other_thing)
-    identifier == other_thing
-  end
 
-  def describe
-    'todo' # TODO: replace todo
-  end
-end
 
 module Praxis
   module ResourceDefinition
@@ -86,6 +78,12 @@ module Praxis
           hash[:actions] = actions.values.map(&:describe)
         end
       end
+
+      def use(trait_name)
+        raise "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.has_key? trait_name
+        self.instance_eval(&ApiDefinition.instance.traits[trait_name])
+      end
+
     end
 
   end

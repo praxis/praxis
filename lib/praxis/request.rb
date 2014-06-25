@@ -19,6 +19,8 @@ module Praxis
     attr_accessor :headers, :params, :payload
 
     def params_hash
+      return {} if params.nil?
+      
       params.attributes.each_with_object({}) do |(k,v),hash|
         hash[k] = v
       end

@@ -70,10 +70,12 @@ module Praxis
     end
 
     def load_params(context)
+      return unless action.params
       self.params = action.params.load(self.raw_params, context)
     end
 
     def load_payload(context)
+      return unless action.payload
       self.payload = action.payload.load(self.raw_payload, context)
     end
 

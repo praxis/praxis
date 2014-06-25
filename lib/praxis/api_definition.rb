@@ -15,14 +15,13 @@ module Praxis
       yield(self.instance)
     end
 
-
     def initialize
       @responses = Hash.new
       @traits = Hash.new
     end
 
     def register_response(name, group: :default, &block)
-      @responses[name] = Praxis::Skeletor::ResponseDefinition.new(name,group:group, &block)
+      @responses[name] = Praxis::ResponseDefinition.new(name,group:group, &block)
     end
 
     def response(name)

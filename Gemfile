@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 gem 'taylor', path: '../../taylor'
 gem 'attributor', path: '../../attributor'
 
+gem 'thor'
 gem 'rack'
 gem 'mustermann'
 gem 'activesupport'

@@ -18,20 +18,3 @@ module Praxis
 
   end
 end
-
-
-
-
-# def run_callbacks(stage)
-#   @controller.class.before_callbacks[stage].each do |(conditions,callback)|
-#     callback.call(@controller)
-#   end
-
-#   result = yield
-
-#   #controller.after_callbacks[stage].each do |(conditions,callback)|
-#   #  callback.call(request)
-#   #end
-
-#   result
-# end

@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 
 #gem 'skeletor', path: '../../skeletor'
-gem 'taylor', path: '../../taylor'
-gem 'attributor', path: '../../attributor'
+gem 'taylor', path: '../taylor'
+gem 'attributor', path: '../attributor'
 
 gem 'thor'
 gem 'rack'
@@ -23,14 +23,13 @@ group :development, :test do
   gem 'guard-rspec'
   gem 'guard-bundler'
   
-
   gem 'pry'
   gem 'pry-byebug'
   gem 'pry-stack_explorer'
 end
 
-group :test do
 
+group :test do
   gem 'rack-test', :require => 'rack/test'
   gem 'simplecov', :require => false
 

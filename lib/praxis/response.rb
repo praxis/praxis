@@ -78,7 +78,7 @@ module Praxis
         end
       end
 
-      conf_class = action.controller_config
+      conf_class = action.resource_definition
 
       extracted_identifier = self.headers['Content-Type']
       # Support "+json" and options like ";type=collection"

@@ -30,6 +30,7 @@ module Praxis
   autoload :SimpleMediaType, 'praxis/simple_media_type'
   autoload :Stage,       'praxis/stage'
   autoload :ResponseDefinition, 'praxis/response_definition'
+  autoload :ActionDefinition, 'praxis/action_definition'
 
   module Responses
     autoload :Default, 'praxis/responses/default'
@@ -56,7 +57,6 @@ module Praxis
   end
   
   module Skeletor
-    autoload :RestfulActionConfig, 'praxis/skeletor/restful_action_config'
     autoload :RestfulRoutingConfig, 'praxis/skeletor/restful_routing_config'
 
 

@@ -12,13 +12,13 @@ module Praxis
       @actions = Hash.new
       @responses = Set.new
       @response_groups = Set[:default]
-      @routing_config
       Application.instance.resource_definitions << self
     end
 
     module ClassMethods
       attr_reader :actions
-      attr_reader :routing_config, :params_config, :payload_config, :headers_config
+      attr_reader :routing_config
+
 
       attr_accessor :controller
 
@@ -43,19 +43,22 @@ module Praxis
       def action(name, &block)
         opts = {}
         opts[:media_type] = media_type if media_type
-        @actions[name] = Skeletor::RestfulActionConfig.new(name, self, opts, &block)
+        @actions[name] = ActionDefinition.new(name, self, opts, &block)
       end
 
       def params(type=Attributor::Struct, **opts, &block)
-        @params_config = [type, opts, block]
+        return @params if type == Attributor::Struct && !block
+        @params = [type, opts, block]
       end
 
       def payload(type=Attributor::Struct, **opts, &block)
-        @payload_config = [type, opts, block]
+        return @payload if type == Attributor::Struct && !block
+        @payload = [type, opts, block]
       end
 
       def headers(**opts, &block)
-        @headers_config = [opts, block]
+        return @headers unless block
+        @headers = [opts, block]
       end
 
       def description(text=nil)

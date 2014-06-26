@@ -1,7 +1,7 @@
 require 'rack'
 
 require 'attributor'
-
+require 'taylor'
 
 $:.unshift File.dirname(__FILE__)
 
@@ -31,6 +31,8 @@ module Praxis
   autoload :Stage,       'praxis/stage'
   autoload :ResponseDefinition, 'praxis/response_definition'
   autoload :ActionDefinition, 'praxis/action_definition'
+
+  autoload :MediaType, 'praxis/media_type'
 
   module Responses
     autoload :Default, 'praxis/responses/default'

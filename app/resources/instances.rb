@@ -2,7 +2,7 @@ module ApiResources
   class Instances
     include Praxis::ResourceDefinition
 
-    media_type 'application/json'
+    media_type Instance
     version '1.0'
 
     #response_groups :premium

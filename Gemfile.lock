@@ -136,3 +136,4 @@ DEPENDENCIES
   ruport
   simplecov
   taylor!
+  thor

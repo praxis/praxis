@@ -39,6 +39,10 @@ module Praxis
         @routes << [verb, path, options]
       end
 
+      def describe
+        # TODO: the describe is simply an array of 3-tuples (verb,path, options)...but we should instead convert that to an array of hashes...
+        @routes
+      end
     end
 
   end

@@ -1,0 +1,13 @@
+<tabs>
+  <tab ng-repeat="(name, attrs) in collection" title="name" active="$first" >
+    <pre class="view-example">{{ attrs.example | json }}</pre>
+    <ul class="view-attrs">
+      <li ng-repeat="(attrName, attrValue) in attrs.attributes">
+        {{ attrName }}
+        <span ng-if="attrValue.view">
+          (using view {{ attrValue.view }})
+        </span>
+      </li>
+    </ul>
+  </tab>
+</tabs>

@@ -77,7 +77,7 @@ module Praxis
       def describe
         {}.tap do |hash|
           hash[:description] = description
-          hash[:media_type] = media_type.describe if media_type
+          hash[:media_type] = media_type.name if media_type
           hash[:actions] = actions.values.map(&:describe)
         end
       end

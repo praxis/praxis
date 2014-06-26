@@ -1,6 +1,10 @@
 module Praxis
   
   SimpleMediaType = Struct.new(:identifier) do
+    def name
+      self.class.name
+    end
+    
     def ===(other_thing)
       case other_thing
       when String

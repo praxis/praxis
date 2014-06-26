@@ -1,0 +1,63 @@
+<!-- Action -->
+
+<div ng-if="error" class="alert alert-danger">
+  <p>The requested action could not be found.</p>
+</div>
+<div ng-if="action">
+  <div class="row">
+    <div class="col-lg-12">
+      <h1>
+        {{ action.name }}
+      </h1>
+      <p ng-repeat="url in action.urls">
+        {{ url[0] }} {{ url[1] }}
+      </p>
+      <p>{{ action.description }}</p>
+    </div>
+  </div>
+
+  <div class="row" ng-if="action.headers.type.attributes">
+    <div class="col-lg-12">
+      <h2>Request Headers</h2>
+      <rs-attribute-table attributes="action.headers.type.attributes" show-groups="true"></rs-attribute-table>
+    </div>
+  </div>
+
+  <div class="row" ng-if="action.params.type.attributes">
+    <div class="col-lg-12">
+      <h2>Request Parameters</h2>
+      <rs-attribute-table attributes="action.params.type.attributes" show-groups="true"></rs-attribute-table>
+    </div>
+  </div>
+
+  <div class="row" ng-if="action.payload.type.attributes">
+    <div class="col-lg-12">
+      <h2>Request Body</h2>
+      <rs-attribute-table attributes="action.payload.type.attributes" show-groups="true"></rs-attribute-table>
+    </div>
+  </div>
+
+  <div class="row" ng-if="hasResponses()">
+    <div class="col-lg-12">
+      <h2>Responses</h2>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Mime type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="(name,response) in action.responses">
+            <td>{{response.status}}</td>
+            <td>{{name}}</td>
+            <td>{{response.mime_type}}</td>
+            <td><rs-attribute-description attribute="response"></rs-attribute-description></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

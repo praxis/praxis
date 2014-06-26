@@ -63,7 +63,14 @@ module Praxis
         "status" => status
       }
       content['location'] = { "value" => location_value, "type" => location_type } unless location == nil
-      content['mime_type'] = mime_type unless mime_type == nil
+      # TODO: Change the mime_type key to media_type!!
+      if media_type
+        content['mime_type'] = if media_type.is_a? Symbol
+          media_type
+        else
+          media_type.describe
+        end
+      end
       content['headers'] = headers unless headers == nil
       content
     end

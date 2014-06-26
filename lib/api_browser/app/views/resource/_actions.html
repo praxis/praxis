@@ -1,0 +1,19 @@
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="action in controller.actions">
+      <td><a ui-sref="root.action({action: action.name, controller: controllerName, version: apiVersion})">{{ action.name }}</a></td>
+      <td>
+        <div ng-repeat="url in action.urls">
+          {{ url[0] }} {{ url[1] }}
+        </div>
+        {{ action.description }}
+      </td>
+    </tr>
+  </tbody>
+</table>

@@ -159,7 +159,7 @@ module Praxis
       {}.tap do |hash|
         hash[:description] = description
         hash[:name] = name
-        hash[:urls] = urls
+        hash[:urls] = routing_config.describe
         hash[:headers] = headers.describe if headers
         hash[:params] = params.describe if params
         hash[:payload] = payload.describe if payload

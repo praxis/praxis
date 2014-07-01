@@ -2,6 +2,8 @@ module Praxis
   class Config
     include Attributor::Type
 
+    attr_reader :definition
+
     def initialize
       @definition = Attributor::Attribute.new(Attributor::Struct) {}
       @value = nil

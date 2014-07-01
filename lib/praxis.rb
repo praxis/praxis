@@ -1,9 +1,5 @@
 require 'rack'
 require 'attributor'
-<<<<<<< HEAD
-=======
-require 'taylor'
->>>>>>> oss
 
 $:.unshift File.dirname(__FILE__)
 
@@ -17,7 +13,6 @@ module Attributor
 end
 
 module Praxis
-
   autoload :ActionDefinition, 'praxis/action_definition'
   autoload :ApiDefinition, 'praxis/api_definition'
   autoload :Application, 'praxis/application'
@@ -52,7 +47,6 @@ module Praxis
   end
 
   module BootloaderStages
-    autoload :Stage, 'praxis/bootloader_stages/stage'
     autoload :FileLoader, 'praxis/bootloader_stages/file_loader'
     autoload :Environment, 'praxis/bootloader_stages/environment'
     autoload :AppLoader, 'praxis/bootloader_stages/app_loader'

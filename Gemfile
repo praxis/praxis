@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 
 #gem 'skeletor', path: '../../skeletor'
-gem 'taylor', path: '../taylor'
-gem 'attributor', path: '../attributor'
+gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
+gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
 
 gem 'thor'
 gem 'rack'

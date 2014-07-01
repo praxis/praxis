@@ -1,0 +1,28 @@
+﻿<div class="row" ng-if="type">
+  <div class="col-lg-12">
+    <h2>Media Type</h2>
+    <p ng-if="type.mime_type"><b>Mime Type: {{ type.mime_type }}</b></p>
+    <rs-attribute-table attributes="type.attributes"></rs-attribute-table>
+  </div>
+</div>
+<div class="row" ng-if="views.length">
+  <div class="col-lg-12">
+    <h3>Available views</h3>
+    <tabset>
+      <tab ng-repeat="view in views" heading="{{view.name}}">
+        <div class="row">
+          <div class="col-md-4">
+            <h4>Attributes</h4>
+            <ul>
+              <li ng-repeat="(name,value) in view.attributes">{{name}}</li>
+            </ul>
+          </div>
+          <div class="col-md-8">
+            <h4>Example</h4>
+            <pre>{{view.example | friendlyJson}}</pre>
+          </div>
+        </div>
+      </tab>
+    </tabset>
+  </div>
+</div>

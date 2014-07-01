@@ -7,12 +7,14 @@ Gem::Specification.new do |s|
   s.date = %q{2014-06-19}
   s.description = %q{API Framework}
   s.email = %q{blanquer@rightscale.com}
-  s.files = ["README.md", "lib/praxis.rb"]
+  s.files = ["README.md", "lib/praxis.rb"] + Dir['tasks/*']
   s.homepage = %q{http://rubygems.org/gems/praxis}
   s.require_paths = ["lib"]
   s.rubygems_version = %q{2.2.1}
   s.required_ruby_version = '~> 2.0'
   s.summary = %q{Building APIs the way you want it.}
+  s.bindir = 'bin'
+  s.executables << 'praxis'
 
   s.add_dependency 'rack'
   s.add_dependency 'mustermann'

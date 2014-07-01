@@ -1,23 +1,44 @@
 require 'rack'
 require 'attributor'
+<<<<<<< HEAD
+=======
+require 'taylor'
+>>>>>>> oss
 
 $:.unshift File.dirname(__FILE__)
 
+module Attributor
+  class DSLCompiler
+    def use(name)
+      raise "Trait #{name} not found in the system" unless Praxis::ApiDefinition.instance.traits.has_key? name
+      self.instance_eval(&Praxis::ApiDefinition.instance.traits[name])
+    end
+  end
+end
+
 module Praxis
 
+  autoload :ActionDefinition, 'praxis/action_definition'
   autoload :ApiDefinition, 'praxis/api_definition'
   autoload :Application, 'praxis/application'
+  autoload :Bootloader, 'praxis/bootloader'
   autoload :Bootloader, 'praxis/bootloader'
   autoload :Config, 'praxis/config'
   autoload :Controller, 'praxis/controller'
   autoload :Dispatcher, 'praxis/dispatcher'
   autoload :Exception, 'praxis/exception'
   autoload :FileGroup,'praxis/file_group'
+  autoload :FileGroup,'praxis/file_group'
+  autoload :MediaType, 'praxis/media_type'
+  autoload :Plugin, 'praxis/plugin'
   autoload :Plugin, 'praxis/plugin'
   autoload :Request, 'praxis/request'
   autoload :ResourceDefinition, 'praxis/resource_definition'
   autoload :Response, 'praxis/response'
+  autoload :ResponseDefinition, 'praxis/response_definition'
   autoload :Router, 'praxis/router'
+  autoload :SimpleMediaType, 'praxis/simple_media_type'
+  autoload :Stage, 'praxis/stage'
 
   module Exceptions
     autoload :ConfigException, 'praxis/exceptions/config_exception'
@@ -39,10 +60,17 @@ module Praxis
     autoload :Routing, 'praxis/bootloader_stages/routing'
   end
 
+  module RequestStages
+    autoload :RequestStage, 'praxis/request_stages/request_stage'
+    autoload :LoadRequest, 'praxis/request_stages/load_request'
+    autoload :Validate, 'praxis/request_stages/validate'
+    autoload :ValidateParamsAndHeaders, 'praxis/request_stages/validate_params_and_headers'
+    autoload :ValidatePayload, 'praxis/request_stages/validate_payload'
+    autoload :Action, 'praxis/request_stages/action'
+    autoload :Response, 'praxis/request_stages/response'
+  end
+
   module Skeletor
-    autoload :ResponseDefinition, 'praxis/skeletor/response_definition'
-    autoload :RestfulActionConfig, 'praxis/skeletor/restful_action_config'
-    autoload :RestfulSinatraApplicationConfig, 'praxis/skeletor/restful_sinatra_application_config'
     autoload :RestfulRoutingConfig, 'praxis/skeletor/restful_routing_config'
   end
 end

@@ -1,5 +1,6 @@
 require 'singleton'
 require 'mustermann'
+require 'logger'
 
 module Praxis
   class Application

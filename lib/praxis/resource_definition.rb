@@ -1,15 +1,7 @@
 require 'active_support/concern'
 require 'active_support/inflector'
 
-SimpleMediaType = Struct.new(:identifier) do
-  def ===(other_thing)
-    identifier == other_thing
-  end
 
-  def describe
-    'todo' # TODO: replace todo
-  end
-end
 
 module Praxis
   module ResourceDefinition
@@ -20,13 +12,13 @@ module Praxis
       @actions = Hash.new
       @responses = Set.new
       @response_groups = Set[:default]
-      @routing_config
       Application.instance.resource_definitions << self
     end
 
     module ClassMethods
       attr_reader :actions
-      attr_reader :routing_config, :params_config, :payload_config, :headers_config
+      attr_reader :routing_config
+
 
       attr_accessor :controller
 
@@ -51,19 +43,22 @@ module Praxis
       def action(name, &block)
         opts = {}
         opts[:media_type] = media_type if media_type
-        @actions[name] = Skeletor::RestfulActionConfig.new(name, self, opts, &block)
+        @actions[name] = ActionDefinition.new(name, self, opts, &block)
       end
 
       def params(type=Attributor::Struct, **opts, &block)
-        @params_config = [type, opts, block]
+        return @params if type == Attributor::Struct && !block
+        @params = [type, opts, block]
       end
 
       def payload(type=Attributor::Struct, **opts, &block)
-        @payload_config = [type, opts, block]
+        return @payload if type == Attributor::Struct && !block
+        @payload = [type, opts, block]
       end
 
       def headers(**opts, &block)
-        @headers_config = [opts, block]
+        return @headers unless block
+        @headers = [opts, block]
       end
 
       def description(text=nil)
@@ -82,10 +77,16 @@ module Praxis
       def describe
         {}.tap do |hash|
           hash[:description] = description
-          hash[:media_type] = media_type.describe if media_type
+          hash[:media_type] = media_type.name if media_type
           hash[:actions] = actions.values.map(&:describe)
         end
       end
+
+      def use(trait_name)
+        raise "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.has_key? trait_name
+        self.instance_eval(&ApiDefinition.instance.traits[trait_name])
+      end
+
     end
 
   end

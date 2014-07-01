@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>API Browser</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width">
+  <!-- bower:css -->
+  <!-- endbower -->
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body ng-app="docBrowser">
+  <div ui-view=""></div>
+  <!-- build:js scripts/vendor.js -->
+  <!-- bower:js -->
+  <script src="bower_components/jquery/dist/jquery.js"></script>
+  <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/lodash/dist/lodash.compat.js"></script>
+  <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+  <script src="bower_components/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js"></script>
+  <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+  <!-- endbower -->
+  <!-- endbuild -->
+  <!-- build:js({.tmp,app}) scripts/scripts.js -->
+  <!-- fileblock:js scripts -->
+  <script src="js/app.js"></script>
+  <script src="js/directives/toggler/toggler.js"></script>
+  <script src="js/directives/views/views.js"></script>
+  <script src="js/filters/resource_name.js"></script>
+  <script src="js/controllers/menu.js"></script>
+  <script src="js/controllers/action.js"></script>
+  <script src="js/directives/attribute_table.js"></script>
+  <script src="js/controllers/type.js"></script>
+  <script src="js/controllers/controller.js"></script>
+  <script src="js/factories/Documentation.js"></script>
+  <script src="js/directives/type_label.js"></script>
+  <script src="js/filters/attribute_name.js"></script>
+  <script src="js/filters/friendly_json.js"></script>
+  <script src="js/directives/attribute_description.js"></script>
+  <!-- endfileblock -->
+  <!-- endbuild -->
+</body>
+</html>

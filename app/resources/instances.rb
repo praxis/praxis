@@ -2,12 +2,14 @@ module ApiResources
   class Instances
     include Praxis::ResourceDefinition
 
-    media_type 'application/json'
+    media_type Instance
     version '1.0'
 
     #response_groups :premium
     #responses :instance_limit_reached
     #responses :pay_us_money
+    
+    use :authenticated
 
     routing do
       prefix '/clouds/:cloud_id/instances'
@@ -27,9 +29,9 @@ module ApiResources
       routing do
         get '/:id'
       end
-      headers do
-        header :host
-      end
+
+      responses :other_response
+
       params do
         attribute :id, Integer, required: true, min: 1
         attribute :junk, String, default: ''

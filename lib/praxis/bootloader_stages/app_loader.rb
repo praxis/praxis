@@ -9,9 +9,9 @@ module Praxis
       def initialize(name, application)
         super
         # always finalize Taylor after loading app code.
-        #after do
-        #  ::Taylor.finalize!
-        #end
+        after do
+          ::Taylor.finalize!
+        end
       end
 
       def order

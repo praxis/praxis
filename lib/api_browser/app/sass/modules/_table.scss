@@ -1,0 +1,13 @@
+//
+// Table
+// ------------------------------
+
+.table {
+  dl {
+    margin: 0;
+    padding: 0;
+  }
+  tbody tr.sub-row td {
+    border-top: none;
+  }
+}

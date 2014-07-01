@@ -1,0 +1,26 @@
+//
+// Sidebar
+// ------------------------------
+
+.sidebar {
+  @media (min-width: $screen-sm-min) {
+    width: 160px;
+  }
+  @media (min-width: $screen-lg-min) {
+    width: 250px;
+  }
+}
+
+.sidebar {
+  &.affix {
+    @media (max-width: $screen-sm-min) {
+      position: relative;
+    }
+  }
+}
+
+.sidebar {
+  .list-group-item {
+    word-break: break-word;
+  }
+}

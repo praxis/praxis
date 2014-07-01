@@ -1,12 +1,12 @@
 PATH
-  remote: ../../attributor
+  remote: ../attributor
   specs:
     attributor (2.0.0)
       hashie
       randexp
 
 PATH
-  remote: ../../taylor
+  remote: ../taylor
   specs:
     taylor (3.0.0)
       activesupport (>= 2.3.5, < 4.0)
@@ -136,3 +136,4 @@ DEPENDENCIES
   ruport
   simplecov
   taylor!
+  thor

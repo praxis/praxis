@@ -4,20 +4,23 @@ module Praxis
     attr_reader :env, :query, :version
     attr_accessor :route_params, :action
 
+
     def initialize(env)
       @env = env
       @query = Rack::Utils.parse_nested_query(env['QUERY_STRING'.freeze])
       @route_params = {}
       load_version
     end
-    
-    def path 
+
+    def path
       @env['PATH_INFO'.freeze]
     end
 
     attr_accessor :headers, :params, :payload
 
     def params_hash
+      return {} if params.nil?
+      
       params.attributes.each_with_object({}) do |(k,v),hash|
         hash[k] = v
       end
@@ -51,8 +54,8 @@ module Praxis
     end
 
     def load_version
-      @version = env.fetch("HTTP_X_API_VERSION".freeze, 
-        @query.fetch('api_version'.freeze, 'n/a'.freeze))
+      @version = env.fetch("HTTP_X_API_VERSION".freeze,
+                           @query.fetch('api_version'.freeze, 'n/a'.freeze))
     end
 
     def load_headers(context)
@@ -69,10 +72,12 @@ module Praxis
     end
 
     def load_params(context)
+      return unless action.params
       self.params = action.params.load(self.raw_params, context)
     end
 
     def load_payload(context)
+      return unless action.payload
       self.payload = action.payload.load(self.raw_payload, context)
     end
 
@@ -83,11 +88,13 @@ module Praxis
     end
 
     def validate_params(context)
+      return unless action.params
       errors = self.params.validate(context)
       raise "nope: #{errors.inspect}" if errors.any?
     end
 
     def validate_payload(context)
+      return unless action.payload
       errors = self.payload.validate(context)
       raise "nope: #{errors.inspect}" if errors.any?
     end

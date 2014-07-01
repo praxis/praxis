@@ -2,20 +2,18 @@ module Praxis
   module Skeletor
     class RestfulRoutingConfig
 
-      attr_reader :name, :controller_config, :routes
+      attr_reader :name, :resource_definition, :routes
 
-      def initialize(name, controller_config, &block)
+      def initialize(name, resource_definition, &block)
         @name = name
-        @controller_config = controller_config
+        @resource_definition = resource_definition
         @routes = []
 
-        @prefix = "/" + controller_config.name.split("::").last.underscore
+        @prefix = "/" + resource_definition.name.split("::").last.underscore
 
-
-        if controller_config.routing_config
-          instance_eval(&controller_config.routing_config)
+        if resource_definition.routing_config
+          instance_eval(&resource_definition.routing_config)
         end
-
 
         instance_eval(&block)
       end
@@ -41,12 +39,10 @@ module Praxis
         @routes << [verb, path, options]
       end
 
-      def urls
-        @routes.collect do | (verb, path, options)|
-          [verb, path]
-        end
+      def describe
+        # TODO: the describe is simply an array of 3-tuples (verb,path, options)...but we should instead convert that to an array of hashes...
+        @routes
       end
-
     end
 
   end

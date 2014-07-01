@@ -4,7 +4,7 @@ module Praxis
   class ResponseDefinition
     attr_reader :name, :group
 
-    def initialize(response_name, group:, **spec, &block)
+    def initialize(response_name, group: :default, **spec, &block)
       @spec = spec
       @group = group
       @name = response_name

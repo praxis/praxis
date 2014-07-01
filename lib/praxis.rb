@@ -33,6 +33,7 @@ module Praxis
   autoload :ActionDefinition, 'praxis/action_definition'
 
   autoload :MediaType, 'praxis/media_type'
+  autoload :Links, 'praxis/links'
 
   module Responses
     autoload :Default, 'praxis/responses/default'

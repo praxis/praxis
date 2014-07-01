@@ -19,4 +19,9 @@ end
 
 RSpec.configure do |config|
   config.include Rack::Test::Methods
+  
+  config.before(:suite) do
+    Praxis::Application.instance.setup
+  end
+
 end

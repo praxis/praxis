@@ -33,7 +33,7 @@ module ApiResources
       responses :other_response
 
       params do
-        attribute :id, Integer, required: true, min: 1
+        attribute :id #, Integer, required: true, min: 1
         attribute :junk, String, default: ''
         attribute :some_date, DateTime, default: DateTime.parse('2012-12-21')
       end

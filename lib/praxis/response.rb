@@ -94,7 +94,7 @@ module Praxis
           raise "Error validating content type: this controller (#{conf_class}) doesn't have any associated media_type" unless mt
         end
 
-        unless mt === extracted_identifier
+        unless mt.identifier == extracted_identifier
           raise "Bad Content-Type: returned type #{extracted_identifier} does not match type #{mt.identifier} as described in response: #{definition.name}"
         end
       end

@@ -1,8 +1,5 @@
 require 'spec_helper'
 
-Praxis::Application.instance.setup
-
-
 describe 'functional stuff' do
 
   def app 

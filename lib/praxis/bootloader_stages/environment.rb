@@ -9,7 +9,7 @@ module Praxis
       # 1) the environment.rb file    - generic stuff for all environments
       # 2) "Deployer.environment".rb  - environment specific stuff
       def execute
-        env_file = application.root + "config/environment.rb"
+        env_file = application.root + "config/environment"
         require env_file if File.exists? env_file
         
         application.plugins.each do |plugin|
@@ -22,10 +22,10 @@ module Praxis
       end
 
       def setup_default_layout!
-        application.bootloader.layout do
+        application.layout do
           layout do
             map :initializers, 'config/initializers/**/*'
-            #map :lib, 'lib/**/*'
+            map :lib, 'lib/**/*'
             map :app, 'app/' do
               map :api, 'api.rb'
               map :models, 'models/**/*'

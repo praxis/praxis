@@ -64,10 +64,6 @@ module Praxis
       application.plugins << plugin.new(application, &block)
     end
 
-    def layout(&block)
-      application.file_layout = FileGroup.new(application.root, &block)
-    end
-
     def setup!
       run
     end

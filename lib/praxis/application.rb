@@ -17,6 +17,10 @@ module Praxis
     attr_accessor :plugins
     attr_accessor :root
 
+    def self.configure
+      yield(self.instance)
+    end
+
     def initialize
       @controllers = Set.new
       @resource_definitions = Set.new
@@ -40,6 +44,10 @@ module Praxis
 
     def call(env)
       self.router.call(env)
+    end
+
+    def layout(&block)
+      self.file_layout = FileGroup.new(self.root, &block)
     end
 
     def config(&block)

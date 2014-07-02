@@ -1,4 +1,4 @@
-load 'praxis/tasks/environment.rake'
-load 'praxis/tasks/console.rake'
-load 'praxis/tasks/routes.rake'
-load 'praxis/tasks/api_docs.rake'
+require 'praxis/tasks/environment'
+require 'praxis/tasks/console'
+require 'praxis/tasks/routes'
+require 'praxis/tasks/api_docs'

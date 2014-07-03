@@ -43,6 +43,19 @@ class PraxisAppGenerator < Thor
     generate_dotenv
     generate_app_definitions_hello_world
     generate_app_controllers_hello_world
+    #
+    puts
+    puts "To run the example application:"
+    puts
+    puts "  # terminal 1:"
+    puts "  cd #{app_name}"
+    puts "  bundle"
+    puts "  rackup -p 8888"
+    puts
+    puts "  # terminal 2:"
+    puts "  curl -v http://localhost:8888/api/hello_world   -H 'X-Api-Version: 1.0' -X GET  # Index"
+    puts "  curl -v http://localhost:8888/api/hello_world/2 -H 'X-Api-Version: 1.0' -X GET  # Show"
+    puts "  curl -v http://localhost:8888/api/hello_world/2 -H 'X-Api-Version: 2.0' -X GET  # NotFound Error"
     nil
   end
 
@@ -125,6 +138,9 @@ source 'https://rubygems.org'
 
 gem 'dotenv'
 
+# Remove this one later when praxis does not need it
+gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
+
 # FIXME: replace skeletor with praxis
 gem 'praxis', git: 'git@github.com:rightscale/skeletor.git', branch: 'oss'
 
@@ -180,31 +196,33 @@ EOF
 
 
   def generate_app_definitions_hello_world
-      create_file path('app/controllers/hello_world_1_definition.rb') do
+      create_file path('app/resources/v1/hello_world_definition.rb') do
 <<-EOF
-module ApiResources
-  class HelloWorld
-    include Praxis::ResourceDefinition
+module V1
+  module ApiResources
+    class HelloWorld
+      include Praxis::ResourceDefinition
 
-    media_type 'application/json'
-    version '1.0'
+      media_type 'application/json'
+      version '1.0'
 
-    routing do
-      prefix '/api/hello_world'
-    end
-
-    action :index do
       routing do
-        get ''
+        prefix '/api/hello_world'
       end
-    end
 
-    action :show do
-      routing do
-        get '/:id'
+      action :index do
+        routing do
+          get ''
+        end
       end
-      params do
-        attribute :id, Integer, required: true, min: 1
+
+      action :show do
+        routing do
+          get '/:id'
+        end
+        params do
+          attribute :id, Integer, required: true, min: 0
+        end
       end
     end
   end
@@ -216,31 +234,33 @@ EOF
 
 
   def generate_app_controllers_hello_world
-      create_file path('app/controllers/hello_world_2_controller.rb') do
+      create_file path('app/controllers/v1/hello_world_controller.rb') do
 <<-EOF
-class HelloWorld
-  include Praxis::Controller
+module V1
+  class HelloWorld
+    include Praxis::Controller
 
-  implements ApiResources::HelloWorld
+    implements V1::ApiResources::HelloWorld
 
-  HELLO_WORLD = [ 'Hello world!', 'Привет всем!', 'Hola mundo!', '你好世界' ]
+    HELLO_WORLD = [ 'Hello world!', 'Привет мир!', 'Hola mundo!', '你好世界', 'こんにちわ世界' ]
 
-  def index(**params)
-    response.headers['Content-Type'] = 'application/json'
-    response.body = HELLO_WORLD.to_json
-    response
-  end
-
-  def show(id:, **other_params)
-    hello = HELLO_WORLD[id]
-    if hello
-      response.body = { id: id, data: hello }
-    else
-      response.status = 404
-      response.body   = { error: '404: Not found' }
+    def index(**params)
+      response.headers['Content-Type'] = 'application/json'
+      response.body = HELLO_WORLD.to_json
+      response
     end
-    response.headers['Content-Type'] = 'application/json'
-    response
+
+    def show(id:, **other_params)
+      hello = HELLO_WORLD[id]
+      if hello
+        response.body = { id: id, data: hello }
+      else
+        response.status = 404
+        response.body   = { error: '404: Not found' }
+      end
+      response.headers['Content-Type'] = 'application/json'
+      response
+    end
   end
 end
 EOF

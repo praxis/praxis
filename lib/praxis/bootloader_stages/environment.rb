@@ -9,7 +9,7 @@ module Praxis
       # 1) the environment.rb file    - generic stuff for all environments
       # 2) "Deployer.environment".rb  - environment specific stuff
       def execute
-        env_file = application.root + "config/environment"
+        env_file = application.root + "config/environment.rb"
         require env_file if File.exists? env_file
         
         application.plugins.each do |plugin|

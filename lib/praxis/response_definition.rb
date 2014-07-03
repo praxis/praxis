@@ -25,17 +25,20 @@ module Praxis
     def media_type(media_type=nil)
       return @spec[:media_type] if media_type.nil?
 
-      if !(media_type.kind_of?(String) ||
-           media_type.class == Class && media_type < Praxis::MediaType ||
-           (media_type.kind_of?(Symbol) && media_type == :controller_defined))
-        raise "Invalid media_type specification. media_type must be a String, MediaType or :controller_defined"
-      end
-
-      if media_type.kind_of?(String)
-        media_type = SimpleMediaType.new(media_type)
-      end
-
-      @spec[:media_type] = media_type
+      @spec[:media_type] = case media_type
+        when String
+          SimpleMediaType.new(media_type)
+        when Class
+          if media_type < Praxis::MediaType
+            media_type
+          else
+            raise 'Invalid media_type specification. media_type must be a Praxis::MediaType'
+          end
+        when :controller_defined
+          media_type
+        else
+          raise "Invalid media_type specification. media_type must be a String, MediaType or :controller_defined"
+        end
     end
 
     def location(loc=nil)

@@ -1,5 +1,6 @@
 require 'rack'
 require 'attributor'
+require 'taylor'
 
 $:.unshift File.dirname(__FILE__)
 

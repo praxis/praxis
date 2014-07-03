@@ -2,10 +2,10 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Praxis::ResourceDefinition do
   let(:routing_href) { '/clouds/1/instances' }
-  let(:media_type) { 'my_media_type' }
+  let(:string_media_type) { 'my_media_type' }
   let(:version) { '1.0' }
-  let(:response_group) { 'my_response_group' }
-  let(:response) { 'my_response' }
+  let(:response_group) { :my_response_group }
+  let(:responses) { :not_found }
   let(:description) { 'my_description' }
   let(:header_opts) { {opt1: "option1", opt2: "option2"} }
   let(:my_proc) { Proc.new{|s| puts s } }
@@ -22,7 +22,6 @@ describe Praxis::ResourceDefinition do
     include Praxis::ResourceDefinition
 
     media_type MyMediaType
-    #use :authenticated
 
     description "default description"
 
@@ -35,11 +34,9 @@ describe Praxis::ResourceDefinition do
     end
 
     payload do
-
     end
 
     headers do
-
     end
 
     action :index do
@@ -55,7 +52,7 @@ describe Praxis::ResourceDefinition do
         get '/:id'
       end
       params do
-        attribute :id, Integer, required: true, min: 1
+        attribute :id, Integer, required: true
       end
     end
   end
@@ -64,14 +61,25 @@ describe Praxis::ResourceDefinition do
     MyResource
   end
 
+  # Test #describe method first, as we know to expect the initial class
+  # values. The other tests below modify the class values.
+  it "#describe" do
+    hash = subject.describe
+
+    expect(hash[:description]).to eq("default description")
+    expect(hash[:media_type]).to eq(MyMediaType.name)
+    actions = hash[:actions]
+    expect(actions.length).to eq(2)
+  end
+
   it "#routing" do
     expect(subject.routing_config.class).to eq(Proc)
   end
 
   it "#media_type" do
     expect(subject.media_type).to eq(MyMediaType)
-    expect(subject.media_type(media_type).class).to eq(Praxis::SimpleMediaType)
-    expect(subject.media_type(media_type).identifier).to eq(media_type)
+    expect(subject.media_type(string_media_type).class).to eq(Praxis::SimpleMediaType)
+    expect(subject.media_type(string_media_type).identifier).to eq(string_media_type)
   end
 
   it "#version" do
@@ -111,7 +119,7 @@ describe Praxis::ResourceDefinition do
 
   it "#responses" do
     expect(subject.responses).to eq(Set.new)
-    expect(subject.responses(response)).to eq(Set[response])
+    expect(subject.responses(responses)).to eq(Set[responses])
   end
 
   it "#response_groups" do
@@ -119,18 +127,9 @@ describe Praxis::ResourceDefinition do
     expect(subject.response_groups(response_group)).to eq(Set[:default, response_group])
   end
 
-  it "#describe" do
-    hash = subject.describe
-
-    expect(hash[:description]).to eq("default description")
-    #expect(hash[:media_type]).to eq(MyMediaType.name)
-    actions = hash[:actions]
-    expect(actions.length).to eq(2)
-  end
-
   it "#use" do
+    # TODO: I need help understanding how to test this one.
     pending("TBD")
     this_should_not_get_executed
-    #expect(subject.use(:non_existent_trait)).to raise_error
   end
 end

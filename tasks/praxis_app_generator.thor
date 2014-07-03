@@ -53,9 +53,9 @@ class PraxisAppGenerator < Thor
     puts "  rackup -p 8888"
     puts
     puts "  # terminal 2:"
-    puts "  curl -v http://localhost:8888/api/hello_world   -H 'X-Api-Version: 1.0' -X GET  # Index"
-    puts "  curl -v http://localhost:8888/api/hello_world/2 -H 'X-Api-Version: 1.0' -X GET  # Show"
-    puts "  curl -v http://localhost:8888/api/hello_world/2 -H 'X-Api-Version: 2.0' -X GET  # NotFound Error"
+    puts "  curl -i http://localhost:8888/api/hello_world   -H 'X-Api-Version: 1.0' -X GET  # Index"
+    puts "  curl -i http://localhost:8888/api/hello_world/2 -H 'X-Api-Version: 1.0' -X GET  # Show"
+    puts "  curl -i http://localhost:8888/api/hello_world/2 -H 'X-Api-Version: 2.0' -X GET  # NotFound Error"
     nil
   end
 
@@ -242,7 +242,7 @@ module V1
 
     implements V1::ApiResources::HelloWorld
 
-    HELLO_WORLD = [ 'Hello world!', 'Привет мир!', 'Hola mundo!', '你好世界', 'こんにちわ世界' ]
+    HELLO_WORLD = [ 'Hello world!', 'Привет мир!', 'Hola mundo!', '你好世界!', 'こんにちは世界！' ]
 
     def index(**params)
       response.headers['Content-Type'] = 'application/json'

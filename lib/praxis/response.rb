@@ -58,8 +58,8 @@ module Praxis
       return unless definition.status
       # Validate status code if defined in the spec
       if definition.status != status
-        fail "Invalid response code detected. Response %s dictates status of %s but this response is returning %s." %
-             [definition.name, definition.status, status]
+        raise "Invalid response code detected. Response %s dictates status of %s but this response is returning %s." %
+              [definition.name, definition.status, status]
       end
     end
 
@@ -75,12 +75,12 @@ module Praxis
       case location
       when Regexp
         matches = location =~ headers['Location']
-        fail "LOCATION does not match regexp #{location.inspect}!" unless matches
+        raise "LOCATION does not match regexp #{location.inspect}!" unless matches
       when String
         matches = location == headers['Location']
-        fail "LOCATION does not match string #{location}!" unless matches
+        raise "LOCATION does not match string #{location}!" unless matches
       else
-        fail "Unknown location spec"
+        raise "Unknown location spec"
       end
     end
 
@@ -99,9 +99,9 @@ module Praxis
         case h
         when Hash   then  valid = h.all? { |k, v| headers.has_key?(k) && headers[k] == v }
         when String then  valid = headers.has_key?(h)
-        when Symbol then  fail "Symbols are not supported"
+        when Symbol then  raise "Symbols are not supported"
         end
-        fail "headers missing" unless valid
+        raise "headers missing" unless valid
       end
     end
 
@@ -124,14 +124,14 @@ module Praxis
       if media_type == :controller_defined
         media_type = resource_definition.media_type
         unless media_type
-          fail "Error validating content type: this controller (#{resource_definition}) "+
-               "doesn't have any associated media_type"
+          raise "Error validating content type: this controller (#{resource_definition}) "+
+                "doesn't have any associated media_type"
         end
       end
 
       if media_type.identifier != extracted_identifier
-        fail "Bad Content-Type: returned type #{extracted_identifier} does not match "+
-             "type #{media_type.identifier} as described in response: #{definition.name}"
+        raise "Bad Content-Type: returned type #{extracted_identifier} does not match "+
+              "type #{media_type.identifier} as described in response: #{definition.name}"
       end
     end
 

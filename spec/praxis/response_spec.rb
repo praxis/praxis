@@ -22,26 +22,20 @@ describe Praxis::Response do
   let(:spec_media_type) { application_vnd_resource_media_type }
 
   let(:response_spec) do
-    double(
-      "response_spec",
+    instance_double(
+      Praxis::ResponseDefinition,
       :status     => spec_status,
       :location   => spec_location,
       :headers    => spec_headers,
       :media_type => spec_media_type,
-      :mime_type  => spec_mime_type,
       :multipart  => nil,
       :name       => :spec
     )
   end
 
-  let(:responses) do
-    { :spec => response_spec }
-  end
-
   let(:action) do
-    double(
-      "action",
-      :responses           => responses,
+    instance_double(
+      Praxis::ActionDefinition,
       :resource_definition => config_class
      )
   end
@@ -54,12 +48,10 @@ describe Praxis::Response do
   }
 
   let(:config_media_type) { nil }
-  let(:config_mime_type)  { nil }
   let(:config_class) do
-    double(
-      "controller_config",
-      :media_type => config_media_type,
-      :mime_type  => config_mime_type
+    instance_double(
+      Praxis::ResponseDefinition,
+      :media_type => config_media_type
     )
   end
 

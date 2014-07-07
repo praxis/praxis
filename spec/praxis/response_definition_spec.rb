@@ -4,8 +4,6 @@ describe Praxis::ResponseDefinition do
   subject(:response_definition) { Praxis::ResponseDefinition.new(name, &block) }
   let(:name) { 'response_name' }
 
-  class ExampleMediaType < Praxis::MediaType; end
-
   let(:block) do
     Proc.new do
       status 200
@@ -19,8 +17,9 @@ describe Praxis::ResponseDefinition do
 
   context '#media_type' do
     it 'accepts a MediaType object and returns the media_type that was set' do
-      response_definition.media_type ExampleMediaType
-      expect(response_definition.media_type).to be(ExampleMediaType)
+      example_media_type = Class.new(Praxis::MediaType)
+      response_definition.media_type example_media_type
+      expect(response_definition.media_type).to be(example_media_type)
     end
 
     it 'accepts a string and returns a SimpleMediaType' do

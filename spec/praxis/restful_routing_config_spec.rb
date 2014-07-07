@@ -2,12 +2,14 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Praxis::Skeletor::RestfulRoutingConfig do
 
-  class MyResource
-    include Praxis::ResourceDefinition
+  let(:resource_definition) do
+    Class.new do
+     include Praxis::ResourceDefinition
+     def self.name; 'MyResource'; end
+    end
   end
 
   let(:action_name) { :index }
-  let(:resource_definition) { MyResource }
   let(:routing_block) { Proc.new{} }
   let(:default_route_prefix) { "/" + resource_definition.name.split("::").last.underscore }
 

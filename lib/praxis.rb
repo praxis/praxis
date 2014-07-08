@@ -1,5 +1,4 @@
 require 'rack'
-
 require 'attributor'
 require 'taylor'
 
@@ -15,31 +14,36 @@ module Attributor
 end
 
 module Praxis
-  autoload :Application, 'praxis/application'
-  autoload :Controller, 'praxis/controller'
-  autoload :Response, 'praxis/response'
-  autoload :Request, 'praxis/request'
-  autoload :Router, 'praxis/router'
-  autoload :ApiDefinition, 'praxis/api_definition'
-  autoload :Dispatcher, 'praxis/dispatcher'
-  autoload :ResourceDefinition, 'praxis/resource_definition'
-
-  autoload :Bootloader, 'praxis/bootloader'
-  autoload :Plugin, 'praxis/plugin'
-  autoload :FileGroup,'praxis/file_group'
-  autoload :SimpleMediaType, 'praxis/simple_media_type'
-  autoload :Stage,       'praxis/stage'
-  autoload :ResponseDefinition, 'praxis/response_definition'
   autoload :ActionDefinition, 'praxis/action_definition'
-
-  autoload :MediaType, 'praxis/media_type'
+  autoload :ApiDefinition, 'praxis/api_definition'
+  autoload :Application, 'praxis/application'
+  autoload :Bootloader, 'praxis/bootloader'
+  autoload :Config, 'praxis/config'
+  autoload :Controller, 'praxis/controller'
+  autoload :Dispatcher, 'praxis/dispatcher'
+  autoload :Exception, 'praxis/exception'
+  autoload :FileGroup,'praxis/file_group'
   autoload :Links, 'praxis/links'
+  autoload :MediaType, 'praxis/media_type'
+  autoload :Plugin, 'praxis/plugin'
+  autoload :Request, 'praxis/request'
+  autoload :ResourceDefinition, 'praxis/resource_definition'
+  autoload :Response, 'praxis/response'
+  autoload :ResponseDefinition, 'praxis/response_definition'
+  autoload :Router, 'praxis/router'
+  autoload :SimpleMediaType, 'praxis/simple_media_type'
+  autoload :Stage, 'praxis/stage'
+
+  module Exceptions
+    autoload :ConfigException, 'praxis/exceptions/config_exception'
+    autoload :ConfigLoadException, 'praxis/exceptions/config_load_exception'
+    autoload :ConfigValidationException, 'praxis/exceptions/config_validation_exception'
+  end
 
   module Responses
     autoload :Default, 'praxis/responses/default'
     autoload :NotFound, 'praxis/responses/not_found'
   end
-
 
   module BootloaderStages
     autoload :FileLoader, 'praxis/bootloader_stages/file_loader'
@@ -58,11 +62,8 @@ module Praxis
     autoload :Action, 'praxis/request_stages/action'
     autoload :Response, 'praxis/request_stages/response'
   end
-  
+
   module Skeletor
     autoload :RestfulRoutingConfig, 'praxis/skeletor/restful_routing_config'
-
-
-
   end
 end

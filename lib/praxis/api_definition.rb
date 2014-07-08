@@ -9,8 +9,6 @@ module Praxis
 
     attr_reader :traits
 
-    def_delegators :instance, :response
-
     def self.define
       yield(self.instance)
     end

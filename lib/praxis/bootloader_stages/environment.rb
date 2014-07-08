@@ -22,10 +22,10 @@ module Praxis
       end
 
       def setup_default_layout!
-        application.bootloader.layout do
+        application.layout do
           layout do
             map :initializers, 'config/initializers/**/*'
-            #map :lib, 'lib/**/*'
+            map :lib, 'lib/**/*'
             map :app, 'app/' do
               map :api, 'api.rb'
               map :models, 'models/**/*'

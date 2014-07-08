@@ -5,6 +5,9 @@ $:.unshift File.expand_path('support',__dir__)
 require 'bundler'
 Bundler.setup :default, :test
 
+require 'simplecov'
+SimpleCov.start 'praxis'
+
 require 'praxis'
 
 require 'rack/test'

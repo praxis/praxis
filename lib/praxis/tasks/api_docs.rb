@@ -106,10 +106,6 @@ class RestfulDocGenerator
       @resources << Resource.new(resource)
     end
 
-#    controllers = Skeletor::RestfulSinatraApplication.descendants.index_by(&:config_class)
-#    Skeletor::RestfulSinatraApplicationConfig.descendants.each do |config|
-#        @resources << Resource.new(controllers[config], config)
-#    end
   end
 
   def dump_example_for( context_name, object )
@@ -158,14 +154,14 @@ class RestfulDocGenerator
           type_output[:views].delete(:master)
           type_output[:views].each do |view_name, view_info|
             # Add and example for each view
-            unless( type < Skeletor::Links || type < Skeletor::Link )
+            unless( type < Praxis::Links ) #TODO: why do we need to skip an example for links?
               view_info[:example] = example_data.render(view_name) 
             end
           end
         end
         # Save a full type example
         # ...but not for links or link classes (there's no object container context if done alone!!)
-        unless( type < Skeletor::Links || type < Skeletor::Link )
+        unless( type < Praxis::Links ) #TODO: again, why is this special?
           type_output[:example] = if example_data.respond_to? :render
             example_data.render(:master)
           else
@@ -212,7 +208,7 @@ class RestfulDocGenerator
     versioned_types.each do |version, types|
       # Discard any mediatypes that we've already seen and processed as controller related
       reportable_types = types - media_types_seen_from_controllers - EXCLUDED_TYPES_FROM_TOP_LEVEL
-      reportable_types.reject!{|type| type < Skeletor::Links || type < Skeletor::Link }
+      reportable_types.reject!{|type| type < Praxis::Links } #TODO: think about this special case, is it needed?
       
       reportable_types.each do |type|
         index[version] ||= Hash.new
@@ -220,7 +216,7 @@ class RestfulDocGenerator
         if index[version].has_key? display_name
         raise "Display name already taken for version #{version}! #{display_name}" 
       end
-        index[version][display_name] = if type < Skeletor::MediaType
+        index[version][display_name] = if type < Praxis::MediaType
           {media_type: type.name }
         else
           {kind: type.name}
@@ -246,14 +242,8 @@ namespace :praxis do
   desc "Generate API docs (JSON definitions) for a Praxis App"
   task :api_docs => [:environment] do |t, args| 
     require 'fileutils'
-    require 'taylor' # TODO:...not here...
+#    require 'taylor' # TODO:...not here...
 
-    module Skeletor
-      class Links
-      end
-      class Link
-      end
-    end
     Taylor::Blueprint.caching_enabled = false
     generator = RestfulDocGenerator.new(File.join(Dir.pwd, API_DOCS_DIRNAME))
   end

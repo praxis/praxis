@@ -33,7 +33,7 @@ The "handle" method will be invoked before sending the request to the client, in
 business logic that needs to be run to complete its information. If there's no "handle" method, nothing will be invoked.
 
 As part of defining the response handling, you need to uniquely name it using the self.response_name function.
-This name is what will be used to match agains an existing response definition defined elsewhere. See XXX for details on
+This name is what will be used to match against an existing response definition defined elsewhere. See XXX for details on
 defining response specifications or using the set of pre-defined by the system. Here's a possible appropriate
 one for our MyTeaPotIsSteaming class:
 
@@ -71,5 +71,5 @@ simply change the preset response for your action, change its contents (i.e. cha
 
 ## Access
 
-Response classes will have access to atributes such as name, status, headers, body, request.
+Response classes will have access to attributes such as name, status, headers, body, request.
 TODO: mediatype and/or multipart support in the near future

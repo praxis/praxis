@@ -1,5 +1,5 @@
 # Configuring a Praxis application
-Praxis allows you to define the the configuration your application will use
+Praxis allows you to define the configuration your application will use
 upon startup. Let's look at an example application to see how this works:
 ```ruby
 class MyApplication < Praxis::Application
@@ -28,8 +28,8 @@ end
 ## Set
 After you've defined your application's configuration, you can set the actual
 values to use when the application starts. You can call #config= with any
-object that will satify your configuration definition.  Praxis doesn't mandate
-any particular configuration store. In this example we'll use a YAML file:
+object that will satisfy your configuration definition.  Praxis doesn't mandate
+any particular configuration store. In this example, we'll use a YAML file:
 ```ruby
 values = YAML.load(File.read('./config/application.yml'))
 # {

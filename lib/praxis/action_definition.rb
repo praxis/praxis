@@ -43,7 +43,7 @@ module Praxis
 
     attr_accessor :name, :resource_definition, :routing_config #mime_type, media_type  #params, payload
 
-    def initialize(name, resource_definition, media_type:nil, &block)
+    def initialize(name, resource_definition, &block)
       # TODO: I think we can get away without a name...and just storing the configuration (RestfulSinatraApplicationConfig.action already keys this config off of the action name)
       @name = name
       @resource_definition = resource_definition
@@ -51,8 +51,8 @@ module Praxis
       @responses=Set.new
       @response_groups = Set.new
 
-      unless media_type && media_type.kind_of?(SimpleMediaType)
-        @reference_media_type = media_type
+      if (media_type = resource_definition.media_type)
+        @reference_media_type = media_type if media_type < Praxis::MediaType
       end
 
       if resource_definition.params

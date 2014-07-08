@@ -17,6 +17,8 @@ group :development, :test do
   gem 'rake'
   gem 'rspec'
   gem 'rspec-its'
+  gem 'rspec-collection_matchers'
+
   gem 'bundler'
 
   gem 'guard'

@@ -58,23 +58,46 @@ describe Praxis::ResourceDefinition do
       expect(resource_definition.response_groups).to eq(Set[:default, :some_group])
     end
 
-    it "sets params" do
-      resource_definition.params &some_proc
+    context 'setting params' do
+      it 'uses the right default values' do
+        resource_definition.params &some_proc
 
-      expect(resource_definition.params[0]).to eq(Attributor::Struct)
-      expect(resource_definition.params[1].class).to eq(Hash)
-      expect(resource_definition.params[2]).to be(some_proc)
+        expect(resource_definition.params[0]).to be(Attributor::Struct)
+        expect(resource_definition.params[1]).to eq({})
+        expect(resource_definition.params[2]).to be(some_proc)
+      end
+
+      it 'accepts specific a type and options' do
+        resource_definition.params Person, required: true
+
+        expect(resource_definition.params[0]).to be(Person)
+        expect(resource_definition.params[1]).to eq({required: true})
+        expect(resource_definition.params[2]).to be(nil)
+      end
     end
 
-    it "sets payload" do
-      resource_definition.payload(some_hash, &some_proc)
 
-      expect(resource_definition.payload[0]).to eq(Attributor::Struct)
-      expect(resource_definition.payload[1].class).to eq(Hash)
-      expect(resource_definition.payload[2]).to be(some_proc)
+    context 'setting payload' do
+      it 'uses the right default values' do
+        resource_definition.payload &some_proc
+
+        expect(resource_definition.payload[0]).to be(Attributor::Struct)
+        expect(resource_definition.payload[1]).to eq({})
+        expect(resource_definition.payload[2]).to be(some_proc)
+      end
+
+      it 'accepts specific a type and options' do
+        resource_definition.payload Person, required: true
+
+        expect(resource_definition.payload[0]).to be(Person)
+        expect(resource_definition.payload[1]).to eq({required: true})
+        expect(resource_definition.payload[2]).to be(nil)
+      end
+
     end
 
-    it "sets headersheaders" do
+
+    it "sets headers" do
       resource_definition.headers(some_hash, &some_proc)
 
       expect(subject.headers[0]).to be(some_hash)

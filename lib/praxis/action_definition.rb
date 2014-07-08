@@ -17,7 +17,7 @@ module Praxis
       attribute.type.attributes(options, &block)
     end
 
-    def initialize(name, resource_definition, media_type:nil, **opts, &block)
+    def initialize(name, resource_definition, **opts, &block)
       # TODO: I think we can get away without a name...and just storing the
       # configuration (RestfulSinatraApplicationConfig.action already keys this
       # config off of the action name)
@@ -28,7 +28,9 @@ module Praxis
       @attribute_class = opts[:attribute_class] || Attributor::Attribute
 
       if (media_type = resource_definition.media_type)
-        @reference_media_type = media_type if media_type < Praxis::MediaType
+        if media_type.kind_of?(Class) && media_type < Praxis::MediaType
+          @reference_media_type = media_type
+        end
       end
 
       x,y,z = resource_definition.params

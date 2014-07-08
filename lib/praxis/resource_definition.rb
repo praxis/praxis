@@ -42,9 +42,7 @@ module Praxis
       end
 
       def action(name, &block)
-        opts = {}
-        opts[:media_type] = media_type if media_type
-        @actions[name] = ActionDefinition.new(name, self, opts, &block)
+        @actions[name] = ActionDefinition.new(name, self, &block)
       end
 
       def params(type=Attributor::Struct, **opts, &block)

@@ -33,6 +33,10 @@ describe Praxis::ResourceDefinition do
     index = resource_definition.actions[:index]
     expect(index).to be_kind_of(Praxis::ActionDefinition)
     expect(index.description).to eq("index description")
+
+    #FIXME: Kill these when ActionDefinition has proper spec coverage
+    show = resource_definition.actions[:show]
+    expect(show.params.options[:reference]).to be(Person)
   end
 
 

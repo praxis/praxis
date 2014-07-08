@@ -22,8 +22,9 @@ module Praxis
 
       attr_accessor :controller
 
+      # FIXME: this is inconsistent with the rest of the magic DSL convention.
       def routing(&block)
-        @routing_config = block #Skeletor::RestfulRoutingConfig.new(name, self, &block)
+        @routing_config = block
       end
 
       def media_type(media_type=nil)

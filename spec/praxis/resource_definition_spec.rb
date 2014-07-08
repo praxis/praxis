@@ -1,135 +1,96 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Praxis::ResourceDefinition do
-  let(:routing_href) { '/clouds/1/instances' }
-  let(:string_media_type) { 'my_media_type' }
-  let(:version) { '1.0' }
-  let(:response_group) { :my_response_group }
-  let(:responses) { :not_found }
-  let(:description) { 'my_description' }
-  let(:header_opts) { {opt1: "option1", opt2: "option2"} }
-  let(:my_proc) { Proc.new{|s| puts s } }
+  subject(:resource_definition) { PeopleResource }
 
-  class MyMediaType < Praxis::MediaType
-    identifier 'application/json'
+  its(:description) { should eq('People resource') }
+  its(:media_type) { should eq(Person) }
 
-    attributes do
-      attribute :id, Integer
+  its(:responses) { should eq(Set.new) }
+  its(:response_groups) { should eq(Set[:default]) }
+  its(:version) { should eq('1.0') }
+
+  its(:routing_config) { should be_kind_of(Proc) }
+
+  its(:params) { should be_nil }
+  its(:payload) { should be_nil }
+  its(:headers) { should be_nil }
+
+  its(:actions) { should have(2).items }
+
+
+  context '.describe' do
+    subject(:describe) { resource_definition.describe }
+
+    its([:description]) { should eq(resource_definition.description) }
+    its([:media_type]) { should eq(resource_definition.media_type.name) }
+
+    its([:actions]) { should have(2).items }
+  end
+
+
+  it 'creates ActionDefinitions for actions' do
+    index = resource_definition.actions[:index]
+    expect(index).to be_kind_of(Praxis::ActionDefinition)
+    expect(index.description).to eq("index description")
+  end
+
+
+  context 'setting other values' do
+    subject(:resource_definition) { Class.new {include Praxis::ResourceDefinition } }
+
+    let(:some_proc) { Proc.new {} }
+    let(:some_hash) { Hash.new }
+
+    it 'accepts a string as media_type' do
+      resource_definition.media_type('Something')
+      expect(resource_definition.media_type).to be_kind_of(Praxis::SimpleMediaType)
+      expect(resource_definition.media_type.identifier).to eq('Something')
     end
-  end
 
-  class MyResource
-    include Praxis::ResourceDefinition
-
-    media_type MyMediaType
-
-    description "default description"
-
-    routing do
-      prefix "/my_resources"
+    it 'sets responses' do
+      resource_definition.responses(:some_response)
+      expect(resource_definition.responses).to eq(Set[:some_response])
     end
 
-    params do
-      attribute :id, Integer, required: true
+    it 'sets response_groups' do
+      resource_definition.response_groups(:some_group)
+      expect(resource_definition.response_groups).to eq(Set[:default, :some_group])
     end
 
-    payload do
+    it "sets params" do
+      resource_definition.params &some_proc
+
+      expect(resource_definition.params[0]).to eq(Attributor::Struct)
+      expect(resource_definition.params[1].class).to eq(Hash)
+      expect(resource_definition.params[2]).to be(some_proc)
     end
 
-    headers do
+    it "sets payload" do
+      resource_definition.payload(some_hash, &some_proc)
+
+      expect(resource_definition.payload[0]).to eq(Attributor::Struct)
+      expect(resource_definition.payload[1].class).to eq(Hash)
+      expect(resource_definition.payload[2]).to be(some_proc)
     end
 
-    action :index do
-      description 'index description'
-      routing do
-        get ''
-      end
+    it "sets headersheaders" do
+      resource_definition.headers(some_hash, &some_proc)
+
+      expect(subject.headers[0]).to be(some_hash)
+      expect(subject.headers[1]).to be(some_proc)
     end
 
-    action :show do
-      description 'show description'
-      routing do
-        get '/:id'
-      end
-      params do
-        attribute :id, Integer, required: true
-      end
+  end
+
+
+  context '.use' do
+    subject(:resource_definition) { Class.new {include Praxis::ResourceDefinition } }
+    it 'raises an error for missing traits' do
+      expect { resource_definition.use(:stuff) }.
+        to raise_error(/Trait .* not found in the system/)
     end
+    it 'has a spec for actually using a trait'
   end
 
-  subject do
-    MyResource
-  end
-
-  # Test #describe method first, as we know to expect the initial class
-  # values. The other tests below modify the class values.
-  it "#describe" do
-    hash = subject.describe
-
-    expect(hash[:description]).to eq("default description")
-    expect(hash[:media_type]).to eq(MyMediaType.name)
-    actions = hash[:actions]
-    expect(actions.length).to eq(2)
-  end
-
-  it "#routing" do
-    expect(subject.routing_config.class).to eq(Proc)
-  end
-
-  it "#media_type" do
-    expect(subject.media_type).to eq(MyMediaType)
-    expect(subject.media_type(string_media_type).class).to eq(Praxis::SimpleMediaType)
-    expect(subject.media_type(string_media_type).identifier).to eq(string_media_type)
-  end
-
-  it "#version" do
-    expect(subject.version).to eq('n/a')
-    expect(subject.version(version)).to eq(version)
-  end
-
-  it "#action" do
-    expect(subject.actions[:index].class).to eq(Praxis::ActionDefinition)
-    expect(subject.actions[:index].description).to eq("index description")
-    expect(subject.actions[:show].class).to eq(Praxis::ActionDefinition)
-    expect(subject.actions[:show].description).to eq("show description")
-    expect(subject.actions[:nonexistent_action]).to be_nil
-  end
-
-  it "#params" do
-    expect(subject.params[0]).to eq(Attributor::Struct)
-    expect(subject.params[1].class).to eq(Hash)
-    expect(subject.params[2].class).to eq(Proc)
-  end
-
-  it "#payload" do
-    expect(subject.payload[0]).to eq(Attributor::Struct)
-    expect(subject.payload[1].class).to eq(Hash)
-    expect(subject.payload[2].class).to eq(Proc)
-  end
-
-  it "#headers" do
-    expect(subject.headers[0].class).to eq(Hash)
-    expect(subject.headers[1].class).to eq(Proc)
-  end
-
-  it "#description" do
-    expect(subject.description).to eq("default description")
-    expect(subject.description(description)).to eq(description)
-  end
-
-  it "#responses" do
-    expect(subject.responses).to eq(Set.new)
-    expect(subject.responses(responses)).to eq(Set[responses])
-  end
-
-  it "#response_groups" do
-    expect(subject.response_groups).to eq(Set[:default])
-    expect(subject.response_groups(response_group)).to eq(Set[:default, response_group])
-  end
-
-  it "#use" do
-    # TODO: I need help understanding how to test this one.
-    pending("TBD")
-    this_should_not_get_executed
-  end
 end

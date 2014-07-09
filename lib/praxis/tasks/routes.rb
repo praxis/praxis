@@ -12,7 +12,7 @@ namespace :praxis do
           m = resource_definition.controller.instance_method(name)
           "#{m.owner.name}##{m.name}"
         rescue
-          '-n/a-'
+          'n/a'
         end
 
         action.routing_config.routes.each do |(verb, path)|

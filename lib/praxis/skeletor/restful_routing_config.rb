@@ -23,14 +23,15 @@ module Praxis
         @prefix = prefix
       end
 
-      def get(path, opts={})     add_route 'GET',     path, opts end
-      def put(path, opts={})     add_route 'PUT',     path, opts end
-      def post(path, opts={})    add_route 'POST',    path, opts end
-      def delete(path, opts={})  add_route 'DELETE',  path, opts end
-      def head(path, opts={})    add_route 'HEAD',    path, opts end
       def options(path, opts={}) add_route 'OPTIONS', path, opts end
+      def get(path, opts={})     add_route 'GET',     path, opts end
+      def head(path, opts={})    add_route 'HEAD',    path, opts end
+      def post(path, opts={})    add_route 'POST',    path, opts end
+      def put(path, opts={})     add_route 'PUT',     path, opts end
+      def delete(path, opts={})  add_route 'DELETE',  path, opts end
+      def trace(path, opts={})   add_route 'TRACE',   path, opts end
+      def connect(path, opts={}) add_route 'CONNECT', path, opts end
       def patch(path, opts={})   add_route 'PATCH',   path, opts end
-
 
       def add_route(verb, path, options={})
         if path.respond_to?(:to_str)

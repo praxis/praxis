@@ -34,6 +34,10 @@ module Praxis
   autoload :SimpleMediaType, 'praxis/simple_media_type'
   autoload :Stage, 'praxis/stage'
 
+  class ActionDefinition
+    autoload :HeadersDSLCompiler, 'praxis/action_definition/headers_dsl_compiler'
+  end
+
   module Exceptions
     autoload :ConfigException, 'praxis/exceptions/config_exception'
     autoload :ConfigLoadException, 'praxis/exceptions/config_load_exception'

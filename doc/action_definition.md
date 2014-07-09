@@ -5,6 +5,10 @@ more, for your application.
 
 ## Resource Definitions
 
+A resource definition is a class that contains configuration settings for
+a resource, such as routing information, definitions for actions you can
+perform on the given resource, the expected media type, and more.
+
 Let's start with a basic resource definition:
 ```ruby
 class Blogs
@@ -12,11 +16,12 @@ class Blogs
 end
 ```
 
-The default routing prefix for a given resource, uses the resource name.
+The default routing prefix, the base route off which actions are based,
+for a given resource definition is built using its class name.
 
 For the "Blogs" resource definition above, the routing configuration is
-automatically set up such that the default routing prefix for all
-actions is:
+automatically set up such that the default routing prefix (base route) for
+all actions is:
 ```ruby
   '/blogs'
 ```
@@ -24,8 +29,8 @@ actions is:
 
 ### Customizing Your Routing Prefix
 
-To override the default routing prefix, simply include a routing block
-in your resource definition:
+To override the default routing prefix, simply include a routing block in the
+resource definition and provide a value using the ```prefix``` method:
 ```ruby
 class Blogs
   include Praxis::ResourceDefinition
@@ -43,23 +48,21 @@ This will result in a custom routing prefix of:
 
 ### Resource Definition Methods
 
-For the examples in this section, it is assumed that the methods will
-be called from within the body of the resource definition class.
-```ruby
-class Blogs
-  include Praxis::ResourceDefinition
-
-  # method calls go here
-end
-```
-
 
 #### Media Type
+
+A media type is a class that defines the attributes and views available
+for representing a resource. It determines which attributes are returned
+when you query the resource.
 
 To set the media type for your resource definition, use the ```media_type```
 method, like this:
 ```ruby
-media_type BookMediaType
+class Blogs
+  include Praxis::ResourceDefinition
+
+  media_type BookMediaType
+end
 ```
 
 For more information on media types, please see XXX.
@@ -67,45 +70,23 @@ For more information on media types, please see XXX.
 
 #### Version
 
-You can also set the version for your resource definition:
-```ruby
-version '1.0'
-```
+Setting the version of a resource definition allows you to have
+version control over the resources available for your application.
 
-#### Action
-
-Actions must be defined for your resource definition.
+You can set the version, using the ```version``` method:
 ```ruby
-action :my_custom_action do
+class Blogs
+  include Praxis::ResourceDefinition
+
+  version '1.0'
 end
 ```
 
-Please see XXX for more information on actions.
-
-
-#### Other Methods
-
-Many methods available for a resource definition, are also available
-at the action level, as well.
-
-* `params`
-* `payload`
-* `headers`
-* `responses`
-* `response_groups`
-
-If called at the resource definition level, the results are applied to
-all actions for that resource definition.
-
-If called at the action definition level, the results are merged with
-those, if any, from the resource definition level.
-
-Please see XXX for more information on their use.
-
-
 ## Actions
-All actions must be defined before you can implement them. You can define
-actions within your resource definitions by calling the ```action``` method.
+
+To define actions for a resource definition, call the ```action``` method
+which will set up routes for each action. All actions must be defined
+before you can implement them.
 
 Let's look at an example resource definition with one action definition:
 ```ruby
@@ -169,7 +150,8 @@ parameters in the query string, in the URL itself and in the request body
 validation and coercion of values into their expected types. This is also key
 component of the Praxis documentation generator.
 
-### Params
+
+#### Params
 In Praxis actions, 'params' can come from both the action path (route) and
 from the query string. Parameters in the path always take priority over
 parameters in the query string.
@@ -196,7 +178,33 @@ to Rack users. A query string with all the above parameters could look like this
 ```
 title=Why%20I%20Ditched%20My%20Co-Working%20Space&author[id]=29&author[name]=Rebekah%20Campbell
 ```
+Params can also be propagated to an action from its resource definition.
+```ruby
+class Blogs
+  include Praxis::ResourceDefinition
 
+  params do
+    attribute :title, String
+    attribute :author do
+      attribute :id, Integer
+      attribute :name, String
+    end
+  end
+
+  action :index do
+    routing { get '' }
+  end
+end
+```
+In the example above, the same parameters that were defined on the
+action itself in the previous example, are propagated to the 'index'
+(and all) actions of this resource definition, by being defined at
+the resource definition level. The 'params' from both the action
+and resource definition are merged, with the action's 'params' taking
+precedence, if there are any conflicts.
+
+
+#### Payload
 In the same way, you can define the expected structure of the request body
 using the ```payload``` method. Attributes are optional by default, so make them
 required if they must be present so Praxis can do that validation for you.
@@ -226,6 +234,12 @@ body would pass validation:
 }
 ```
 
+Similar to 'params' described in the previous section, if 'payload' has
+been defined on the resource definition, it will get merged with the
+'payload' defined on the action itself, if any, with the action's 'payload'
+taking precedence for any conflicts.
+
+
 ### Request headers
 Action definitions can call out special request headers that Praxis validates
 and makes available to your actions in much the same way as request parameters
@@ -239,3 +253,51 @@ action :create do
   end
 end
 ```
+
+Similar to the methods described in the previous sections, if 'headers' has
+been defined on the resource definition, it will get merged with the
+'headers' defined on the action itself, if any, with the action's
+'headers' taking precedence for any conflicts.
+
+
+### Responses
+
+In Praxis, you can create custom responses using the Praxis::Response
+class.
+
+Please see XXX for more information on creating custom responses.
+
+For a given action, you can associate your custom responses using the
+```responses``` method.
+```ruby
+action :create do
+  routing { post '' }
+  responses :on_a_break
+end
+```
+
+Similar to the methods described in the previous sections, if 'responses' has
+been defined on the resource definition, it will get merged with the
+'responses' defined on the action itself, if any, with the action's
+'responses' taking precedence for any conflicts.
+
+
+### Response Groups
+
+You can also organize your custom responses into groups.
+
+Please see XXX for more information on defining response groups.
+
+For a given action, you can specify response groups using the
+```response_groups``` method.
+```ruby
+action :create do
+  routing { post '' }
+  response_groups :my_custom_response_group
+end
+```
+
+Similar to the methods described in the previous sections, if 'response_groups' has
+been defined on the resource definition, it will get merged with the
+'response_groups' defined on the action itself, if any, with the action's
+'response_groups' taking precedence for any conflicts.

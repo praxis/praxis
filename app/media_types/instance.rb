@@ -9,7 +9,7 @@ class Instance < Praxis::MediaType
 
     links do
       link :root_volume
-      link :other_volume, Volume
+      link :other_volume, Volume, using: :data_volume
     end
   end
 

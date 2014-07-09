@@ -4,7 +4,21 @@ module Praxis
   class Links < Taylor::Blueprint
 
     class DSLCompiler < Attributor::DSLCompiler
-      alias_method :link, :attribute
+      attr_reader :target
+      def initialize(dsl_compiler_options:{}, **options)
+        @target = dsl_compiler_options[:target]
+
+        super
+      end
+
+      def link(name, type=nil, using: name, **opts, &block)
+        target.links[name] = using
+        attribute(name, type, **opts, &block)
+      end
+    end
+
+    class << self
+      attr_reader :links
     end
 
     def self.for(reference)
@@ -14,6 +28,7 @@ module Praxis
 
       klass = Class.new(self) do
         @reference = reference
+        @links = Hash.new
       end
 
       reference.const_set :Links, klass
@@ -21,6 +36,8 @@ module Praxis
 
     def self.construct(constructor_block, options)
       options[:reference] = @reference
+      options[:dsl_compiler_options] = {target: self}
+
       self.attributes(options, &constructor_block)
       self
     end
@@ -31,6 +48,37 @@ module Praxis
         self.define_default_view
         self.fixup_reference_struct_methods
       end
+    end
+
+    def self.define_blueprint_reader!(name)
+      # it's faster to use define_method in this case than module_eval
+      # because we save the attribute lookup on every access.
+      attribute = self.attributes[name]
+      using = self.links.fetch(name) do
+        raise "Why the attribute for: #{name.inspect}?"
+      end
+      
+      define_method(name) do
+        value = @object.send(using)
+        return value if value.nil? || value.kind_of?(attribute.type)
+        attribute.type.new(value)
+      end
+
+      # do whatever crazy aliasing we need to here....
+      unless name == using
+        @attribute.type.instance_eval do
+          define_method(using) do
+            self.send(name)
+          end
+        end
+
+        @reference.attribute.type.instance_eval do
+          define_method(using) do
+            self.send(name)
+          end
+        end
+      end
+
     end
 
     def self.define_default_view
@@ -46,7 +94,7 @@ module Praxis
     # links that do not have corresponding top-level attributes.
     # This is primarily necessary only for example generation.
     def self.fixup_reference_struct_methods
-      @attribute.attributes.each do |name, attribute|
+      self.links.each do |name, using|
         next if @reference.attribute.attributes.has_key?(name)
         @reference.attribute.type.instance_eval do
           define_method(name) do
@@ -57,4 +105,5 @@ module Praxis
     end
 
   end
+  
 end

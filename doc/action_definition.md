@@ -56,25 +56,30 @@ $ rake praxis:routes
 +---------------------------------------------------------------------------+
 ```
 
-## Query string params and payload
-Praxis allow you to define the expected structure of incoming request
-parameters both in the query string and in the request body (payload). By doing
-so, you can let the framework perform basic request validation and coercion of
-values into their expected types. This is also key component of Praxis'
-documentation generator.
+## Query string params, embedded URL params, and payload
+Praxis allows you to define the expected structure of incoming request
+parameters in the query string, in the URL itself and in the request body
+(payload). By doing so, you can let the framework perform basic request
+validation and coercion of values into their expected types. This is also key
+component of Praxis' documentation generator.
 
-Define the expected structure of query string parameters by calling the
+# Params
+In Praxis actions, 'params' can come from both the action path (route) (route)
+and from the query string. Parameters in the path always take priority over
+parameters in the query string.
+
+You can define the expected structure of query string parameters by calling the
 ```params``` method with a block. Use the standard Attributor::Struct interface
-to declare attributes. If you want to allow filtering the blog index by title,
-author_id and author_name, you could define these query string parameters:
+to declare attributes. If you want to allow filtering your blog index by title,
+author_id and author_name, you could define these params:
 ```ruby
 action :index do
   routing { get '' }
   params do
-    attribute :title, Attributor::String
-    attribute :author, Attributor::Struct do
-      attribute :id, Attributor::Integer
-      attribute :name, Attributor::String
+    attribute :title, String
+    attribute :author do
+      attribute :id, Integer
+      attribute :name, String
     end
   end
 end
@@ -93,11 +98,12 @@ required if they must be present so Praxis can do that validation for you.
 action :create do
   routing { post '' }
   payload do
-    attribute :title, Attributor::String, required: true
-    attribute :text, Attributor::String, required: true
-    attribute :author, Attributor::Struct do
-      attribute :id, Attributor::Integer, required: true
+    attribute :title, String, required: true
+    attribute :text, String, required: true
+    attribute :author do
+      attribute :id, Integer, required: true
     end
+    attribute :tags, Attributor::Collection.of(String)
   end
 end
 ```
@@ -123,7 +129,7 @@ define request headers:
 action :create do
   routing { post '' }
   headers do
-    attribute :Authorization, Attributor::String, required: true
+    attribute :Authorization, String, required: true
   end
 end
 ```

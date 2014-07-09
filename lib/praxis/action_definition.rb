@@ -12,20 +12,11 @@ module Praxis
     attr_accessor :resource_definition
     attr_accessor :routing_config
 
-    def self.update_attribute(attribute, options, block)
-      attribute.options.merge!(options)
-      attribute.type.attributes(options, &block)
-    end
-
     def initialize(name, resource_definition, **opts, &block)
-      # TODO: I think we can get away without a name...and just storing the
-      # configuration (RestfulSinatraApplicationConfig.action already keys this
-      # config off of the action name)
       @name = name
       @resource_definition = resource_definition
       @responses = Set.new
       @response_groups = Set.new
-      @attribute_class = opts[:attribute_class] || Attributor::Attribute
 
       if (media_type = resource_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::MediaType
@@ -33,16 +24,27 @@ module Praxis
         end
       end
 
-      x,y,z = resource_definition.params
-      params(x,y,&z) if resource_definition.params
+      if resource_definition.params
+        saved_type, saved_opts, saved_block = resource_definition.params
+        params(saved_type, saved_opts, &saved_block)
+      end
 
-      x,y,z = resource_definition.payload
-      payload(x,y,&z) if resource_definition.payload
+      if resource_definition.payload
+        saved_type, saved_opts, saved_block = resource_definition.payload
+        payload(saved_type, saved_opts, &saved_block)
+      end
 
-      x,z = resource_definition.headers
-      headers(x,&z) if resource_definition.headers
+      if resource_definition.headers
+        saved_opts, saved_block = resource_definition.headers
+        headers(saved_opts, &saved_block)
+      end
 
       self.instance_eval(&block) if block_given?
+    end
+
+    def update_attribute(attribute, options, block)
+      attribute.options.merge!(options)
+      attribute.type.attributes(options, &block)
     end
 
     def responses(*responses)
@@ -65,9 +67,8 @@ module Praxis
         opts[:reference] = @reference_media_type if @reference_media_type && block
       end
 
-      return @attribute_class.new(type, opts, &block)
+      return Attributor::Attribute.new(type, opts, &block)
     end
-    private :create_attribute
 
     def use(trait_name)
       raise "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.has_key? trait_name
@@ -81,7 +82,7 @@ module Praxis
         unless type == Attributor::Struct && @params.type < Attributor::Struct
           raise 'type mismatch'
         end
-        self.class.update_attribute(@params, opts, block)
+        update_attribute(@params, opts, block)
       else
         @params = create_attribute(type, **opts, &block)
       end
@@ -94,7 +95,7 @@ module Praxis
         unless type == Attributor::Struct && @payload.type < Attributor::Struct
           raise 'type mismatch'
         end
-        self.class.update_attribute(@payload, opts, block)
+        update_attribute(@payload, opts, block)
       else
         @payload = create_attribute(type, **opts, &block)
       end
@@ -104,7 +105,7 @@ module Praxis
       return @headers unless block
 
       if @headers
-        self.class.update_attribute(@headers, opts, block)
+        update_attribute(@headers, opts, block)
       else
         @headers = create_attribute(dsl_compiler: HeadersDSLCompiler, **opts, &block)
       end

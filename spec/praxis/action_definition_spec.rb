@@ -1,9 +1,7 @@
 require './lib/praxis'
 
 describe Praxis::ActionDefinition do
-  let(:klass) { Praxis::ActionDefinition }
-
-  let(:resource_definition) {
+  let(:resource_definition) do
     Class.new do
       include Praxis::ResourceDefinition
 
@@ -13,83 +11,34 @@ describe Praxis::ActionDefinition do
 
       media_type 'application/json'
       version '1.0'
-
-      routing do
-        prefix '/api/hello_world'
-      end
-
+      routing { prefix '/api/hello_world' }
       payload { attribute :inherited, String }
       headers { header :inherited, String }
       params  { attribute :inherited, String }
     end
-  }
+  end
 
   subject do
-    klass.new('foo', resource_definition) do
-      payload do
-        attribute :two, String
-      end
-
-      headers do
-        header :X_REQUESTED_WITH, 'XMLHttpRequest'
-      end
-
-      params do
-        attribute :one, String
-      end
+    described_class.new('foo', resource_definition) do
+      payload { attribute :two, String }
+      headers { header :X_REQUESTED_WITH, 'XMLHttpRequest' }
+      params  { attribute :one, String }
     end
   end
 
   context '#initialize' do
-    it 'sets the name' do
-      expect(subject.name).to eq 'foo'
-    end
-
-    it 'sets the resource definition' do
-      expect(subject.resource_definition).to be resource_definition
-    end
-
-    it 'sets params' do
-      expect(subject.params.attributes).to have_key(:one)
-    end
-
-    it 'inherits params' do
-      expect(subject.params.attributes).to have_key(:inherited)
-    end
-
-    it 'sets payload' do
-      expect(subject.payload.attributes).to have_key(:two)
-    end
-
-    it 'inherits payload' do
-      expect(subject.payload.attributes).to have_key(:inherited)
-    end
-
-    it 'sets headers' do
-      expect(subject.headers.attributes).to have_key :X_REQUESTED_WITH
-    end
-
-    it 'inherits headers' do
-      expect(subject.headers.attributes).to have_key :INHERITED
-    end
+    its('name')                { should eq 'foo' }
+    its('resource_definition') { should be resource_definition }
+    its('params.attributes')   { should have_key :one }
+    its('params.attributes')   { should have_key :inherited }
+    its('payload.attributes')  { should have_key :two }
+    its('payload.attributes')  { should have_key :inherited }
+    its('headers.attributes')  { should have_key :X_REQUESTED_WITH }
+    its('headers.attributes')  { should have_key :INHERITED }
   end
 
   context '#responses' do
-    it 'has no responses initially' do
-      expect(subject.responses).to eq Set.new
-    end
-
-    it 'sets a response' do
-      subject.responses 'one'
-      expect(subject.responses).to eq Set.new(['one'])
-    end
-
-    it 'sets two responses' do
-      subject.responses 'one', 'two'
-      expect(subject.responses).to eq Set.new(['one', 'two'])
-    end
-
-    it 'sets two responses, then another' do
+    it 'sets and returns responses' do
       subject.responses 'one', 'two'
       subject.responses 'three'
       expect(subject.responses).to eq Set.new(['one', 'two', 'three'])
@@ -97,21 +46,7 @@ describe Praxis::ActionDefinition do
   end
 
   context '#response_groups' do
-    it 'has no response_groups initially' do
-      expect(subject.response_groups).to eq Set.new
-    end
-
-    it 'sets a response' do
-      subject.response_groups 'one'
-      expect(subject.response_groups).to eq Set.new(['one'])
-    end
-
-    it 'sets two response_groups' do
-      subject.response_groups 'one', 'two'
-      expect(subject.response_groups).to eq Set.new(['one', 'two'])
-    end
-
-    it 'sets two response_groups, then another' do
+    it 'sets and returns response groups' do
       subject.response_groups 'one', 'two'
       subject.response_groups 'three'
       expect(subject.response_groups).to eq Set.new(['one', 'two', 'three'])
@@ -119,11 +54,11 @@ describe Praxis::ActionDefinition do
   end
 
   describe '#allowed_responses' do
-    # TODO: add tests after we get a new interface to ApiDefinition.instance
+    it 'has some tests after we stop using ApiDefinition.instance'
   end
 
   describe '#use' do
-    # TODO: add tests after we get a new interface to ApiDefinition.instance
+    it 'has some tests after we stop using ApiDefinition.instance'
   end
 
   describe '#params' do
@@ -163,7 +98,7 @@ describe Praxis::ActionDefinition do
   end
 
   describe '#routing' do
-    # TODO: write this test when Skeletor::RestfulRoutingConfig disappears
+    it 'has some tests when Skeletor::RestfulRoutingConfig disappears'
   end
 
   context '#description' do
@@ -174,6 +109,6 @@ describe Praxis::ActionDefinition do
   end
 
   context '#describe' do
-    # TODO: write this test when Skeletor::RestfulRoutingConfig disappears
+    it 'has some tests when Skeletor::RestfulRoutingConfig disappears'
   end
 end

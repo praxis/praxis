@@ -31,9 +31,9 @@ module Praxis
       @request_class = request_class
     end
 
-    def add_route(target, version: 'n/a'.freeze, path:, verb:'GET', **conditions)
-      warn 'other conditions not supported yet' if conditions.any?
-      @routes[version][verb].on(path, call: target)
+    def add_route(target, route)
+      warn 'other conditions not supported yet' if route.options.any?
+      @routes[route.version][route.verb].on(route.path, call: target)
     end
 
     def call(env_or_request)

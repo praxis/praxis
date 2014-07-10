@@ -8,12 +8,9 @@ module Praxis
       def execute
         application.controllers.each do |controller|
           controller.actions.each do |action_name, action|
-            action.routing_config.routes.each do |(verb, path, opts)|
+            action.routes.each do |route|
               target = target_factory(controller, action_name)
-              application.router.add_route target,
-                path: Mustermann.new(path),
-                verb: verb,
-                version: controller.definition.version
+              application.router.add_route target, route
             end
           end
         end

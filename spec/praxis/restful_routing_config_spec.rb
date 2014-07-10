@@ -1,11 +1,11 @@
-require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+require 'spec_helper'
 
 describe Praxis::Skeletor::RestfulRoutingConfig do
 
   let(:resource_definition) do
     Class.new do
-     include Praxis::ResourceDefinition
-     def self.name; 'MyResource'; end
+      include Praxis::ResourceDefinition
+      def self.name; 'MyResource'; end
     end
   end
 
@@ -39,31 +39,33 @@ describe Praxis::Skeletor::RestfulRoutingConfig do
     let(:route_opts){ {option: 1} }
 
     before(:each) do
-      routing_config.add_route( route_verb, route_path, route_opts)
+      routing_config.add_route(route_verb, route_path, route_opts)
     end
 
     it "routes" do
       expect(subject.routes.length).to eq(1)
     end
 
-    it "should save the verb and options into the route" do
-      v,p,o = subject.routes.first
-      expect(v).to eq(route_verb)
-      expect(o).to eq(route_opts)
+    it "saves the verb and options into the route" do
+      route = subject.routes.first
+
+      expect(route.verb).to eq(route_verb)
+      expect(route.options).to eq(route_opts)
     end
 
-    context "without a controller having a route prefix" do
-      it 'should save the path with the default path prefix' do
-        v,p,o = subject.routes.first
-        expect(p).to eq(default_route_prefix + route_path)
+    context "with a resource definition that does not have a route prefix" do
+      it 'saves the path with the default path prefix' do
+        path = subject.routes.first.path.to_s
+        expect(path).to eq(default_route_prefix + route_path)
       end
     end
-    context "with a controller having a custom route prefix" do
+
+    context "with a resource definition that has a route prefix" do
       let(:routing_block) { Proc.new{ prefix "/my_custom_route" } }
       subject(:routing_config){ Praxis::Skeletor::RestfulRoutingConfig.new(action_name, resource_definition, &routing_block) }
-      it 'should append the prefix to the path' do
-        v,p,o = subject.routes.first
-        expect(p).to eq("/my_custom_route" + route_path)
+      it 'appends the prefix to the path' do
+        path = subject.routes.first.path.to_s
+        expect(path).to eq("/my_custom_route" + route_path)
       end
 
     end
@@ -75,15 +77,12 @@ describe Praxis::Skeletor::RestfulRoutingConfig do
     it 'call the add_route with the correct parameters' do
       helper_verbs = [:get, :put, :post, :delete, :head, :options, :patch ]
       helper_verbs.each do |verb|
-        subject.send(verb, "/path_for_#{verb}", {option: verb} )
+        path = "/path_for_#{verb}"
+        options = {option: verb}
+        expect(subject).to receive(:add_route).with(verb.to_s.upcase,path,options)
+        subject.send(verb, path, options)
       end
-      expect(subject.routes.count).to eq(helper_verbs.size)
-      expect(subject.routes.include?(['GET', "#{default_route_prefix}/path_for_get" , {option: :get}])).to eq(true)
-      expect(subject.routes.collect {|r| r.first.downcase.to_sym }).to match_array(helper_verbs)
     end
   end
 
-  it '#describe' do
-    expect(subject.describe).to eq(subject.routes)
-  end
 end

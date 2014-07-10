@@ -8,9 +8,13 @@
 #
 module Praxis
   class ActionDefinition
-    attr_accessor :name
-    attr_accessor :resource_definition
-    attr_accessor :routing_config
+
+    attr_reader :name
+    attr_reader :resource_definition
+    attr_reader :routes
+    attr_reader :primary_route
+    attr_reader :named_routes
+
 
     def initialize(name, resource_definition, **opts, &block)
       @name = name
@@ -112,7 +116,14 @@ module Praxis
     end
 
     def routing(&block)
-      @routing_config = Skeletor::RestfulRoutingConfig.new(name, resource_definition, &block)
+      routing_config = Skeletor::RestfulRoutingConfig.new(name, resource_definition, &block)
+      
+      @routes = routing_config.routes
+      @primary_route = routing_config.routes.first
+      @named_routes = routing_config.routes.each_with_object({}) do |route, hash|
+        next if route.name.nil?
+        hash[route.name] = route
+      end
     end
 
     def description(text = nil)
@@ -120,11 +131,14 @@ module Praxis
       @description
     end
 
+
+
     def describe
       {}.tap do |hash|
         hash[:description] = description
         hash[:name] = name
-        hash[:urls] = routing_config.describe
+        # FIXME: change to :routes along with api browser
+        hash[:urls] = routes.collect(&:describe)
         hash[:headers] = headers.describe if headers
         hash[:params] = params.describe if params
         hash[:payload] = payload.describe if payload
@@ -134,5 +148,6 @@ module Praxis
         end
       end
     end
+
   end
 end

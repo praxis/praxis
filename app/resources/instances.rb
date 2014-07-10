@@ -28,6 +28,7 @@ module ApiResources
     action :show do
       routing do
         get '/:id'
+        get '/something/:id', name: :alternate
       end
 
       responses :other_response

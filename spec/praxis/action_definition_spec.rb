@@ -1,4 +1,4 @@
-require './lib/praxis'
+require 'spec_helper'
 
 describe Praxis::ActionDefinition do
   let(:resource_definition) do
@@ -18,8 +18,9 @@ describe Praxis::ActionDefinition do
     end
   end
 
-  subject do
+  subject(:action) do
     described_class.new('foo', resource_definition) do
+      routing { get '/:one' }
       payload { attribute :two, String }
       headers { header :X_REQUESTED_WITH, 'XMLHttpRequest' }
       params  { attribute :one, String }
@@ -110,5 +111,28 @@ describe Praxis::ActionDefinition do
 
   context '#describe' do
     it 'has some tests when Skeletor::RestfulRoutingConfig disappears'
+  end
+
+  context 'href generation' do
+    let(:resource_definition) { ApiResources::Instances }
+    subject(:action) { resource_definition.actions[:show] }
+
+    it 'works' do
+      expansion = action.primary_route.path.expand(cloud_id:232, id: 2)
+      expect(expansion).to eq "/clouds/232/instances/2"
+    end
+
+    context '#primary_route' do
+      it 'is the first-defined route' do
+        expect(action.primary_route).to be(action.routes.first)
+      end
+    end
+
+    context '#named_routes' do
+      subject(:named_routes) { action.named_routes }
+
+      its([:alternate]) { should be(action.routes[1]) }
+    end
+
   end
 end

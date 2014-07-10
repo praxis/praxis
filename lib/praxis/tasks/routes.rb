@@ -4,25 +4,29 @@ namespace :praxis do
   task :routes, [:format] => [:environment] do |t, args|
     require 'ruport'
 
-    table = Table(:version, :path, :verb, :resource, :action, :implementation)
+    table = Table(:version, :path, :verb, :resource, 
+      :action, :implementation, :name, :primary)
 
     Praxis::Application.instance.resource_definitions.each do |resource_definition|
       resource_definition.actions.each do |name, action|
         method = begin
           m = resource_definition.controller.instance_method(name)
-          "#{m.owner.name}##{m.name}"
         rescue
-          'n/a'
+          nil
         end
+        
+        method_name = method ? "#{method.owner.name}##{method.name}" : 'n/a'
 
-        action.routing_config.routes.each do |(verb, path)|
+        action.routes.each do |route|
           table << {
             resource: resource_definition.name,
-            version: resource_definition.version,
-            verb: verb,
-            path: path,
+            version: route.version,
+            verb: route.verb,
+            path: route.path,
             action: name,
-            implementation: method.to_s
+            implementation: method_name,
+            name: route.name,
+            primary: (action.primary_route == route ? 'yes' : '')
           }
         end
       end

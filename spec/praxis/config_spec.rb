@@ -1,4 +1,4 @@
-require 'praxis'
+require 'spec_helper'
 
 describe Praxis::Config do
   subject(:config) do

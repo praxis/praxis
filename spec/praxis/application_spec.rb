@@ -1,4 +1,4 @@
-require 'praxis'
+require 'spec_helper'
 
 describe Praxis::Application do
   describe 'configuration' do

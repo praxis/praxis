@@ -34,16 +34,11 @@ module Praxis
       def patch(path, opts={})   add_route 'PATCH',   path, opts end
 
       def add_route(verb, path, options={})
-        if path.respond_to?(:to_str)
-          path = "#{@prefix}#{path.to_str}"
-        end
-        @routes << [verb, path, options]
+        path = Mustermann.new(@prefix + path)
+
+        @routes << Route.new(verb, path, resource_definition.version, **options)
       end
 
-      def describe
-        # TODO: the describe is simply an array of 3-tuples (verb,path, options)...but we should instead convert that to an array of hashes...
-        @routes
-      end
     end
 
   end

@@ -11,8 +11,8 @@ class RestfulDocGenerator
   def self.inspect_attributes(the_type)
 
     reachable = Set.new
-    return reachable if the_type == nil || the_type.is_a?(Praxis::SimpleMediaType)
-    
+    return reachable if the_type.nil? || the_type.is_a?(Praxis::SimpleMediaType)
+
     # If an attribute comes in, get its type
     the_type = the_type.type if the_type.is_a? Attributor::Attribute
     

@@ -1,1 +1,0 @@
-note: added `using` option on `link` method to specify alternate method source for the value in the underlying resource.

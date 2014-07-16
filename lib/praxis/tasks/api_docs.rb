@@ -250,6 +250,7 @@ namespace :praxis do
   
   
   desc "API Documenation Browser"
+  desc "API Documentation Browser"
   task :doc_browser do
     public_folder =  File.expand_path("../../../", __FILE__) + "/api_browser/app"
     app = Rack::Builder.new do

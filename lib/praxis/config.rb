@@ -2,35 +2,36 @@ module Praxis
   class Config
     include Attributor::Type
 
-    attr_reader :definition
+    attr_reader :attribute
 
     def initialize
-      @definition = Attributor::Attribute.new(Attributor::Struct) {}
+      @attribute = Attributor::Attribute.new(Attributor::Struct) {}
       @value = nil
     end
 
     def define(&block)
-      @definition.type.attributes({}, &block)
+      @attribute.type.attributes({}, &block)
     end
 
     def set(config)
       context = ['Application', 'config']
 
       begin
-        @value = @definition.load(config, context)
+        @value = @attribute.load(config, context)
       rescue Attributor::AttributorException => e
-        fail Exceptions::ConfigLoadException.new(exception: e)
+        raise Exceptions::ConfigLoadException.new(exception: e)
       end
 
-      errors = @definition.validate(@value, context)
+      errors = @attribute.validate(@value, context)
 
       unless errors.empty?
-        fail Exceptions::ConfigValidationException.new(errors: errors)
+        raise Exceptions::ConfigValidationException.new(errors: errors)
       end
     end
 
     def get
       @value
     end
+    
   end
 end

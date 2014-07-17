@@ -1,9 +1,11 @@
 require 'spec_helper'
 
 describe Praxis::Request do
+  let(:rack_input) { StringIO.new('something=given') }
   let(:env) do
     env = Rack::MockRequest.env_for('/instances/1?junk=foo&api_version=1.0')
-    env['rack.input'] = StringIO.new('something=given')
+    env['rack.input'] = rack_input
+    env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
     env['HTTP_VERSION'] = 'HTTP/1.1'
     env
   end
@@ -28,6 +30,38 @@ describe Praxis::Request do
   its(:path) { should eq('/instances/1') }
   its(:raw_params) { should eq({'junk' => 'foo'}) }
   its(:version) { should eq('1.0') }
+
+  context 'with a multipart requset' do
+    let(:form) do
+      form_data = MIME::Multipart::FormData.new
+
+      entity = MIME::Text.new('some_value')
+      form_data.add entity, 'something'
+
+      form_data
+    end
+
+    let(:rack_input) { 
+      StringIO.new(form.body.to_s) 
+    }
+
+    let(:env) do
+      env = Rack::MockRequest.env_for('/instances/1?junk=foo&api_version=1.0')
+      env['rack.input'] = rack_input
+      env['HTTP_VERSION'] = 'HTTP/1.1'
+      env['CONTENT_TYPE'] = form.headers.get('Content-Type')
+      env
+    end
+
+    #its(:multipart?) { should be(true) }
+
+    it 'works' do
+      #p request #.body
+      #p request #.parts
+    end
+
+
+  end
 
   context "performs request validation" do
     before(:each) do
@@ -60,6 +94,7 @@ describe Praxis::Request do
     end
 
     context '#validate_payload' do
+      before { request.load_payload('') }
       it 'should validate payload' do
         expect(request.payload).to receive(:validate).and_return([])
         request.validate_payload(context[:payload])

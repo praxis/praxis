@@ -23,4 +23,37 @@ class Instances
     response
   end
 
+  def attach_file(id:, cloud_id:)
+    response.headers['Content-Type'] = 'application/json'
+
+    request.payload.parts.each do |name, part|
+      p [name, part.headers]
+    end
+
+    request.payload.each do |name, part|
+    end
+
+    response
+  end
+
+  def bulk_create(cloud_id:)
+    response.headers['Content-Type'] = 'application/json'
+
+    request.payload.each do |instance_id,instance|
+      part_body = JSON.pretty_generate(key: instance_id, value: instance.render(:create))
+      headers = {
+        'Status' => '201',
+        'Content-Type' => Instance.identifier,
+        'Location' => self.class.action(:show).primary_route.path.expand(cloud_id: cloud_id, id: instance.id)
+      }
+
+      part = Praxis::MultipartPart.new(part_body, headers)
+
+      response.add_part(instance_id, part)
+    end
+
+    response
+  end
+
+
 end

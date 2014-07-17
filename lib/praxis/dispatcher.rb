@@ -70,7 +70,7 @@ module Praxis
         stage.run
       end
 
-      controller.response.to_rack
+      controller.response.finish
     ensure
       @controller = nil
       @action = nil

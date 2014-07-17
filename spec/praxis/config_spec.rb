@@ -6,8 +6,8 @@ describe Praxis::Config do
   end
 
   describe '#initialize' do
-    it 'has no definitions' do
-      expect(config.definition.attributes).to eq({})
+    it 'has no attribute' do
+      expect(config.attribute.attributes).to eq({})
     end
 
     it 'has no values' do
@@ -20,7 +20,7 @@ describe Praxis::Config do
       config.define do
         attribute :foo, String
       end
-      expect(config.definition.attributes.keys).to eq [:foo]
+      expect(config.attribute.attributes.keys).to eq [:foo]
     end
   end
 
@@ -43,9 +43,9 @@ describe Praxis::Config do
 
     it 'fails when config cannot be loaded' do
       config.define do
-        attribute :foo, String, required: true
+        attribute :foo, Integer, required: true
       end
-      expect{ config.set({foo: 5}) }.to raise_error(
+      expect{ config.set({foo: 'five'}) }.to raise_error(
         Praxis::Exceptions::ConfigLoadException)
     end
   end

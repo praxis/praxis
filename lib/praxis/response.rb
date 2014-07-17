@@ -1,8 +1,13 @@
-
 module Praxis
   class Response
 
-    attr_accessor :name, :status, :headers, :body, :request
+    attr_reader :parts
+    attr_reader :name
+
+    attr_accessor :status
+    attr_accessor :headers
+    attr_accessor :body
+    attr_accessor :request
 
     class << self
       attr_accessor :response_name
@@ -10,6 +15,19 @@ module Praxis
 
     def self.definition
       ApiDefinition.instance.response(self.response_name)
+    end
+
+    def initialize(status:200, headers:{}, body:'')
+      @name    = response_name
+      @status  = status
+      @headers = headers
+      @body    = body
+      @parts   = Hash.new
+    end
+
+    def add_part(name=nil, part)
+      name ||= "part-#{part.object_id}"
+      @parts[String(name)] = part
     end
 
     def definition
@@ -20,20 +38,37 @@ module Praxis
       self.class.response_name
     end
 
-    def initialize(status:200, headers:{}, body:'')
-      @name    = response_name
-      @status  = status
-      @headers = headers
-      @body    = body
-    end
-
-    def to_rack
+    def finish
       case @body
       when Hash
         @body = JSON.pretty_generate(@body)
       end
 
-      @body = Array(body)
+      @body = Array(@body)
+
+      if @parts.any?
+        form_data = MIME::Multipart::FormData.new
+
+        if @body.any?
+          unless @body.last =~ /\n$/
+            @body << "\r\n"
+          end
+        end
+
+        @parts.each do |part_name, part|
+          entity = MIME::Text.new(part.body)
+
+          part.headers.each do |header_name, header_value|
+            entity.headers.set header_name, header_value
+          end
+
+          form_data.add entity, part_name
+        end
+
+        @headers.merge! form_data.headers.headers
+        @body << form_data.body.to_s
+      end
+
       [@status, @headers, @body]
     end
 

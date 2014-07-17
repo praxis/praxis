@@ -117,7 +117,7 @@ module Praxis
 
     def routing(&block)
       routing_config = Skeletor::RestfulRoutingConfig.new(name, resource_definition, &block)
-      
+
       @routes = routing_config.routes
       @primary_route = routing_config.routes.first
       @named_routes = routing_config.routes.each_with_object({}) do |route, hash|

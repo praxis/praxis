@@ -12,6 +12,20 @@ module Praxis
       load_version
     end
 
+    def content_type
+      @env['CONTENT_TYPE'.freeze]
+    end
+
+    # The media type (type/subtype) portion of the CONTENT_TYPE header
+    # without any media type parameters. e.g., when CONTENT_TYPE is
+    # "text/plain;charset=utf-8", the media-type is "text/plain".
+    #
+    # For more information on the use of media types in HTTP, see:
+    # http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
+    def media_type
+      content_type && content_type.split(/\s*[;,]\s*/, 2).first.downcase
+    end
+
     def path
       @env['PATH_INFO'.freeze]
     end
@@ -20,7 +34,7 @@ module Praxis
 
     def params_hash
       return {} if params.nil?
-      
+
       params.attributes.each_with_object({}) do |(k,v),hash|
         hash[k] = v
       end
@@ -42,8 +56,7 @@ module Praxis
       @raw_payload ||= begin
         if (input = env['rack.input'.freeze].read)
           env['rack.input'.freeze].rewind
-          # FIXME: handle non-url-form-encoded inputs
-          Rack::Utils.parse_nested_query(input)
+          input
         end
       end
     end
@@ -78,24 +91,36 @@ module Praxis
 
     def load_payload(context)
       return unless action.payload
-      self.payload = action.payload.load(self.raw_payload, context)
+      raw = case content_type
+        when %r|^application/x-www-form-urlencoded|i
+          Rack::Utils.parse_nested_query(self.raw_payload)
+        when nil
+          {}
+        else
+          self.raw_payload
+        end
+
+      self.payload = action.payload.load(raw, context, content_type: content_type)
     end
 
     def validate_headers(context)
-      return unless self.headers
-      errors = self.headers.validate(context)
+      return unless action.headers
+
+      errors = action.headers.validate(self.headers, context)
       raise "nope: #{errors.inspect}" if errors.any?
     end
 
     def validate_params(context)
       return unless action.params
-      errors = self.params.validate(context)
+
+      errors = action.params.validate(self.params, context)
       raise "nope: #{errors.inspect}" if errors.any?
     end
 
     def validate_payload(context)
       return unless action.payload
-      errors = self.payload.validate(context)
+
+      errors = action.payload.validate(self.payload, context)
       raise "nope: #{errors.inspect}" if errors.any?
     end
 

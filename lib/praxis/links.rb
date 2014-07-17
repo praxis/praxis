@@ -4,15 +4,15 @@ module Praxis
   class Links < Taylor::Blueprint
 
     class DSLCompiler < Attributor::DSLCompiler
-      attr_reader :target
-      def initialize(dsl_compiler_options:{}, **options)
-        @target = dsl_compiler_options[:target]
+      attr_reader :links
+      def initialize(target, dsl_compiler_options:{}, **options)
+        @links = dsl_compiler_options[:links]
 
         super
       end
 
       def link(name, type=nil, using: name, **opts, &block)
-        target.links[name] = using
+        links[name] = using
         attribute(name, type, **opts, &block)
       end
     end
@@ -36,7 +36,7 @@ module Praxis
 
     def self.construct(constructor_block, options)
       options[:reference] = @reference
-      options[:dsl_compiler_options] = {target: self}
+      options[:dsl_compiler_options] = {links: self.links}
 
       self.attributes(options, &constructor_block)
       self
@@ -57,7 +57,7 @@ module Praxis
       using = self.links.fetch(name) do
         raise "Why the attribute for: #{name.inspect}?"
       end
-      
+
       define_method(name) do
         value = @object.send(using)
         return value if value.nil? || value.kind_of?(attribute.type)
@@ -97,7 +97,8 @@ module Praxis
       self.links.each do |name, using|
         next if @reference.attribute.attributes.has_key?(name)
         @reference.attribute.type.instance_eval do
-          define_method(name) do
+          define_method(using) do
+            return nil unless attributes[:links]
             attributes[:links].send(name)
           end
         end
@@ -105,5 +106,5 @@ module Praxis
     end
 
   end
-  
+
 end

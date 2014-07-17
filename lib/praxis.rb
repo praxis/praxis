@@ -13,6 +13,13 @@ module Attributor
   end
 end
 
+require 'mime'
+module MIME
+  class Header
+    attr_reader :headers
+  end
+end
+
 module Praxis
   autoload :ActionDefinition, 'praxis/action_definition'
   autoload :ApiDefinition, 'praxis/api_definition'
@@ -23,8 +30,6 @@ module Praxis
   autoload :Dispatcher, 'praxis/dispatcher'
   autoload :Exception, 'praxis/exception'
   autoload :FileGroup,'praxis/file_group'
-  autoload :Links, 'praxis/links'
-  autoload :MediaType, 'praxis/media_type'
   autoload :Plugin, 'praxis/plugin'
   autoload :Request, 'praxis/request'
   autoload :ResourceDefinition, 'praxis/resource_definition'
@@ -34,6 +39,14 @@ module Praxis
   autoload :Router, 'praxis/router'
   autoload :SimpleMediaType, 'praxis/simple_media_type'
   autoload :Stage, 'praxis/stage'
+
+  # types
+  autoload :Links, 'praxis/links'
+  autoload :MediaType, 'praxis/media_type'
+  autoload :Multipart, 'praxis/types/multipart'
+
+  autoload :MultipartParser, 'praxis/multipart/parser'
+  autoload :MultipartPart, 'praxis/multipart/part'
 
   class ActionDefinition
     autoload :HeadersDSLCompiler, 'praxis/action_definition/headers_dsl_compiler'

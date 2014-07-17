@@ -55,23 +55,24 @@ describe Praxis::Response do
     )
   end
 
+  subject(:response) { Praxis::Response.new(status: response_status, headers: response_headers) }
 
-  before :each do
-    allow(subject.class).to receive(:response_name).and_return(:spec)
-    allow(subject).to       receive(:headers).and_return(response_headers)
-    allow(subject).to       receive(:status).and_return(response_status)
-  end
+  # before :each do
+  #   allow(response.class).to receive(:response_name).and_return(:spec)
+  #   #allow(response).to       receive(:headers).and_return(response_headers)
+  #   #allow(response).to       receive(:status).and_return(response_status)
+  # end
 
 
   describe '#validate' do
     context 'response spec is not defined' do
       before :each do
-        allow(subject.class).to receive(:response_name).and_return(:nonexisting_spec)
+        allow(response.class).to receive(:response_name).and_return(:nonexisting_spec)
       end
 
       it 'should raise an error' do
         expect {
-          subject.validate(action)
+          response.validate(action)
         }.to raise_error(ArgumentError, /no response defined with name :nonexisting_spec/)
       end
     end
@@ -79,14 +80,14 @@ describe Praxis::Response do
     context 'functional test' do
       before :each do
         @action = 'dummy-action'
-        expect(subject).to receive(:validate_status!).once
-        expect(subject).to receive(:validate_location!).once
-        expect(subject).to receive(:validate_headers!).once
-        expect(subject).to receive(:validate_content_type_and_media_type!).with(@action).once
+        expect(response).to receive(:validate_status!).once
+        expect(response).to receive(:validate_location!).once
+        expect(response).to receive(:validate_headers!).once
+        expect(response).to receive(:validate_content_type_and_media_type!).with(@action).once
       end
 
       it "succeeds" do
-        subject.validate(@action)
+        response.validate(@action)
       end
     end
   end
@@ -94,14 +95,14 @@ describe Praxis::Response do
 
   describe 'custom validate_xxx! methods' do
     before :each do
-      allow(subject.class).to receive(:definition).and_return(response_spec)
+      allow(response.class).to receive(:definition).and_return(response_spec)
     end
 
     describe "#validate_status!" do
       context 'that is completely valid' do
         it 'should succeed' do
           expect {
-            subject.validate_status!
+            response.validate_status!
           }.to_not raise_error
         end
       end
@@ -111,7 +112,7 @@ describe Praxis::Response do
         let(:response_status) { 500 }
         it 'should raise an error that later gets swallowed' do
           expect {
-            subject.validate_status!
+            response.validate_status!
           }.to raise_error(/Invalid response code detected./)
         end
       end
@@ -120,7 +121,7 @@ describe Praxis::Response do
         let(:response_status) { 501 }
         it 'should raise an error' do
           expect {
-            subject.validate_status!
+            response.validate_status!
           }.to raise_error(/Invalid response code detected/)
         end
       end
@@ -130,7 +131,7 @@ describe Praxis::Response do
         let(:response_status) { 1234 }
         it 'skips any validation of it' do
           expect {
-            subject.validate_status!
+            response.validate_status!
           }.to_not raise_error
         end
       end
@@ -144,7 +145,7 @@ describe Praxis::Response do
           let(:spec_location) { /no_match/ }
           it 'should raise an error' do
             expect {
-              subject.validate_location!
+              response.validate_location!
             }.to raise_error(/LOCATION does not match regexp/)
           end
         end
@@ -153,7 +154,7 @@ describe Praxis::Response do
           let(:spec_location) { "no_match" }
           it 'should raise error' do
             expect {
-              subject.validate_location!
+              response.validate_location!
             }.to raise_error(/LOCATION does not match string/)
           end
         end
@@ -162,7 +163,7 @@ describe Praxis::Response do
           let(:spec_location) { Object }
           it 'should raise error' do
             expect {
-              subject.validate_location!
+              response.validate_location!
             }.to raise_error(/Unknown location/)
           end
         end
@@ -176,7 +177,7 @@ describe Praxis::Response do
           let (:spec_headers) { { 'X-some' => 'test' } }
           it 'should raise error' do
             expect {
-              subject.validate_headers!
+              response.validate_headers!
             }.to raise_error(/headers missing/)
           end
         end
@@ -186,7 +187,7 @@ describe Praxis::Response do
             let (:spec_headers) { [ "X-Just-Key" ] }
             it 'should raise error' do
               expect {
-                subject.validate_headers!
+                response.validate_headers!
               }.to raise_error(/headers missing/)
             end
           end
@@ -195,7 +196,7 @@ describe Praxis::Response do
             let (:spec_headers) { [ "X-Header" ] }
             it 'should not raise error' do
               expect {
-                subject.validate_headers!
+                response.validate_headers!
               }.not_to raise_error
             end
           end
@@ -208,7 +209,7 @@ describe Praxis::Response do
             }
             it 'should raise error' do
               expect {
-                subject.validate_headers!
+                response.validate_headers!
               }.to raise_error(/headers missing/)
             end
           end
@@ -219,7 +220,7 @@ describe Praxis::Response do
             }
             it 'should not raise error' do
               expect {
-                subject.validate_headers!
+                response.validate_headers!
               }.not_to raise_error
             end
           end
@@ -232,7 +233,7 @@ describe Praxis::Response do
             }
             it 'should raise error' do
               expect {
-                subject.validate_headers!
+                response.validate_headers!
               }.to raise_error(/headers missing/)
             end
           end
@@ -243,7 +244,7 @@ describe Praxis::Response do
             }
             it 'should not raise error' do
               expect {
-                subject.validate_headers!
+                response.validate_headers!
               }.not_to raise_error
             end
           end
@@ -261,7 +262,7 @@ describe Praxis::Response do
             let(:config_media_type) { nil }
             it 'should raise error' do
               expect {
-                subject.validate_content_type_and_media_type!(action)
+                response.validate_content_type_and_media_type!(action)
               }.to raise_error(/doesn't have any associated media_type/)
             end
           end
@@ -270,7 +271,7 @@ describe Praxis::Response do
             let(:config_media_type) { application_vnd_resource_media_type }
             it 'should not raise error' do
               expect {
-                subject.validate_content_type_and_media_type!(action)
+                response.validate_content_type_and_media_type!(action)
               }.to_not raise_error
             end
           end
@@ -279,7 +280,7 @@ describe Praxis::Response do
             let(:config_media_type) { application_none_media_type }
             it 'should raise error' do
               expect {
-                subject.validate_content_type_and_media_type!(action)
+                response.validate_content_type_and_media_type!(action)
               }.to raise_error(/Bad Content-Type/)
             end
           end
@@ -296,7 +297,7 @@ describe Praxis::Response do
             let(:config_media_type) { application_none_media_type }
             it 'should raise error telling you so' do
               expect {
-                subject.validate_content_type_and_media_type!(action)
+                response.validate_content_type_and_media_type!(action)
               }.to raise_error(/Bad Content-Type/)
             end
           end
@@ -304,7 +305,7 @@ describe Praxis::Response do
           context 'when content type is not set' do
             it 'should still raise an error' do
               expect {
-                subject.validate_content_type_and_media_type!(action)
+                response.validate_content_type_and_media_type!(action)
               }.to raise_error(/Bad Content-Type/)
             end
           end
@@ -312,10 +313,75 @@ describe Praxis::Response do
       end
     end
 
+    context 'multipart responses' do
+      let(:part) { Praxis::MultipartPart.new('not so ok', {'Status' => 400, "Location" => "somewhere"}) }
 
-    context 'with multipart definitions' do
-      it 'has specs'
+      context '#add_part' do
+
+        context 'without a name' do
+          before do
+            response.add_part(part)
+          end
+
+          its(:parts) { should have(1).item }
+          it 'adds the part' do
+            expect(response.parts.values.first).to be(part)
+          end
+        end
+
+        context 'with a name' do
+          let(:part_name) { 'a-part' }
+          before do
+            response.add_part(part_name, part)
+          end
+
+          it 'adds the part' do
+            expect(response.parts[part_name]).to be(part)
+          end
+        end
+
+      end
+
+      context '#finish for a multipart response' do
+
+        before do
+          response.add_part(part)
+          response.body = 'a preamble'
+          response.status = 500
+        end
+
+        let!(:finished_response) { response.finish }
+
+        it 'returns status, headers, body' do
+          expect(finished_response).to eq([response.status, response.headers, response.body])
+        end
+
+        its(:status) { should eq(500) }
+
+        it 'sets a preamble in the body' do
+          expect(response.body[0]).to eq('a preamble')
+          expect(response.body[1]).to eq("\r\n")
+        end
+
+        it 'sets the headers' do
+          expect(response.headers['Content-Type']).to match(/multipart\/form-data/)
+          expect(response.headers['Location']).to eq('/api/resources/123')
+        end
+
+        it 'encodes the body properly' do
+          parser = Praxis::MultipartParser.new(response.headers, response.body)
+          preamble, parts = parser.parse
+
+          expect(preamble).to eq("a preamble")
+          expect(parts).to have(1).item
+
+          _part_name, part_response = parts.first
+          expect(part_response.headers['Status']).to eq(part.headers['Status'].to_s)
+          expect(part_response.headers['Location']).to eq(part.headers['Location'])
+          expect(part_response.body).to eq('not so ok')
+        end
+      end
+
     end
-
   end
 end

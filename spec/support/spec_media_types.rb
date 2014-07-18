@@ -19,6 +19,10 @@ end
 
 
 class Address < Praxis::MediaType
+  identifier 'application/json'
+
+  description 'Address MediaType'
+
   attributes do
     attribute :id, Integer
     attribute :name, String

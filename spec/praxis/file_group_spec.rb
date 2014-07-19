@@ -24,7 +24,6 @@ describe Praxis::FileGroup do
     subject(:groups) { app_config.groups }
 
     it 'returns a hash' do
-      binding.pry
       expect(groups).to be_kind_of(Hash)
     end
 

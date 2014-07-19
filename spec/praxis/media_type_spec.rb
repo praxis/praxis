@@ -26,8 +26,8 @@ describe Praxis::MediaType do
   context 'accessor methods' do
     subject(:address_klass) { address.class }
 
-    its(:identifier)  { should eq('application/json') }
-    its(:description) { should eq('Address MediaType') }
+    its(:identifier)  { should be_kind_of(String) }
+    its(:description) { should be_kind_of(String) }
   end
 
   context "rendering" do

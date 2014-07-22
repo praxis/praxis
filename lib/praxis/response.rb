@@ -1,8 +1,9 @@
 module Praxis
   class Response
 
-    attr_reader :parts
+
     attr_reader :name
+    attr_reader :parts
 
     attr_accessor :status
     attr_accessor :headers
@@ -22,12 +23,20 @@ module Praxis
       @status  = status
       @headers = headers
       @body    = body
-      @parts   = Hash.new
+      @form_data = nil
+      @parts = Hash.new
     end
 
     def add_part(name=nil, part)
+      @form_data ||= begin
+        form = MIME::Multipart::FormData.new
+        @headers.merge! form.headers.headers
+        form
+      end
+
       name ||= "part-#{part.object_id}"
-      @parts[String(name)] = part
+
+      @parts[name.to_s] = part
     end
 
     def definition
@@ -46,27 +55,24 @@ module Praxis
 
       @body = Array(@body)
 
-      if @parts.any?
-        form_data = MIME::Multipart::FormData.new
-
+      if @form_data
         if @body.any?
           unless @body.last =~ /\n$/
             @body << "\r\n"
           end
         end
 
-        @parts.each do |part_name, part|
+        @parts.each do |name, part|        
           entity = MIME::Text.new(part.body)
 
           part.headers.each do |header_name, header_value|
             entity.headers.set header_name, header_value
           end
 
-          form_data.add entity, part_name
+          @form_data.add entity, name
         end
 
-        @headers.merge! form_data.headers.headers
-        @body << form_data.body.to_s
+        @body << @form_data.body.to_s
       end
 
       [@status, @headers, @body]
@@ -94,7 +100,7 @@ module Praxis
       # Validate status code if defined in the spec
       if definition.status != status
         raise "Invalid response code detected. Response %s dictates status of %s but this response is returning %s." %
-              [definition.name, definition.status, status]
+        [definition.name, definition.status, status]
       end
     end
 
@@ -160,14 +166,14 @@ module Praxis
         media_type = resource_definition.media_type
         unless media_type
           raise "Error validating content type: this controller (#{resource_definition}) "+
-                "doesn't have any associated media_type"
+            "doesn't have any associated media_type"
         end
       end
 
       if media_type.identifier != extracted_identifier
         raise "Bad Content-Type: returned type #{extracted_identifier} does not match "+
-              "type #{media_type.identifier} as described in response: #{definition.name}"
-      end
+          "type #{media_type.identifier} as described in response: #{definition.name}"
+          end
     end
 
   end

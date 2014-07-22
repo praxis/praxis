@@ -1,9 +1,11 @@
 source 'https://rubygems.org'
 
-gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
-gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
-#gem 'taylor', path: '../taylor'
-#gem 'attributor', path: '../attributor'
+gem 'mime'
+
+#gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
+#gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
+gem 'taylor', path: '../taylor'
+gem 'attributor', path: '../attributor'
 
 gem 'thor'
 gem 'rack'
@@ -25,7 +27,7 @@ group :development, :test do
   gem 'guard'
   gem 'guard-rspec'
   gem 'guard-bundler'
-  
+
   gem 'pry'
   gem 'pry-byebug'
   gem 'pry-stack_explorer'

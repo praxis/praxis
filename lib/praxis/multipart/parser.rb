@@ -188,7 +188,7 @@ module Praxis
         return data
       elsif filename
         body.rewind
-
+        
         # Take the basename of the upload's original filename.
         # This handles the full Windows paths given by Internet Explorer
         # (and perhaps other broken user agents) without affecting

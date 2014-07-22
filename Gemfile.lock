@@ -52,7 +52,7 @@ GEM
     guard-rspec (4.2.10)
       guard (~> 2.1)
       rspec (>= 2.14, < 4.0)
-    hashie (3.1.0)
+    hashie (3.2.0)
     i18n (0.6.9)
     listen (2.7.7)
       celluloid (>= 0.15.2)
@@ -60,6 +60,7 @@ GEM
       rb-inotify (>= 0.9)
     lumberjack (1.0.6)
     method_source (0.8.2)
+    mime (0.4.1)
     multi_json (1.10.1)
     mustermann (0.2.0)
     pdf-writer (1.1.8)
@@ -126,6 +127,7 @@ DEPENDENCIES
   guard
   guard-bundler
   guard-rspec
+  mime
   mustermann
   pry
   pry-byebug

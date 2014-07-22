@@ -23,22 +23,10 @@ class Instances
     response
   end
 
-  def attach_file(id:, cloud_id:)
-    response.headers['Content-Type'] = 'application/json'
-
-    request.payload.parts.each do |name, part|
-      p [name, part.headers]
-    end
-
-    request.payload.each do |name, part|
-    end
-
-    response
-  end
 
   def bulk_create(cloud_id:)
-    response.headers['Content-Type'] = 'application/json'
-
+    self.response = MultipartResponse.new
+    
     request.payload.each do |instance_id,instance|
       part_body = JSON.pretty_generate(key: instance_id, value: instance.render(:create))
       headers = {
@@ -54,6 +42,25 @@ class Instances
 
     response
   end
+
+
+  def attach_file(id:, cloud_id:)
+    response.headers['Content-Type'] = 'application/json'
+    
+    destination_path = request.payload['destination_path']
+    file = request.payload['file']
+
+    result = {
+      destination_path: destination_path,
+      file: file.dump
+    }
+
+    response.body = JSON.pretty_generate(result)
+
+    response
+  end
+
+  
 
 
 end

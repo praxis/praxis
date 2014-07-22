@@ -324,6 +324,11 @@ describe Praxis::Response do
           end
 
           its(:parts) { should have(1).item }
+
+          it 'sets the Content-Type header' do
+            expect(response.headers['Content-Type']).to match(/^multipart.*boundary=/i)
+          end            
+
           it 'adds the part' do
             expect(response.parts.values.first).to be(part)
           end

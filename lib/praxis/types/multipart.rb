@@ -1,13 +1,3 @@
-module PartType
-end
-
-class FileUpload < Attributor::String
-  include PartType
-
-
-
-end
-
 module Praxis
 
   class Multipart < Attributor::Hash
@@ -32,21 +22,14 @@ module Praxis
 
       instance
     end
-    #
-    # def self.from_hash(parts, context)
-    #   hash = Hash[parts.collect { |name, part| [name, part.body] }]
-    #   super(hash, context)
-    # end
-
+    
     attr_accessor :preamble
     attr_accessor :parts
     attr_accessor :headers
 
-    def validate(*args)
+    def validate(context=Attributor::DEFAULT_ROOT_CONTEXT)
       []
     end
-
-    # FIXME: add a part in here
     #def []=(k, v)
     #end
 

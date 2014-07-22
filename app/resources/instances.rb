@@ -1,5 +1,3 @@
-
-
 module ApiResources
   class Instances
     include Praxis::ResourceDefinition
@@ -25,6 +23,7 @@ module ApiResources
       routing do
         get ''
       end
+
     end
 
     action :show do
@@ -36,7 +35,7 @@ module ApiResources
       responses :other_response
 
       params do
-        attribute :id #, Integer, required: true, min: 1
+        attribute :id
         attribute :junk, String, default: ''
         attribute :some_date, DateTime, default: DateTime.parse('2012-12-21')
       end
@@ -46,20 +45,6 @@ module ApiResources
       end
     end
 
-    action :attach_file do
-      routing do
-        post '/:id/files'
-      end
-
-      params do
-        attribute :id #, Integer, required: true, min: 1
-      end
-
-      payload Praxis::Multipart do
-        key 'destination_path', String, required: true
-        key 'file', String, required: true #FileUpload, required: true
-      end
-    end
 
     action :bulk_create do
       routing do
@@ -68,65 +53,90 @@ module ApiResources
 
       payload Praxis::Multipart.of(key: Integer, value: Instance)
 
-      #payload do
-      #  attribute :instance, Hash.of(key:Integer), key_type: Integer do
-      #    key 'something'
-      #  end
-      #end
+      # response MultipartResponse.with(part_response: CreateResponse.with(type: Instance))
+
+      # responses :bulk_create_response
+
+
+      # multi 200, H1
+      # parts_as :resp1
+
+      # part_type do
+      #   201
+      #   h Location ~= /asdfa/
+      # end
+
+      # part 'dest_dir' do
+
+      # end
+      # part 'file' do
+      #   mt binary
+      # end
     end
 
-    #   # single file, super simple upload
-    #   payload Multipart.of(FileUpload), count: 1
-    #   request.payload
+    #action :get_user_data do
+    #  response :get_user_data do
+    #    media_type: UserData
+    #  end
+    #end
 
-    #   # one single part, named :foobar, that is a filename thingy
-    #   payload Multipart do
-    #     attribute :foobar, FileUpload
+    action :attach_file do
+      routing do
+        post '/:id/files'
+      end
+
+      params do
+        attribute :id
+      end
+
+      payload Praxis::Multipart do
+        key 'destination_path', String, required: true
+        key 'file', Attributor::FileUpload, required: true
+      end
+
+      #responses :default
+    end
+
+
+    # OTHER USAGES: 
+    #   note: these are all hypothetical, pending, brainstorming usages.
+
+    # given: single file, super simple upload, with count constraint
+    # result: only one part is accepted
+    # example:
+    #   payload Praxis::Multipart.of(FileUpload), count: 1
+
+    # given: multiple file uploads
+    # example:
+    #   payload Praxis::Multipart.of(key: UUID, value: Attributor::FileUpload)
+
+    # given: any untyped multipart request body
+    # example:
+    #  payload Praxis::Multipart
+
+    # given: single known key, plus multiple uploaded files which can take any name
+    # result: multiple files collected into a single Hash.of(value: FileUpload)
+    # example:
+    #   payload Praxis::Multipart do
+    #     key 'destination', String, required: true
+    #     splat 'remaining', Hash.of(value: FileUpload)
     #   end
 
-    #   payload Multipart.of(key_type: UUID, value_type: FileUploads)
-
-    #   payload Multipart
-
-    #   request.
-
-
-    #   # single file, upload with other stuff
-    #   payload do
-    #     attribute :destination, String, required: true
-    #     attribute :guts, FileUpload
+    # given: single known key, plus multiple uploaded files which can take any name
+    # result: file parts coerced to FileUpload
+    # example:
+    #   payload Praxis::Multipart do
+    #     key 'destination', String, required: true
+    #     other_keys FileUpload
     #   end
 
-    #   # multiple files, unspecified name
-    #   payload do
-    #     attribute :destination, String, required: true
-    #     attribute :**, MultipartHashyThing.of(value_type: FileUpload)
+    # given: single known key, plus multiple uploaded files, with names like 'file-'
+    # result: file parts coerced to FileUpload
+    # example:
+    #   payload Praxis::Multipart do
+    #     key 'destination', String, required: true
+    #     match /file-.+/, FileUpload
     #   end
-
-
-    #   # bulk request, tons of mini sub request thingies
-    #   payload_part  do
-    #     attribute :id
-    #     attribute :foo
-    #   end
-
-    #   # payload do
-    #   #   part :destination, String
-    #   #   part :fileupload, FileUpload
-    #   # end
-
-    #   payload.part.destination.
-    # end
-
-    # action :bulk_create do
-    #   routing do
-    #     post '/_bulk'
-    #   end
-
-    #   payload Instance
-    #   multipart true
-
-    # end
 
   end
 

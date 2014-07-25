@@ -5,9 +5,7 @@ describe Praxis::Bootloader do
     double("application", config: "config", root: "root", plugins: [])
   end
 
-  subject(:bootloader) do
-    Praxis::Bootloader.new(application)
-  end
+  subject(:bootloader) {Praxis::Bootloader.new(application)}
 
   context 'attributes' do
     its(:application) {should be(application)}
@@ -25,13 +23,9 @@ describe Praxis::Bootloader do
       expect(bootloader.stages.include?(:app)).to be(false)
     end
 
-    it "delete invalid stage" do
+    it "raise errors when deleting invalid stage" do
       error_message = "Can not remove stage with name go_right_scale, stage does not exist."
-      begin
-        bootloader.delete_stage(:go_right_scale)
-      rescue Exception => e
-        expect(e.message).to eq(error_message)
-      end
+      expect{bootloader.delete_stage(:go_right_scale)}.to raise_error(RuntimeError,error_message)
     end
   end
 

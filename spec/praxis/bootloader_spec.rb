@@ -35,6 +35,8 @@ describe Praxis::Bootloader do
       stage.stub('before').and_return('before!')
       expect(bootloader.before(stage.name)).to eq('before!')
     end
+
+    it "raises when given an invalid stage name"
   end
 
   context ".after" do
@@ -43,6 +45,8 @@ describe Praxis::Bootloader do
       stage.stub('after').and_return('after!')
       expect(bootloader.after(stage.name)).to eq('after!')
     end
+
+    it "raises when given an invalid stage name"
   end
 
   context ".use" do

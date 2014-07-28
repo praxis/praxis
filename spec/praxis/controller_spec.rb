@@ -8,12 +8,14 @@ describe Praxis::Controller do
       implements PeopleResource
 
       before :validate, actions: [:index] do
+        "before"
       end
 
       before actions: [:show] do
       end
 
       after :response, actions: [:show] do
+        "after"
       end
 
       def index
@@ -25,7 +27,7 @@ describe Praxis::Controller do
   end
 
   context '.implements' do
-    it 'gets set as the resource definition controller' do
+    it 'set the resource definition controller' do
       expect(subject).to eq(PeopleResource.controller)
     end
   end
@@ -46,18 +48,26 @@ describe Praxis::Controller do
   end
 
   context '.before' do
+    let(:validate_conditions) { subject.before_callbacks[[:validate]][0][0] }
+    let(:validate_block) { subject.before_callbacks[[:validate]][0][1] }
+
     it 'sets up the before_callbacks' do
       expect(subject.before_callbacks.keys).to match_array([[:validate], [:action]])
-      expect(subject.before_callbacks[[:validate]][0][0]).to eq({:actions => [:index]})
-      expect(subject.before_callbacks[[:validate]][0][1]).to be_kind_of(Proc)
+      expect(validate_conditions).to eq({:actions => [:index]})
+      expect(validate_block).to be_kind_of(Proc)
+      expect(validate_block.call(*validate_conditions)).to eq("before")
     end
   end
 
   context '.after' do
+    let(:response_conditions) { subject.after_callbacks[[:response]][0][0] }
+    let(:response_block) { subject.after_callbacks[[:response]][0][1] }
+
     it 'sets up the after_callbacks' do
       expect(subject.after_callbacks.keys).to match_array([[:response]])
-      expect(subject.after_callbacks[[:response]][0][0]).to eq({:actions=>[:show]})
-      expect(subject.after_callbacks[[:response]][0][1]).to be_kind_of(Proc)
+      expect(response_conditions).to eq({:actions => [:show]})
+      expect(response_block).to be_kind_of(Proc)
+      expect(response_block.call(*response_conditions)).to eq("after")
     end
   end
 end

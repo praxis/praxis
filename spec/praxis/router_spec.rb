@@ -31,7 +31,7 @@ describe Praxis::Router do
   context ".add_route" do
     let(:route) {double('route', options: [1], version: 1, verb: 'verb', path: 'path')}
 
-    it "rise warning with options in route" do
+    it "raises warning when options are specified in route" do
       router.should_receive(:warn).with("other conditions not supported yet")
       expect(router.add_route(proc {'target'},route)).to eq(['path'])
     end

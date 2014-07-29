@@ -1,7 +1,8 @@
 Praxis::ApiDefinition.define do |api|
 
-  api.register_response :other_response, group: :other do
+  api.register_response :other_response, group: :other do |media_type: |
     status 200
+    media_type media_type
   end
 
 

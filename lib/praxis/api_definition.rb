@@ -54,7 +54,7 @@ module Praxis
 
 
     define do |api|
-      api.register_response :default do |media_type: :controller_defined|
+      api.register_response :ok do |media_type: |
         media_type media_type
         status 200
       end

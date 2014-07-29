@@ -1,6 +1,6 @@
 class Instance < Praxis::MediaType
 
-  identifier 'application/json'
+  identifier 'application/vnd.acme.instance'
 
   attributes do
     attribute :id, Integer

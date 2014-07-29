@@ -39,19 +39,15 @@ describe Praxis::ActionDefinition do
   end
 
   context '#responses' do
-    it 'sets and returns responses' do
-      subject.responses 'one', 'two'
-      subject.responses 'three'
-      expect(subject.responses).to eq Set.new(['one', 'two', 'three'])
+    subject(:responses) { action.responses }
+    before do
+      action.response :ok
+      action.response :internal_server_error
     end
-  end
-
-  context '#response_groups' do
-    it 'sets and returns response groups' do
-      subject.response_groups 'one', 'two'
-      subject.response_groups 'three'
-      expect(subject.response_groups).to eq Set.new(['one', 'two', 'three'])
-    end
+    
+    it { should be_kind_of Hash }
+    it { should include :ok }
+    it { should include :internal_server_error }
   end
 
   describe '#allowed_responses' do

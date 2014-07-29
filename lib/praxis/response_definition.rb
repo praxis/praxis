@@ -36,10 +36,10 @@ module Praxis
           else
             raise 'Invalid media_type specification. media_type must be a Praxis::MediaType'
           end
-        when :controller_defined
+        when SimpleMediaType
           media_type
         else
-          raise "Invalid media_type specification. media_type must be a String, MediaType or :controller_defined"
+          raise "Invalid media_type specification. media_type must be a String, MediaType or SimpleMediaType"
         end
     end
 
@@ -56,18 +56,6 @@ module Praxis
       end
       @spec[:headers] = hdrs
     end
-
-    def parts
-      
-    end
-#   def multipart(mode=nil, &block)
-#     return @spec[:multipart] if mode.nil?
-#
-#     unless [:always, :optional].include?(mode)
-#       raise "Invalid multipart mode: #{mode}. Valid values are: :always or :optional"
-#     end
-#     @spec[:multipart] = ResponseDefinition.new(mode, {status:200}, &block)
-#   end
 
     def describe
       location_type = location.is_a?(Regexp) ? 'regexp' : 'string'
@@ -88,5 +76,92 @@ module Praxis
       content['headers'] = headers unless headers == nil
       content
     end
+
+    def validate( response )
+      validate_status!(response)
+      validate_location!(response)
+      validate_headers!(response)
+      validate_content_type!(response)
+    end
+    
+    def parts
+      ....
+    end
+
+    # Validates Status code
+    #
+    # @raise [RuntimeError]  When response returns an unexpected status.
+    #
+    def validate_status!(response)
+      return unless status
+      # Validate status code if defined in the spec
+      if response.status != status
+        raise "Invalid response code detected. Response %s dictates status of %s but this response is returning %s." %
+        [name, status, response.status]
+      end
+    end
+
+
+    # Validates 'Location' header
+    #
+    # @raise [RuntimeError]  When location heades does not match to the defined one.
+    #
+    def validate_location!(response)
+      return unless location
+      # Validate location
+      # FIXME: rewrite with ===
+      case location
+      when Regexp
+        matches = location =~ response.headers['Location']
+        raise "LOCATION does not match regexp #{location.inspect}!" unless matches
+      when String
+        matches = location == response.headers['Location']
+        raise "LOCATION does not match string #{location}!" unless matches
+      else
+        raise "Unknown location spec"
+      end
+    end
+
+
+    # Validates Headers
+    #
+    # @raise [RuntimeError]  When there is a missing required header..
+    #
+    def validate_headers!(response)
+      return unless headers
+      # Validate headers
+      headers = Array(self.headers) #[ definition_headers ] unless definition_headers.is_a?(Array)
+      headers.each do |h|
+        valid = false
+        case h
+        when Hash   then  valid = h.all? { |k, v| response.headers.has_key?(k) && response.headers[k] == v }
+        when String then  valid = response.headers.has_key?(h)
+        when Symbol then  raise "Symbols are not supported"
+        end
+        raise "headers missing" unless valid
+      end
+    end
+
+
+    # Validates Content-Type header and response media type
+    #
+    # @param [Object] action
+    #
+    # @raise [RuntimeError]  When there is a missing required header..
+    #
+    def validate_content_type!(response)
+      return unless media_type
+
+      # Support "+json" and options like ";type=collection"
+      # FIXME: parse this better
+      extracted_identifier = response.headers['Content-Type'] && response.headers['Content-Type'].split('+').first.split(';').first
+
+      if media_type.identifier != extracted_identifier
+        raise "Bad Content-Type: returned type #{extracted_identifier} does not match "+
+          "type #{media_type.identifier} as described in response: #{self.name}"
+          end
+    end
+    
+    
   end
 end

@@ -11,7 +11,6 @@ module Praxis
       @version = 'n/a'.freeze
       @actions = Hash.new
       @responses = Hash.new
-      @response_groups = Set[:default] #response groups cannot override things?...Do we need them? perhaps..
       Application.instance.resource_definitions << self
     end
 
@@ -65,17 +64,8 @@ module Praxis
         @description
       end
 
-# TODO: Do we need this? a list of them without overriding anything?! or not
-#      def responses(*responses)
-#        @responses.merge(responses)
-#      end
-
-      def response(name, **args, &block)
-        @responses[name] = [args,block] #TODO: Block not used/needed
-      end
-
-      def response_groups(*response_groups)
-        @response_groups.merge(response_groups)
+      def response(name, **args)
+        @responses[name] = args
       end
 
       def describe

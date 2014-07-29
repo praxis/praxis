@@ -23,7 +23,7 @@ module ApiResources
       routing do
         get ''
       end
-
+      response :ok, media_type: self.resource_definition.media_type.identifier + ";type=collection"
     end
 
     action :show do
@@ -32,7 +32,7 @@ module ApiResources
         get '/something/:id', name: :alternate
       end
 
-      response :other_response, status: 123
+      response :ok
 
       params do
         attribute :id
@@ -94,7 +94,7 @@ module ApiResources
         key 'file', Attributor::FileUpload, required: true
       end
 
-      #responses :default
+      response :ok, media_type: 'application/json'
     end
 
 

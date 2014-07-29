@@ -1,17 +1,19 @@
 
 module Praxis
   # Response spec DSL container
+  
   class ResponseDefinition
     attr_reader :name, :group
 
     def initialize(response_name, group: :default, **spec, &block)
-      @spec = spec
+      raise "NO NAME!!!" unless response_name
+      @spec = {}
       @group = group
       @name = response_name
-      self.instance_eval(&block) if block_given?
+      self.instance_exec(**spec, &block) if block_given?
       raise "Status code is required for a response specification" if self.status.nil?
     end
-
+    
     def description(text=nil)
       return @spec[:description] if text.nil?
       @spec[:description] = text
@@ -55,14 +57,17 @@ module Praxis
       @spec[:headers] = hdrs
     end
 
-    def multipart(mode=nil, &block)
-      return @spec[:multipart] if mode.nil?
-
-      unless [:always, :optional].include?(mode)
-        raise "Invalid multipart mode: #{mode}. Valid values are: :always or :optional"
-      end
-      @spec[:multipart] = ResponseDefinition.new(mode, {status:200}, &block)
+    def parts
+      
     end
+#   def multipart(mode=nil, &block)
+#     return @spec[:multipart] if mode.nil?
+#
+#     unless [:always, :optional].include?(mode)
+#       raise "Invalid multipart mode: #{mode}. Valid values are: :always or :optional"
+#     end
+#     @spec[:multipart] = ResponseDefinition.new(mode, {status:200}, &block)
+#   end
 
     def describe
       location_type = location.is_a?(Regexp) ? 'regexp' : 'string'

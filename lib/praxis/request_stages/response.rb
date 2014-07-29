@@ -6,7 +6,7 @@ module Praxis
       def execute
         response = controller.response
 
-        unless action.allowed_responses.include?(response.definition)
+        unless action.allowed_responses.include?(response.response_name)
           raise "response #{response.name.inspect} is not allowed for #{action.name.inspect}"
         end
 

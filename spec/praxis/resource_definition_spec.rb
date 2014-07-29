@@ -6,7 +6,7 @@ describe Praxis::ResourceDefinition do
   its(:description) { should eq('People resource') }
   its(:media_type) { should eq(Person) }
 
-  its(:responses) { should eq(Set.new) }
+  its(:responses) { should eq(Hash.new) }
   its(:response_groups) { should eq(Set[:default]) }
   its(:version) { should eq('1.0') }
 
@@ -52,9 +52,13 @@ describe Praxis::ResourceDefinition do
       expect(resource_definition.media_type.identifier).to eq('Something')
     end
 
-    it 'sets responses' do
-      resource_definition.responses(:some_response)
-      expect(resource_definition.responses).to eq(Set[:some_response])
+    context 'sets responses' do
+      before do
+        resource_definition.response(:some_response)
+      end
+      subject(:responses){ resource_definition.responses }
+      it { should be_kind_of(Hash) }
+
     end
 
     it 'sets response_groups' do

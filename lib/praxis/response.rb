@@ -14,9 +14,9 @@ module Praxis
       attr_accessor :response_name
     end
 
-    def self.definition
-      ApiDefinition.instance.response(self.response_name)
-    end
+#   def self.definition
+#     ApiDefinition.instance.response(self.response_name)
+#   end
 
     def initialize(status:200, headers:{}, body:'')
       @name    = response_name
@@ -39,9 +39,9 @@ module Praxis
       @parts[name.to_s] = part
     end
 
-    def definition
-      self.class.definition
-    end
+#    def definition
+#      self.class.definition
+#    end
 
     def response_name
       self.class.response_name
@@ -83,10 +83,12 @@ module Praxis
     #
     # @param [Object] action
     #
-    def validate(action)
-      validate_status!
-      validate_location!
-      validate_headers!
+    def validate(action)      
+      response_definition = action.responses[response_name]
+
+      validate_status!(response_definition)
+      validate_location!(response_definition)
+      validate_headers!(response_definition)
       validate_content_type_and_media_type!(action)
     end
 
@@ -95,7 +97,7 @@ module Praxis
     #
     # @raise [RuntimeError]  When response returns an unexpected status.
     #
-    def validate_status!
+    def validate_status!(definition)
       return unless definition.status
       # Validate status code if defined in the spec
       if definition.status != status
@@ -109,7 +111,7 @@ module Praxis
     #
     # @raise [RuntimeError]  When location heades does not match to the defined one.
     #
-    def validate_location!
+    def validate_location!(definition)
       location = definition.location
       return unless location
       # Validate location
@@ -130,7 +132,7 @@ module Praxis
     #
     # @raise [RuntimeError]  When there is a missing required header..
     #
-    def validate_headers!
+    def validate_headers!(definition)
       definition_headers = definition.headers
       return unless definition_headers
       # Validate headers
@@ -154,6 +156,7 @@ module Praxis
     # @raise [RuntimeError]  When there is a missing required header..
     #
     def validate_content_type_and_media_type!(action)
+      definition = action.responses[response_name]
       media_type = definition.media_type
       return unless media_type
 

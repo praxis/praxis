@@ -35,6 +35,7 @@ module Praxis
   autoload :ResourceDefinition, 'praxis/resource_definition'
   autoload :Response, 'praxis/response'
   autoload :ResponseDefinition, 'praxis/response_definition'
+  autoload :ResponseTemplate, 'praxis/response_template'
   autoload :Route, 'praxis/route'
   autoload :Router, 'praxis/router'
   autoload :SimpleMediaType, 'praxis/simple_media_type'

@@ -10,15 +10,15 @@ module Praxis
     included do
       @version = 'n/a'.freeze
       @actions = Hash.new
-      @responses = Set.new
-      @response_groups = Set[:default]
+      @responses = Hash.new
+      @response_groups = Set[:default] #response groups cannot override things?...Do we need them? perhaps..
       Application.instance.resource_definitions << self
     end
 
     module ClassMethods
       attr_reader :actions
       attr_reader :routing_config
-
+      attr_reader :responses
 
       attr_accessor :controller
 
@@ -65,8 +65,13 @@ module Praxis
         @description
       end
 
-      def responses(*responses)
-        @responses.merge(responses)
+# TODO: Do we need this? a list of them without overriding anything?! or not
+#      def responses(*responses)
+#        @responses.merge(responses)
+#      end
+
+      def response(name, **args, &block)
+        @responses[name] = [args,block] #TODO: Block not used/needed
       end
 
       def response_groups(*response_groups)

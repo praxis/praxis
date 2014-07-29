@@ -10,7 +10,7 @@ module ApiResources
     #responses :pay_us_money
 
     use :authenticated
-
+        
     routing do
       prefix '/clouds/:cloud_id/instances'
     end
@@ -32,7 +32,7 @@ module ApiResources
         get '/something/:id', name: :alternate
       end
 
-      responses :other_response
+      response :other_response, status: 123
 
       params do
         attribute :id
@@ -55,7 +55,7 @@ module ApiResources
 
       # response MultipartResponse.with(part_response: CreateResponse.with(type: Instance))
 
-      # responses :bulk_create_response
+      response :multipart
 
 
       # multi 200, H1

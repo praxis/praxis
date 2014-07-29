@@ -19,7 +19,7 @@ module Praxis
     end
 
     def register_response(name, group: :default, &block)
-      @responses[name] = Praxis::ResponseDefinition.new(name,group:group, &block)
+      @responses[name] = Praxis::ResponseTemplate.new(name,group:group, &block)
     end
 
     def response(name)
@@ -54,8 +54,8 @@ module Praxis
 
 
     define do |api|
-      api.register_response :default do
-        media_type :controller_defined
+      api.register_response :default do |media_type: :controller_defined|
+        media_type media_type
         status 200
       end
 

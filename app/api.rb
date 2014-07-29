@@ -5,9 +5,24 @@ Praxis::ApiDefinition.define do |api|
   end
 
 
-  api.register_response :multipart do
+  api.register_response :multipart do 
     status 200
     media_type 'multipart/form-data'
+ #   
+ #   parts like: :default, media_type: Instance
+ #
+ #   parts do
+ #     status 201
+ #     media_type Instance
+ #   end
+ #   
+ #   part "foobar", like: :other_response, media_type: Instance
+ #   
+ #   part "file" do
+ #     media_type  MyType
+ #     #header "Status", 201
+ #     #location /asdfa/
+ #   end
   end
 
   # api.register_response :ok do 

@@ -19,8 +19,9 @@ module Praxis
     def initialize(name, resource_definition, **opts, &block)
       @name = name
       @resource_definition = resource_definition
-      @responses = Set.new
+      @responses = Hash.new
       @response_groups = Set.new
+      @compiled_responses = nil
 
       if (media_type = resource_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::MediaType
@@ -51,8 +52,8 @@ module Praxis
       attribute.type.attributes(options, &block)
     end
 
-    def responses(*responses)
-      @responses.merge(responses)
+    def response(name, **args )
+      @responses[name] = args
     end
 
     def response_groups(*response_groups)
@@ -60,12 +61,33 @@ module Praxis
     end
 
     def allowed_responses
-      names = @responses + resource_definition.responses
-      groups = @response_groups + resource_definition.response_groups
-
-      @allowed_responses = ApiDefinition.instance.responses(names: names, groups: groups)
+      # Need to collect the names only
+      groups = @response_groups + resource_definition.response_groups      
+      names = @responses.keys + resource_definition.responses.keys
+      groups + names 
     end
 
+    def responses
+      compiled_responses
+    end
+    
+    def compiled_responses
+      #TODO: we should really do a finalize...to make sure that late additions don't happen..      
+      return @compiled_responses ||= begin
+        # Make sure to incude reponses in the :default group too
+        templates = ApiDefinition.instance.responses(names: @responses.keys+resource_definition.responses.keys, 
+                                                     groups: @response_groups.to_a + [:default] + resource_definition.response_groups.to_a)
+        
+        # For each configured response, create an instance of it, passing the right arguments and 
+        # We could reuse any instances that have no extra arguments (perhaps from a basic ResponseDefinition stored with the template?)
+        templates.each_with_object({}) do |template, hash|
+          args = @responses[template.name] || {}
+          hash[template.name] = Praxis::ResponseDefinition.new(template.name, group: template.group, **args, &template.block)       
+        end
+      end
+
+    end
+    
     def create_attribute(type=Attributor::Struct, **opts, &block)
       unless opts[:reference]
         opts[:reference] = @reference_media_type if @reference_media_type && block

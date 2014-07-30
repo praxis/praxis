@@ -25,7 +25,7 @@ class Instances
 
 
   def bulk_create(cloud_id:)
-    self.response = MultipartResponse.new
+    self.response = BulkResponse.new
     
     request.payload.each do |instance_id,instance|
       part_body = JSON.pretty_generate(key: instance_id, value: instance.render(:create))

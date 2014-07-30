@@ -14,7 +14,7 @@ describe Praxis::ResponseDefinition do
 
   its(:status) { should == 200 }
   its(:description) { should == 'test description' }
-
+  its(:parts) { should be(nil) }
   let(:response_status) { 200 }
   let(:response_headers) { { "X-Header" => "value", "Content-Type" => "some_type"} }
   let(:response) { instance_double("Praxis::Response", status: response_status , headers: response_headers ) }
@@ -32,7 +32,7 @@ describe Praxis::ResponseDefinition do
       expect(response_definition.media_type).to be_kind_of(Praxis::SimpleMediaType)
     end
 
-    it 'accepts a SimpleMediaTyoe' do
+    it 'accepts a SimpleMediaType' do
       simple = Praxis::SimpleMediaType.new('application/json')
       response_definition.media_type simple
       expect(response_definition.media_type).to be(simple)
@@ -84,6 +84,72 @@ describe Praxis::ResponseDefinition do
     end
   end
 
+  context '#parts' do
+    context 'with a :like argument (and no block)' do
+      before do
+        response_definition.parts like: :ok, media_type: 'application/special'
+      end
+      
+      subject(:parts) { response_definition.parts }
+      
+      it{ should be_kind_of(Praxis::ResponseDefinition) }
+      its('media_type.identifier'){ should == 'application/special' }
+      its(:name){ should be(:ok) }
+      its(:status){ should be( 200 ) }
+      
+    end
+    context 'without a :like argument, and without a block' do
+      it 'complains' do
+        expect{
+          response_definition.parts media_type: 'application/special'
+        }.to raise_error(ArgumentError,/needs a :like argument or a block/)
+      end
+    end
+    context 'with a :like argument, and a block' do
+      it 'complains' do
+        expect{
+          response_definition.parts like: :something, media_type: 'application/special' do
+          end
+        }.to raise_error(ArgumentError, /does not allow :like and a block simultaneously/)
+      end
+    end
+
+    context 'with a proc' do
+      let(:the_proc) do
+         Proc.new do 
+           status 201
+           media_type 'from_proc'
+         end
+       end
+       
+      before do
+        response_definition.parts the_proc
+      end
+    
+      subject(:parts) { response_definition.parts }
+    
+      it{ should be_kind_of(Praxis::ResponseDefinition) }
+      its('media_type.identifier'){ should == 'from_proc' }
+      its(:status){ should be( 201 ) }
+    
+    end
+
+    context 'with a block' do       
+      before do
+        response_definition.parts do 
+           status 201
+           media_type 'from_proc'
+         end
+      end
+    
+      subject(:parts) { response_definition.parts }
+    
+      it{ should be_kind_of(Praxis::ResponseDefinition) }
+      its('media_type.identifier'){ should == 'from_proc' }
+      its(:status){ should be( 201 ) }
+    
+    end
+  end
 #  context '#multipart' do
 #    subject(:multipart) { response.multipart }
 #

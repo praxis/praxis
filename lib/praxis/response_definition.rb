@@ -84,8 +84,21 @@ module Praxis
       validate_content_type!(response)
     end
     
-    def parts
-      ....
+    def parts(proc=nil, like: nil,  **args, &block)
+      a_proc = proc || block
+      if like.nil? && !a_proc
+        raise ArgumentError, "Parts definition for response #{name} needs a :like argument or a block/proc" if !args.empty?
+        return @parts
+      end
+       if like && a_proc
+        raise ArgumentError, "Parts definition for response #{name} does not allow :like and a block simultaneously"
+      end
+      if like
+         template = ApiDefinition.instance.response(like)
+         @parts = template.compile(nil, **args)
+       else # block
+         @parts = Praxis::ResponseDefinition.new('anonymous', group: group, **args, &a_proc)   
+       end
     end
 
     # Validates Status code

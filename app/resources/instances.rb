@@ -8,7 +8,8 @@ module ApiResources
     #response_groups :premium
     #responses :instance_limit_reached
     #responses :pay_us_money
-
+    #response :create, location: /instances/
+    
     use :authenticated
         
     routing do
@@ -53,11 +54,22 @@ module ApiResources
 
       payload Praxis::Multipart.of(key: Integer, value: Instance)
 
-      # response MultipartResponse.with(part_response: CreateResponse.with(type: Instance))
+      # Using a hash param for parts
+      response :bulk_response , 
+                parts: { 
+                  like: :ok, 
+                  media_type: Instance # Could be left blank and will inherit
+                }
 
-      response :multipart
-
-
+# Using a block for parts to defin a sub-request
+#     sub_request = proc do 
+#                     status 201
+#                     media_type Instance
+#                     headers ['X-Foo','X-Bar']
+#                   end
+#     response :bulk_response, parts: sub_request 
+      
+    
       # multi 200, H1
       # parts_as :resp1
 

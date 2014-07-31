@@ -18,8 +18,8 @@ module Praxis
       @traits = Hash.new
     end
 
-    def register_response(name, group: :default, &block)
-      @responses[name] = Praxis::ResponseTemplate.new(name,group:group, &block)
+    def register_response(name, &block)
+      @responses[name] = Praxis::ResponseTemplate.new(name, &block)
     end
 
     def response(name)
@@ -29,7 +29,7 @@ module Praxis
     end
 
 
-    def responses(names: [], groups: [])
+    def responses(names: [])
       set = Set.new
 
       groups.each do |group_name|

@@ -1,19 +1,18 @@
 
 module Praxis
   # Response spec DSL container
-  
-  class ResponseDefinition
-    attr_reader :name, :group
 
-    def initialize(response_name, group: :default, **spec, &block)
+  class ResponseDefinition
+    attr_reader :name
+
+    def initialize(response_name, **spec, &block)
       raise "NO NAME!!!" unless response_name
       @spec = {}
-      @group = group
       @name = response_name
       self.instance_exec(**spec, &block) if block_given?
       raise "Status code is required for a response specification" if self.status.nil?
     end
-    
+
     def description(text=nil)
       return @spec[:description] if text.nil?
       @spec[:description] = text
@@ -83,7 +82,7 @@ module Praxis
       validate_headers!(response)
       validate_content_type!(response)
     end
-    
+
     def parts(proc=nil, like: nil,  **args, &block)
       a_proc = proc || block
       if like.nil? && !a_proc
@@ -97,7 +96,7 @@ module Praxis
          template = ApiDefinition.instance.response(like)
          @parts = template.compile(nil, **args)
        else # block
-         @parts = Praxis::ResponseDefinition.new('anonymous', group: group, **args, &a_proc)   
+         @parts = Praxis::ResponseDefinition.new('anonymous', **args, &a_proc)
        end
     end
 
@@ -174,7 +173,7 @@ module Praxis
           "type #{media_type.identifier} as described in response: #{self.name}"
           end
     end
-    
-    
+
+
   end
 end

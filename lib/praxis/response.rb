@@ -39,10 +39,6 @@ module Praxis
       @parts[name.to_s] = part
     end
 
-#    def definition
-#      self.class.definition
-#    end
-
     def response_name
       self.class.response_name
     end
@@ -62,7 +58,7 @@ module Praxis
           end
         end
 
-        @parts.each do |name, part|        
+        @parts.each do |name, part|
           entity = MIME::Text.new(part.body)
 
           part.headers.each do |header_name, header_value|
@@ -83,7 +79,7 @@ module Praxis
     #
     # @param [Object] action
     #
-    def validate(action)      
+    def validate(action)
       unless ( response_definition = action.responses[response_name] )
         raise ArgumentError, "Attempting to return a response with name #{response_name} " \
           "but no response definition with that name can be found"

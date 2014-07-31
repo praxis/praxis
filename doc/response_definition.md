@@ -11,7 +11,6 @@ ApiDefinition.define do |api|
     description 'test description'
     headers {'X-Header' => 'value', 'Content-Type' => 'json'}
     media_type Praxis::MediaType
-    group :default
     multipart :optional do
       status 202
       headers 'X-Header: value'
@@ -84,6 +83,8 @@ ApiDefinition.define do |api|
 
 ## Multipart Responses
 
+FIXME: this is now outdated.
+
 A multipart response must be either `:always` or `:optional`.
 ```ruby
 ApiDefinition.define do |api|
@@ -94,15 +95,5 @@ ApiDefinition.define do |api|
       headers 'X-Header: value'
     end
   end
-end
-```
-
-## Grouping Responses
-
-Multiple responses can be grouped together using the `group` attribute in the response definition. By default, the response are grouped under `:default` group.
-```ruby
-api.register_response :my_response, group: :my_group do
-  media_type :controller_defined
-  status 200
 end
 ```

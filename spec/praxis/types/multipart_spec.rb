@@ -60,4 +60,22 @@ describe Praxis::Multipart do
 
   end
 
+  context '.example' do
+    let(:type) { Praxis::Multipart.of(value: Instance) }
+    subject(:example) { type.example('example') }
+
+    it 'generates an interesting example' do
+      expect(example.keys.all? { |k| k.kind_of? String }).to be(true)
+      expect(example.values.all? { |k| k.kind_of? Instance }).to be(true)
+      expect(example.parts.keys).to eq(example.keys.collect(&:to_s))
+
+
+      instance = Instance.load(example.parts.first.last.body)
+      expect(instance.validate).to be_empty
+
+      expect(example.headers['Content-Type']).to match(/multipart\/form-data; boundary=/)
+    end
+
+  end
+
 end

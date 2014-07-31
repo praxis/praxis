@@ -42,11 +42,11 @@ module Praxis
         saved_opts, saved_block = resource_definition.headers
         headers(saved_opts, &saved_block)
       end
-      
+
       resource_definition.responses.each do |name, args|
         response(name, args)
       end
-      
+
       self.instance_eval(&block) if block_given?
     end
 
@@ -59,7 +59,7 @@ module Praxis
       template = ApiDefinition.instance.response(name)
       @responses[name] = template.compile(self, **args)
     end
-            
+
     def create_attribute(type=Attributor::Struct, **opts, &block)
       unless opts[:reference]
         opts[:reference] = @reference_media_type if @reference_media_type && block
@@ -136,7 +136,7 @@ module Praxis
         hash[:headers] = headers.describe if headers
         hash[:params] = params.describe if params
         hash[:payload] = payload.describe if payload
-        hash[:responses] = responses.inject({}) do |memo, response|
+        hash[:responses] = responses.inject({}) do |memo, (response_name, response)|
           memo[response.name] = response.describe
           memo
         end

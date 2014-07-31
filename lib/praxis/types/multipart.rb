@@ -14,7 +14,7 @@ module Praxis
 
       hash = Hash[parts.collect { |name, part| [name, part.body] }]
 
-      instance = super(hash, context=Attributor::DEFAULT_ROOT_CONTEXT, **options)
+      instance = super(hash, context, **options)
 
       instance.preamble = preamble
       instance.parts = parts
@@ -22,14 +22,44 @@ module Praxis
 
       instance
     end
-    
+
+    def self.example(context=nil, options: {})
+      form = MIME::Multipart::FormData.new
+
+      super(context, options: options).each do |k,v|
+        body = if v.respond_to?(:dump) && !v.kind_of?(String)
+                JSON.pretty_generate(v.dump)
+              else
+                v
+              end
+
+        entity = MIME::Text.new(body)
+
+        form.add entity, String(k)
+      end
+
+      content_type = form.headers.get('Content-Type')
+      body = form.body.to_s
+
+      self.load(body, context, content_type: content_type)
+      #result.each do |k, v|
+      #  result.parts[k] = MultipartPart.new(v)
+      #end
+
+      #result.headers = {'Content-Type'}
+
+
+    end
+
     attr_accessor :preamble
     attr_accessor :parts
     attr_accessor :headers
 
+
     def validate(context=Attributor::DEFAULT_ROOT_CONTEXT)
       []
     end
+
     #def []=(k, v)
     #end
 

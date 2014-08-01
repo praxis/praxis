@@ -10,18 +10,31 @@ describe Praxis::MediaType do
 
   subject(:address) { Address.new(resource) }
 
-  context 'links' do
-    it 'respects using' do
-      expect(address.links.super).to be_kind_of(Person)
-      expect(address.links.super.object).to be(resource.manager)
+  context 'attributes' do
+    its(:id)    { should eq(1) }
+    its(:name)  { should eq('Home') }
+    its(:owner) { should be_instance_of(Person) }
+
+    context 'links' do
+      it 'respects using' do
+        expect(address.links.super).to be_kind_of(Person)
+        expect(address.links.super.object).to be(resource.manager)
+      end
     end
+  end
+
+  context 'accessor methods' do
+    subject(:address_klass) { address.class }
+
+    its(:identifier)  { should be_kind_of(String) }
+    its(:description) { should be_kind_of(String) }
   end
 
   context "rendering" do
     subject(:output) { address.render(:default) }
 
-    its([:id]) { should eq(address.id) }
-    its([:name]) { should eq(address.name) }
+    its([:id])    { should eq(address.id) }
+    its([:name])  { should eq(address.name) }
     its([:owner]) { should eq(Person.dump(owner_resource, view: :default)) }
 
 
@@ -31,9 +44,7 @@ describe Praxis::MediaType do
       its([:owner]) { should eq(Person.dump(owner_resource, view: :link)) }
       its([:super]) { should eq(Person.dump(manager_resource, view: :link)) }
     end
-
   end
-
 
   context '.example' do
     subject(:example) { Address.example }

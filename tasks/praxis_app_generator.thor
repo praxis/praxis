@@ -36,11 +36,10 @@ class PraxisAppGenerator < Thor
     empty_directory path('app')
     empty_directory path('lib')
     empty_directory path('spec')
-    generate_config_init_rb
+    generate_config_environment_rb
     generate_gemfile
     generate_rakefile
     generate_config_ru
-    generate_dotenv
     generate_app_definitions_hello_world
     generate_app_controllers_hello_world
     #
@@ -53,9 +52,9 @@ class PraxisAppGenerator < Thor
     puts "  rackup -p 8888"
     puts
     puts "  # terminal 2:"
-    puts "  curl -i http://localhost:8888/api/hello_world   -H 'X-Api-Version: 1.0' -X GET  # Index"
-    puts "  curl -i http://localhost:8888/api/hello_world/2 -H 'X-Api-Version: 1.0' -X GET  # Show"
-    puts "  curl -i http://localhost:8888/api/hello_world/2 -H 'X-Api-Version: 2.0' -X GET  # NotFound Error"
+    puts "  curl -i http://localhost:8888/api/hello   -H 'X-Api-Version: 1.0' -X GET  # Index"
+    puts "  curl -i http://localhost:8888/api/hello/2 -H 'X-Api-Version: 1.0' -X GET  # Show"
+    puts "  curl -i http://localhost:8888/api/hello/2 -H 'X-Api-Version: 2.0' -X GET  # NotFound Error"
     nil
   end
 
@@ -91,36 +90,17 @@ private
   end
 
 
-  # Creates './config/init.rb' file
+  # Creates './config/environment.rb' file
   #
   # @return [void]
   #
-  def generate_config_init_rb
-    create_file path('config/init.rb') do
+  def generate_config_environment_rb
+    create_file path('config/environment.rb') do
 <<-EOF
 # Main entry point - DO NOT MODIFY THIS FILE
-require 'rubygems'
-require 'bundler'
-require 'logger'
-require 'dotenv'
-
 ENV['RACK_ENV'] ||= 'development'
 
 Bundler.require(:default, ENV['RACK_ENV'])
-EOF
-    end
-    nil
-  end
-
-
-  # Creates './.dotenv' file
-  #
-  # @return [void]
-  #
-  def generate_dotenv
-    create_file path('.dotenv') do
-<<-EOF
-RACK_ENV=development
 EOF
     end
     nil
@@ -135,8 +115,6 @@ EOF
     create_file path('Gemfile') do
 <<-EOF
 source 'https://rubygems.org'
-
-gem 'dotenv'
 
 # Remove this one later when praxis does not need it
 gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
@@ -166,7 +144,6 @@ EOF
   def generate_rakefile
     create_file path('Rakefile') do
 <<-EOF
-require File.expand_path("../config/init.rb", __FILE__)
 require 'praxis'
 require 'praxis/tasks'
 EOF
@@ -183,11 +160,14 @@ EOF
     create_file path('config.ru') do
 <<-EOF
 #\ -p 8888
-require File.expand_path("../config/init.rb", __FILE__)
+
+require 'bundler/setup'
+require 'praxis'
 
 application = Praxis::Application.instance
 application.logger = Logger.new(STDOUT)
 application.setup
+
 run application
 EOF
     end
@@ -196,18 +176,18 @@ EOF
 
 
   def generate_app_definitions_hello_world
-      create_file path('app/resources/v1/hello_world_definition.rb') do
+      create_file path('app/resources/hello.rb') do
 <<-EOF
 module V1
   module ApiResources
-    class HelloWorld
+    class Hello
       include Praxis::ResourceDefinition
 
       media_type 'application/json'
       version '1.0'
 
       routing do
-        prefix '/api/hello_world'
+        prefix '/api/hello'
       end
 
       action :index do
@@ -234,13 +214,13 @@ EOF
 
 
   def generate_app_controllers_hello_world
-      create_file path('app/controllers/v1/hello_world_controller.rb') do
+      create_file path('app/controllers/hello.rb') do
 <<-EOF
 module V1
-  class HelloWorld
+  class Hello
     include Praxis::Controller
 
-    implements V1::ApiResources::HelloWorld
+    implements V1::ApiResources::Hello
 
     HELLO_WORLD = [ 'Hello world!', 'Привет мир!', 'Hola mundo!', '你好世界!', 'こんにちは世界！' ]
 

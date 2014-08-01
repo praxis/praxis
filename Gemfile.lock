@@ -1,12 +1,16 @@
-PATH
-  remote: ../attributor
+GIT
+  remote: git@github.com:rightscale/attributor.git
+  revision: 568da609948c185c7b7e23902c6e647a29d3d2af
+  branch: master
   specs:
     attributor (2.0.0)
       hashie
       randexp
 
-PATH
-  remote: ../taylor
+GIT
+  remote: git@github.com:rightscale/taylor.git
+  revision: 7721b5bfd8d801009792303e67eb3dd4c59a2907
+  branch: master
   specs:
     taylor (3.0.0)
       activesupport (>= 2.3.5, < 4.0)

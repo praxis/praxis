@@ -7,7 +7,7 @@ module Praxis
   }.freeze
 
   class Dispatcher
-    attr_reader :controller, :action, :request
+    attr_reader :controller, :action, :request, :application
 
     @deferred_callbacks = Hash.new do |hash,stage|
       hash[stage] = {before: [], after:[]}
@@ -25,9 +25,13 @@ module Praxis
       @deferred_callbacks[:after] << [conditions, block]
     end
 
+    def self.current(thread: Thread.current, application: Application.instance)
+      thread[:praxis_dispatcher] ||= self.new(application: application)
+    end
 
-    def initialize
+    def initialize(application: Application.instance)
       @stages = []
+      @application = application
       setup_stages!
     end
 

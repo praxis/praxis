@@ -11,7 +11,7 @@ module Praxis
       def execute
         env_file = application.root + "config/environment.rb"
         require env_file if File.exists? env_file
-        
+
         application.plugins.each do |plugin|
           plugin.setup!
         end
@@ -19,6 +19,8 @@ module Praxis
         unless application.file_layout
           setup_default_layout!
         end
+
+        setup_initial_config!
       end
 
       def setup_default_layout!
@@ -31,7 +33,7 @@ module Praxis
               map :models, 'models/**/*'
               map :media_types, '**/media_types/**/*'
               map :resources, '**/resources/**/*'
-              
+
               map :controllers, '**/controllers/**/*'
               map :responses, '**/responses/**/*'
             end
@@ -39,6 +41,14 @@ module Praxis
         end
       end
 
+      # TODO: not really sure I like this here... but where else is better?
+      def setup_initial_config!
+        application.config do
+          attribute :praxis do
+            attribute :validate_responses, Boolean, default: false
+          end
+        end
+      end
 
     end
 

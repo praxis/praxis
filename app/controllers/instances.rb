@@ -4,15 +4,15 @@ class Instances
   implements ApiResources::Instances
 
   before :validate, actions: [:index]  do |controller|
-    p [:before, :validate, :params_and_headers, controller.request.action.name]
+    #p [:before, :validate, :params_and_headers, controller.request.action.name]
   end
 
   before actions: [:show] do
     #puts "before action"
   end
 
-  def index(**params)
-    response.headers['Content-Type'] = 'application/vnd.acme.instance;type=collection'    
+  def index(response_content_type:, **params)
+    response.headers['Content-Type'] = response_content_type #'application/vnd.acme.instance;type=collection'
     JSON.generate(params)
   end
 
@@ -23,10 +23,9 @@ class Instances
     response
   end
 
-
   def bulk_create(cloud_id:)
     self.response = BulkResponse.new
-    
+
     request.payload.each do |instance_id,instance|
       part_body = JSON.pretty_generate(key: instance_id, value: instance.render(:create))
       headers = {
@@ -46,7 +45,7 @@ class Instances
 
   def attach_file(id:, cloud_id:)
     response.headers['Content-Type'] = 'application/json'
-    
+
     destination_path = request.payload['destination_path']
     file = request.payload['file']
 
@@ -60,7 +59,7 @@ class Instances
     response
   end
 
-  
+
 
 
 end

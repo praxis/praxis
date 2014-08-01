@@ -30,8 +30,11 @@ module Praxis
     end
 
     def get
-      @value
+      @value ||= begin
+        context = ['Application', 'config']
+        @attribute.load({}, context)
+     end
     end
-    
+
   end
 end

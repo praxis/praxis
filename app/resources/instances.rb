@@ -9,9 +9,9 @@ module ApiResources
     #responses :instance_limit_reached
     #responses :pay_us_money
     #response :create, location: /instances/
-    
+
     use :authenticated
-        
+
     routing do
       prefix '/clouds/:cloud_id/instances'
     end
@@ -24,7 +24,13 @@ module ApiResources
       routing do
         get ''
       end
-      response :ok, media_type: self.resource_definition.media_type.identifier + ";type=collection"
+
+      response_content_type = self.resource_definition.media_type.identifier + ";type=collection"
+      params do
+        attribute :response_content_type, String, default: response_content_type
+      end
+
+      response :ok, media_type: response_content_type
     end
 
     action :show do
@@ -55,21 +61,21 @@ module ApiResources
       payload Praxis::Multipart.of(key: Integer, value: Instance)
 
       # Using a hash param for parts
-      response :bulk_response , 
-                parts: { 
-                  like: :ok, 
+      response :bulk_response ,
+                parts: {
+                  like: :ok,
                   media_type: Instance # Could be left blank and will inherit
                 }
 
 # Using a block for parts to defin a sub-request
-#     sub_request = proc do 
+#     sub_request = proc do
 #                     status 201
 #                     media_type Instance
 #                     headers ['X-Foo','X-Bar']
 #                   end
-#     response :bulk_response, parts: sub_request 
-      
-    
+#     response :bulk_response, parts: sub_request
+
+
       # multi 200, H1
       # parts_as :resp1
 
@@ -110,7 +116,7 @@ module ApiResources
     end
 
 
-    # OTHER USAGES: 
+    # OTHER USAGES:
     #   note: these are all hypothetical, pending, brainstorming usages.
 
     # given: single file, super simple upload, with count constraint

@@ -5,6 +5,7 @@ module Praxis
       extend Forwardable
 
       def_delegators :@context, :controller, :action, :request
+      alias :dispatcher :application # it's technically application in the base Stage
 
       def path
         [name]

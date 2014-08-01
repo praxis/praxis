@@ -89,14 +89,14 @@ describe Praxis::ResponseDefinition do
       before do
         response_definition.parts like: :ok, media_type: 'application/special'
       end
-      
+
       subject(:parts) { response_definition.parts }
-      
+
       it{ should be_kind_of(Praxis::ResponseDefinition) }
       its('media_type.identifier'){ should == 'application/special' }
       its(:name){ should be(:ok) }
       its(:status){ should be( 200 ) }
-      
+
     end
     context 'without a :like argument, and without a block' do
       it 'complains' do
@@ -116,38 +116,38 @@ describe Praxis::ResponseDefinition do
 
     context 'with a proc' do
       let(:the_proc) do
-         Proc.new do 
+         Proc.new do
            status 201
            media_type 'from_proc'
          end
        end
-       
+
       before do
         response_definition.parts the_proc
       end
-    
+
       subject(:parts) { response_definition.parts }
-    
+
       it{ should be_kind_of(Praxis::ResponseDefinition) }
       its('media_type.identifier'){ should == 'from_proc' }
       its(:status){ should be( 201 ) }
-    
+
     end
 
-    context 'with a block' do       
+    context 'with a block' do
       before do
-        response_definition.parts do 
+        response_definition.parts do
            status 201
            media_type 'from_proc'
          end
       end
-    
+
       subject(:parts) { response_definition.parts }
-    
+
       it{ should be_kind_of(Praxis::ResponseDefinition) }
       its('media_type.identifier'){ should == 'from_proc' }
       its(:status){ should be( 201 ) }
-    
+
     end
   end
 #  context '#multipart' do
@@ -204,7 +204,7 @@ describe Praxis::ResponseDefinition do
         response_definition.validate(response)
       end
     end
-    
+
     describe 'custom validate_xxx! methods' do
 
       describe "#validate_status!" do
@@ -230,13 +230,13 @@ describe Praxis::ResponseDefinition do
 
       describe "#validate_location!" do
         let(:block) { proc { status 200 } }
-        
+
         context 'checking location mismatches' do
           before { response_definition.location(location) }
-          
+
           context 'for Regexp' do
             let(:location) { /no_match/ }
-            
+
             it 'should raise an error' do
               expect {
                 response_definition.validate_location!(response)
@@ -267,7 +267,7 @@ describe Praxis::ResponseDefinition do
                }.to raise_error(/headers missing/)
              end
            end
- 
+
            context "when headers specs are name strings" do
              context "and is missing" do
                let (:headers) { [ "X-Just-Key" ] }
@@ -277,7 +277,7 @@ describe Praxis::ResponseDefinition do
                  }.to raise_error(/headers missing/)
                end
              end
- 
+
              context "and is not missing" do
                let (:headers) { [ "X-Header" ] }
                it 'should not raise error' do
@@ -287,7 +287,7 @@ describe Praxis::ResponseDefinition do
                end
              end
            end
- 
+
            context "when header specs are hashes" do
              context "and is missing" do
                let (:headers) {
@@ -299,7 +299,7 @@ describe Praxis::ResponseDefinition do
                  }.to raise_error(/headers missing/)
                end
              end
- 
+
              context "and is not missing" do
                let (:headers) {
                  [ { "X-Header" => "value" } ]
@@ -311,7 +311,7 @@ describe Praxis::ResponseDefinition do
                end
              end
            end
- 
+
            context "when header specs are of mixed type " do
              context "and is missing" do
                let (:headers) {
@@ -323,7 +323,7 @@ describe Praxis::ResponseDefinition do
                  }.to raise_error(/headers missing/)
                end
              end
- 
+
              context "and is not missing" do
                let (:headers) {
                  [ { "X-Header" => "value" }, "Content-Type" ]
@@ -337,12 +337,12 @@ describe Praxis::ResponseDefinition do
            end
          end
        end
- 
+
       describe "#validate_content_type!" do
-        
+
         let(:response_headers) { {'Content-Type' => content_type } }
         let(:content_type) { 'application/none' }
-        
+
         let(:media_type) do
           Class.new(Praxis::MediaType) do
             identifier 'application/none'
@@ -356,7 +356,7 @@ describe Praxis::ResponseDefinition do
             }.to_not raise_error
           end
         end
-        
+
         context 'for definition that includes media_type defined' do
             before { response_definition.media_type(media_type) }
 
@@ -389,10 +389,12 @@ describe Praxis::ResponseDefinition do
           end
       end
 
+      describe '#validate_parts!' do
+      end
     end
 
   end
-#  
+#
 #  context 'multipart responses' do
 #        let(:part) { Praxis::MultipartPart.new('not so ok', {'Status' => 400, "Location" => "somewhere"}) }
 #
@@ -407,7 +409,7 @@ describe Praxis::ResponseDefinition do
 #
 #            it 'sets the Content-Type header' do
 #              expect(response.headers['Content-Type']).to match(/^multipart.*boundary=/i)
-#            end            
+#            end
 #
 #            it 'adds the part' do
 #              expect(response.parts.values.first).to be(part)
@@ -468,7 +470,7 @@ describe Praxis::ResponseDefinition do
 #        end
 #
 #  end
-#  
+#
   context 'with invalid definitions' do
     it 'raises an error if status code is not part of the definition' do
       expect do

@@ -11,17 +11,33 @@ describe Praxis::Config do
     end
 
     it 'has no values' do
-      expect(config.get).to be(nil)
+      expect(config.get).to be_kind_of(config.attribute.type)
     end
   end
 
   describe '#define' do
-    it 'defines configuration' do
+    before do
       config.define do
         attribute :foo, String
       end
+    end
+
+    it 'defines configuration' do
       expect(config.attribute.attributes.keys).to eq [:foo]
     end
+
+    context 'called again with new attributes' do
+      before do
+        config.define do
+          attribute :bar, String
+        end
+      end
+
+      it 'adds the additional attriubutes' do
+        expect(config.attribute.attributes.keys).to eq [:foo, :bar]
+      end
+    end
+
   end
 
   describe '#set' do

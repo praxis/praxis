@@ -11,7 +11,11 @@ module Praxis
         end
 
         response.handle
-        response.validate(action)
+
+        praxis_config = Application.instance.config.praxis
+        unless praxis_config && praxis_config.validate_responses == false
+          response.validate(action)
+        end
       end
 
     end

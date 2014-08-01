@@ -6,6 +6,34 @@ describe 'Functional specs' , focus: true do
     Praxis::Application.instance
   end
 
+  context 'index' do
+    context 'with an incorrect response_content_type param' do
+      it 'fails to validate the response' do
+        expect {
+          get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0'
+        }.to raise_error(/Bad Content-Type:/)
+      end
+
+      context 'with response validation disabled' do
+        let(:praxis_config) { double('praxis_config', validate_responses: false) }
+        let(:config) { double('config', praxis: praxis_config) }
+
+        before do
+          expect(Praxis::Application.instance.config).to receive(:praxis).and_return(praxis_config)
+        end
+
+        it 'fails to validate the response' do
+          expect {
+            #binding.pry
+            get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0'
+          }.to_not raise_error
+        end
+
+      end
+    end
+
+  end
+
   it 'works' do
     get '/clouds/1/instances/2?junk=foo&api_version=1.0'
 
@@ -33,7 +61,7 @@ describe 'Functional specs' , focus: true do
     it 'works' do
       post '/clouds/1/instances?api_version=1.0', body, 'CONTENT_TYPE' => content_type
 
-      
+
       _reponse_preamble, response = Praxis::MultipartParser.parse(last_response.headers, last_response.body)
       expect(response).to have(1).item
 

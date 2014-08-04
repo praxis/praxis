@@ -59,6 +59,11 @@ module Praxis
         status 200
       end
 
+      api.register_response :created do |media_type: |
+        media_type media_type
+        status 201
+      end
+
       api.register_response :not_found do
         status 404
       end

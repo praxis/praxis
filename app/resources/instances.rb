@@ -63,7 +63,7 @@ module ApiResources
       # Using a hash param for parts
       response :bulk_response ,
                 parts: {
-                  like: :ok,
+                  like: :created,
                   media_type: Instance # Could be left blank and will inherit
                 }
 

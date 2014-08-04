@@ -8,5 +8,9 @@ module Praxis
       @filename = filename
     end
 
+    def status
+      @headers['Status'].to_i
+    end
+
   end
 end

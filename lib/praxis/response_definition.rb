@@ -81,6 +81,7 @@ module Praxis
       validate_location!(response)
       validate_headers!(response)
       validate_content_type!(response)
+      validate_parts!(response)
     end
 
     def parts(proc=nil, like: nil,  **args, &block)
@@ -109,7 +110,7 @@ module Praxis
       # Validate status code if defined in the spec
       if response.status != status
         raise "Invalid response code detected. Response %s dictates status of %s but this response is returning %s." %
-        [name, status, response.status]
+        [name, status.inspect, response.status.inspect]
       end
     end
 
@@ -171,9 +172,17 @@ module Praxis
       if media_type.identifier != extracted_identifier
         raise "Bad Content-Type: returned type #{extracted_identifier} does not match "+
           "type #{media_type.identifier} as described in response: #{self.name}"
-          end
+      end
     end
 
+    def validate_parts!(response)
+      return unless parts
+
+      response.parts.each do |name, part|
+        parts.validate(part)
+      end
+
+    end
 
   end
 end

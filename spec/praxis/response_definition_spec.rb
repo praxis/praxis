@@ -390,6 +390,16 @@ describe Praxis::ResponseDefinition do
       end
 
       describe '#validate_parts!' do
+        let(:parts) { [] }
+        before do
+          response_definition.parts like: :ok, media_type: 'application/special'
+          allow(response).to receive(:parts).and_return(parts)
+        end
+
+        it 'validates each part' do
+          p response_definition.parts
+        end
+
       end
     end
 

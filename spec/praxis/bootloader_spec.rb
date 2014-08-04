@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Praxis::Bootloader do
   let(:application) do
-    double("application", config: "config", root: "root", plugins: [])
+    instance_double("Praxis::Application", config: "config", root: "root", plugins: [])
   end
 
   subject(:bootloader) {Praxis::Bootloader.new(application)}
@@ -32,7 +32,7 @@ describe Praxis::Bootloader do
   context ".before" do
     it "run before block of first element in stage_path" do
       stage = bootloader.stages.first
-      stage.stub('before').and_return('before!')
+      allow(stage).to receive(:before).and_return('before!')
       expect(bootloader.before(stage.name)).to eq('before!')
     end
 
@@ -42,7 +42,7 @@ describe Praxis::Bootloader do
   context ".after" do
     it "run before block of first element in stage_path" do
       stage = bootloader.stages.first
-      stage.stub('after').and_return('after!')
+      allow(stage).to receive(:after).and_return('after!')
       expect(bootloader.after(stage.name)).to eq('after!')
     end
 

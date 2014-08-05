@@ -16,7 +16,6 @@ module Praxis
 
 
       def execute
-        # TODO: handle multipart requests
         if request.action.payload
           request.load_payload(CONTEXT_FOR[:payload])
           Attributor::AttributeResolver.current.register("payload",request.payload)

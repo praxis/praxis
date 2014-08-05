@@ -17,7 +17,7 @@ module Praxis
     end
 
     def describe
-      'todo' # TODO: replace todo
+      {identifier: identifier}
     end
   end
 

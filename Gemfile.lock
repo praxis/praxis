@@ -1,16 +1,12 @@
-GIT
-  remote: git@github.com:rightscale/attributor.git
-  revision: 568da609948c185c7b7e23902c6e647a29d3d2af
-  branch: master
+PATH
+  remote: ../attributor
   specs:
     attributor (2.0.0)
       hashie
       randexp
 
-GIT
-  remote: git@github.com:rightscale/taylor.git
-  revision: 7721b5bfd8d801009792303e67eb3dd4c59a2907
-  branch: master
+PATH
+  remote: ../taylor
   specs:
     taylor (3.0.0)
       activesupport (>= 2.3.5, < 4.0)
@@ -33,6 +29,7 @@ GEM
       timers (~> 1.1.0)
     coderay (1.1.0)
     color (1.6)
+    colored (1.2)
     columnize (0.8.9)
     debug_inspector (0.0.2)
     debugger-linecache (1.2.0)
@@ -84,6 +81,9 @@ GEM
     rack-test (0.6.2)
       rack (>= 1.0)
     rake (10.3.2)
+    rake-notes (0.2.0)
+      colored
+      rake
     randexp (0.1.7)
     rb-fsevent (0.9.4)
     rb-inotify (0.9.5)
@@ -139,6 +139,7 @@ DEPENDENCIES
   rack
   rack-test
   rake
+  rake-notes
   rspec
   rspec-collection_matchers
   rspec-its

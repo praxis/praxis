@@ -14,7 +14,6 @@ module Praxis
       def execute_controller_callbacks(callbacks)
         if callbacks.has_key?(path)
           callbacks[path].each do |(conditions, block)|
-            # TODO: support more conditions
             if conditions.has_key?(:actions)
               next unless conditions[:actions].include? action.name
             end

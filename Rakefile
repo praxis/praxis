@@ -4,3 +4,5 @@ require 'praxis'
 require 'praxis/tasks'
 
 
+require 'rake/notes/rake_task'
+

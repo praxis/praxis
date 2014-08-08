@@ -5,5 +5,4 @@ guard 'rspec', cmd: 'bundle exec rspec' do
   watch('spec/functional_spec.rb')  { "spec/" }
   watch(%r{^lib/(.+)\.rb$})     { |m| "spec/functional_spec.rb" }
   watch(%r{^app/(.+)\.rb$})     { "spec/" }
-
 end

@@ -1,5 +1,7 @@
 source 'https://rubygems.org'
 
+gem 'mime'
+
 gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
 gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
 #gem 'taylor', path: '../taylor'
@@ -25,10 +27,12 @@ group :development, :test do
   gem 'guard'
   gem 'guard-rspec'
   gem 'guard-bundler'
-  
+
   gem 'pry'
   gem 'pry-byebug'
   gem 'pry-stack_explorer'
+
+  gem 'rake-notes'
 end
 
 

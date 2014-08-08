@@ -1,10 +1,13 @@
 class Instance < Praxis::MediaType
 
-  identifier 'application/json'
-  
-  attributes do 
+  identifier 'application/vnd.acme.instance'
+
+  attributes do
     attribute :id, Integer
+    attribute :name, String, example: /[:first_name:]/
+
     attribute :href, String
+
     attribute :root_volume, Volume
 
     links do
@@ -22,6 +25,11 @@ class Instance < Praxis::MediaType
   view :link do
     attribute :id
     attribute :href
+  end
+
+  view :create do
+    attribute :id
+    attribute :name
   end
 
 end

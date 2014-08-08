@@ -1,6 +1,6 @@
 GIT
   remote: git@github.com:rightscale/attributor.git
-  revision: 568da609948c185c7b7e23902c6e647a29d3d2af
+  revision: 03b04ac6729a5cc477d8c266f75d54118f1b12b5
   branch: master
   specs:
     attributor (2.0.0)
@@ -9,7 +9,7 @@ GIT
 
 GIT
   remote: git@github.com:rightscale/taylor.git
-  revision: 7721b5bfd8d801009792303e67eb3dd4c59a2907
+  revision: 269999b82e05fa4d0318a1c46fca9a59b5be2658
   branch: master
   specs:
     taylor (3.0.0)
@@ -33,6 +33,7 @@ GEM
       timers (~> 1.1.0)
     coderay (1.1.0)
     color (1.6)
+    colored (1.2)
     columnize (0.8.9)
     debug_inspector (0.0.2)
     debugger-linecache (1.2.0)
@@ -64,6 +65,7 @@ GEM
       rb-inotify (>= 0.9)
     lumberjack (1.0.6)
     method_source (0.8.2)
+    mime (0.4.1)
     multi_json (1.10.1)
     mustermann (0.2.0)
     pdf-writer (1.1.8)
@@ -83,6 +85,9 @@ GEM
     rack-test (0.6.2)
       rack (>= 1.0)
     rake (10.3.2)
+    rake-notes (0.2.0)
+      colored
+      rake
     randexp (0.1.7)
     rb-fsevent (0.9.4)
     rb-inotify (0.9.5)
@@ -108,7 +113,7 @@ GEM
     ruport (1.6.3)
       fastercsv
       pdf-writer (= 1.1.8)
-    sequel (4.12.0)
+    sequel (4.13.0)
     simplecov (0.8.2)
       docile (~> 1.1.0)
       multi_json
@@ -130,6 +135,7 @@ DEPENDENCIES
   guard
   guard-bundler
   guard-rspec
+  mime
   mustermann
   pry
   pry-byebug
@@ -137,6 +143,7 @@ DEPENDENCIES
   rack
   rack-test
   rake
+  rake-notes
   rspec
   rspec-collection_matchers
   rspec-its

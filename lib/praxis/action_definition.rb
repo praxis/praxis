@@ -14,13 +14,13 @@ module Praxis
     attr_reader :routes
     attr_reader :primary_route
     attr_reader :named_routes
+    attr_reader :responses
 
 
     def initialize(name, resource_definition, **opts, &block)
       @name = name
       @resource_definition = resource_definition
-      @responses = Set.new
-      @response_groups = Set.new
+      @responses = Hash.new
 
       if (media_type = resource_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::MediaType
@@ -43,6 +43,10 @@ module Praxis
         headers(saved_opts, &saved_block)
       end
 
+      resource_definition.responses.each do |name, args|
+        response(name, args)
+      end
+
       self.instance_eval(&block) if block_given?
     end
 
@@ -51,19 +55,9 @@ module Praxis
       attribute.type.attributes(options, &block)
     end
 
-    def responses(*responses)
-      @responses.merge(responses)
-    end
-
-    def response_groups(*response_groups)
-      @response_groups.merge(response_groups)
-    end
-
-    def allowed_responses
-      names = @responses + resource_definition.responses
-      groups = @response_groups + resource_definition.response_groups
-
-      @allowed_responses = ApiDefinition.instance.responses(names: names, groups: groups)
+    def response( name, **args )
+      template = ApiDefinition.instance.response(name)
+      @responses[name] = template.compile(self, **args)
     end
 
     def create_attribute(type=Attributor::Struct, **opts, &block)
@@ -117,7 +111,7 @@ module Praxis
 
     def routing(&block)
       routing_config = Skeletor::RestfulRoutingConfig.new(name, resource_definition, &block)
-      
+
       @routes = routing_config.routes
       @primary_route = routing_config.routes.first
       @named_routes = routing_config.routes.each_with_object({}) do |route, hash|
@@ -142,7 +136,7 @@ module Praxis
         hash[:headers] = headers.describe if headers
         hash[:params] = params.describe if params
         hash[:payload] = payload.describe if payload
-        hash[:responses] = allowed_responses.inject({}) do |memo, response|
+        hash[:responses] = responses.inject({}) do |memo, (response_name, response)|
           memo[response.name] = response.describe
           memo
         end

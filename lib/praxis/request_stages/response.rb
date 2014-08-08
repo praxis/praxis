@@ -6,12 +6,16 @@ module Praxis
       def execute
         response = controller.response
 
-        unless action.allowed_responses.include?(response.definition)
+        unless action.responses.include?(response.response_name)
           raise "response #{response.name.inspect} is not allowed for #{action.name.inspect}"
         end
 
         response.handle
-        response.validate(action)
+
+        praxis_config = Application.instance.config.praxis
+        unless praxis_config && praxis_config.validate_responses == false
+          response.validate(action)
+        end
       end
 
     end

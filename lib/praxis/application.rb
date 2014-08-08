@@ -25,7 +25,7 @@ module Praxis
       @controllers = Set.new
       @resource_definitions = Set.new
 
-      @router = Router.new
+      @router = Router.new(self)
 
       @bootloader = Bootloader.new(self)
       @file_layout = nil
@@ -35,7 +35,7 @@ module Praxis
       @root = nil
       @logger = Logger.new(STDOUT)
     end
-
+    
     def setup(root: '.')
       @root = Pathname.new(root).expand_path
 

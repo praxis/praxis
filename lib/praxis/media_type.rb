@@ -19,7 +19,11 @@ module Praxis
     end
 
     def self.describe(shallow = false)
-      super.merge!(identifier: @identifier, description: @description)
+      hash = super
+      unless shallow
+        hash.merge!(identifier: @identifier, description: @description)
+      end
+      hash
     end
 
     def self.attributes(opts={}, &block)

@@ -3,7 +3,7 @@ require 'mustermann/router/rack'
 module Praxis
 
   class Router
-    attr_reader :request_class
+    attr_reader :request_class, :application
 
     class RequestRouter < Mustermann::Router::Simple
       def initialize(default: nil, **options, &block)
@@ -22,13 +22,14 @@ module Praxis
     end
 
 
-    def initialize(request_class: Praxis::Request)
+    def initialize(application, request_class: Praxis::Request)
       @routes = Hash.new do |hash, version|
         hash[version] = Hash.new do |subhash, verb|
           subhash[verb] = RequestRouter.new
         end
       end
       @request_class = request_class
+      @application = application
     end
 
     def add_route(target, route)

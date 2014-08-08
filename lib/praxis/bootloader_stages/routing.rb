@@ -22,7 +22,9 @@ module Praxis
 
         Proc.new do |request|
           request.action = action
-          Dispatcher.new.dispatch(controller, action, request)
+          dispatcher = Dispatcher.current(thread: Thread.current, application: application)
+
+          dispatcher.dispatch(controller, action, request)
         end
       end
 

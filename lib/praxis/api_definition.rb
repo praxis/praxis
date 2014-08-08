@@ -18,8 +18,8 @@ module Praxis
       @traits = Hash.new
     end
 
-    def register_response(name, group: :default, &block)
-      @responses[name] = Praxis::ResponseDefinition.new(name,group:group, &block)
+    def register_response(name, &block)
+      @responses[name] = Praxis::ResponseTemplate.new(name, &block)
     end
 
     def response(name)
@@ -29,7 +29,7 @@ module Praxis
     end
 
 
-    def responses(names: [], groups: [])
+    def responses(names: [])
       set = Set.new
 
       groups.each do |group_name|
@@ -54,9 +54,14 @@ module Praxis
 
 
     define do |api|
-      api.register_response :default do
-        media_type :controller_defined
+      api.register_response :ok do |media_type: |
+        media_type media_type
         status 200
+      end
+
+      api.register_response :created do |media_type: |
+        media_type media_type
+        status 201
       end
 
       api.register_response :not_found do

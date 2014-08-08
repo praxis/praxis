@@ -1,12 +1,16 @@
-PATH
-  remote: ../attributor
+GIT
+  remote: git@github.com:rightscale/attributor.git
+  revision: 03b04ac6729a5cc477d8c266f75d54118f1b12b5
+  branch: master
   specs:
     attributor (2.0.0)
       hashie
       randexp
 
-PATH
-  remote: ../taylor
+GIT
+  remote: git@github.com:rightscale/taylor.git
+  revision: 269999b82e05fa4d0318a1c46fca9a59b5be2658
+  branch: master
   specs:
     taylor (3.0.0)
       activesupport (>= 2.3.5, < 4.0)
@@ -109,7 +113,7 @@ GEM
     ruport (1.6.3)
       fastercsv
       pdf-writer (= 1.1.8)
-    sequel (4.12.0)
+    sequel (4.13.0)
     simplecov (0.8.2)
       docile (~> 1.1.0)
       multi_json

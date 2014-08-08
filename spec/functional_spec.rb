@@ -24,7 +24,6 @@ describe 'Functional specs' , focus: true do
 
         it 'fails to validate the response' do
           expect {
-            #binding.pry
             get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0'
           }.to_not raise_error
         end

@@ -157,18 +157,11 @@ By making a contribution to this project, I certify that:
 
 Then you just add a line to every git commit message:
 
-    Praxis-DCO-1.1-Signed-off-by: Joe Smith <joe.smith@email.com> (github: github_handle)
+Signed-off-by: Joe Smith <joe.smith@email.com> Using your real name
+(sorry, no pseudonyms or anonymous contributions.)
 
-Using your real name (sorry, no pseudonyms or anonymous contributions.)
-
-One way to automate this, is customize your git `commit.template` by adding
-a `prepare-commit-msg` hook to your Praxis repository:
-
-```
-curl -sSL -o .git/hooks/prepare-commit-msg https://raw.githubusercontent.com/rightscale/praxis/master/contrib/prepare-commit-msg.hook && chmod +x .git/hooks/prepare-commit-msg
-```
-
-* Note: the above script expects to find your GitHub user name in `git config --get github.user`
+If you set your user.name and user.email git configs, you can sign your
+commit automatically with git commit -s.
 
 #### Small patch exception
 

@@ -244,7 +244,6 @@ namespace :praxis do
   desc "Generate API docs (JSON definitions) for a Praxis App"
   task :api_docs => [:environment] do |t, args|
     require 'fileutils'
-#    require 'taylor' # TODO:...not here...
 
     Taylor::Blueprint.caching_enabled = false
     generator = RestfulDocGenerator.new(File.join(Dir.pwd, API_DOCS_DIRNAME))

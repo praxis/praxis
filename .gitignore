@@ -1,2 +1,4 @@
 coverage
 *.swp
+_site/
+.sass-cache/

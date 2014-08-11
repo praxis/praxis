@@ -20,8 +20,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'mustermann'
   s.add_dependency 'activesupport'
   s.add_dependency 'ruport'
-  s.add_dependency 'pry'
+  s.add_dependency 'mime'
 
+  s.add_development_dependency 'pry'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'rspec-its'

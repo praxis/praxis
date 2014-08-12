@@ -13,7 +13,11 @@ module Praxis
         if @errors
           @body = {name: 'ValidationError', errors: @errors}
         elsif @exception
-          @body = {name: @exception.class.name, message: @exception.message}
+          @body = {name: 'ValidationError', message: @exception.message}
+          if @exception.cause
+            @body[:cause] = {name: @exception.cause.name, message: @exception.cause.message}
+          end
+          @body
         end
       end
     end

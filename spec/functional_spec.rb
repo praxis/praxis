@@ -122,7 +122,7 @@ describe 'Functional specs' , focus: true do
       it 'returns an error' do
         post '/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type
         response = JSON.parse(last_response.body)
-        expect(response['name']).to eq('Attributor::AttributorException')
+        expect(response['name']).to eq('ValidationError')
         expect(response["message"]).to match(/Unknown key received:/)
       end
 

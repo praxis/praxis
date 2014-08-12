@@ -9,9 +9,10 @@ describe 'Functional specs' , focus: true do
   context 'index' do
     context 'with an incorrect response_content_type param' do
       it 'fails to validate the response' do
-        expect {
-          get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0'
-        }.to raise_error(/Bad Content-Type:/)
+        get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0'
+        response = JSON.parse(last_response.body)
+        expect(response['name']).to eq('RuntimeError')
+        expect(response["message"]).to match(/Bad Content-Type:/)
       end
 
       context 'with response validation disabled' do
@@ -59,7 +60,6 @@ describe 'Functional specs' , focus: true do
 
     it 'works' do
       post '/clouds/1/instances?api_version=1.0', body, 'CONTENT_TYPE' => content_type
-
 
       _reponse_preamble, response = Praxis::MultipartParser.parse(last_response.headers, last_response.body)
       expect(response).to have(1).item
@@ -120,8 +120,32 @@ describe 'Functional specs' , focus: true do
       end
 
       it 'returns an error' do
-        pending 'completion of returning exceptions to the client'
         post '/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type
+        response = JSON.parse(last_response.body)
+        expect(response['name']).to eq('Attributor::AttributorException')
+        expect(response["message"]).to match(/Unknown key received:/)
+      end
+
+    end
+
+    context 'with a missing value in form' do
+      let(:form) do
+        form_data = MIME::Multipart::FormData.new
+
+        text = MIME::Text.new('DOCKER_HOST=tcp://127.0.0.1:2375')
+        form_data.add text, 'file', 'docker'
+
+        form_data
+      end
+
+      let(:body) { form.body.to_s }
+      
+      it 'returns an error' do
+        post '/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type
+        response = JSON.parse(last_response.body)
+
+        expect(response['name']).to eq('ValidationError')
+        expect(response['errors']).to eq(["Attribute $.payload.get(\"destination_path\") is required"])
       end
 
     end

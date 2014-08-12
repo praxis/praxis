@@ -77,7 +77,7 @@ describe Praxis::Request do
 
       it 'should raise an error if headers validation failed' do
         allow(request.headers).to receive(:validate).and_return(['some_error'])
-        expect { request.validate_headers(context[:headers]) }.to raise_error
+        expect(request.validate_headers(context[:headers])).to eq(['some_error'])
       end
     end
 
@@ -89,7 +89,7 @@ describe Praxis::Request do
 
       it 'should raise an error if params validation failed' do
         allow(request.params).to receive(:validate).and_return(['some_error'])
-        expect { request.validate_params(context[:params]) }.to raise_error
+        expect(request.validate_params(context[:params])).to eq(['some_error'])
       end
     end
 
@@ -102,7 +102,7 @@ describe Praxis::Request do
 
       it 'should raise an error if payload validation failed' do
         expect(request.payload).to receive(:validate).and_return(['some_error'])
-        expect { request.validate_payload(context[:payload]) }.to raise_error
+        expect(request.validate_payload(context[:payload])).to eq(['some_error'])
       end
     end
   end

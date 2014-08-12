@@ -8,6 +8,12 @@ module Praxis
         @stages << RequestStages::ValidatePayload.new(:payload, context, parent: self)
       end
 
+      def execute
+        super
+      rescue Attributor::AttributorException => e
+        return Responses::ValidationError.new(exception: e)
+      end
+
     end
 
   end

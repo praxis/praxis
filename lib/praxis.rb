@@ -60,8 +60,28 @@ module Praxis
   end
 
   module Responses
-    autoload :Default, 'praxis/responses/default'
-    autoload :NotFound, 'praxis/responses/not_found'
+    autoload :Ok, 'praxis/responses/http'
+    autoload :Created, 'praxis/responses/http'
+    autoload :Accepted, 'praxis/responses/http'
+    autoload :NoContent, 'praxis/responses/http'
+    autoload :MultipleChoices, 'praxis/responses/http'
+    autoload :MovedPermanently, 'praxis/responses/http'
+    autoload :Found, 'praxis/responses/http'
+    autoload :SeeOther, 'praxis/responses/http'
+    autoload :NotModified, 'praxis/responses/http'
+    autoload :TemporaryRedirect, 'praxis/responses/http'
+    autoload :BadRequest, 'praxis/responses/http'
+    autoload :Unauthorized, 'praxis/responses/http'
+    autoload :Forbidden, 'praxis/responses/http'
+    autoload :NotFound, 'praxis/responses/http'
+    autoload :MethodNotAllowed, 'praxis/responses/http'
+    autoload :NotAcceptable, 'praxis/responses/http'
+    autoload :Conflict, 'praxis/responses/http'
+    autoload :PreconditionFailed, 'praxis/responses/http'
+    autoload :UnprocessableEntity, 'praxis/responses/http'
+    autoload :InternalServerError, 'praxis/responses/http'
+
+    autoload :ValidationError, 'praxis/responses/validation_error'
   end
 
   module BootloaderStages

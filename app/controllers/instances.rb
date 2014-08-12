@@ -60,6 +60,4 @@ class Instances
   end
 
 
-
-
 end

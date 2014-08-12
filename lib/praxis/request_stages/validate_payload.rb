@@ -14,12 +14,15 @@ module Praxis
         @parent.path + [name]
       end
 
-
       def execute
         if request.action.payload
           request.load_payload(CONTEXT_FOR[:payload])
           Attributor::AttributeResolver.current.register("payload",request.payload)
-          request.validate_payload(CONTEXT_FOR[:payload])
+
+          errors = request.validate_payload(CONTEXT_FOR[:payload])
+          if errors.any?
+            return Responses::ValidationError.new(errors: errors)
+          end
         end
       end
 

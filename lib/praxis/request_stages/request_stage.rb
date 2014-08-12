@@ -27,9 +27,23 @@ module Praxis
         setup_deferred_callbacks!
         execute_callbacks(self.before_callbacks)
         execute_controller_callbacks(controller.class.before_callbacks)
-        execute
+        result = execute
         execute_controller_callbacks(controller.class.after_callbacks)
         execute_callbacks(self.after_callbacks)
+
+        result
+      end
+
+
+      def execute
+        raise 'subclass must implement Stage#execute' unless @stages.any?
+
+        @stages.each do |stage|
+          result = stage.run
+          return result if result.kind_of?(Praxis::Response)
+        end
+
+        nil
       end
 
     end

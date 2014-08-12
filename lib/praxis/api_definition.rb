@@ -8,6 +8,7 @@ module Praxis
     extend Forwardable
 
     attr_reader :traits
+    attr_reader :responses
 
     def self.define
       yield(self.instance)
@@ -28,25 +29,6 @@ module Praxis
       end
     end
 
-
-    def responses(names: [])
-      set = Set.new
-
-      groups.each do |group_name|
-        group = @responses.values.select { |response| response.group == group_name }
-        if group.empty?
-          raise ArgumentError, "no responses defined with group name #{group_name.inspect}"
-        end
-        set.merge group
-      end
-
-      names.each do |name|
-        set << response(name)
-      end
-
-      set
-    end
-
     def trait(name, &block)
       raise "Umm...overwriting a previous trait with the same name" if self.traits.has_key? name
       self.traits[name] = block
@@ -63,21 +45,7 @@ module Praxis
         media_type media_type
         status 201
       end
-
-      api.register_response :not_found do
-        status 404
-      end
-
-      api.register_response :validation do
-        description "When parameter validation hits..."
-        status 400
-        media_type "application/json"
-      end
-
-      api.register_response :internal_server_error do
-        description "Internal Server Error"
-        status 500
-      end
+     
     end
 
   end

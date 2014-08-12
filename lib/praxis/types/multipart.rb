@@ -57,7 +57,7 @@ module Praxis
 
 
     def validate(context=Attributor::DEFAULT_ROOT_CONTEXT)
-      []
+      super
     end
 
     #def []=(k, v)

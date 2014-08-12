@@ -48,7 +48,7 @@ describe Praxis::Response do
     )
   end
 
-  subject(:response) { Praxis::Responses::Default.new(status: response_status, headers: response_headers) }
+  subject(:response) { Praxis::Responses::Ok.new(status: response_status, headers: response_headers) }
 
   # before :each do
   #   allow(response.class).to receive(:response_name).and_return(:spec)

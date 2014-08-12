@@ -71,16 +71,24 @@ module Praxis
       @request = request
 
       @stages.each do |stage|
-        stage.run
+        result = stage.run
+        case result
+        when Response
+          return result.finish
+        end
       end
 
       controller.response.finish
+    rescue => e
+      response = Responses::InternalServerError.new(error: e)
+      response.request = controller.request
+      response.finish
     ensure
       @controller = nil
       @action = nil
       @request = nil
     end
-
+   
 
   end
 end

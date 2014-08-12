@@ -50,7 +50,7 @@ module Praxis
     end
 
 
-    def initialize(request, response=Responses::Default.new)
+    def initialize(request, response=Responses::Ok.new)
       @request = request
       @response = response
     end

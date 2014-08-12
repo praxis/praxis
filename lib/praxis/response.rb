@@ -12,19 +12,24 @@ module Praxis
 
     class << self
       attr_accessor :response_name
+      attr_accessor :status
     end
 
-#   def self.definition
-#     ApiDefinition.instance.response(self.response_name)
-#   end
+    def self.inherited(klass)
+      klass.response_name = klass.name.demodulize.underscore.to_sym
+      klass.status = self.status if self.status
+    end
 
-    def initialize(status:200, headers:{}, body:'')
+    def initialize(status:self.class.status, headers:{}, body:'')
       @name    = response_name
       @status  = status
       @headers = headers
       @body    = body
       @form_data = nil
       @parts = Hash.new
+    end
+
+    def handle
     end
 
     def add_part(name=nil, part)
@@ -43,11 +48,19 @@ module Praxis
       self.class.response_name
     end
 
-    def finish
+    def format!
+    end
+
+    def encode!
       case @body
-      when Hash
+      when Hash, Array
         @body = JSON.pretty_generate(@body)
       end
+    end
+
+    def finish
+      format!
+      encode!
 
       @body = Array(@body)
 
@@ -59,6 +72,7 @@ module Praxis
         end
 
         @parts.each do |name, part|
+          part.encode!
           entity = MIME::Text.new(part.body)
 
           part.headers.each do |header_name, header_value|

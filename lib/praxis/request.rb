@@ -104,24 +104,21 @@ module Praxis
     end
 
     def validate_headers(context)
-      return unless action.headers
+      return [] unless action.headers
 
-      errors = action.headers.validate(self.headers, context)
-      raise "nope: #{errors.inspect}" if errors.any?
+      action.headers.validate(self.headers, context)
     end
 
     def validate_params(context)
-      return unless action.params
+      return [] unless action.params
 
-      errors = action.params.validate(self.params, context)
-      raise "nope: #{errors.inspect}" if errors.any?
+      action.params.validate(self.params, context)
     end
 
     def validate_payload(context)
-      return unless action.payload
+      return [] unless action.payload
 
-      errors = action.payload.validate(self.payload, context)
-      raise "nope: #{errors.inspect}" if errors.any?
+      action.payload.validate(self.payload, context)
     end
 
 

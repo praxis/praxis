@@ -1,10 +1,6 @@
 
 class BulkResponse < Praxis::Response
   self.response_name = :bulk_response
-
-  def handle
-    @status = 200
-  end
-
+  self.status = 200
 end
 

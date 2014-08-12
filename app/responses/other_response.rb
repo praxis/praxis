@@ -1,9 +1,6 @@
 class OtherResponse < Praxis::Response
   self.response_name = :other_response
-
-  def handle
-    @status = 200
-  end
+  self.status = 200
 
 end
 

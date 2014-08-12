@@ -24,8 +24,12 @@ module Praxis
         attribute_resolver.register("headers",request.headers)
         attribute_resolver.register("params",request.params)
 
-        request.validate_headers(CONTEXT_FOR[:headers])
-        request.validate_params(CONTEXT_FOR[:params])
+        errors = request.validate_headers(CONTEXT_FOR[:headers])
+        errors += request.validate_params(CONTEXT_FOR[:params])
+
+        if errors.any?
+          return Responses::ValidationError.new(errors: errors)
+        end
       end
 
     end

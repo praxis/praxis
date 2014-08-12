@@ -88,6 +88,7 @@ describe Praxis::ResponseDefinition do
   context '#parts' do
     context 'with a :like argument (and no block)' do
       before do
+        #binding.pry
         response_definition.parts like: :ok, media_type: 'application/special'
       end
 
@@ -434,7 +435,7 @@ describe Praxis::ResponseDefinition do
   end
 
   context 'getting data from describe' do
-    subject(:response) { Praxis::Responses::Default.new(status: response_status, headers: response_headers) }
+    subject(:response) { Praxis::Responses::Ok.new(status: response_status, headers: response_headers) }
 
     it 'is a pending example'
   end

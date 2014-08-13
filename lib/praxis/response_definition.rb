@@ -7,7 +7,7 @@ module Praxis
 
     def initialize(response_name, **spec, &block)
       raise "NO NAME!!!" unless response_name
-      @spec = {}
+      @spec = { headers:{} }
       @name = response_name
       self.instance_exec(**spec, &block) if block_given?
       raise "Status code is required for a response specification" if self.status.nil?
@@ -50,32 +50,69 @@ module Praxis
 
     def headers(hdrs = nil)
       return @spec[:headers] if hdrs.nil?
-      if !(hdrs.is_a?(Array) || hdrs.is_a?(Hash) || hdrs.is_a?(String))
-        raise "Invalid headers specification: Arrays, Hash, or String must be used"
+            
+      case hdrs
+      when Array
+        hdrs.each {|header_name| header(header_name) }
+      when Hash
+        header(hdrs)
+      when String
+        header(hdrs)
+      else
+        raise "Invalid headers specification: Arrays, Hash, or String must be used. Got: #{hdrs.inspect}"
       end
-      @spec[:headers] = hdrs
+    end
+    
+    def header(hdr)
+      case hdr
+      when String
+        @spec[:headers][hdr] = true
+      when Hash
+        hdr.each do | k, v |
+          unless v.is_a?(Regexp) || v.is_a?(String)
+            raise "Header definitions for #{k.inspect} can only match values of type String or Regexp. Got: #{v.inspect}"
+          end
+          @spec[:headers][k] = v
+       end
+      else
+        raise "A header definition can only take a String (to match the name) or a Hash (to match both the name and the value). Got: #{hdr.inspect}"
+      end
     end
 
     def describe
-      location_type = location.is_a?(Regexp) ? 'regexp' : 'string'
+      location_type = location.is_a?(Regexp) ? :regexp : :string
       location_value = location.is_a?(Regexp) ? location.inspect : location
       content = {
-        "description" => description,
-        "status" => status
+        :description => description,
+        :status => status,
+        :headers => {}
       }
-      content['location'] = { "value" => location_value, "type" => location_type } unless location == nil
+      content[:location] = _describe_header(location) unless location == nil
       # TODO: Change the mime_type key to media_type!!
       if media_type
-        content['mime_type'] = if media_type.is_a? Symbol
+        content[:media_type] = if media_type.is_a? Symbol
           media_type
         else
-          media_type.describe
+          media_type.describe(true) # TODO: is a shallow describe what we want? or just the name?
         end
       end
-      content['headers'] = headers unless headers == nil
+      unless headers == nil
+        headers.each do |name, value|
+          content[:headers][name] = _describe_header(value) 
+        end
+      end
+      unless parts == nil
+        content[:parts_like] = parts.describe
+      end
       content
     end
-
+    
+    def _describe_header(data)
+      data_type = data.is_a?(Regexp) ? :regexp : :string
+      data_value = data.is_a?(Regexp) ? data.inspect : data
+       { :value => data_value, :type => data_type } 
+    end
+    
     def validate( response )
       validate_status!(response)
       validate_location!(response)
@@ -142,16 +179,20 @@ module Praxis
     #
     def validate_headers!(response)
       return unless headers
-      # Validate headers
-      headers = Array(self.headers) #[ definition_headers ] unless definition_headers.is_a?(Array)
-      headers.each do |h|
-        valid = false
-        case h
-        when Hash   then  valid = h.all? { |k, v| response.headers.has_key?(k) && response.headers[k] == v }
-        when String then  valid = response.headers.has_key?(h)
-        when Symbol then  raise "Symbols are not supported"
-        end
-        raise "headers missing" unless valid
+      headers.each do |name, value|
+        raise "Symbols are not supported" if name.is_a? Symbol
+        raise "header #{name.inspect} was requred but it is missing" unless response.headers.has_key?(name)
+
+        case value
+        when String
+          if response.headers[name] != value
+            raise "header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name]}." unless valid
+          end
+        when Regexp
+          if response.headers[name] !~ value
+            raise "header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name].inspect}." unless valid          
+          end
+        end          
       end
     end
 

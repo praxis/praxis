@@ -178,7 +178,7 @@ module Praxis
 
     # Validates 'Location' header
     #
-    # @raise [RuntimeError]  When location header does not match to the defined one.
+    # @raise [Exceptions::ValidationException] When location header does not match to the defined one.
     #
     def validate_location!(response)
       return if location.nil? || location === response.headers['Location']

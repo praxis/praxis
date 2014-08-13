@@ -241,7 +241,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise an error' do
               expect {
                 response_definition.validate_location!(response)
-              }.to raise_error(/LOCATION does not match regexp/)
+              }.to raise_error(/LOCATION does not match to/)
             end
           end
 
@@ -250,7 +250,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error' do
               expect {
                 response_definition.validate_location!(response)
-              }.to raise_error(/LOCATION does not match string/)
+              }.to raise_error(/LOCATION does not match to/)
             end
           end
 

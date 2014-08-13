@@ -154,22 +154,11 @@ module Praxis
 
     # Validates 'Location' header
     #
-    # @raise [RuntimeError]  When location heades does not match to the defined one.
+    # @raise [RuntimeError]  When location header does not match to the defined one.
     #
     def validate_location!(response)
-      return unless location
-      # Validate location
-      # FIXME: rewrite with ===
-      case location
-      when Regexp
-        matches = location =~ response.headers['Location']
-        raise "LOCATION does not match regexp #{location.inspect}!" unless matches
-      when String
-        matches = location == response.headers['Location']
-        raise "LOCATION does not match string #{location}!" unless matches
-      else
-        raise "Unknown location spec"
-      end
+      return if location.nil? || location === response.headers['Location']
+      raise "LOCATION does not match to #{location.inspect}!"
     end
 
 

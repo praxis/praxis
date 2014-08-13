@@ -24,8 +24,7 @@ describe Praxis::Bootloader do
     end
 
     it "raise errors when deleting invalid stage" do
-      error_message = "Can not remove stage with name go_right_scale, stage does not exist."
-      expect{bootloader.delete_stage(:go_right_scale)}.to raise_error(RuntimeError,error_message)
+      expect{bootloader.delete_stage(:go_right_scale)}.to raise_error(Praxis::Exceptions::StageNotFoundException)
     end
   end
 

@@ -69,7 +69,9 @@ module Praxis
     end
 
     def use(trait_name)
-      raise "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.has_key? trait_name
+      unless ApiDefinition.instance.traits.has_key? trait_name
+        raise Exceptions::InvalidTraitException.new("Trait #{trait_name} not found in the system")
+      end
       self.instance_eval(&ApiDefinition.instance.traits[trait_name])
     end
 
@@ -78,7 +80,7 @@ module Praxis
 
       if @params
         unless type == Attributor::Struct && @params.type < Attributor::Struct
-          raise 'type mismatch'
+          raise Exceptions::InvalidConfigurationException.new('type mismatch!')
         end
         update_attribute(@params, opts, block)
       else
@@ -91,7 +93,7 @@ module Praxis
 
       if @payload
         unless type == Attributor::Struct && @payload.type < Attributor::Struct
-          raise 'type mismatch'
+          raise Exceptions::InvalidConfigurationException.new('type mismatch!')
         end
         update_attribute(@payload, opts, block)
       else

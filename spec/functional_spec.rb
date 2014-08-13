@@ -11,7 +11,7 @@ describe 'Functional specs' , focus: true do
       it 'fails to validate the response' do
         get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0'
         response = JSON.parse(last_response.body)
-        expect(response['name']).to eq('RuntimeError')
+        expect(response['name']).to eq('Praxis::Exceptions::ValidationException')
         expect(response["message"]).to match(/Bad Content-Type:/)
       end
 

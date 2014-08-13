@@ -40,11 +40,11 @@ describe Praxis::ResponseDefinition do
     end
 
     it 'should return an error when media_type is not a String or a MediaType' do
-      expect{ response_definition.media_type Object.new }.to raise_error(/Invalid media_type specification/)
+      expect{ response_definition.media_type Object.new }.to raise_error(Praxis::Exceptions::InvalidConfigurationException)
     end
 
     it 'should return an error when media_type is a Symbol other than :controller_defined' do
-      expect{ response_definition.media_type :symbol }.to raise_error(/Invalid media_type specification/)
+      expect{ response_definition.media_type :symbol }.to raise_error(Praxis::Exceptions::InvalidConfigurationException)
     end
   end
 
@@ -60,7 +60,7 @@ describe Praxis::ResponseDefinition do
     end
 
     it 'should return an error when location is not a Regex or a String object' do
-      expect { response_definition.location Object.new }.to raise_error(/Invalid location specification/)
+      expect { response_definition.location Object.new }.to raise_error(Praxis::Exceptions::InvalidConfigurationException)
     end
   end
 
@@ -83,14 +83,13 @@ describe Praxis::ResponseDefinition do
     end
 
     it 'should return an error when headers are not a Hash, Array or String object' do
-      expect{ response_definition.headers Object.new }. to raise_error(/Invalid headers specification/)
+      expect{ response_definition.headers Object.new }. to raise_error(Praxis::Exceptions::InvalidConfigurationException)
     end
   end
 
   context '#parts' do
     context 'with a :like argument (and no block)' do
       before do
-        #binding.pry
         response_definition.parts like: :ok, media_type: 'application/special'
       end
 
@@ -106,7 +105,7 @@ describe Praxis::ResponseDefinition do
       it 'complains' do
         expect{
           response_definition.parts media_type: 'application/special'
-        }.to raise_error(ArgumentError,/needs a :like argument or a block/)
+        }.to raise_error(ArgumentError, /needs a :like argument or a block/)
       end
     end
     context 'with a :like argument, and a block' do
@@ -226,7 +225,7 @@ describe Praxis::ResponseDefinition do
           it 'should raise an error that later gets swallowed' do
             expect {
               response_definition.validate_status!(response)
-            }.to raise_error(/Invalid response code detected./)
+            }.to raise_error(Praxis::Exceptions::ValidationException)
           end
         end
 
@@ -244,7 +243,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise an error' do
               expect {
                 response_definition.validate_location!(response)
-              }.to raise_error(/LOCATION does not match to/)
+              }.to raise_error(Praxis::Exceptions::ValidationException)
             end
           end
 
@@ -253,7 +252,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error' do
               expect {
                 response_definition.validate_location!(response)
-              }.to raise_error(/LOCATION does not match to/)
+              }.to raise_error(Praxis::Exceptions::ValidationException)
             end
           end
 
@@ -268,7 +267,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error' do
               expect {
                 response_definition.validate_headers!(response)
-              }.to raise_error(/but it is missing/)
+              }.to raise_error(Praxis::Exceptions::ValidationException)
             end
           end
 
@@ -278,7 +277,7 @@ describe Praxis::ResponseDefinition do
               it 'should raise error' do
                 expect {
                   response_definition.validate_headers!(response)
-                }.to raise_error(/but it is missing/)
+                }.to raise_error(Praxis::Exceptions::ValidationException)
               end
             end
 
@@ -300,7 +299,7 @@ describe Praxis::ResponseDefinition do
               it 'should raise error' do
                 expect {
                   response_definition.validate_headers!(response)
-                }.to raise_error(/but it is missing/)
+                }.to raise_error(Praxis::Exceptions::ValidationException)
               end
             end
 
@@ -324,7 +323,7 @@ describe Praxis::ResponseDefinition do
               it 'should raise error' do
                 expect {
                   response_definition.validate_headers!(response)
-                }.to raise_error(/but it is missing/)
+                }.to raise_error(Praxis::Exceptions::ValidationException)
               end
             end
 
@@ -378,7 +377,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error telling you so' do
               expect {
                 response_definition.validate_content_type!(response)
-              }.to raise_error(/Bad Content-Type/)
+              }.to raise_error(Praxis::Exceptions::ValidationException)
             end
           end
 
@@ -387,7 +386,7 @@ describe Praxis::ResponseDefinition do
             it 'should still raise an error' do
               expect {
                 response_definition.validate_content_type!(response)
-              }.to raise_error(/Bad Content-Type/)
+              }.to raise_error(Praxis::Exceptions::ValidationException)
             end
           end
         end
@@ -416,7 +415,7 @@ describe Praxis::ResponseDefinition do
           it 'validates' do
             expect {
               response_definition.validate_parts!(response)
-            }.to raise_error(/Bad Content-Type/)
+            }.to raise_error(Praxis::Exceptions::ValidationException)
           end
 
         end
@@ -432,7 +431,7 @@ describe Praxis::ResponseDefinition do
         Praxis::ResponseDefinition.new('response name') do
           description "testing"
         end
-      end.to raise_error(/Status code is required/)
+      end.to raise_error(Praxis::Exceptions::InvalidConfigurationException)
     end
   end
 

@@ -7,7 +7,9 @@ $:.unshift File.dirname(__FILE__)
 module Attributor
   class DSLCompiler
     def use(name)
-      raise "Trait #{name} not found in the system" unless Praxis::ApiDefinition.instance.traits.has_key? name
+      unless Praxis::ApiDefinition.instance.traits.has_key? name
+        raise Exceptions::InvalidTraitException.new("Trait #{name} not found in the system")
+      end
       self.instance_eval(&Praxis::ApiDefinition.instance.traits[name])
     end
   end
@@ -57,6 +59,11 @@ module Praxis
     autoload :ConfigException, 'praxis/exceptions/config_exception'
     autoload :ConfigLoadException, 'praxis/exceptions/config_load_exception'
     autoload :ConfigValidationException, 'praxis/exceptions/config_validation_exception'
+    autoload :InvalidConfigurationException, 'praxis/exceptions/invalid_configuration_exception'
+    autoload :InvalidTraitException, 'praxis/exceptions/invalid_trait_exception'
+    autoload :InvalidResponseException, 'praxis/exceptions/invalid_response_exception'
+    autoload :StageNotFoundException, 'praxis/exceptions/stage_not_found_exception'
+    autoload :ValidationException, 'praxis/exceptions/validation_exception'
   end
 
   module Responses

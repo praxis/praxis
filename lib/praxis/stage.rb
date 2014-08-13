@@ -44,7 +44,7 @@ module Praxis
     end
 
     def execute
-      raise 'subclass must implement Stage#execute' unless @stages.any?
+      raise NotImplementedError, 'subclass must implement Stage#execute' unless @stages.any?
 
       @stages.each do |stage|
         stage.run

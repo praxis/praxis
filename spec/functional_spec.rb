@@ -12,7 +12,7 @@ describe 'Functional specs' , focus: true do
         get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0'
         response = JSON.parse(last_response.body)
         expect(response['name']).to eq('Praxis::Exceptions::ValidationException')
-        expect(response["message"]).to match(/Bad Content-Type:/)
+        expect(response["message"]).to match(/Bad Content-Type/)
       end
 
       context 'with response validation disabled' do

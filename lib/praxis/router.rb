@@ -76,7 +76,7 @@ module Praxis
                   else 
                     ". Your request speficied API version = \"#{request.version}\"."
                   end
-          pretty_versions = attempted_versions.collect{|x| "\"#{x}\""}.join(', ')
+          pretty_versions = attempted_versions.collect(&:inspect).join(', ')
           body += " Available versions = #{pretty_versions}."
         end
         result = [404, {"Content-Type" => "text/plain", }, [body]] 

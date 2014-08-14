@@ -78,7 +78,7 @@ module Praxis
 
       def use(trait_name)
         unless ApiDefinition.instance.traits.has_key? trait_name
-          raise Exceptions::InvalidTraitException.new("Trait #{trait_name} not found in the system")
+          raise Exceptions::InvalidTraitException.new("Trait #{trait_name} not found")
         end
         self.instance_eval(&ApiDefinition.instance.traits[trait_name])
       end

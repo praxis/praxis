@@ -46,7 +46,7 @@ module Praxis
         stages.delete(stage)
       else
         raise Exceptions::StageNotFoundException.new(
-          "Can not remove stage with name #{stage_name}, stage does not exist."
+          "Cannot remove stage with name #{stage_name}, stage does not exist."
         )
       end
     end

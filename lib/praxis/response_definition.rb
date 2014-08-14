@@ -58,7 +58,9 @@ module Praxis
     def location(loc=nil)
       return @spec[:location] if loc.nil?
       unless ( loc.is_a?(Regexp) || loc.is_a?(String) )
-        raise Exceptions::InvalidConfigurationException.new("Invalid location specification")
+        raise Exceptions::InvalidConfigurationException.new(
+          "Invalid location specification. Location in response must be either a regular expression or a string."
+        )
       end
       @spec[:location] = loc
     end
@@ -75,7 +77,7 @@ module Praxis
         header(hdrs)
       else
         raise Exceptions::InvalidConfigurationException.new(
-          "Invalid headers specification: Arrays, Hash, or String must be used. Got: #{hdrs.inspect}"
+          "Invalid headers specification: Arrays, Hash, or String must be used. Received: #{hdrs.inspect}"
         )
       end
     end
@@ -88,7 +90,7 @@ module Praxis
         hdr.each do | k, v |
           unless v.is_a?(Regexp) || v.is_a?(String)
             raise Exceptions::InvalidConfigurationException.new(
-              "Header definitions for #{k.inspect} can only match values of type String or Regexp. Got: #{v.inspect}"
+              "Header definitions for #{k.inspect} can only match values of type String or Regexp. Received: #{v.inspect}"
             )
           end
           @spec[:headers][k] = v
@@ -96,7 +98,7 @@ module Praxis
       else
         raise Exceptions::InvalidConfigurationException.new(
           "A header definition can only take a String (to match the name) or" +
-            " a Hash (to match both the name and the value). Got: #{hdr.inspect}"
+            " a Hash (to match both the name and the value). Received: #{hdr.inspect}"
         )
       end
     end
@@ -182,7 +184,7 @@ module Praxis
     #
     def validate_location!(response)
       return if location.nil? || location === response.headers['Location']
-      raise Exceptions::ValidationException.new("LOCATION does not match to #{location.inspect}!")
+      raise Exceptions::ValidationException.new("LOCATION does not match #{location.inspect}")
     end
 
 
@@ -201,7 +203,7 @@ module Praxis
 
         unless response.headers.has_key?(name)
           raise Exceptions::ValidationException.new(
-            "header #{name.inspect} was requred but it is missing"
+            "Header #{name.inspect} was required but is missing"
           )
         end
 
@@ -210,7 +212,7 @@ module Praxis
           if response.headers[name] != value
             unless valid
               raise Exceptions::ValidationException.new(
-                "header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name]}."
+                "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name]}."
               )
             end
           end
@@ -218,7 +220,7 @@ module Praxis
           if response.headers[name] !~ value
             unless valid
               raise Exceptions::ValidationException.new(
-                "header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name].inspect}."
+                "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name].inspect}."
               )
             end
           end
@@ -242,8 +244,8 @@ module Praxis
 
       if media_type.identifier != extracted_identifier
         raise Exceptions::ValidationException.new(
-          "Bad Content-Type: returned type #{extracted_identifier} does not match "+
-            "type #{media_type.identifier} as described in response: #{self.name}"
+          "Bad Content-Type header. Returned type #{extracted_identifier}" +
+          " does not match type #{media_type.identifier} as described in response: #{self.name}"
         )
       end
     end

@@ -14,8 +14,10 @@ describe Praxis::Router do
     end
     
     context '.call' do
-      let(:env){ {} }
-      let(:request){ double("request", version: request_version, env: env ) }
+      let(:env){ {"HTTP_X_API_VERSION" => request_version } }
+      let(:request) {Praxis::Request.new(env)}
+      
+      #let(:request){ double("request", version: request_version, env: env ) }
       context 'with matching versions' do
         let(:request_version) { "1.0" }
         it 'calls the target' do
@@ -32,8 +34,7 @@ describe Praxis::Router do
           expect( target ).not_to receive(:call).with(request)
         end
         it 'saves the unmatched version' do
-          expect( env['praxis.unmatched_versions'] ).to be_kind_of(Set)
-          expect( env['praxis.unmatched_versions'] ).to include(args[:version])
+          expect( request.unmatched_versions ).to include(args[:version])
         end
       end
 
@@ -95,37 +96,45 @@ describe Praxis::Router do
     let(:request_version){ nil }
     let(:request) {Praxis::Request.new(env)}
     let(:router_response){ 1 }
+    
     before do
       request.instance_variable_set(:@version,request_version) if request_version
       allow_any_instance_of(Praxis::Router::RequestRouter).
         to receive(:call).with(request).and_return(router_response)
     end
+    
     it "calls the route with params request" do
       expect(router.call(request)).to eq(router_response)
     end
+    
     context "when not_found is returned" do
       let(:router_response){ :not_found }
+      before{ request.instance_variable_set(:@unmatched_versions, unmatched_versions) }
 
       context "having passed no version in the request" do
-        let(:request_version){ "n/a" }
+        
         context 'and no controllers matching the path' do
-          let(:env){ {'praxis.unmatched_versions' => Set.new(["n/a"])} }
+          let(:unmatched_versions){ Set.new(["n/a"]) }
           it 'returns a basic "NotFound" response: 404 status, text/plain content and "NotFound" body' do
             expect( router.call(request) ).to eq([404, {"Content-Type" => "text/plain", }, ["NotFound"]])
           end
         end
+        
         context 'and some controllers matching the path' do
-          let(:env){ {'praxis.unmatched_versions' => Set.new(["1.0"])} }
+          let(:unmatched_versions){ Set.new(["1.0"]) }          
           it 'returns a specific body response noting which request versions would matched if passed in' do
             _, _, body = router.call(request)
             expect( body.first ).to eq('NotFound. Your request did not specify an API version. Available versions = "1.0".')
           end
         end
       end
+      
       context "having passed a version in the request" do
+        
         context 'but having no controllers matching the path part' do
           let(:request_version){ "50.0" }
-          let(:env){ {'praxis.unmatched_versions' => Set.new(["1.0","2.0"])} }
+          let(:unmatched_versions){ Set.new(["1.0","2.0"]) }          
+          
           it 'returns a specific body response noting that the version might be wrong (and which could be right)' do
             code, headers, body = router.call(request)
             expect(code).to eq(404)

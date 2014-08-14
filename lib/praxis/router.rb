@@ -15,8 +15,7 @@ module Praxis
           @target.call(request)
         else
           # Version doesn't match, pass and continue
-          request.env['praxis.unmatched_versions'] ||= Set.new
-          request.env['praxis.unmatched_versions'] << @version
+          request.unmatched_versions << @version
           throw :pass
         end
       end
@@ -69,7 +68,7 @@ module Praxis
       result = @routes[verb].call(request)
       if result == :not_found
         
-        attempted_versions = request.env['praxis.unmatched_versions']
+        attempted_versions = request.unmatched_versions
         body = "NotFound"
         unless attempted_versions.size == 1 && attempted_versions.first == 'n/a'
           body += if request.version == 'n/a' 

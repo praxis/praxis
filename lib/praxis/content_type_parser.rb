@@ -50,6 +50,8 @@ module Praxis
         params = {}
         parsed[:params].split(';').each do |param|
           key, value = param.split('=')
+          key        = key.to_s.strip
+          next if key.empty?
           params[key.strip] = value && value.strip
         end
         result[:params] = params unless params.empty?

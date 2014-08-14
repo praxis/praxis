@@ -74,5 +74,18 @@ describe Praxis::ContentTypeParser do
         expect(subject.parse(content_type)).to eq(expectation)
       end
     end
+
+
+    context 'when there are multiple ;;;;;;'  do
+      it 'ignores them' do
+        content_type = 'application/vnd.something+json;;;; ; ;;;;  ;;'
+        expectation  = {
+          type:     'application/vnd.something',
+          sub_type: 'json'
+        }
+        expect(subject.parse(content_type)).to eq(expectation)
+      end
+    end
+
   end
 end

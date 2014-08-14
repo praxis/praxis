@@ -80,7 +80,9 @@ module Praxis
 
       if @params
         unless type == Attributor::Struct && @params.type < Attributor::Struct
-          raise Exceptions::InvalidConfigurationException.new('type mismatch!')
+          raise Exceptions::InvalidConfigurationException.new(
+            "Invalid type received for extending params: #{type.name}"
+          )
         end
         update_attribute(@params, opts, block)
       else
@@ -93,7 +95,9 @@ module Praxis
 
       if @payload
         unless type == Attributor::Struct && @payload.type < Attributor::Struct
-          raise Exceptions::InvalidConfigurationException.new('type mismatch!')
+          raise Exceptions::InvalidConfigurationException.new(
+            "Invalid type received for extending params: #{type.name}"
+          )
         end
         update_attribute(@payload, opts, block)
       else

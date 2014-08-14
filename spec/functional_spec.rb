@@ -153,6 +153,35 @@ describe 'Functional specs' , focus: true do
   end
 
 
+  context 'not found and API versions' do
+    context 'when no version is speficied' do
+      it 'it tells you which available api versions would match' do
+        get '/clouds/1/instances/2?junk=foo'
+        
+        expect(last_response.status).to eq(404)
+        expect(last_response.headers["Content-Type"]).to eq("text/plain")
+        expect(last_response.body).to eq("NotFound. Your request did not specify an API version. Available versions = \"1.0\".")
+      end
+      it 'it just gives you a simple not found when nothing would have matched' do
+        get '/foobar?junk=foo'
+        
+        expect(last_response.status).to eq(404)
+        expect(last_response.headers["Content-Type"]).to eq("text/plain")
+        expect(last_response.body).to eq("NotFound")
+      end
+    end
 
+    context 'when some version is speficied, but wrong' do
+      it 'it tells you which possible correcte api versions exist' do
+        get '/clouds/1/instances/2?junk=foo&api_version=50.0'
+        
+        expect(last_response.status).to eq(404)
+        expect(last_response.headers["Content-Type"]).to eq("text/plain")
+        expect(last_response.body).to eq("NotFound. Your request speficied API version = \"50.0\". Available versions = \"1.0\".")
+      end
+    end
+
+    
+  end
 
 end

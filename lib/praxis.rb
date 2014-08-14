@@ -42,6 +42,7 @@ module Praxis
   autoload :Router, 'praxis/router'
   autoload :SimpleMediaType, 'praxis/simple_media_type'
   autoload :Stage, 'praxis/stage'
+  autoload :ContentTypeParser, 'praxis/content_type_parser'
 
   # types
   autoload :Links, 'praxis/links'

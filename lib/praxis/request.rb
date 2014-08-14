@@ -121,6 +121,10 @@ module Praxis
       action.payload.validate(self.payload, context)
     end
 
+    # versions that matched all the conditions of the request (except its version)
+    def unmatched_versions
+      @unmatched_versions ||= Set.new
+    end
 
   end
 

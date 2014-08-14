@@ -2,6 +2,9 @@ source 'https://rubygems.org'
 
 gem 'mime'
 
+# FIXME: Remove this before open-sourcing Praxis (required for CI harness)
+gem 'right_support', '~> 2.8'
+
 gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
 gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
 #gem 'taylor', path: '../taylor'
@@ -39,6 +42,9 @@ end
 group :test do
   gem 'rack-test', :require => 'rack/test'
   gem 'simplecov', :require => false
+
+  # FIXME: Remove this before open-sourcing Praxis (required for CI harness)
+  gem 'right_develop', '~> 3.0'
 
   gem 'fuubar', '2.0.0.rc1'
 end

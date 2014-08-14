@@ -1,6 +1,6 @@
 module Praxis
   module Exceptions
-    class InvalidConfigurationException < Exception
+    class StageNotFound < Exception
     end
   end
 end

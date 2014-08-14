@@ -1,6 +1,6 @@
 module Praxis
   module Exceptions
-    class InvalidTraitException < Exception
+    class InvalidTrait < Exception
     end
   end
 end

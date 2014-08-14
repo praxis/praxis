@@ -70,7 +70,7 @@ module Praxis
 
     def use(trait_name)
       unless ApiDefinition.instance.traits.has_key? trait_name
-        raise Exceptions::InvalidTraitException.new("Trait #{trait_name} not found in the system")
+        raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found in the system")
       end
       self.instance_eval(&ApiDefinition.instance.traits[trait_name])
     end
@@ -80,7 +80,7 @@ module Praxis
 
       if @params
         unless type == Attributor::Struct && @params.type < Attributor::Struct
-          raise Exceptions::InvalidConfigurationException.new(
+          raise Exceptions::InvalidConfiguration.new(
             "Invalid type received for extending params: #{type.name}"
           )
         end
@@ -95,7 +95,7 @@ module Praxis
 
       if @payload
         unless type == Attributor::Struct && @payload.type < Attributor::Struct
-          raise Exceptions::InvalidConfigurationException.new(
+          raise Exceptions::InvalidConfiguration.new(
             "Invalid type received for extending params: #{type.name}"
           )
         end

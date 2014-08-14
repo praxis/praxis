@@ -8,7 +8,7 @@ module Attributor
   class DSLCompiler
     def use(name)
       unless Praxis::ApiDefinition.instance.traits.has_key? name
-        raise Exceptions::InvalidTraitException.new("Trait #{name} not found in the system")
+        raise Exceptions::InvalidTrait.new("Trait #{name} not found in the system")
       end
       self.instance_eval(&Praxis::ApiDefinition.instance.traits[name])
     end
@@ -57,14 +57,14 @@ module Praxis
   end
 
   module Exceptions
-    autoload :ConfigException, 'praxis/exceptions/config_exception'
-    autoload :ConfigLoadException, 'praxis/exceptions/config_load_exception'
-    autoload :ConfigValidationException, 'praxis/exceptions/config_validation_exception'
-    autoload :InvalidConfigurationException, 'praxis/exceptions/invalid_configuration_exception'
-    autoload :InvalidTraitException, 'praxis/exceptions/invalid_trait_exception'
-    autoload :InvalidResponseException, 'praxis/exceptions/invalid_response_exception'
-    autoload :StageNotFoundException, 'praxis/exceptions/stage_not_found_exception'
-    autoload :ValidationException, 'praxis/exceptions/validation_exception'
+    autoload :Config, 'praxis/exceptions/config'
+    autoload :ConfigLoad, 'praxis/exceptions/config_load'
+    autoload :ConfigValidation, 'praxis/exceptions/config_validation'
+    autoload :InvalidConfiguration, 'praxis/exceptions/invalid_configuration'
+    autoload :InvalidTrait, 'praxis/exceptions/invalid_trait'
+    autoload :InvalidResponse, 'praxis/exceptions/invalid_response'
+    autoload :StageNotFound, 'praxis/exceptions/stage_not_found'
+    autoload :Validation, 'praxis/exceptions/validation'
   end
 
   module Responses

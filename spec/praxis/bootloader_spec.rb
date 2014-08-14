@@ -24,7 +24,7 @@ describe Praxis::Bootloader do
     end
 
     it "raise errors when deleting invalid stage" do
-      expect{bootloader.delete_stage(:go_right_scale)}.to raise_error(Praxis::Exceptions::StageNotFoundException)
+      expect{bootloader.delete_stage(:go_right_scale)}.to raise_error(Praxis::Exceptions::StageNotFound)
     end
   end
 

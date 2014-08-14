@@ -40,11 +40,11 @@ describe Praxis::ResponseDefinition do
     end
 
     it 'should return an error when media_type is not a String or a MediaType' do
-      expect{ response_definition.media_type Object.new }.to raise_error(Praxis::Exceptions::InvalidConfigurationException)
+      expect{ response_definition.media_type Object.new }.to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
 
     it 'should return an error when media_type is a Symbol other than :controller_defined' do
-      expect{ response_definition.media_type :symbol }.to raise_error(Praxis::Exceptions::InvalidConfigurationException)
+      expect{ response_definition.media_type :symbol }.to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
 
@@ -60,7 +60,7 @@ describe Praxis::ResponseDefinition do
     end
 
     it 'should return an error when location is not a Regex or a String object' do
-      expect { response_definition.location Object.new }.to raise_error(Praxis::Exceptions::InvalidConfigurationException)
+      expect { response_definition.location Object.new }.to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
 
@@ -83,7 +83,7 @@ describe Praxis::ResponseDefinition do
     end
 
     it 'should return an error when headers are not a Hash, Array or String object' do
-      expect{ response_definition.headers Object.new }. to raise_error(Praxis::Exceptions::InvalidConfigurationException)
+      expect{ response_definition.headers Object.new }. to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
 
@@ -225,7 +225,7 @@ describe Praxis::ResponseDefinition do
           it 'should raise an error that later gets swallowed' do
             expect {
               response_definition.validate_status!(response)
-            }.to raise_error(Praxis::Exceptions::ValidationException)
+            }.to raise_error(Praxis::Exceptions::Validation)
           end
         end
 
@@ -243,7 +243,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise an error' do
               expect {
                 response_definition.validate_location!(response)
-              }.to raise_error(Praxis::Exceptions::ValidationException)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
 
@@ -252,7 +252,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error' do
               expect {
                 response_definition.validate_location!(response)
-              }.to raise_error(Praxis::Exceptions::ValidationException)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
 
@@ -267,7 +267,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error' do
               expect {
                 response_definition.validate_headers!(response)
-              }.to raise_error(Praxis::Exceptions::ValidationException)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
 
@@ -277,7 +277,7 @@ describe Praxis::ResponseDefinition do
               it 'should raise error' do
                 expect {
                   response_definition.validate_headers!(response)
-                }.to raise_error(Praxis::Exceptions::ValidationException)
+                }.to raise_error(Praxis::Exceptions::Validation)
               end
             end
 
@@ -299,7 +299,7 @@ describe Praxis::ResponseDefinition do
               it 'should raise error' do
                 expect {
                   response_definition.validate_headers!(response)
-                }.to raise_error(Praxis::Exceptions::ValidationException)
+                }.to raise_error(Praxis::Exceptions::Validation)
               end
             end
 
@@ -323,7 +323,7 @@ describe Praxis::ResponseDefinition do
               it 'should raise error' do
                 expect {
                   response_definition.validate_headers!(response)
-                }.to raise_error(Praxis::Exceptions::ValidationException)
+                }.to raise_error(Praxis::Exceptions::Validation)
               end
             end
 
@@ -377,7 +377,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error telling you so' do
               expect {
                 response_definition.validate_content_type!(response)
-              }.to raise_error(Praxis::Exceptions::ValidationException)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
 
@@ -386,7 +386,7 @@ describe Praxis::ResponseDefinition do
             it 'should still raise an error' do
               expect {
                 response_definition.validate_content_type!(response)
-              }.to raise_error(Praxis::Exceptions::ValidationException)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
         end
@@ -415,7 +415,7 @@ describe Praxis::ResponseDefinition do
           it 'validates' do
             expect {
               response_definition.validate_parts!(response)
-            }.to raise_error(Praxis::Exceptions::ValidationException)
+            }.to raise_error(Praxis::Exceptions::Validation)
           end
 
         end
@@ -431,7 +431,7 @@ describe Praxis::ResponseDefinition do
         Praxis::ResponseDefinition.new('response name') do
           description "testing"
         end
-      end.to raise_error(Praxis::Exceptions::InvalidConfigurationException)
+      end.to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
 

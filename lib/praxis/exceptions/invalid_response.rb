@@ -1,6 +1,6 @@
 module Praxis
   module Exceptions
-    class ValidationException < Exception
+    class InvalidResponse < Exception
     end
   end
 end

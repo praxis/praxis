@@ -53,16 +53,14 @@ describe Praxis::Config do
       config.define do
         attribute :foo, String, required: true
       end
-      expect{ config.set({}) }.to raise_error(
-        Praxis::Exceptions::ConfigValidationException)
+      expect{ config.set({}) }.to raise_error(Praxis::Exceptions::ConfigValidation)
     end
 
     it 'fails when config cannot be loaded' do
       config.define do
         attribute :foo, Integer, required: true
       end
-      expect{ config.set({foo: 'five'}) }.to raise_error(
-        Praxis::Exceptions::ConfigLoadException)
+      expect{ config.set({foo: 'five'}) }.to raise_error(Praxis::Exceptions::ConfigLoad)
     end
   end
 end

@@ -31,7 +31,7 @@ module Praxis
 
     def trait(name, &block)
       if self.traits.has_key? name
-        raise Exceptions::InvalidTraitException.new("Overwriting a previous trait with the same name (#{name})")
+        raise Exceptions::InvalidTrait.new("Overwriting a previous trait with the same name (#{name})")
       end
       self.traits[name] = block
     end

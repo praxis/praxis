@@ -7,7 +7,7 @@ module Praxis
 
     def initialize(response_name, **spec, &block)
       unless response_name
-        raise Exceptions::InvalidConfigurationException.new(
+        raise Exceptions::InvalidConfiguration.new(
           "Response name is required for a response specification"
         )
       end
@@ -16,7 +16,7 @@ module Praxis
       self.instance_exec(**spec, &block) if block_given?
 
       if self.status.nil?
-        raise Exceptions::InvalidConfigurationException.new(
+        raise Exceptions::InvalidConfiguration.new(
           "Status code is required for a response specification"
         )
       end
@@ -42,14 +42,14 @@ module Praxis
           if media_type < Praxis::MediaType
             media_type
           else
-            raise Exceptions::InvalidConfigurationException.new(
+            raise Exceptions::InvalidConfiguration.new(
               'Invalid media_type specification. media_type must be a Praxis::MediaType'
             )
           end
         when SimpleMediaType
           media_type
         else
-          raise Exceptions::InvalidConfigurationException.new(
+          raise Exceptions::InvalidConfiguration.new(
             'Invalid media_type specification. media_type must be a String, MediaType or SimpleMediaType'
           )
         end
@@ -58,7 +58,7 @@ module Praxis
     def location(loc=nil)
       return @spec[:location] if loc.nil?
       unless ( loc.is_a?(Regexp) || loc.is_a?(String) )
-        raise Exceptions::InvalidConfigurationException.new(
+        raise Exceptions::InvalidConfiguration.new(
           "Invalid location specification. Location in response must be either a regular expression or a string."
         )
       end
@@ -76,7 +76,7 @@ module Praxis
       when String
         header(hdrs)
       else
-        raise Exceptions::InvalidConfigurationException.new(
+        raise Exceptions::InvalidConfiguration.new(
           "Invalid headers specification: Arrays, Hash, or String must be used. Received: #{hdrs.inspect}"
         )
       end
@@ -89,14 +89,14 @@ module Praxis
       when Hash
         hdr.each do | k, v |
           unless v.is_a?(Regexp) || v.is_a?(String)
-            raise Exceptions::InvalidConfigurationException.new(
+            raise Exceptions::InvalidConfiguration.new(
               "Header definitions for #{k.inspect} can only match values of type String or Regexp. Received: #{v.inspect}"
             )
           end
           @spec[:headers][k] = v
        end
       else
-        raise Exceptions::InvalidConfigurationException.new(
+        raise Exceptions::InvalidConfiguration.new(
           "A header definition can only take a String (to match the name) or" +
             " a Hash (to match both the name and the value). Received: #{hdr.inspect}"
         )
@@ -164,13 +164,13 @@ module Praxis
 
     # Validates Status code
     #
-    # @raise [Exceptions::ValidationException]  When response returns an unexpected status.
+    # @raise [Exceptions::Validation]  When response returns an unexpected status.
     #
     def validate_status!(response)
       return unless status
       # Validate status code if defined in the spec
       if response.status != status
-        raise Exceptions::ValidationException.new(
+        raise Exceptions::Validation.new(
           "Invalid response code detected. Response %s dictates status of %s but this response is returning %s." %
           [name, status.inspect, response.status.inspect]
         )
@@ -180,29 +180,29 @@ module Praxis
 
     # Validates 'Location' header
     #
-    # @raise [Exceptions::ValidationException] When location header does not match to the defined one.
+    # @raise [Exceptions::Validation] When location header does not match to the defined one.
     #
     def validate_location!(response)
       return if location.nil? || location === response.headers['Location']
-      raise Exceptions::ValidationException.new("LOCATION does not match #{location.inspect}")
+      raise Exceptions::Validation.new("LOCATION does not match #{location.inspect}")
     end
 
 
     # Validates Headers
     #
-    # @raise [Exceptions::ValidationException]  When there is a missing required header..
+    # @raise [Exceptions::Validation]  When there is a missing required header..
     #
     def validate_headers!(response)
       return unless headers
       headers.each do |name, value|
         if name.is_a? Symbol
-          raise Exceptions::ValidationException.new(
+          raise Exceptions::Validation.new(
             "Symbols are not supported in headers"
           )
         end
 
         unless response.headers.has_key?(name)
-          raise Exceptions::ValidationException.new(
+          raise Exceptions::Validation.new(
             "Header #{name.inspect} was required but is missing"
           )
         end
@@ -211,7 +211,7 @@ module Praxis
         when String
           if response.headers[name] != value
             unless valid
-              raise Exceptions::ValidationException.new(
+              raise Exceptions::Validation.new(
                 "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name]}."
               )
             end
@@ -219,7 +219,7 @@ module Praxis
         when Regexp
           if response.headers[name] !~ value
             unless valid
-              raise Exceptions::ValidationException.new(
+              raise Exceptions::Validation.new(
                 "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name].inspect}."
               )
             end
@@ -233,7 +233,7 @@ module Praxis
     #
     # @param [Object] action
     #
-    # @raise [Exceptions::ValidationException] When there is a missing required header
+    # @raise [Exceptions::Validation] When there is a missing required header
     #
     def validate_content_type!(response)
       return unless media_type
@@ -244,7 +244,7 @@ module Praxis
       end
 
       if media_type.identifier != extracted_identifier
-        raise Exceptions::ValidationException.new(
+        raise Exceptions::Validation.new(
           "Bad Content-Type header. Returned type #{extracted_identifier}" +
           " does not match type #{media_type.identifier} as described in response: #{self.name}"
         )

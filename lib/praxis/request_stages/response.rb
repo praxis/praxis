@@ -7,7 +7,7 @@ module Praxis
         response = controller.response
 
         unless action.responses.include?(response.response_name)
-          raise Exceptions::InvalidResponseException.new(
+          raise Exceptions::InvalidResponse.new(
             "Response #{response.name.inspect} is not allowed for #{action.name.inspect}"
           )
         end

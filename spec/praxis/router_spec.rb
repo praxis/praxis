@@ -114,7 +114,7 @@ describe Praxis::Router do
       context "having passed no version in the request" do
         
         context 'and no controllers matching the path' do
-          let(:unmatched_versions){ Set.new(["n/a"]) }
+          let(:unmatched_versions){ Set.new([]) }
           it 'returns a basic "NotFound" response: 404 status, text/plain content and "NotFound" body' do
             expect( router.call(request) ).to eq([404, {"Content-Type" => "text/plain", }, ["NotFound"]])
           end

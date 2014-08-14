@@ -1,7 +1,7 @@
 module Praxis
 
   class Request
-    attr_reader :env, :query, :version, :unmatched_versions
+    attr_reader :env, :query, :version
     attr_accessor :route_params, :action
 
 
@@ -10,8 +10,6 @@ module Praxis
       @query = Rack::Utils.parse_nested_query(env['QUERY_STRING'.freeze])
       @route_params = {}
       load_version
-      # versions that matched all the conditions of the request (except its version)
-      @unmatched_versions = Set.new
     end
 
     def content_type
@@ -123,6 +121,10 @@ module Praxis
       action.payload.validate(self.payload, context)
     end
 
+    # versions that matched all the conditions of the request (except its version)
+    def unmatched_versions
+      @unmatched_versions ||= Set.new
+    end
 
   end
 

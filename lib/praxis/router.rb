@@ -70,7 +70,7 @@ module Praxis
         
         attempted_versions = request.unmatched_versions
         body = "NotFound"
-        unless attempted_versions.size == 1 && attempted_versions.first == 'n/a'
+        unless attempted_versions.empty? || (attempted_versions.size == 1 && attempted_versions.first == 'n/a')
           body += if request.version == 'n/a' 
                     ". Your request did not specify an API version.".freeze 
                   else 

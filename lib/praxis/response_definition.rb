@@ -195,9 +195,10 @@ module Praxis
     def validate_content_type!(response)
       return unless media_type
 
-      # Support "+json" and options like ";type=collection"
-      # FIXME: parse this better
-      extracted_identifier = response.headers['Content-Type'] && response.headers['Content-Type'].split('+').first.split(';').first
+      extracted_identifier = nil
+      if response.headers['Content-Type']
+        extracted_identifier = Praxis::ContentTypeParser.parse(response.headers['Content-Type'])[:type]
+      end
 
       if media_type.identifier != extracted_identifier
         raise "Bad Content-Type: returned type #{extracted_identifier} does not match "+

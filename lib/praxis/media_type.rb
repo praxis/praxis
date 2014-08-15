@@ -1,5 +1,5 @@
 module Praxis
-  class MediaType < Taylor::Blueprint
+  class MediaType < Praxis::Blueprint
 
     class DSLCompiler < Attributor::DSLCompiler
       def links(&block)

@@ -1,7 +1,7 @@
 module Praxis
 
   # Container for links for a given type
-  class Links < Taylor::Blueprint
+  class Links < Praxis::Blueprint
 
     class DSLCompiler < Attributor::DSLCompiler
       attr_reader :links

@@ -110,7 +110,7 @@ class RestfulDocGenerator
 
   def dump_example_for( context_name, object )
     example = object.example(Array(context_name))
-    if object.is_a? Taylor::Blueprint
+    if object.is_a? Praxis::Blueprint
       example.render(:master)
     else
       example.dump
@@ -245,7 +245,7 @@ namespace :praxis do
   task :api_docs => [:environment] do |t, args|
     require 'fileutils'
 
-    Taylor::Blueprint.caching_enabled = false
+    Praxis::Blueprint.caching_enabled = false
     generator = RestfulDocGenerator.new(File.join(Dir.pwd, API_DOCS_DIRNAME))
   end
 

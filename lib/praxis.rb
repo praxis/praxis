@@ -1,6 +1,7 @@
 require 'rack'
 require 'attributor'
-require 'taylor'
+require 'praxis-mapper'
+require 'praxis-blueprints'
 
 $:.unshift File.dirname(__FILE__)
 

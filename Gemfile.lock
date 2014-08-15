@@ -1,22 +1,30 @@
 GIT
-  remote: git@github.com:rightscale/attributor.git
-  revision: b3285f6883cf390fdbbeaa20e8356b00223c54d2
+  remote: git@github.com:rightscale/praxis-blueprints.git
+  revision: 374d2d9662bb9d3c849ae4a6939e7cd578339f58
   branch: master
+  specs:
+    praxis-blueprints (1.0.0)
+      activesupport
+      attributor
+      randexp
+      sequel
+
+GIT
+  remote: git@github.com:rightscale/praxis-mapper.git
+  revision: 0d9558edffc4844b93853b192cc3f52ce7340eca
+  branch: master
+  specs:
+    praxis-mapper (1.0.0)
+      activesupport
+      randexp
+      sequel
+
+PATH
+  remote: ../attributor
   specs:
     attributor (2.0.0)
       hashie
       randexp
-
-GIT
-  remote: git@github.com:rightscale/taylor.git
-  revision: 269999b82e05fa4d0318a1c46fca9a59b5be2658
-  branch: master
-  specs:
-    taylor (3.0.0)
-      activesupport (>= 2.3.5, < 4.0)
-      attributor
-      randexp
-      sequel
 
 GEM
   remote: https://rubygems.org/
@@ -137,6 +145,8 @@ DEPENDENCIES
   guard-rspec
   mime
   mustermann
+  praxis-blueprints!
+  praxis-mapper!
   pry
   pry-byebug
   pry-stack_explorer
@@ -149,5 +159,4 @@ DEPENDENCIES
   rspec-its
   ruport
   simplecov
-  taylor!
   thor

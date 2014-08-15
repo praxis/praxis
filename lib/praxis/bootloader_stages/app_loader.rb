@@ -10,7 +10,8 @@ module Praxis
         super
         # always finalize Taylor after loading app code.
         after do
-          ::Taylor.finalize!
+          Praxis::Mapper.finalize!
+          Praxis::Blueprint.finalize!
         end
       end
 

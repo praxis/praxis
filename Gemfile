@@ -2,10 +2,16 @@ source 'https://rubygems.org'
 
 gem 'mime'
 
-gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
-gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
-#gem 'taylor', path: '../taylor'
-#gem 'attributor', path: '../attributor'
+#gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
+#gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
+
+#gem 'taylor', path: '../tailor'
+gem 'attributor', path: '../attributor'
+#gem 'praxis-blueprints', path: '../praxis-blueprints'
+#gem 'praxis-mapper', path: '../praxis-mapper'
+gem 'praxis-blueprints', git: 'git@github.com:rightscale/praxis-blueprints.git', branch: 'master'
+gem 'praxis-mapper', git: 'git@github.com:rightscale/praxis-mapper.git', branch: 'master'
+
 
 gem 'thor'
 gem 'rack'

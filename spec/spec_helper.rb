@@ -26,7 +26,7 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods
   
   config.before(:suite) do
-    Taylor::Blueprint.caching_enabled = false
+    Praxis::Blueprint.caching_enabled = false
     Praxis::Application.instance.setup
   end
 

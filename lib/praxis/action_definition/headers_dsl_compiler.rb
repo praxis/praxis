@@ -26,7 +26,9 @@ module Praxis
       end
 
       def attribute( name, type, **rest)
-        raise "You cannot use the 'attribute' DSL inside a headers definition" #if (type.nil? || !type==String)
+        raise Exceptions::InvalidConfiguration.new(
+          "You cannot use the 'attribute' DSL inside a headers definition"
+        )
       end
 
     end

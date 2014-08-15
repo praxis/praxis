@@ -7,7 +7,7 @@ module Praxis
     def application
       context
     end
-    
+
     def initialize(name, context,**opts)
       @name = name
       @context = context
@@ -44,7 +44,7 @@ module Praxis
     end
 
     def execute
-      raise 'subclass must implement Stage#execute' unless @stages.any?
+      raise NotImplementedError, 'Subclass must implement Stage#execute' unless @stages.any?
 
       @stages.each do |stage|
         stage.run

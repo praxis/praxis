@@ -1,6 +1,6 @@
 module Praxis
   module Exceptions
-    class ConfigLoadException < ConfigException
+    class ConfigLoad < Config
       def initialize(exception:)
         super(exception.message)
       end

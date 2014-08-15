@@ -30,7 +30,9 @@ module Praxis
     end
 
     def trait(name, &block)
-      raise "Umm...overwriting a previous trait with the same name" if self.traits.has_key? name
+      if self.traits.has_key? name
+        raise Exceptions::InvalidTrait.new("Overwriting a previous trait with the same name (#{name})")
+      end
       self.traits[name] = block
     end
 
@@ -45,7 +47,6 @@ module Praxis
         media_type media_type
         status 201
       end
-     
     end
 
   end

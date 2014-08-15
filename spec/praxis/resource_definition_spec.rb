@@ -108,8 +108,7 @@ describe Praxis::ResourceDefinition do
   context '.use' do
     subject(:resource_definition) { Class.new {include Praxis::ResourceDefinition } }
     it 'raises an error for missing traits' do
-      expect { resource_definition.use(:stuff) }.
-        to raise_error(/Trait .* not found in the system/)
+      expect { resource_definition.use(:stuff) }.to raise_error(Praxis::Exceptions::InvalidTrait)
     end
     it 'has a spec for actually using a trait'
   end

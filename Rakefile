@@ -6,9 +6,8 @@ require 'praxis/tasks'
 
 require 'rake/notes/rake_task'
 
-require 'right_support'
+require 'rspec/core/rake_task'
 
-if require_succeeds?('right_develop')
-  RightDevelop::CI::RakeTask.new
-  #task 'ci:prep' => ['my_special_task_here'] # optional, if your project needs special setup before running CI
-end
+RSpec::Core::RakeTask.new(:spec)
+
+task :default => :spec

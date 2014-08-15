@@ -58,4 +58,7 @@ contributing.
 Praxis requires Ruby 2.1.0 or greater.
 
 ## License
-Praxis is released under the [MIT License](http://www.opensource.org/licenses/MIT).
+
+This software is released under the [MIT License](http://www.opensource.org/licenses/MIT). Please see  [LICENSE](LICENSE) for further details.
+
+Copyright (c) 2014 RightScale

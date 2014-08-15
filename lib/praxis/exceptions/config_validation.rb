@@ -1,6 +1,6 @@
 module Praxis
   module Exceptions
-    class ConfigValidationException < ConfigException
+    class ConfigValidation < Config
       def initialize(errors:)
         super('Validation error: ' << errors.join('; '))
       end

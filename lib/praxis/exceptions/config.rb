@@ -1,6 +1,6 @@
 module Praxis
   module Exceptions
-    class ConfigException < Exception
+    class Config < Exception
     end
   end
 end

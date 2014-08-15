@@ -2,13 +2,12 @@ source 'https://rubygems.org'
 
 gem 'mime'
 
-#gem 'taylor', git: 'git@github.com:rightscale/taylor.git', branch: 'master'
-#gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
+# FIXME: Remove this before open-sourcing Praxis (required for CI harness)
+gem 'right_support', '~> 2.8'
 
-#gem 'taylor', path: '../tailor'
-gem 'attributor', path: '../attributor'
-#gem 'praxis-blueprints', path: '../praxis-blueprints'
-#gem 'praxis-mapper', path: '../praxis-mapper'
+
+
+gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
 gem 'praxis-blueprints', git: 'git@github.com:rightscale/praxis-blueprints.git', branch: 'master'
 gem 'praxis-mapper', git: 'git@github.com:rightscale/praxis-mapper.git', branch: 'master'
 
@@ -45,6 +44,9 @@ end
 group :test do
   gem 'rack-test', :require => 'rack/test'
   gem 'simplecov', :require => false
+
+  # FIXME: Remove this before open-sourcing Praxis (required for CI harness)
+  gem 'right_develop', '~> 3.0'
 
   gem 'fuubar', '2.0.0.rc1'
 end

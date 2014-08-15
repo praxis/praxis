@@ -55,7 +55,7 @@ module Praxis
       # because we save the attribute lookup on every access.
       attribute = self.attributes[name]
       using = self.links.fetch(name) do
-        raise "Why the attribute for: #{name.inspect}?"
+        raise Exceptions::InvalidConfiguration.new("Cannot define attribute for #{name.inspect}")
       end
 
       define_method(name) do

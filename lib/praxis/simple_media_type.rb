@@ -16,7 +16,7 @@ module Praxis
       end
     end
 
-    def describe
+    def describe(shallow=true)
       {identifier: identifier}
     end
   end

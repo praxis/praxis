@@ -15,8 +15,10 @@ module Praxis
         unless args.has_key? :media_type
           media_type = action.resource_definition.media_type
           unless media_type
-            raise "Could not default :media_type argument for response template #{@name}. \
-            Resource #{action.resource_definition} does not have an associated mediatype and none was passed"
+            raise Exceptions::InvalidConfiguration.new(
+              "Could not default :media_type argument for response template #{@name}." +
+               " Resource #{action.resource_definition} does not have an associated mediatype and none was passed"
+            )
           end
           args[:media_type] = media_type
         end

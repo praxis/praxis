@@ -19,13 +19,13 @@ module Praxis
       begin
         @value = @attribute.load(config, context)
       rescue Attributor::AttributorException => e
-        raise Exceptions::ConfigLoadException.new(exception: e)
+        raise Exceptions::ConfigLoad.new(exception: e)
       end
 
       errors = @attribute.validate(@value, context)
 
       unless errors.empty?
-        raise Exceptions::ConfigValidationException.new(errors: errors)
+        raise Exceptions::ConfigValidation.new(errors: errors)
       end
     end
 

@@ -34,6 +34,7 @@ GEM
       multi_json (~> 1.0)
     binding_of_caller (0.7.2)
       debug_inspector (>= 0.0.1)
+    builder (3.2.2)
     byebug (2.7.0)
       columnize (~> 0.3)
       debugger-linecache (~> 1.2)
@@ -47,6 +48,7 @@ GEM
     debugger-linecache (1.2.0)
     diff-lcs (1.2.5)
     docile (1.1.4)
+    extlib (0.9.16)
     fastercsv (1.5.5)
     ffi (1.9.3)
     formatador (0.2.5)
@@ -100,6 +102,20 @@ GEM
     rb-fsevent (0.9.4)
     rb-inotify (0.9.5)
       ffi (>= 0.5.0)
+    right_aws (3.1.0)
+      right_http_connection (>= 1.2.5)
+    right_develop (3.0.1)
+      builder (~> 3.0)
+      extlib
+      rack
+      right_aws (>= 2.1.0)
+      right_git (>= 1.0)
+      right_support (>= 2.8.10)
+      trollop (>= 1.0, < 3.0)
+    right_git (1.0.0)
+      right_support (>= 2.8.10)
+    right_http_connection (1.4.0)
+    right_support (2.8.27)
     rspec (3.0.0)
       rspec-core (~> 3.0.0)
       rspec-expectations (~> 3.0.0)
@@ -131,6 +147,7 @@ GEM
     thor (0.19.1)
     timers (1.1.0)
     transaction-simple (1.4.0.2)
+    trollop (2.0)
 
 PLATFORMS
   ruby
@@ -154,6 +171,8 @@ DEPENDENCIES
   rack-test
   rake
   rake-notes
+  right_develop (~> 3.0)
+  right_support (~> 2.8)
   rspec
   rspec-collection_matchers
   rspec-its

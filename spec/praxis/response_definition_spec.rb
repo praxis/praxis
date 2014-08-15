@@ -40,11 +40,11 @@ describe Praxis::ResponseDefinition do
     end
 
     it 'should return an error when media_type is not a String or a MediaType' do
-      expect{ response_definition.media_type Object.new }.to raise_error(/Invalid media_type specification/)
+      expect{ response_definition.media_type Object.new }.to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
 
     it 'should return an error when media_type is a Symbol other than :controller_defined' do
-      expect{ response_definition.media_type :symbol }.to raise_error(/Invalid media_type specification/)
+      expect{ response_definition.media_type :symbol }.to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
 
@@ -60,7 +60,7 @@ describe Praxis::ResponseDefinition do
     end
 
     it 'should return an error when location is not a Regex or a String object' do
-      expect { response_definition.location Object.new }.to raise_error(/Invalid location specification/)
+      expect { response_definition.location Object.new }.to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
 
@@ -72,23 +72,24 @@ describe Praxis::ResponseDefinition do
 
     it 'accepts an Array' do
       response_definition.headers ["X-Header: value", "Content-Type: some_type"]
-      expect(response_definition.headers).to eq(["X-Header: value", "Content-Type: some_type"])
+      expect(response_definition.headers).to be_a(Hash)
+      expect(response_definition.headers.keys).to include("X-Header: value", "Content-Type: some_type")
     end
 
     it 'accepts a String' do
       response_definition.headers "X-Header: value"
-      expect(response_definition.headers).to eq("X-Header: value")
+      expect(response_definition.headers).to be_a(Hash)
+      expect(response_definition.headers.keys).to include("X-Header: value")
     end
 
     it 'should return an error when headers are not a Hash, Array or String object' do
-      expect{ response_definition.headers Object.new }. to raise_error(/Invalid headers specification/)
+      expect{ response_definition.headers Object.new }. to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
 
   context '#parts' do
     context 'with a :like argument (and no block)' do
       before do
-        #binding.pry
         response_definition.parts like: :ok, media_type: 'application/special'
       end
 
@@ -104,7 +105,7 @@ describe Praxis::ResponseDefinition do
       it 'complains' do
         expect{
           response_definition.parts media_type: 'application/special'
-        }.to raise_error(ArgumentError,/needs a :like argument or a block/)
+        }.to raise_error(ArgumentError, /needs a :like argument or a block/)
       end
     end
     context 'with a :like argument, and a block' do
@@ -224,7 +225,7 @@ describe Praxis::ResponseDefinition do
           it 'should raise an error that later gets swallowed' do
             expect {
               response_definition.validate_status!(response)
-            }.to raise_error(/Invalid response code detected./)
+            }.to raise_error(Praxis::Exceptions::Validation)
           end
         end
 
@@ -242,7 +243,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise an error' do
               expect {
                 response_definition.validate_location!(response)
-              }.to raise_error(/LOCATION does not match regexp/)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
 
@@ -251,7 +252,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error' do
               expect {
                 response_definition.validate_location!(response)
-              }.to raise_error(/LOCATION does not match string/)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
 
@@ -266,7 +267,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error' do
               expect {
                 response_definition.validate_headers!(response)
-              }.to raise_error(/headers missing/)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
 
@@ -276,7 +277,7 @@ describe Praxis::ResponseDefinition do
               it 'should raise error' do
                 expect {
                   response_definition.validate_headers!(response)
-                }.to raise_error(/headers missing/)
+                }.to raise_error(Praxis::Exceptions::Validation)
               end
             end
 
@@ -293,12 +294,12 @@ describe Praxis::ResponseDefinition do
           context "when header specs are hashes" do
             context "and is missing" do
               let (:headers) {
-                [ { "X-Header" => "notfoodbar" } ]
+                [ { "X-Just-Key" => "notfoodbar" } ]
               }
               it 'should raise error' do
                 expect {
                   response_definition.validate_headers!(response)
-                }.to raise_error(/headers missing/)
+                }.to raise_error(Praxis::Exceptions::Validation)
               end
             end
 
@@ -322,7 +323,7 @@ describe Praxis::ResponseDefinition do
               it 'should raise error' do
                 expect {
                   response_definition.validate_headers!(response)
-                }.to raise_error(/headers missing/)
+                }.to raise_error(Praxis::Exceptions::Validation)
               end
             end
 
@@ -376,7 +377,7 @@ describe Praxis::ResponseDefinition do
             it 'should raise error telling you so' do
               expect {
                 response_definition.validate_content_type!(response)
-              }.to raise_error(/Bad Content-Type/)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
 
@@ -385,7 +386,7 @@ describe Praxis::ResponseDefinition do
             it 'should still raise an error' do
               expect {
                 response_definition.validate_content_type!(response)
-              }.to raise_error(/Bad Content-Type/)
+              }.to raise_error(Praxis::Exceptions::Validation)
             end
           end
         end
@@ -414,7 +415,7 @@ describe Praxis::ResponseDefinition do
           it 'validates' do
             expect {
               response_definition.validate_parts!(response)
-            }.to raise_error(/Bad Content-Type/)
+            }.to raise_error(Praxis::Exceptions::Validation)
           end
 
         end
@@ -430,13 +431,70 @@ describe Praxis::ResponseDefinition do
         Praxis::ResponseDefinition.new('response name') do
           description "testing"
         end
-      end.to raise_error(/Status code is required/)
+      end.to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
 
-  context 'getting data from describe' do
-    subject(:response) { Praxis::Responses::Ok.new(status: response_status, headers: response_headers) }
+  context '.describe' do
+    let(:description) { "A description" }
+    let(:location) { %r{/my/url/} }
+    let(:headers) { {'Header1' => 'Value1'} }
+    let(:parts) { nil }
 
-    it 'is a pending example'
+    let(:response) do
+       Praxis::ResponseDefinition.new(:custom) do
+         status 300
+       end
+    end
+    subject(:output) { response.describe }
+    
+    before do
+      response.description(description) if description
+      response.location(location) if location
+      response.parts(parts) if parts 
+      response.headers(headers) if headers
+    end
+    
+    context 'for a definition without parts' do
+      it{ should be_kind_of(::Hash) }
+      its([:description]){ should be(description) }
+      its([:location]){ should == {value: location.inspect ,type: :regexp} }
+
+      it 'should have a header defined with value and type keys' do
+        expect( output[:headers] ).to have(1).keys
+        expect( output[:headers]['Header1'] ).to eq({value: 'Value1' ,type: :string })
+      end
+    end
+    
+    context 'for a definition with (homogeneous) parts' do
+      subject(:described_parts){ output[:parts_like] }
+      context 'using :like' do
+        let(:parts) { {like: :ok, media_type: 'foobar'} }
+        
+        it 'should contain a parts_like key with a hash' do
+          expect( output ).to have_key(:parts_like)
+        end
+        
+        it{ should be_kind_of(::Hash) }  
+        its([:media_type]){ should == { identifier: 'foobar'} }
+        its([:status]){ should == 200 }
+      end
+      context 'using a full response definition block' do
+        let(:parts) do
+          Proc.new do 
+            status 234
+            media_type 'custom_media'
+          end
+        end
+        
+        it 'should contain a parts_like key with a hash' do
+          expect( output ).to have_key(:parts_like)
+        end
+        
+        it{ should be_kind_of(::Hash) }  
+        its([:media_type]){ should == { identifier: 'custom_media'} }
+        its([:status]){ should == 234 }
+      end
+    end
   end
 end

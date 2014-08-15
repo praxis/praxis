@@ -2,10 +2,6 @@ source 'https://rubygems.org'
 
 gem 'mime'
 
-# FIXME: Remove this before open-sourcing Praxis (required for CI harness)
-gem 'right_support', '~> 2.8'
-
-
 
 gem 'attributor', git: 'git@github.com:rightscale/attributor.git', branch: 'master'
 gem 'praxis-blueprints', git: 'git@github.com:rightscale/praxis-blueprints.git', branch: 'master'
@@ -38,15 +34,8 @@ group :development, :test do
   gem 'pry-stack_explorer'
 
   gem 'rake-notes'
-end
-
-
-group :test do
   gem 'rack-test', :require => 'rack/test'
   gem 'simplecov', :require => false
-
-  # FIXME: Remove this before open-sourcing Praxis (required for CI harness)
-  gem 'right_develop', '~> 3.0'
 
   gem 'fuubar', '2.0.0.rc1'
 end

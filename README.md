@@ -1,4 +1,7 @@
-# Praxis
+# Praxis [![TravisCI][travis-img-url]][travis-ci-url] 
+
+[travis-img-url]: https://travis-ci.org/rightscale/praxis.svg?branch=master
+[travis-ci-url]:https://travis-ci.org/rightscale/praxis
 
 Praxis is a framework that takes a different approach to creating APIs, an approach that treats both designers and implementors as first class citizens and hold both their hands throughout the API building process. With Praxis you create an API by iterating through the design, review and implementation phases.
 

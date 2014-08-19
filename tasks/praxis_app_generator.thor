@@ -116,8 +116,6 @@ Praxis::Application.instance.layout do
   end
   map :app, 'app/' do
     map :models, 'models/**/*'
-    map :media_types, '**/media_types/**/*'
-    map :resources, '**/resources/**/*'
     map :controllers, '**/controllers/**/*'
     map :responses, '**/responses/**/*'
   end

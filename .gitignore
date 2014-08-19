@@ -1,0 +1,11 @@
+coverage
+*.swp
+_site/
+.sass-cache/
+
+.data/
+.tmp/
+dist/
+node_modules/
+*.css.map
+

@@ -1,0 +1,25 @@
+﻿<!-- Type -->
+
+<div ng-if="error" class="alert alert-danger">
+  <p>The requested type could not be found.</p>
+</div>
+<div ng-if="type">
+  <div class="row">
+    <div class="col-lg-12">
+      <h1>
+        {{ typeName | resourceName }}
+      </h1>
+    </div>
+  </div>
+  <div class="row" ng-if="controllers">
+    <div class="col-lg-12">
+      <h3>Served by</h3>
+      <ul>
+        <li ng-repeat="controller in controllers">
+          <a ui-sref="root.controller({version: apiVersion, controller: controller.controller})">{{ controller.controller | resourceName }}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <ng-include src="'views/type/_details.html'" />
+</div>

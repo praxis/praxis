@@ -1,0 +1,8 @@
+<dt ng-hide="row.value | isEmpty">{{row.name}}</dt>
+<dd ng-hide="row.value | isEmpty">
+	<div ng-repeat="(k,v) in row.value">
+		<span>{{k}}:</span>
+		<span ng-if="v.value === true"><em>Any value</em></span>
+		<span ng-if="v.value !== true">{{v.value}}</span>
+	</div>
+</dd>

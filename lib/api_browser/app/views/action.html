@@ -1,0 +1,83 @@
+<!-- Action -->
+
+<div ng-if="error" class="alert alert-danger">
+  <p>The requested action could not be found.</p>
+</div>
+<div ng-if="action">
+  <div class="row">
+    <div class="col-lg-12">
+      <h1>
+        {{ action.name }}
+      </h1>
+      <p ng-repeat="url in action.urls">
+        {{ url[0] }} {{ url[1] }}
+      </p>
+      <p>{{ action.description }}</p>
+    </div>
+  </div>
+
+  <div class="row" ng-if="action.headers.type.attributes">
+    <div class="col-lg-12">
+      <h2>Request Headers</h2>
+      <rs-request-headers headers="action.headers"></rs-request-headers>
+      <!--<rs-attribute-table attributes="action.headers.type.attributes" show-groups="true"></rs-attribute-table>-->
+    </div>
+  </div>
+
+  <div class="row" ng-if="action.params.type.attributes">
+    <div class="col-lg-12">
+      <h2>Request Parameters</h2>
+      <rs-request-parameters parameters="action.params"></rs-request-parameters>
+      <!--<rs-attribute-table attributes="action.params.type.attributes" show-groups="true"></rs-attribute-table>-->
+    </div>
+  </div>
+
+  <div class="row" ng-if="action.payload.type">
+    <div class="col-lg-12">
+      <h2>Request Body</h2>
+      <rs-request-body payload="action.payload"></rs-request-body>
+      <!--<rs-attribute-table attributes="action.payload.type.attributes" show-groups="true"></rs-attribute-table>-->
+    </div>
+  </div>
+
+  <div class="row" ng-if="hasResponses()">
+    <div class="col-lg-12">
+      <h2>Responses</h2>
+      <div class="attribute-table">
+        <div class="row head">
+          <div class="col-sm-2">
+            Code
+          </div>
+          <div class="col-sm-2">
+            Name
+          </div>
+          <div class="col-sm-4">
+            Media Type
+          </div>
+          <div class="col-sm-4">
+            Description
+          </div>
+        </div>
+        <div class="content">
+          <div class="row" ng-repeat="response in responses">
+            <div class="col-sm-2">
+              <span ng-if="response.isMultipart">
+                <em>Parts Like:</em>
+              </span>
+              <span>{{response.status}}</span>
+            </div>
+            <div class="col-sm-2">
+              {{response.name}}
+            </div>
+            <div class="col-sm-4">
+              {{response.media_type.name || response.media_type.identifier}}
+            </div>
+            <div class="col-sm-4">
+              <rs-attribute-description attribute="response"></rs-attribute-description>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

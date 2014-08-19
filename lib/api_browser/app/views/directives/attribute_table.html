@@ -1,0 +1,23 @@
+﻿<div class="attribute-table">
+  <div class="row head">
+    <div class="col-sm-3">
+      Attribute
+    </div>
+    <div class="col-sm-2">
+      Type
+    </div>
+    <div class="col-sm-7">
+      Description
+    </div>
+  </div>
+  <div class="content">
+    <div ng-repeat="g in groups">
+      <div class="row" ng-if="g.name && g.attributes.length">
+        <div class="col-sm-12">
+          <strong>{{g.name}}</strong>
+        </div>
+      </div>
+      <rs-attribute-table-row ng-repeat="item in g.attributes" name="item.name" attribute="item"></rs-attribute-table-row>
+    </div>
+  </div>
+</div>

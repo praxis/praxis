@@ -1,0 +1,53 @@
+markdown: kramdown
+highlighter: pygments
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+# Permalinks
+permalink:        pretty
+
+# Setup
+title:            Praxis
+tagline:          'Rapid development for excellent APIs'
+description:      'A light-weight web framework for easily building clean and consistent APIs.'
+url:              http://www.praxis-framework.io
+baseurl:          ''
+timezone:         America/Los_Angeles
+sass:
+  style: :compressed
+
+github:
+  repo:           https://github.com/rightscale/praxis
+navigation:
+  - title:        'Intro'
+    href:         '/intro'
+  - title:        'Getting Started'
+    href:         '/getting-started'
+  - title:        'Reference'
+    href:         '/reference'
+    subsections:
+    - title:      'Bootstrapping'
+      href:       '/reference/bootstrapping'
+    - title:      'Media Types'
+      href:       '/reference/media-types'
+    - title:      'Api Definition'
+      href:       '/reference/api-definition'
+    - title:      'Resource Definitions and Actions'
+      href:       '/reference/resource-definitions'
+    - title:      'Response Definitions'
+      href:       '/reference/response-definitions'
+    - title:      'Doc Generation'
+      href:       '/reference/doc-generation'
+    - title:      'Controllers'
+      href:       '/reference/controllers'
+    - title:      'Request Life Cycle'
+      href:       '/reference/request-life-cycle'
+    - title:      'Requests'
+      href:       '/reference/requests'
+    - title:      'Responses'
+      href:       '/reference/responses'
+    - title:      'Traits'
+      href:       '/reference/traits'
+    - title:      'Plugins'
+      href:       '/reference/plugins'

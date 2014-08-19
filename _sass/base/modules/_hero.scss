@@ -1,0 +1,73 @@
+//
+// Hero
+// ------------------------------
+
+.hero {
+  $hero-background: #847AAD;
+  $hero-color: #fff;
+  $hero-image-1: '/public/images/bg.png';
+  $hero-image-2: '/public/images/bg.jpg';
+
+  @include background(url($hero-image-1), url($hero-image-2), no-repeat $hero-background scroll);
+
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: cover;
+  box-shadow: inset 0 -1px rgba(0,0,0,0.15), 0 1px rgba(255,255,255,0.18);
+
+  .hero-logo img {
+    width: 150px;
+    margin-bottom: 1em;
+  }
+
+  .hero-inner {
+    @include outer-container;
+    @include clearfix;
+    padding: 5em 3em 3.2em 3em;
+    margin: auto;
+    text-align: center;
+    color: $hero-color;
+
+    .button {
+      color: $base-header-color;
+      background-color: #fff;
+      font-size: $base-font-size;
+      outline: none;
+      box-shadow: 0 2px 4px 0px rgba(#000, 0.18);
+      &:hover,
+      &:focus {
+        background-color: rgba(#fff, 0.85);
+      }
+    }
+
+    .hero-copy {
+      text-align: center;
+
+      h1 {
+        font-size: 1.6em;
+        margin-bottom: .5em;
+        font-weight: 300;
+        color: rgba(#fff, 0.9);
+        letter-spacing: 1rem;
+        text-indent: 0.5rem;
+
+        @include media($large-screen) {
+          font-size: 1.8em;
+        }
+      }
+
+      p {
+        font-family: $base-font-family;
+        margin: auto;
+        margin-bottom: 3em;
+        font-weight: 200;
+        line-height: 1.75rem;
+
+        @include media($large-screen) {
+          font-size: 1.1em;
+          max-width: 40%;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{ page.title }}</title>
+    <meta name="description" content="A simple but powerful API building tool.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="alternate" href="{{ site.baseurl }}/atom.xml" type="application/rss+xml" title="RSS">
+    <link rel="shortcut icon" href="{{ site.baseurl }}/public/favicon.png">
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="{{ site.baseurl }}/public/bower_components/octicons/octicons/octicons.css">
+    <link rel="stylesheet" href="{{ site.baseurl }}/public/stylesheets/screen.css">
+    <script type="text/javascript" src="//use.typekit.net/qyc5xsu.js"></script>
+    <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+    <!--                            .__
+    __________________  ___  __|__| ______
+    \____ \_  __ \__  \ \  \/  /  |/  ___/
+    |  |_> >  | \// __ \_>    <|  |\___ \
+    |   __/|__|  (____  /__/\_ \__/____  >
+    |__|              \/      \/       \/ -->
+
+  </head>
+  <body class="layout-default">
+    <div class="wrap">
+      {% include header.html %}
+      <!-- content -->
+      <section class="content">
+        <div class="content-inner">
+          <div class="sidebar">
+            {% include sidebar.html %}
+          </div>
+          <div class="main">
+            {{ content }}
+          </div>
+        </div>
+      </section>
+      <div class="push"></div>
+    </div>
+    {% include footer.html %}
+  </body>
+</html>

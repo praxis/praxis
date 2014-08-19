@@ -1,0 +1,50 @@
+.main-nav {
+  margin: 0;
+  padding: 0;
+}
+
+.main-nav > li {
+  position: relative;
+  display: block;
+}
+
+.main-nav > li > a {
+  display: block;
+  padding: 4px 20px;
+  font-size: 13px;
+  color: #999;
+  position: relative;
+}
+
+.main-nav > .active > a {
+  padding-left: 18px;
+  font-weight: 700;
+  color: #563d7c;
+  background-color: transparent;
+  border-left: 2px solid #563d7c;
+}
+
+.main-nav .nav {
+  padding-bottom: 10px;
+  display: none;
+}
+
+.main-nav > .active > .nav {
+  display: block;
+}
+
+.main-nav .nav > li > a {
+  padding-top: 1px;
+  padding-bottom: 1px;
+  font-size: 12px;
+  padding-left: 28px;
+  font-weight: 500;
+  color: #999;
+}
+
+.main-nav .nav > .active > a {
+  color: #563d7c;
+  background-color: transparent;
+  border-left: 2px solid #563d7c;
+  padding-left: 26px;
+}

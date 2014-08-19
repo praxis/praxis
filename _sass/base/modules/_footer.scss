@@ -1,0 +1,130 @@
+//
+// Footer
+// ------------------------------
+
+.push,
+.footer {
+  height: 120px;
+
+  @include media($large-screen) {
+    height: 79px;
+  }
+
+}
+
+.footer {
+  $footer-background: #516178;
+  $footer-color: #fff;
+  $footer-link-color: transparentize($footer-color, 0.6);
+  $footer-disclaimer-color: transparentize($footer-color, 0.6);
+
+  background: $footer-background;
+  padding: $base-line-height;
+  width: 100%;
+
+  .footer-inner {
+    padding: 0 1em;
+    @include outer-container;
+  }
+
+  .footer-logo {
+    font-size: .8em;
+    font-weight: 400;
+    margin-right: 1em;
+    margin-bottom: 1em;
+
+    a {
+      color: $footer-link-color;
+      display: inline-block;
+
+      &:hover {
+        color: transparentize($footer-color, 0);
+      }
+    }
+
+    @include media($large-screen) {
+      float: left;
+      margin-bottom: 0;
+    }
+  }
+
+  .footer-logo img {
+    height: 1.6em;
+    width: 80px;
+    opacity: 0.75;
+  }
+
+  .footer-legal {
+    display: inline-block;
+    margin-left: 0.3em;
+    vertical-align: text-bottom;
+    color: $footer-link-color;
+  }
+
+  ul {
+    margin-bottom: 1rem;
+    @include media($large-screen) {
+      float: left;
+      margin: 0 0 0 1rem;
+    }
+  }
+
+  ul li {
+    padding-right: 1em;
+    font-weight: 800;
+
+    @include media($large-screen) {
+      display: inline;
+      text-align: left;
+    }
+  }
+
+  ul li a {
+    color: $footer-link-color;
+
+    &:hover {
+      color: transparentize($footer-color, 0);
+    }
+  }
+
+  .footer-secondary-links {
+    @include media($large-screen) {
+      float: right;
+    }
+
+    li {
+      font-size: .8em;
+      font-weight: 400;
+    }
+
+    ul.footer-social {
+      margin-top: 1em;
+      line-height: 1;
+
+      @include media($large-screen) {
+        float: right;
+        margin-top: 0;
+      }
+
+      li {
+        float: left;
+        font-size: 1em;
+        padding-right: .7em;
+
+        &:last-child {
+          padding-right: 0;
+        }
+      }
+
+      img {
+        opacity: .7;
+        height: 1.6em;
+        padding: 1px;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+//
+// Sidebar
+// ------------------------------
+
+.sidebar {
+  .main-nav {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  ul li {
+    > ul {
+      margin-left: 1rem;
+      list-style: none;
+      padding: 0;
+    }
+  }
+}

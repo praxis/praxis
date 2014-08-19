@@ -1,0 +1,14 @@
+{
+  "name": "praxis-gh-pages",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.1",
+    "octicons": "~2.1.0"
+  }
+}

@@ -1,0 +1,15 @@
+{% for post in site.posts limit:1 %}
+<header class="hero-article">
+  <div class="logo-band">
+    <a class="blog-logo" href="/">Praxis</a>
+  </div>
+  <h1 class="hero-title"><a class="hero-anchor" href="{{ post.url }}">{{ post.title }}</a></h1>
+  <p class="hero-description">{{ post.description }}</p>
+  <div class="article-info">
+    <ul class="info-list">
+      <li class="info-list-item posted">{{ post.date | date: "%b %-d, %Y" }}</li>
+      <li class="info-list-item author">{{ post.author }}</li>
+    </ul>
+  </div>
+</header>
+{% endfor %}

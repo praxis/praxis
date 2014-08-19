@@ -1,0 +1,16 @@
+// global
+html,
+body {
+  height: 100%;
+}
+
+.wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 0 auto -120px;
+
+  @include media($large-screen) {
+    margin: 0 auto -79px;
+  }
+}

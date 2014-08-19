@@ -1,0 +1,45 @@
+// container
+.content {
+  padding: 2rem 0;
+  overflow: hidden;
+  .content-inner {
+    padding: 0 1em;
+    @include outer-container;
+  }
+}
+
+// layouts
+.layout-default {
+  $mobile: new-breakpoint(max-width 500px 4);
+
+  .sidebar {
+    margin: 10px 0 15px 0;
+    @include span-columns(3);
+
+    @include media($mobile) {
+      @include span-columns(4);
+    }
+  }
+  .main {
+    @include span-columns(9);
+    @include omega();
+
+    @include media($mobile) {
+      @include span-columns(4);
+    }
+  }
+}
+
+.layout-welcome {
+  $header-background: rgba(shade(#444A64, 25), 0.5);
+  .header {
+    position: absolute;
+    top: 0;
+    background-color: $header-background;
+    box-shadow: inset 0 -1px rgba(0,0,0,0.13), 0 1px rgba(255,255,255,0.18);
+  }
+  .header-logo {
+    display: none;
+  }
+
+}

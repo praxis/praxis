@@ -1,0 +1,65 @@
+/*
+	vertical-rhythmic
+
+	Version : 2.0.0
+	Author  : Aurélien Delogu (dev@dreamysource.fr)
+	License : MIT
+*/
+
+/*
+	number $vr-ratio
+	number $vr-root-px
+*/
+$vr-ratio	: null;
+$vr-root-px	: 16px !default;
+
+/*
+	Establish baseline
+
+	Parameters
+		number $font-size
+		number $line-height
+*/
+@mixin vr-baseline($font-size,$line-height){
+	// Establish baseline
+	font-size:$font-size;
+	line-height:$line-height;
+	// Format parameters
+	$font-size:$font-size/($font-size*0+1);
+	$line-height:$line-height/($line-height*0+1);
+	// Compute ratio
+	$vr-ratio:$line-height/$font-size;
+}
+
+/*
+	Return a rhythm
+
+	Parameters
+		number $font-size
+		number $factor
+
+	Return
+		number
+*/
+@function vr($font-size,$factor:1){
+	@return $vr-ratio*$factor*$font-size;
+}
+
+/*
+	Convert REM value to PX
+
+	Parameters
+		number $value
+
+	Return
+		number
+*/
+@function rem2px($value){
+	@if(unit($value)==rem){
+		$value:$value/1rem;
+	}
+	@if(unitless($vr-root-px)){
+		$vr-root-px:$vr-root-px*1px;
+	}
+	@return $value*$vr-root-px;
+}

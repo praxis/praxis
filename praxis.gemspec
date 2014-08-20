@@ -9,9 +9,9 @@ Gem::Specification.new do |spec|
   spec.authors = ["Josep M. Blanquer","Dane Jensen"]
   spec.date = "2014-08-19"
   spec.summary = 'Building APIs the way you want it.'
-  
+
   spec.email = ["blanquer@gmail.com","dane.jensen@gmail.com"]
-  
+
   spec.homepage = "https://github.com/rightscale/praxis"
   spec.license = "MIT"
   spec.required_ruby_version = ">=2.1"
@@ -29,6 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'praxis-mapper', '~> 3.1'
   spec.add_dependency 'praxis-blueprints', '~> 1.0'
   spec.add_dependency 'attributor', '~> 2'
+  spec.add_dependency 'thor', '~> 0'
 
   spec.add_development_dependency 'bundler', '~> 1.6'
   spec.add_development_dependency 'rake', '~> 0.9'

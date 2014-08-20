@@ -302,19 +302,17 @@ class RestfulDocGenerator
 end
 
 namespace :praxis do
-
   desc "Generate API docs (JSON definitions) for a Praxis App"
   task :api_docs => [:environment] do |t, args|
     require 'fileutils'
 
     Praxis::Blueprint.caching_enabled = false
-    generator = RestfulDocGenerator.new(Dir.pwd)    
+    generator = RestfulDocGenerator.new(Dir.pwd)
   end
-
 
   desc "API Documenation Browser"
   desc "API Documentation Browser"
-  task :doc_browser do
+  task :doc_browser => [:api_docs] do
     public_folder =  File.expand_path("../../../", __FILE__) + "/api_browser/app"
     app = Rack::Builder.new do
       map "/docs" do # application JSON docs

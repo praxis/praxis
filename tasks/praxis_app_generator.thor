@@ -1,7 +1,8 @@
+# vim: setlocal filetype=ruby:
+
 require 'thor'
 require 'pathname'
 require 'yaml'
-
 
 # Praxis application generator
 #
@@ -189,21 +190,19 @@ RUBY
   def generate_app_definitions_hello_world
     create_file path('design/api.rb') do
 <<-RUBY
-# Use this file to define your response templates and traits. 
+# Use this file to define your response templates and traits.
 #
 # For example, to define a response template:
 #   response_template :custom do |media_type:|
 #     status 200
 #     media_type media_type
 #   end
-#
-# And to define a trait:
-#   trait :versionable do
-#     headers do
-#       header :X_Api_Version, String, values: ['1.0'], required: true
-#     end
-#   end
 Praxis::ApiDefinition.define do
+  trait :versionable do
+    headers do
+      header :X_Api_Version, String, values: ['1.0'], required: true
+    end
+  end
 end
 RUBY
     end

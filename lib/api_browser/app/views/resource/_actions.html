@@ -1,9 +1,9 @@
 <div class="attribute-table">
   <div class="row head">
-    <div class="col-sm-5">
+    <div class="col-sm-3">
       Name
     </div>
-    <div class="col-sm-7">
+    <div class="col-sm-9">
       Description
     </div>
   </div>
@@ -12,9 +12,9 @@
       <div class="col-sm-3">
         <a ui-sref="root.action({action: action.name, controller: controllerName, version: apiVersion})">{{ action.name }}</a>
       </div>
-      <div class="col-sm-7">
+      <div class="col-sm-9">
         <div ng-repeat="url in action.urls">
-          {{ url[0] }} {{ url[1] }}
+          {{ url.verb }} {{ url.path }}
         </div>
         {{ action.description }}
       </div>

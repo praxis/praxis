@@ -10,7 +10,7 @@
         {{ action.name }}
       </h1>
       <p ng-repeat="url in action.urls">
-        {{ url[0] }} {{ url[1] }}
+        {{ url.verb }} {{ url.path }}
       </p>
       <p>{{ action.description }}</p>
     </div>

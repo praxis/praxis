@@ -6,7 +6,6 @@ _site/
 
 .data/
 .tmp/
-dist/
 node_modules/
 *.css.map
 

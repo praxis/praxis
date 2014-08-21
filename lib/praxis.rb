@@ -48,7 +48,9 @@ module Praxis
   # types
   autoload :Links, 'praxis/links'
   autoload :MediaType, 'praxis/media_type'
+  autoload :MediaTypeCollection, 'praxis/media_type_collection'
   autoload :Multipart, 'praxis/types/multipart'
+  autoload :Collection, 'praxis/types/collection'
 
   autoload :MultipartParser, 'praxis/multipart/parser'
   autoload :MultipartPart, 'praxis/multipart/part'

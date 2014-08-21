@@ -46,7 +46,11 @@ class RestfulDocGenerator
 
     def initialize( definition )
       @controller_config = definition
-      @version = controller_config.version
+      if controller_config.version == 'n/a'
+        @version = 'unversioned'
+      else
+        @version = controller_config.version
+      end
       @media_type = controller_config.media_type
       @reachable_types = Set.new
 

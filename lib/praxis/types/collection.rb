@@ -1,6 +1,6 @@
 module Praxis
 
-  class Collection < Attributor::Collection
+  class Collection
 
     # checks if +type+ is a MediaType, and if so, if it has an inner
     # Collection class defined
@@ -9,7 +9,7 @@ module Praxis
         return type::Collection
       end
 
-      super
+      Attributor::Collection.of(type)
     end
 
   end

@@ -44,12 +44,15 @@ describe Praxis::MediaType do
       its([:owner]) { should eq(Person.dump(owner_resource, view: :link)) }
       its([:super]) { should eq(Person.dump(manager_resource, view: :link)) }
 
-      context 'with a collection' do
-        subject(:volume) { Volume.example }
-
-        it 'renders the collection' do
-          p volume.links
-        end
+      context 'for a collection' do
+        let(:volume) { Volume.example }
+        let(:snapshots) { volume.snapshots }
+        let(:output) { volume.render(:default) }
+        subject { links[:snapshots] }
+             
+        its([:name]) { should eq(snapshots.name) }
+        its([:size]) { should eq(snapshots.size) }
+        its([:href]) { should eq(snapshots.href) }
       end
     end
 

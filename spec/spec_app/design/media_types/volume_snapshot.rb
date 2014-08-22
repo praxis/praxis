@@ -3,7 +3,7 @@ class VolumeSnapshot < Praxis::MediaType
 
   attributes do
     attribute :id, Integer
-    attribute :name, String
+    attribute :name, String, regexp: /snapshot-(\w+)/
   end
 
   view :default do
@@ -22,7 +22,7 @@ class VolumeSnapshot < Praxis::MediaType
     member_type VolumeSnapshot
 
     attributes do
-      attribute :name, String
+      attribute :name, String, regexp: /snapshots-(\w+)/
       attribute :size, Integer, example: proc { |collection| collection.to_a.count }
       attribute :href, String
     end

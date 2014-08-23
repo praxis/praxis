@@ -32,10 +32,10 @@ class RestfulDocGenerator
     reachable << the_type  unless the_type.name == nil # Don't bother with anon structs
     if the_type.respond_to? :attributes
       the_type.attributes.each do |name, attr|
-         attr_type = attr.type
-         #puts "Inspecting attr: #{name} (class: #{attr_type.name}) #{attr_type.inspect}"
-         reachable += self.inspect_attributes(attr_type)
-       end
+        attr_type = attr.type
+        #puts "Inspecting attr: #{name} (class: #{attr_type.name}) #{attr_type.inspect}"
+        reachable += self.inspect_attributes(attr_type)
+      end
     end
     reachable
   end
@@ -115,7 +115,7 @@ class RestfulDocGenerator
 
   end
 
-  def dump_example_for( context_name, object )
+  def dump_example_for(context_name, object)
     example = object.example(Array(context_name))
     if object.is_a? Praxis::Blueprint
       example.render(:master)
@@ -203,6 +203,7 @@ class RestfulDocGenerator
     index = Hash.new
     media_types_seen_from_controllers = Set.new
     # Process the resources first
+
     @resources.each do |r|
       index[r.version] ||= Hash.new
       info = {controller: r.id}
@@ -217,14 +218,15 @@ class RestfulDocGenerator
     versioned_types.each do |version, types|
       # Discard any mediatypes that we've already seen and processed as controller related
       reportable_types = types - media_types_seen_from_controllers - EXCLUDED_TYPES_FROM_TOP_LEVEL
-      reportable_types.reject!{|type| type < Praxis::Links } #TODO: think about this special case, is it needed?
+      #TODO: think about these special cases, is it needed?
+      reportable_types.reject!{|type| type < Praxis::Links || type < Praxis::MediaTypeCollection } 
 
       reportable_types.each do |type|
         index[version] ||= Hash.new
         display_name = type.name.split("::").last + " (*)" #somehow this is just a MT so we probably wanna mark it different
         if index[version].has_key? display_name
-        raise "Display name already taken for version #{version}! #{display_name}"
-      end
+          raise "Display name already taken for version #{version}! #{display_name}"
+        end
         index[version][display_name] = if type < Praxis::MediaType
           {media_type: type.name }
         else
@@ -237,20 +239,20 @@ class RestfulDocGenerator
     FileUtils.mkdir_p dirname unless File.exists? dirname
     File.open(filename, 'w') {|f| f.write(JSON.dump(index))}
   end
-  
+
   def write_templates(versioned_types)
     # Calculate and write top-level (non-versioned) templates
     top_templates = write_template("")
     # Calculate and write versioned templates (passing the top level ones for inheritance)
     versioned_types.keys.each do |version|
       write_template(version,top_templates)
-    end  
+    end
   end
-  
+
   def write_template(version,top_templates=nil)
     # Collect template filenames (grouped by type: embedded vs. standalone)
-    templates_dir = File.join(@root_dir,"doc_browser","templates",version)        
-    
+    templates_dir = File.join(@root_dir,"doc_browser","templates",version)
+
     # Slurp in any top level (unversioned) templates if any
     # Top level templates will apply to any versioned one (and can be overwritten
     # if the version defines their own)
@@ -259,11 +261,11 @@ class RestfulDocGenerator
       templates[:embedded] = top_templates[:embedded].clone
       templates[:standalone] = top_templates[:standalone].clone
     end
-    
+
     dual = Dir.glob(File.join(templates_dir,"*.tmpl"))
     embedded = Dir.glob(File.join(templates_dir,"embedded","*.tmpl"))
     standalone = Dir.glob(File.join(templates_dir,"standalone","*.tmpl"))
-    
+
     # TODO: Encode the contents more appropriately rather than dumping a string
     # Templates defined at the top will apply to both embedded and standalone
     # But it can be overriden if the same type exists in the more specific directory

@@ -48,11 +48,13 @@ job keeping the docs and the code in sync everytime they make code changes.
 
 ## Mailing List
 Join our Google Groups for discussion, support and announcements.
-* http://groups.google.com/d/forum/praxis-support (support for people using
+* [praxis-support](http://groups.google.com/d/forum/praxis-support) (support for people using
   Praxis)
-* http://groups.google.com/d/forum/praxis-announce (announcements)
-* http://groups.google.com/d/forum/praxis-development (discussion about the
+* [praxis-announce](http://groups.google.com/d/forum/praxis-announce) (announcements)
+* [praxis-development](http://groups.google.com/d/forum/praxis-development) (discussion about the
   development of Praxis itself)
+
+And follow us on twitter: [@praxisapi](http://twitter.com/praxisapi)
 
 ## Contributions
 Contributions to make Praxis better are welcome. Please refer to

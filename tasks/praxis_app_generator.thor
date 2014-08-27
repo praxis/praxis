@@ -240,6 +240,7 @@ module V1
           attribute :id, Integer, required: true, min: 0
         end
         response :ok
+        response :not_found
       end
     end
   end
@@ -292,8 +293,7 @@ module V1
       if hello
         response.body = { id: id, data: hello }
       else
-        response.status = 404
-        response.body   = { error: '404: Not found' }
+        self.response = Praxis::Responses::NotFound.new
       end
       response.headers['Content-Type'] = 'application/json'
       response

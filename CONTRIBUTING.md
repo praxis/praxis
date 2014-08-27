@@ -103,8 +103,9 @@ logical units of work using `git rebase -i` and `git push -f`. After every
 commit the test suite should be passing. Include documentation changes in the
 same commit so that a revert would remove all traces of the feature or fix.
 
-Commits that fix or close an issue should include a reference like `Closes
-#XXXX` or `Fixes #XXXX`, which will automatically close the issue when merged.
+Commits that fix or close an issue should include a reference like
+`Closes #XXXX` or `Fixes #XXXX`, which will automatically close the issue when
+merged.
 
 Please do not add yourself to the `AUTHORS` file unless you are on the Praxis
 github team.

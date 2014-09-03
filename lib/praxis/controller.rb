@@ -28,7 +28,7 @@ module Praxis
       end
 
       def actions
-        definition.actions
+        (self.respond_to? :definition) ? definition.actions : {} 
       end
 
       def action(name)

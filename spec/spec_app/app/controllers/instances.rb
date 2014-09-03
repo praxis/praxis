@@ -7,8 +7,11 @@ class Instances
     #p [:before, :validate, :params_and_headers, controller.request.action.name]
   end
 
-  before actions: [:show] do
+  before actions: [:show] do |controller|
     #puts "before action"
+    if controller.request.params.fail_filter
+      Praxis::Responses::Unauthorized.new
+    end
   end
 
   def index(response_content_type:, **params)

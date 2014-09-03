@@ -45,6 +45,7 @@ module ApiResources
         attribute :id
         attribute :junk, String, default: ''
         attribute :some_date, DateTime, default: DateTime.parse('2012-12-21')
+        attribute :fail_filter, Attributor::Boolean, default: false
       end
       payload do
         attribute :something, String

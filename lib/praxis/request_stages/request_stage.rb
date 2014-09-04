@@ -36,8 +36,7 @@ module Praxis
         r = execute_controller_callbacks(controller.class.before_callbacks)
         return r if r
 
-        result = execute
-        
+        result = execute_with_around
         # Still allow the after callbacks to shortcut it if necessary.
         r = execute_controller_callbacks(controller.class.after_callbacks)
         return r if r 
@@ -46,6 +45,32 @@ module Praxis
         result
       end
 
+      def execute_with_around
+          cb = controller.class.around_callbacks[ path ]
+          if cb == nil || cb.empty?
+            execute
+          else
+            inner_proc = proc { execute } #TODO: call the method directly
+            
+            applicable = cb.select do|(conditions, handler)| 
+              if conditions.has_key?(:actions)
+                (conditions[:actions].include? action.name) ? true : false
+              else
+                true
+              end
+            end
+            
+            chain = applicable.reverse.inject(inner_proc) do |blk, (conditions, handler)|
+              if blk
+                proc{ handler.call(controller,blk) }
+              else
+                proc{ handler.call }
+              end
+            end  
+            chain.call
+          end
+      end
+      
       def execute
         raise NotImplementedError, 'Subclass must implement Stage#execute' unless @stages.any?
 

@@ -9,17 +9,19 @@ module Praxis
     included do
       attr_reader :request
       attr_accessor :response
+      
       Application.instance.controllers << self
       self.instance_eval do
         @before_callbacks = Hash.new
         @after_callbacks = Hash.new
+        @around_callbacks = Hash.new
       end
 
     end
 
     module ClassMethods
-      attr_reader :before_callbacks, :after_callbacks
-
+      attr_reader :before_callbacks, :after_callbacks, :around_callbacks
+      
       def implements(definition)
         define_singleton_method(:definition) do
           definition
@@ -46,7 +48,13 @@ module Praxis
         @after_callbacks[stage_path] ||= Array.new
         @after_callbacks[stage_path] << [conditions, block]
       end
-
+      
+      def around(*stage_path, **conditions, &block)
+        stage_path = [:action] if stage_path.empty?
+        @around_callbacks[stage_path] ||= Array.new
+        @around_callbacks[stage_path] << [conditions, block]
+      end
+      
     end
 
 

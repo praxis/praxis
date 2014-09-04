@@ -14,6 +14,27 @@ class Instances
     end
   end
 
+  around :validate, actions: [:show] do |controller, blk|
+    puts "Before validate decorator (for show)"
+    blk.call
+    puts "After validate decorator"
+  end
+  around :action do |controller, blk|
+    puts "Decorator one (all actions) start"
+    blk.call
+    puts "Decorator one end"
+  end
+  around :action, actions: [:show] do |controller, blk|
+    puts "Decorator two (show action) start"
+    blk.call
+    puts "Decorator two end"
+  end
+  around :action, actions: [:index] do |controller, blk|
+    puts "Decorator three (index action) start"
+    blk.call
+    puts "Decorator three end"
+  end
+
   def index(response_content_type:, **params)
     response.headers['Content-Type'] = response_content_type #'application/vnd.acme.instance;type=collection'
     JSON.generate(params)

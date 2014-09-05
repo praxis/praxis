@@ -3,9 +3,13 @@ module Praxis
 
     class Validate < RequestStage
 
-      def setup!
-        @stages << RequestStages::ValidateParamsAndHeaders.new(:params_and_headers, context, parent: self)
-        @stages << RequestStages::ValidatePayload.new(:payload, context, parent: self)
+      def initialize(name, context,**opts)
+        super
+        # Add our sub-stages
+        @stages = [
+          RequestStages::ValidateParamsAndHeaders.new(:params_and_headers, context, parent: self),
+          RequestStages::ValidatePayload.new(:payload, context, parent: self) 
+        ]
       end
 
       def execute

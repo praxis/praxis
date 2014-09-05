@@ -15,24 +15,24 @@ class Instances
   end
 
   around :validate, actions: [:show] do |controller, blk|
-    puts "Before validate decorator (for show)"
+    #puts "Before validate decorator (for show)"
     blk.call
-    puts "After validate decorator"
+    #puts "After validate decorator"
   end
   around :action do |controller, blk|
-    puts "Decorator one (all actions) start"
+    #puts "Decorator one (all actions) start"
     blk.call
-    puts "Decorator one end"
+    #puts "Decorator one end"
   end
   around :action, actions: [:show] do |controller, blk|
-    puts "Decorator two (show action) start"
+    #puts "Decorator two (show action) start"
     blk.call
-    puts "Decorator two end"
+    #puts "Decorator two end"
   end
   around :action, actions: [:index] do |controller, blk|
-    puts "Decorator three (index action) start"
+    #puts "Decorator three (index action) start"
     blk.call
-    puts "Decorator three end"
+    #puts "Decorator three end"
   end
 
   def index(response_content_type:, **params)

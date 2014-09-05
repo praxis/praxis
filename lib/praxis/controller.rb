@@ -1,17 +1,17 @@
-require 'active_support/concern'
 require 'active_support/inflector'
 
 module Praxis
 
   module Controller
-    extend ActiveSupport::Concern
+    
+    def self.included(target)
 
-    included do
-      attr_reader :request
-      attr_accessor :response
-      
-      Application.instance.controllers << self
-      self.instance_eval do
+      target.send(:include, InstanceMethods)
+      target.extend ClassMethods
+      Application.instance.controllers << target
+      target.instance_eval do
+        attr_reader :request
+        attr_accessor :response
         @before_callbacks = Hash.new
         @after_callbacks = Hash.new
         @around_callbacks = Hash.new
@@ -21,7 +21,7 @@ module Praxis
 
     module ClassMethods
       attr_reader :before_callbacks, :after_callbacks, :around_callbacks
-      
+
       def implements(definition)
         define_singleton_method(:definition) do
           definition
@@ -58,10 +58,11 @@ module Praxis
     end
 
 
-    def initialize(request, response=Responses::Ok.new)
-      @request = request
-      @response = response
+    module InstanceMethods 
+      def initialize(request, response=Responses::Ok.new)
+        @request = request
+        @response = response
+      end
     end
-
   end
 end

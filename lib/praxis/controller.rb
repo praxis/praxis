@@ -1,22 +1,17 @@
 require 'active_support/inflector'
-
+require 'active_Support/concern'
 module Praxis
 
   module Controller
-    
-    def self.included(klass)
+    extend ::ActiveSupport::Concern
 
-      klass.send(:include, InstanceMethods)
-      klass.extend ClassMethods
-      Application.instance.controllers << klass
-      klass.instance_eval do
-        attr_reader :request
-        attr_accessor :response
-        @before_callbacks = Hash.new
-        @after_callbacks = Hash.new
-        @around_callbacks = Hash.new
-      end
-
+    included do
+      attr_reader :request
+      attr_accessor :response
+      Application.instance.controllers << self
+      @before_callbacks = Hash.new
+      @after_callbacks = Hash.new
+      @around_callbacks = Hash.new
     end
 
     module ClassMethods
@@ -30,7 +25,7 @@ module Praxis
       end
 
       def actions
-        (self.respond_to? :definition) ? definition.actions : {} 
+        (self.respond_to? :definition) ? definition.actions : {}
       end
 
       def action(name)
@@ -48,21 +43,18 @@ module Praxis
         @after_callbacks[stage_path] ||= Array.new
         @after_callbacks[stage_path] << [conditions, block]
       end
-      
+
       def around(*stage_path, **conditions, &block)
         stage_path = [:action] if stage_path.empty?
         @around_callbacks[stage_path] ||= Array.new
         @around_callbacks[stage_path] << [conditions, block]
       end
-      
+
     end
 
-
-    module InstanceMethods 
-      def initialize(request, response=Responses::Ok.new)
-        @request = request
-        @response = response
-      end
+    def initialize(request, response=Responses::Ok.new)
+      @request = request
+      @response = response
     end
   end
 end

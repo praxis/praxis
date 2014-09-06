@@ -26,6 +26,12 @@ describe Praxis::Controller do
     }
   end
 
+  let(:child_controller_test_subject) {
+    Class.new(subject) do
+      implements AddressResource
+    end
+  }
+
   context '.implements' do
     it 'set the resource definition controller' do
       expect(subject).to eq(PeopleResource.controller)
@@ -68,6 +74,14 @@ describe Praxis::Controller do
       expect(response_conditions).to eq({:actions => [:show]})
       expect(response_block).to be_kind_of(Proc)
       expect(response_block.call(*response_conditions)).to eq("after")
+    end
+  end
+
+  context 'child controller' do
+    context '.implements' do
+      it "set the resource definition controller" do
+        expect(child_controller_test_subject).to eq(AddressResource.controller)
+      end
     end
   end
 end

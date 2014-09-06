@@ -4,12 +4,12 @@ module Praxis
 
   module Controller
     
-    def self.included(target)
+    def self.included(klass)
 
-      target.send(:include, InstanceMethods)
-      target.extend ClassMethods
-      Application.instance.controllers << target
-      target.instance_eval do
+      klass.send(:include, InstanceMethods)
+      klass.extend ClassMethods
+      Application.instance.controllers << klass
+      klass.instance_eval do
         attr_reader :request
         attr_accessor :response
         @before_callbacks = Hash.new

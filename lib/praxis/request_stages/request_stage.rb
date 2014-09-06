@@ -50,9 +50,9 @@ module Praxis
           if cb == nil || cb.empty?
             execute
           else
-            inner_proc = proc { execute } #TODO: call the method directly
+            inner_proc = proc { execute }
             
-            applicable = cb.select do|(conditions, handler)| 
+            applicable = cb.select do |(conditions, handler)| 
               if conditions.has_key?(:actions)
                 (conditions[:actions].include? action.name) ? true : false
               else
@@ -75,8 +75,8 @@ module Praxis
         raise NotImplementedError, 'Subclass must implement Stage#execute' unless @stages.any?
 
         @stages.each do |stage|
-          r = stage.run
-          return r if r && r.kind_of?(Praxis::Response)
+          shortcut = stage.run
+          return shortcut if shortcut && shortcut.kind_of?(Praxis::Response)
         end
         nil
       end

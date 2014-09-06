@@ -37,10 +37,18 @@ describe 'Functional specs' , focus: true do
   it 'works' do
     get '/clouds/1/instances/2?junk=foo&api_version=1.0'
     expect(last_response.status).to eq(200)
-    expect(JSON.parse(last_response.body)).to eq({"cloud_id" => 1, "id"=>2, "junk"=>"foo", "other_params"=>{"some_date"=>"2012-12-21T00:00:00+00:00"}, "payload"=>{"something"=>nil, "optional"=>"not given"}})
-    expect(last_response.headers).to eq({"Content-Type"=>"application/vnd.acme.instance", "Content-Length"=>"188"})
+    expect(JSON.parse(last_response.body)).to eq({"cloud_id" => 1, "id"=>2, "junk"=>"foo", 
+                                                  "other_params"=>{
+                                                    "some_date"=>"2012-12-21T00:00:00+00:00",
+                                                    "fail_filter"=>nil}, 
+                                                  "payload"=>{"something"=>nil, "optional"=>"not given"}})
+    expect(last_response.headers).to eq({"Content-Type"=>"application/vnd.acme.instance", "Content-Length"=>"213"})
   end
 
+  it 'returns early when making the before filter break' do
+    get '/clouds/1/instances/2?junk=foo&api_version=1.0&fail_filter=true'
+    expect(last_response.status).to eq(401)
+  end
 
   context 'bulk_create multipart' do
 

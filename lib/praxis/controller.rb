@@ -1,5 +1,5 @@
 require 'active_support/inflector'
-require 'active_Support/concern'
+require 'active_support/concern'
 module Praxis
 
   module Controller

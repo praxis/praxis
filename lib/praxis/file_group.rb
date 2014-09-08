@@ -22,6 +22,7 @@ module Praxis
         @groups[name] = FileGroup.new(base + pattern, &block)
       else
         @groups[name] ||= []
+        return unless base.exist?
         file_enum = base.find.to_a
         files = file_enum.select do |file|
           path = file.relative_path_from(base)

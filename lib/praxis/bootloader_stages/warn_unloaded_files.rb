@@ -17,6 +17,7 @@ module Praxis
       def execute
         return unless self.class.enabled
         base = application.file_layout[:app].base
+        return unless base.exist?
         file_enum = base.find.to_a
         files = file_enum.select do |file|
           path = file.relative_path_from(base)

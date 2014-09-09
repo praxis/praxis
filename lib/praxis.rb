@@ -30,6 +30,7 @@ module Praxis
   autoload :Bootloader, 'praxis/bootloader'
   autoload :Config, 'praxis/config'
   autoload :Controller, 'praxis/controller'
+  autoload :Callbacks, 'praxis/callbacks'
   autoload :Dispatcher, 'praxis/dispatcher'
   autoload :Exception, 'praxis/exception'
   autoload :FileGroup,'praxis/file_group'

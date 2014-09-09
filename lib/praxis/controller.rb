@@ -1,19 +1,16 @@
-require 'active_support/inflector'
 require 'active_support/concern'
 require 'active_support/all'
 
 module Praxis
   module Controller
     extend ::ActiveSupport::Concern
-
+    # A Controller always requires the callbacks
+    include Praxis::Callbacks
+    
     included do
-      class_attribute :before_callbacks, :after_callbacks, :around_callbacks
-
-      self.before_callbacks = Hash.new
-      self.after_callbacks = Hash.new
-      self.around_callbacks = Hash.new
+      attr_reader :request
+      attr_accessor :response
     end
-
     module ClassMethods
       def implements(definition)
         define_singleton_method(:definition) do
@@ -32,23 +29,6 @@ module Praxis
         actions.fetch(name)
       end
 
-      def before(*stage_path, **conditions, &block)
-        stage_path = [:action] if stage_path.empty?
-        before_callbacks[stage_path] ||= Array.new
-        before_callbacks[stage_path] << [conditions, block]
-      end
-
-      def after(*stage_path, **conditions, &block)
-        stage_path = [:action] if stage_path.empty?
-        after_callbacks[stage_path] ||= Array.new
-        after_callbacks[stage_path] << [conditions, block]
-      end
-
-      def around(*stage_path, **conditions, &block)
-        stage_path = [:action] if stage_path.empty?
-        around_callbacks[stage_path] ||= Array.new
-        around_callbacks[stage_path] << [conditions, block]
-      end
     end
 
     def initialize(request, response=Responses::Ok.new)
@@ -56,16 +36,16 @@ module Praxis
       @response = response
     end
 
-    def request
-      @request
-    end
-
-    def response
-      @response
-    end
-
-    def response=(value)
-      @response = value
-    end
+#    def request
+#      @request
+#    end
+#
+#    def response
+#      @response
+#    end
+#
+#    def response=(value)
+#      @response = value
+#    end
   end
 end

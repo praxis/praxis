@@ -187,8 +187,33 @@ describe 'Functional specs' , focus: true do
         expect(last_response.body).to eq("NotFound. Your request speficied API version = \"50.0\". Available versions = \"1.0\".")
       end
     end
-
     
   end
 
+  context 'volumes' do
+    context 'when no authorization header is passed' do
+      it 'works as expected' do
+        get '/volumes/123?api_version=1.0&junk=stuff'#, nil, 'AUTHORIZATION' => 'foobar'
+        expect(last_response.status).to eq(200)
+        expect(JSON.parse(last_response.body)).to eq({"id"=>123,
+                                                      "other_params"=>{
+                                                        "junk"=>"stuff",
+                                                        "some_date"=>"2012-12-21T00:00:00+00:00"}
+                                                     })
+        expect(last_response.headers["Content-Type"]).to eq("application/vnd.acme.volume")
+      end      
+    end
+    context 'when an authorization header is passed' do
+      it 'returns 401 when it does not match "secret" ' do
+        get '/volumes/123?api_version=1.0&junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'foobar'
+        expect(last_response.status).to eq(401)
+        expect(last_response.body).to match(/Authentication info is invalid/)
+      end
+      it 'succeeds as expected when it matches "secret" ' do
+        get '/volumes/123?api_version=1.0&junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'the secret'
+        expect(last_response.status).to eq(200)
+      end
+      
+    end
+  end
 end

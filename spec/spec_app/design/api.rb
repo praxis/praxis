@@ -20,7 +20,7 @@ Praxis::ApiDefinition.define do
 
   trait :authenticated do
     headers do
-      header :host
+      attribute :AUTHORIZATION, String, required: false
     end
   end
 

@@ -26,12 +26,6 @@ describe Praxis::Controller do
     }
   end
 
-  let(:child_controller_test_subject) {
-    Class.new(subject) do
-      implements AddressResource
-    end
-  }
-
   context '.implements' do
     it 'set the resource definition controller' do
       expect(subject).to eq(PeopleResource.controller)
@@ -77,10 +71,40 @@ describe Praxis::Controller do
     end
   end
 
+  context 'parent controller' do
+    its(:before_callbacks) {
+      should be_a(Hash)
+    }
+  end
+
   context 'child controller' do
-    context '.implements' do
+    let(:child_controller_test_subject) {
+      Class.new(subject) do
+        implements AddressResource
+      end
+    }
+
+    describe '.implements' do
       it "set the resource definition controller" do
         expect(child_controller_test_subject).to eq(AddressResource.controller)
+      end
+    end
+
+    describe '.before_callbacks' do
+      it "inherits callbacks hash" do
+        expect(child_controller_test_subject.before_callbacks).to be_a(Hash)
+      end
+    end
+
+    describe '.after_callbacks' do
+      it "inherits callbacks hash" do
+        expect(child_controller_test_subject.after_callbacks).to be_a(Hash)
+      end
+    end
+
+    describe '.around_callbacks' do
+      it "inherits callbacks hash" do
+        expect(child_controller_test_subject.around_callbacks).to be_a(Hash)
       end
     end
   end

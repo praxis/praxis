@@ -165,7 +165,7 @@ module V1
       include Praxis::ResourceDefinition
 			
       version '1.0'
-			 media_type 'application/json'
+      media_type 'application/json'
 			 
       action :show do
         routing do

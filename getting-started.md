@@ -163,9 +163,10 @@ module V1
   module Resources
     class Posts
       include Praxis::ResourceDefinition
-
+			
       version '1.0'
-
+			 media_type 'application/json'
+			 
       action :show do
         routing do
           get '/:id'
@@ -362,10 +363,11 @@ Save this as design/v1/media_types/post.rb and there you have it! A full Post
 media type. So now, how do you associate this Post media type with your Posts
 resource?
 
-Add a declaration into our Posts resource definition using its ```media_type```
-DSL. By doing this, Praxis will know that, by default, actions belonging to the
+To use this newly defined media type, change the ``media_type``` declaration
+in our Posts resource definition from th 'application/json' string to the full
+class. By doing this, Praxis will know that, by default, actions belonging to the
 ```Posts``` resource definition are likely to generate responses of this
-MediaType.
+MediaType. 
 
 {% highlight ruby %}
 # design/v1/resources/post.rb
@@ -379,6 +381,10 @@ module V1
   end
 end
 {% endhighlight %}
+
+Resource's default media types are used when response declarations
+that can take a ```media_type``` parameters are left unspecified. For example,
+our `response :ok` in the show action is equivalent to `response :ok, media_type: MediaTypes::Post`.
 
 Associating a default MediaType to a resource definition has another convenient
 effect when defining payload attributes. It can help simplify syntax. Here's

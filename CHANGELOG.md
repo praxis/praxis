@@ -9,9 +9,16 @@
   * If a before filter returns it, both the action and the after filters will be skipped (as well as any remaining filters in the before list)
   * If an after filter returns it, any remaining after filters in the block will be skipped.
   * There is no way for the action result to skip the :after filters.
-* Initial stab at around filters through blocks
-  * The `around` DSL supports the same attributes as `before` and `after` filters. The only difference is that an around filter will need to call the passed in block (2nd parameter) to continue the chain.
+* Refactored Controller module to properly used ActiveSupprt concerns. [@jasonayre](https://github.com/jasonayre) [Issue #26](https://github.com/rightscale/praxis/issues/26)
+* Separated the controller module into a Controller concern and a separable Callbacks concern
+* Controller filters (i.e. callbacks) can shortcut request lifecycle by returning a Response object:
+  * If a before filter returns it, both the action and the after filters will be skipped (as well as any remaining before filters)
+  * If an after filter returns it, any remaining after filters in the block will be skipped.
+  * There is no way for the action result to skip the :after filters.
+  * Fixes [Issue #21](https://github.com/rightscale/praxis/issues/21)
+* Introduced `around` filters using blocks:
 	* Around filters can be set wrapping any of the request stages (load, validate, action...) and might apply to only certain actions (i.e. exactly the same as the before/after filters)
-	* See the `instances` controller for examples.
+  * Therefore they supports the same attributes as `before` and `after` filters. The only difference is that an around filter block will get an extra parameter with the block to call to continue the chain.	
+	* See the [Instances](https://github.com/rightscale/praxis/blob/master/spec/spec_app/app/controllers/instances.rb) controller for examples.
 
 ## 0.9 Initial release

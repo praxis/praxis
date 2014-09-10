@@ -9,6 +9,7 @@ Praxis::Application.configure do |application|
       end
       map :app, 'app/' do
         map :models, 'models/**/*'
+        map :concerns, '**/concerns/**/*'
         map :controllers, '**/controllers/**/*'
         map :responses, '**/responses/**/*'
       end

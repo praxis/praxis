@@ -1,8 +1,9 @@
-class Instances
+class Instances < BaseClass
   include Praxis::Controller
 
   implements ApiResources::Instances
-
+  include Concerns::BasicApi
+  
   before :validate, actions: [:index]  do |controller|
     #p [:before, :validate, :params_and_headers, controller.request.action.name]
   end

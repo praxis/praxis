@@ -1,5 +1,5 @@
 class Volume < Praxis::MediaType
-  identifier 'application/json'
+  identifier 'application/vnd.acme.volume'
 
   attributes do
     attribute :id, Integer

@@ -25,11 +25,11 @@ module Praxis
         orig_attribute name.upcase , String, options
       end
 
-      def attribute( name, type, **rest)
-        raise Exceptions::InvalidConfiguration.new(
-          "You cannot use the 'attribute' DSL inside a headers definition"
-        )
-      end
+#      def attribute( name, type, **rest)
+#        raise Exceptions::InvalidConfiguration.new(
+#          "You cannot use the 'attribute' DSL inside a headers definition"
+#        )
+#      end
 
     end
   end

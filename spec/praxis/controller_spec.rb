@@ -47,27 +47,5 @@ describe Praxis::Controller do
     end
   end
 
-  context '.before' do
-    let(:validate_conditions) { subject.before_callbacks[[:validate]][0][0] }
-    let(:validate_block) { subject.before_callbacks[[:validate]][0][1] }
 
-    it 'sets up the before_callbacks' do
-      expect(subject.before_callbacks.keys).to match_array([[:validate], [:action]])
-      expect(validate_conditions).to eq({:actions => [:index]})
-      expect(validate_block).to be_kind_of(Proc)
-      expect(validate_block.call(*validate_conditions)).to eq("before")
-    end
-  end
-
-  context '.after' do
-    let(:response_conditions) { subject.after_callbacks[[:response]][0][0] }
-    let(:response_block) { subject.after_callbacks[[:response]][0][1] }
-
-    it 'sets up the after_callbacks' do
-      expect(subject.after_callbacks.keys).to match_array([[:response]])
-      expect(response_conditions).to eq({:actions => [:show]})
-      expect(response_block).to be_kind_of(Proc)
-      expect(response_block.call(*response_conditions)).to eq("after")
-    end
-  end
 end

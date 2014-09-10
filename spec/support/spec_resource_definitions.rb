@@ -31,3 +31,35 @@ class PeopleResource
   end
 
 end
+
+class AddressResource
+  include Praxis::ResourceDefinition
+
+  description 'Address resource'
+
+  media_type Address
+
+  version '1.0'
+
+  routing do
+    prefix "/addresses"
+  end
+
+  action :index do
+    description 'index description'
+    routing do
+      get ''
+    end
+  end
+
+  action :show do
+    description 'show description'
+    routing do
+      get '/:id'
+    end
+    params do
+      attribute :id, Integer, required: true
+    end
+  end
+
+end

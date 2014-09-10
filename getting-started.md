@@ -90,6 +90,9 @@ $ curl -i http://localhost:8888/api/hello/2 -H 'X-Api-Version: 1.0' -X GET  # Sh
 $ curl -i http://localhost:8888/api/hello/2 -H 'X-Api-Version: 2.0' -X GET  # NotFound Error
 {% endhighlight %}
 
+Once you've finished testing the `Hello` controller, type `CTRL+c` in the
+terminal where you started the server earlier to kill your Praxis app.
+
 Now it's time to get your hands dirty and see how to use Praxis to build
 services with full-featured REST APIs.
 
@@ -559,7 +562,7 @@ Start it up, and check it out!
 {% highlight bash %}
 $ rackup -p 8888
 
-# Successful curl call that shows post with ID 1
+# Successful cURL call that shows post with ID 1
 $ curl -i http://localhost:8888/my_posts/1 -H 'X-Api-Version: 1.0' -X GET
 
 HTTP/1.1 200 OK
@@ -571,7 +574,7 @@ Connection: Keep-Alive
 
 {"id":108,"title":"indubitably","content":"advisedly"}
 
-# Failed curl call that tries to create a post with unknown attributes
+# Failed cURL call that tries to create a post with unknown attributes
 $ curl -i http://localhost:8888/my_posts -H 'X-Api-Version: 1.0' -X POST -d 'My Post'
 
 HTTP/1.1 400 Bad Request

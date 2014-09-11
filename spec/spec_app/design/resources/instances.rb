@@ -65,7 +65,7 @@ module ApiResources
       response :bulk_response ,
                 parts: {
                   like: :created,
-                  media_type: Instance # Could be left blank and will inherit
+                  location: /\/instances\//
                 }
 
 # Using a block for parts to defin a sub-request

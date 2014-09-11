@@ -48,8 +48,8 @@ module Praxis
         status 200
       end
 
-      api.response_template :created do |media_type: |
-        media_type media_type
+      api.response_template :created do |location: nil|
+        location location
         status 201
       end
     end

@@ -20,6 +20,10 @@ Praxis comes out of the box with the following stage pipeline:
 
 ![Request Life Cycle Diagram]({{ site.baseurl }}/public/images/praxis_request_life_cycle_diagram.svg)
 
+The first of these stages in the pipeline will only be invoked after the routing has 
+been processed for the incoming request, and the appropriate controller and action has 
+been identified. This means that currently, there is no way to affect the request routing dynamically.
+
 ## Request Loading Stage (`:load_request`)
 
 The request loading stage is used to retrieve all the necessary information
@@ -100,8 +104,8 @@ hook into, a list of options, and a callback block.
 
 The only option supported at the time of this writing is `actions`, which
 allows the caller to restrict the callback to a set of named actions. Passing
-no `actions` option is logically equivalent to passing every possible action.
-More options for callbacks might be introduced in the future.
+no `actions` option is logically equivalent to passing every possible action in
+your controller. More options for callbacks might be introduced in the future.
 
 To install your hook before or after a substage, add the second stage name
 after the first. If you completely omit the stage name, Praxis will default to
@@ -133,7 +137,10 @@ Here are some examples of how to register callbacks:
 end
 {% endhighlight %}
 
-There is really no difference between `after :validate` and `before :action`
-since they are subsequent stages. Semantically, however, you should register
-the callback based on what stage you depend on, and not on neighboring stages.
-Otherwise, your code might stop functioning when the pipeline order is changed.
+Technically speaking there is not much difference between `after :validate` and `before :action`
+since they are subsequent stages. Semantically, however, they are different as all the 
+`after :validate` callbacks will be executed before any of the `before :action` ones.
+So you should really register the callback based on what stage you depend on, and not on neighboring stages. Otherwise, your code might stop functioning when the pipeline order is changed.
+
+There is currently no mechanism to order the callbacks for a given stage. They will be executed
+in the order that they were registered.

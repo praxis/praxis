@@ -204,4 +204,4 @@ actions, etc.
 
 For a complete discussion of what stages are available for use in your
 callbacks, as well as how to use them, please refer to the [Request Life
-Cycle](../request-stages/) documentation.
+Cycle](../request-life-cycle/) documentation.

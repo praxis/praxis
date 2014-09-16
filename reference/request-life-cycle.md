@@ -94,21 +94,24 @@ send it back to the client.
 
 ## Hooking Into the Request Life Cycle
 
-There are two types of hooks you can use to run a block of code during the
-life cycle of a request. You can register a callback to be run either `before`
-or `after` any of the available stages.
+There are three types of hooks you can use to run a block of code during the
+life cycle of a request. You can register a callback to be run either `before`,
+ `after` or `around` any of the available stages.
 
 Installing callbacks is done directly from your controller. Just use the class
-DSL methods `before` and `after`. These methods take the name of the stage to
-hook into, a list of options, and a callback block.
+DSL methods `before`, `after` or `around` that comes with the Praxis::Callback
+concerns(already included by the Praxis::Controller module). Each of these methods take 
+the name of the stage to hook into, an optional list of options, and a callback block.
 
-The only option supported at the time of this writing is `actions`, which
-allows the caller to restrict the callback to a set of named actions. Passing
-no `actions` option is logically equivalent to passing every possible action in
+The name of the stage can be any of the ones described above: `:load_request`, `:validate` (including ```:validate, :headers_and_params``` or ```:validate, :payload``` to tap into a sub-stage only ), `:action` or `:response`.
+
+The only option supported at the time of this writing is `:actions`, which
+allows the caller to restrict the callback to be applied only to a set of named actions. 
+Passing no `actions` option is logically equivalent to passing every possible action in
 your controller. More options for callbacks might be introduced in the future.
 
-To install your hook before or after a substage, add the second stage name
-after the first. If you completely omit the stage name, Praxis will default to
+To install your hook for a substage, add the second stage name
+after the first (i.e. ```after :validate, :payload ...``` ). If you completely omit the stage name, Praxis will default to
 the `action` stage because that's the most common use case.
 
 Here are some examples of how to register callbacks:
@@ -134,7 +137,14 @@ Here are some examples of how to register callbacks:
   after :validate do
     put "Will print after the headers and payload substages' after callbacks"
   end
+  
+  around :action do |controller, callee|
+    puts "Before the action is called"
+    callee.call
+    puts "After the action is called"
+  end
 end
+
 {% endhighlight %}
 
 Technically speaking there is not much difference between `after :validate` and `before :action`
@@ -143,4 +153,21 @@ since they are subsequent stages. Semantically, however, they are different as a
 So you should really register the callback based on what stage you depend on, and not on neighboring stages. Otherwise, your code might stop functioning when the pipeline order is changed.
 
 There is currently no mechanism to order the callbacks for a given stage. They will be executed
-in the order that they were registered.
+in the order that they were registered. Also, there is currently no way to install callbacks around the complete request lifecycle, for example, to install an `around` callback wrapping all of the 
+individual request stages. Both of these mechanisms can be added if the need arises.
+
+### Shortcutting the request processing
+
+Any of the registered callback blocks can return a ```Praxis::Response```-derived object to signal
+the interruption of the request lifecycle processing. Anything else that the block returns (i.e., nil or any other value) will be ignored and assumed that it signals that the processing should continue.
+
+If a `before` callback returns a response, the system will immediately stop processing any further
+callbacks of any kind, and send that response to the user. This means that:
+
+* no other `before` callbacks in the chain will be executed
+* none of the `around` filters will be executed
+* the action won't be invoked 
+* none of the `after` callbacks will be run either
+
+If an `after` callback returns a response, no further `after` callbacks will be executed either.
+Also note that the `around` callbacks are always started in after the `before` ones, since they wrap the processing of the controller `action`.

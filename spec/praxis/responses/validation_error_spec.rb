@@ -56,4 +56,11 @@ describe Praxis::Responses::ValidationError do
     end
     
   end
+  
+  context 'its response template' do
+    let(:template){ Praxis::ApiDefinition.instance.responses[:validation_error] }
+    it 'is registered with the ApiDefinition' do
+      expect(template).to be_kind_of(Praxis::ResponseTemplate)
+    end
+  end
 end

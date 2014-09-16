@@ -5,10 +5,13 @@ module Praxis
       
       def execute
         response = controller.send(action.name, **request.params_hash)
-        if response.kind_of? String
+        case response
+        when String
           controller.response.body = response
-        else
+        when Praxis::Response
           controller.response = response
+        else
+          raise "Action #{action.name} in #{controller.class} returned #{response.inspect}. Only Response objects or Strings allowed."
         end  
         controller.response.request = request
         nil # Action cannot return its OK request, as it would indicate the end of the stage chain

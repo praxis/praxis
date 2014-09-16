@@ -23,5 +23,6 @@
 * Fix: Change :created response template to take an optiona ‘location’ parameter (instead of a media_type one, since it doesn’t make sense for a 201 type response) [Issue #26](https://github.com/rightscale/praxis/issues/23)
 * Make the system be more robust in error reporting when controllers do not return a String or a Response
 * Fix: ValidationError not setting a Content-Type header. [Issue #39](https://github.com/rightscale/praxis/issues/19)
+* Relaxed ActiveSupport version dependency (from 4 to >=3 )
 
 ## 0.9 Initial release

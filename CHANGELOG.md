@@ -24,5 +24,6 @@
 * Make the system be more robust in error reporting when controllers do not return a String or a Response
 * Fix: ValidationError not setting a Content-Type header. [Issue #39](https://github.com/rightscale/praxis/issues/19)
 * Relaxed ActiveSupport version dependency (from 4 to >=3 )
+* Fix: InternalServerError not setting a Content-Type header. [Issue #42](https://github.com/rightscale/praxis/issues/42)
 
 ## 0.9 Initial release

@@ -73,6 +73,7 @@ module Praxis
 
   # Avoid loading responses (and templates) lazily as they need to be registered in time
   require 'praxis/responses/http'
+  require 'praxis/responses/internal_server_error'
   require 'praxis/responses/validation_error'
 
   module BootloaderStages

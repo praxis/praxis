@@ -18,14 +18,13 @@ used when rendering links to Blogs.
 
 {% highlight ruby %}
 class Blog < Praxis::MediaType
-
   description 'A Blog API resource represents...'
   identifier 'application/vnd.acme.blog'
 
   attributes do
     attribute :id, Integer
     attribute :href, String
-    attribute :author, Person
+    attribute :owner, Person
     attribute :subject, String
     attribute :locale do
       attribute :language, String
@@ -35,7 +34,7 @@ class Blog < Praxis::MediaType
 
   view :default do
     attribute :id
-    attribute :author, view: :compact
+    attribute :owner, view: :compact
     attribute :subject
     attribute :locale
   end
@@ -62,7 +61,7 @@ type: one using its `default` view and another using its `link` view:
 Blog.render(blog_object, view: :default)
 => {
  'id' : 123,
- 'author' : { ...an author hash rendered with its :compact view...},
+ 'owner' : { ...an owner hash rendered with its :compact view...},
  'subject' : 'First post',
  'locale' : { 'language': 'en', 'country': 'us' }
 }
@@ -79,7 +78,7 @@ In this example, your `blog_object` must return:
 | Method    | Return value                                |
 |-----------+---------------------------------------------|
 | `id`      | integer                                     |
-| `author`  | object compatible with a Person media type  |
+| `owner`   | object compatible with a Person media type  |
 | `subject` | String                                      |
 | `locale`  | object compatible with the locale structure |
 | `href`    | String                                      |
@@ -139,7 +138,7 @@ class Blog < Praxis::MediaType
   attributes do
     attribute :id, Integer
     attribute :href, String,        regexp: %r{/blogs/\d+}
-    attribute :author, Person,      description: 'Owner of this Blog'
+    attribute :owner, Person,       description: 'Owner of this Blog'
     attribute :subject, String
     attribute :created_at, DateTime
     attribute :visibility, String,  values: ['public','private']
@@ -175,25 +174,25 @@ class Blog < Praxis::MediaType
   attributes do
     attribute :id, Integer
     attribute :href, String
-    attribute :author, Person
+    attribute :owner, Person
     attribute :subject, String
     attribute :created_at, DateTime
     attribute :locale do
       attribute :language, String
       attribute :country, String
     end
-    attribute :blog_entries, Collection.of(BlogEntry)
+    attribute :blog_entries, Attributor::Collection.of(BlogEntry)
   end
 
   view :default do
     attribute :id
-    attribute :author
+    attribute :owner
     attribute :locale
   end
 
   view :full do
     attribute :id
-    attribute :author, view: :expanded
+    attribute :owner, view: :expanded
     attribute :subject
     attribute :created_at
     attribute :blog_entries
@@ -202,7 +201,7 @@ end
 {% endhighlight %}
 
 The `full` view above will render all its attributes using their `default`
-views, except the `author` attribute, which will be rendered using an
+views, except the `owner` attribute, which will be rendered using an
 `expanded` view. In order for this to work, the Person media type needs to have
 an `expanded` view defined, detailing what attributes to include.
 
@@ -214,7 +213,7 @@ its top level name. All of its sub-attributes will follow. For example, the
 above `default` view includes the `locale` attribute, which will cause its
 `language` and `country` sub-attributes to be rendered.
 
-##Links
+## Links
 
 Praxis provides a special helper for crafting media types that refer to other
 resources. In particular, it allows the use of the special `links` DSL within
@@ -227,13 +226,13 @@ class Blog < Praxis::MediaType
   attributes do
     attribute :id, Integer
     attribute :href, String
-    attribute :author, Person
+    attribute :owner, Person
     attribute :subject, String
     attribute :created_at, DateTime
-    attribute :blog_entries, Collection.of(BlogEntry)
+    attribute :blog_entries, Attributor::Collection.of(BlogEntry)
 
     links do
-      link :author
+      link :owner
       link :blog_entries
     end
   end
@@ -246,7 +245,7 @@ class Blog < Praxis::MediaType
 
   view :full do
     attribute :id
-    attribute :author
+    attribute :owner
     attribute :subject
     atttibute :blog_entries
   end
@@ -269,7 +268,7 @@ You can think about the "links" DSL as a way to:
 
 Rendering a Blog media type using the `full` view defined above, will result in
 embedding two fully rendered media types plus all the other regular attributes
-like `id`, `subject`. The `author` attribute embeds a Person media type
+like `id`, `subject`. The `owner` attribute embeds a Person media type
 rendered using its `default` view, and the `blog_entries` attribute embeds an
 array of BlogEntries, each of them rendered with the `default` view. The goal
 of providing the `full` view is that it directly embeds the whole
@@ -280,20 +279,20 @@ rendered view will look:
 {
   id: 1
   subject: 'This is the Subject'
-  author: { ...a big author hash rendered with its :default view...},
+  owner: { ...a big owner hash rendered with its :default view...},
   blog_entries: [
-    { id: 1, blog_text: 'This is the start of my first blog...' , author: { ...} },
-    { id: 2, blog_text: 'This is my second blog entry...', author: { ...} }
+    { id: 1, blog_text: 'This is the start of my first blog...' , owner: { ...} },
+    { id: 2, blog_text: 'This is my second blog entry...', owner: { ...} }
   ]
 }
 {% endhighlight %}
 
 Sometimes it is convenient to provide a lot of embedded information in an API
-response. This could save the client extra API calls to retrieve that
-information later on. In practice, however, you don't want to include too much
-unnecessary information in your responses. It is pretty common to include only
-links to embedded information instead. This is exactly what including `links`
-in your view will do for you.
+response as in the example above. This could save the client extra API calls to
+retrieve that information later on. But in practice, you don't want to include
+too much unnecessary information in your responses. So it is pretty common to
+include only links to embedded information instead. This is exactly what
+including `links` in your view will do for you.
 
 This is what the Blog's `default` view renders:
 
@@ -306,16 +305,21 @@ This is what the Blog's `default` view renders:
       { href: '/blog_entries/1' },
       { href: '/blog_entries/2' }
     ],
-    author: { href: '/people/3' }
+    owner: { href: '/people/3' }
   }
 }
 {% endhighlight %}
 
-Rendering the `default` view for a Blog does not include the `author` or
+Rendering the `default` view for a Blog does not include the `owner` or
 `blog_entries` as top level attributes. Instead, the `default` view includes
 them inside the `links` attribute. So they will both be rendered using their
 `link` views, which by convention will include a small subset of attributes,
-perhaps just the href attribute like the example above.
+perhaps just the href attribute like the example above. While this works well
+for single related members, returning an array of objects with one `href` each
+is not exactly what you might want for related collections. What you typically
+want is to return a single collection href that, if followed, can provide the
+contents of the related collection. In the next sections, we'll cover this in
+more detail.
 
 ### Customizing links
 
@@ -326,7 +330,7 @@ three different ways to use the `link` stanza:
 * Provide the name of an existing top-level attribute, like in the examples
   above. Using this method, there is no need to specify which associated media
   type the link will point to because that can be inferred from the top level
-  attribute's type: `link :author` will use the `Person` type.
+  attribute's type: `link :owner` will use the `Person` type.
 * Explicitly include both the relationship name as well as
   the target MediaType to use. This allows you to link to a related resource,
   which might not be listed in the top-level attributes (or one that exists,
@@ -341,8 +345,8 @@ three different ways to use the `link` stanza:
 
 When rendering an attribute, a media type retrieves the value from its
 underlying object by calling a method of the same name on that object.  For
-example, when rendering the `author` attribute, the system will call the
-`author` method on the underlying object to retrieve the raw data.
+example, when rendering the `owner` attribute, the system will call the
+`owner` method on the underlying object to retrieve the raw data.
 
 There are cases, however, in which the name of the link relationship does not
 necessarily correspond to the existing object's methods. There are other cases
@@ -351,12 +355,12 @@ a Ruby method. In this case, you can use the `using` modifier in the `link` DSL
 to specify the name of the method to call instead.
 
 Suppose that in the Blogs media type definition example, you want to get the
-href for the author, but you want to call it 'blogger' instead of 'author'.
+href for the owner, but you want to call it 'blogger' instead of 'owner'.
 You can do this via the `using` clause:
 
 {% highlight ruby %}
 links do
-  link :blogger, Person, using: :author
+  link :blogger, Person, using: :owner
 end
 {% endhighlight %}
 
@@ -372,11 +376,173 @@ This results in links that look like this:
 
 Note: Technically speaking, the `using` modifier refers to the method name of
 the object that the MediaType wraps, not a method of the MediaType instance.
-In the example above, `using: :author` only works because we know that the
+In the example above, `using: :owner` only works because we know that the
 underlying object has that method available.  If that method were not available
-it would never be able to render its `author` attribute. We could have used
+it would never be able to render its `owner` attribute. We could have used
 `using: :foobar` in the example above, as long as the underlying data object
 responds to `foobar`.
+
+## Collections
+
+Praxis media types can declare attributes that are ordered collections of other
+media types or other Attributor types.
+
+### Attributor::Collection
+
+An Attributor::Collection is a way to embed a collection of another Attributor
+type. For example, you may want a collection of tag strings to be an attribute
+of your blog media type:
+
+{% highlight ruby %}
+class Blog < Praxis::MediaType
+  attributes do
+    attribute :id, Integer
+    attribute :tags, Attributor::Collection.of(String)
+  end
+
+  view :default do
+    attribute :id
+    attribute :tags
+  end
+end
+{% endhighlight %}
+
+Praxis expects to find a method named `tags` on the underlying object which
+must return an array of strings. And when you render this media type, Praxis
+will render them as an array of Strings.
+
+Read more about Attributor and Attributor collections in the [attributor README
+file](https://github.com/rightscale/attributor/blob/master/README.md).
+
+### Praxis::MediaTypeCollection
+
+Praxis::MediaTypeCollection is a special media type for collections of objects
+rather than single objects. Just like a regular Praxis::MediaType, you can
+declare attributes and views and render them. When populated with members, a
+```Praxis::MediaTypeCollection``` is enumerable.
+
+Also like other media types, you can embed a Praxis::MediaTypeCollection within
+another media type.  For instance, a blog may have many posts and you may want
+a view for your Blog media type that embeds all of a Blog's posts. You may also
+want a view with aggregate information about the Posts collection instead. For
+example the total number of posts or a list of all the Blog's authors. It's
+also possible that you don't want to embed any information about actual posts,
+but you do want to link to them.
+
+With Praxis, you can do all of this by creating a media type for your
+collection and defining the appropriate aggregate attributes, and corresponding
+views.  Let's take a look at the following example, where we create an inner
+```Collection``` class inside the ```Post``` media_type class:
+
+{% highlight ruby %}
+class Post < Praxis::MediaType
+  attributes do
+    attribute :id, Integer
+    attribute :title, String
+    attribute :content, String
+  end
+
+  view :default do
+    attribute :id
+    attribute :title
+    attribute :content
+  end
+
+  class Collection < Praxis::MediaTypeCollection
+    member_type Post
+
+    attributes do
+      attribute :href, String
+      attribute :count, Integer
+      attribute :authors, Attributor::Collection.of(String)
+    end
+
+    view :link do
+      attribute :href
+    end
+
+    view :aggregate do
+      attribute :href
+      attribute :count
+      attribute :authors
+    end
+  end
+end
+{% endhighlight %}
+
+This Post media type has some attributes you'd expect on a blog post, and its
+default view renders all of them. There is also a ```Post::Collection``` media
+type.  The collection has its own attributes that refer to properties of the
+collection itself rather than properties of the collection's members.
+
+This new collection media type is a first class media type like any other,
+except collection media types reference the type of members that the collection
+contains.  In this case, the ```Post::Collection``` media type has ```Post```
+as its member_type.  Like any other media_type, rendering a
+```MediaTypeCollection``` will use the views you have defined in it.  But if
+the view to render is not found, it will default to using a view of the same
+name from the member_type (wrapping it in an array).  If a view to render is
+not found in the ```MediaTypeCollection``` or its member type, the operation
+will fail.
+
+Defining collections as inner classes within the related member_type has the
+advantage that can be used from other media types. Below are some examples of a
+`Blog` resource that refers to the `Post` collection in various ways.
+
+#### Embedding full collection contents
+
+It is possible to directly embed every `Post` into its `Blog`. In this example,
+when Praxis renders the view `default` for a `Blog`, it locates the
+`Collection` media type you defined for `Post`, and looks for a default view.
+If there is a default view directly on the collection, Praxis renders it. Since
+there isn't one, Praxis will iterate the members of the collection, each one a
+`Post` media type, and render them all using the default view for `Post`.
+
+Either `Post::Collection` or `Post` must have a `default` view in this case.
+
+{% highlight ruby %}
+class Blog < Praxis::MediaType
+  attributes do
+    attribute :id, Integer
+    attribute :posts, Post::Collection
+  end
+
+  view :default do
+    attribute :id
+    attribute :posts
+  end
+end
+{% endhighlight %}
+
+#### Embedding views of collections
+
+You might not want to embed every single post in a `Blog` view. Instead, you
+might opt to embed aggregate information about the blog's `Post` collection.
+We can achieve that by rendering the `posts` with the `aggregate` view defined
+above.
+
+{% highlight ruby %}
+class Blog < Praxis::MediaType
+  attributes do
+    attribute :id, Integer
+    attribute :posts, Post::Collection
+  end
+
+  view :default do
+    attribute :id
+    attribute :posts, view: :aggregate
+  end
+end
+{% endhighlight %}
+
+Make sure the underlying object for the collection appropriately responds to
+`href`, `authors`, and `count`.
+
+#### Embedding just a link
+
+You may want a view that merely links to a collection. That means rendering a
+very simple collection view, one that contains only the link. In the
+`Post::Collection` example, use the `link` view.
 
 ## Examples
 

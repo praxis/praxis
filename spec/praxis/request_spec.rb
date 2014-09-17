@@ -10,7 +10,7 @@ describe Praxis::Request do
     env
   end
 
-  let(:action) { Instances.actions[:show] }
+  let(:action) { Instances.definition.actions[:show] }
 
   let(:context) do
     {

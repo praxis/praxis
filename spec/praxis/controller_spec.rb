@@ -32,20 +32,4 @@ describe Praxis::Controller do
     end
   end
 
-  context '.actions' do
-    it 'gets the controller actions' do
-      expect(subject.actions.keys).to match_array([:index, :show])
-      expect(subject.actions[:index]).to be_kind_of(Praxis::ActionDefinition)
-      expect(subject.actions[:index].name).to eq(:index)
-    end
-  end
-
-  context '.action' do
-    it 'gets the index action of the controller' do
-      expect(subject.action(:index)).to be_kind_of(Praxis::ActionDefinition)
-      expect(subject.action(:index).name).to eq(:index)
-    end
-  end
-
-
 end

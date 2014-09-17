@@ -7,7 +7,7 @@ describe Praxis::RequestStages::Validate do
   # controller for the specs instead of creating a simple controller.
   let(:controller) { Instances }
 
-  let(:action) { controller.actions[:show] }
+  let(:action) { controller.definition.actions[:show] }
 
   let(:request) do
     env = Rack::MockRequest.env_for('/instances/1?cloud_id=1&api_version=1.0')

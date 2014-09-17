@@ -20,15 +20,6 @@ module Praxis
         definition.controller = self
         Application.instance.controllers << self
       end
-
-      def actions
-        (self.respond_to? :definition) ? definition.actions : {}
-      end
-
-      def action(name)
-        actions.fetch(name)
-      end
-
     end
 
     def initialize(request, response=Responses::Ok.new)

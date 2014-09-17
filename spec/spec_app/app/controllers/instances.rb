@@ -56,7 +56,7 @@ class Instances < BaseClass
       headers = {
         'Status' => '201',
         'Content-Type' => Instance.identifier,
-        'Location' => self.class.action(:show).primary_route.path.expand(cloud_id: cloud_id, id: instance.id)
+        'Location' => self.class.definition.actions[:show].primary_route.path.expand(cloud_id: cloud_id, id: instance.id)
       }
 
       part = Praxis::MultipartPart.new(part_body, headers)

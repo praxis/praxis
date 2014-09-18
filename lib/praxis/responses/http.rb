@@ -125,30 +125,6 @@ module Praxis
     end
 
 
-    # A generic error message, given when an unexpected condition was encountered and no more specific message is suitable.
-    class InternalServerError < Praxis::Response
-      self.status = 500
-
-      attr_accessor :error
-
-      def initialize(error: nil, **opts)
-        super(**opts)
-        @error = error
-      end
-
-      def format!(exception = @error) #_exception(exception)
-        if @error
-          msg = {
-            name: exception.class.name,
-            message: exception.message,
-            backtrace: exception.backtrace
-          }
-          msg[:cause] = format!(exception.cause) if exception.cause
-          @body = msg
-        end
-      end
-    end
-
     ApiDefinition.define do |api|
       self.constants.each do |class_name|
         response_class = self.const_get(class_name)

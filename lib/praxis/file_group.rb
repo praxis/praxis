@@ -5,8 +5,14 @@ module Praxis
     attr_reader :groups, :base
 
     def initialize(base, &block)
+      if base.nil?
+        raise ArgumentError, "base must not be nil." \
+          "Are you missing a call Praxis::Application.instance.setup?" 
+      end
+
+
       @groups = Hash.new
-      @base = base
+      @base = Pathname.new(base)
 
       if block_given?
         self.instance_eval(&block)
@@ -18,17 +24,15 @@ module Praxis
     end
 
     def map(name, pattern, &block)
+      return unless base.exist?
+
       if block_given?
         @groups[name] = FileGroup.new(base + pattern, &block)
       else
         @groups[name] ||= []
-        return unless base.exist?
-        file_enum = base.find.to_a
-        files = file_enum.select do |file|
-          path = file.relative_path_from(base)
-          file.file? && path.fnmatch?(pattern, File::FNM_PATHNAME)
-        end
-        files.sort_by { |file| [file.to_s.split('/').size, file.to_s] }.each { |file| @groups[name] << file }
+        files = Pathname.glob(base+pattern).select { |file| file.file? }
+        files.sort_by! { |file| [file.to_s.split('/').size, file.to_s] }
+        files.each { |file| @groups[name] << file }
       end
     end
 

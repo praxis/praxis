@@ -4,6 +4,11 @@ describe Praxis::FileGroup do
   let(:app) { Praxis::Application.instance }
   let(:layout) { app.file_layout }
 
+  context '#initialize' do 
+    it 'raises an error if given nil for the base path' do
+      expect { Praxis::FileGroup.new(nil) }.to raise_error(ArgumentError)
+    end
+  end
   context '#base' do
     it 'returns the base path for the group' do
       expect(layout[:design].base.to_s).to eq(File.join(app.root, 'design/'))

@@ -13,7 +13,7 @@ describe Praxis::ActionDefinition do
       version '1.0'
       routing { prefix '/api/hello_world' }
       payload { attribute :inherited, String }
-      headers { header :inherited, String }
+      headers { header "Inherited", String }
       params  { attribute :inherited, String }
     end
   end
@@ -22,7 +22,7 @@ describe Praxis::ActionDefinition do
     described_class.new('foo', resource_definition) do
       routing { get '/:one' }
       payload { attribute :two, String }
-      headers { header :X_REQUESTED_WITH, 'XMLHttpRequest' }
+      headers { header "X_REQUESTED_WITH", 'XMLHttpRequest' }
       params  { attribute :one, String }
     end
   end
@@ -34,8 +34,8 @@ describe Praxis::ActionDefinition do
     its('params.attributes')   { should have_key :inherited }
     its('payload.attributes')  { should have_key :two }
     its('payload.attributes')  { should have_key :inherited }
-    its('headers.attributes')  { should have_key :X_REQUESTED_WITH }
-    its('headers.attributes')  { should have_key :INHERITED }
+    its('headers.attributes')  { should have_key "X_REQUESTED_WITH" }
+    its('headers.attributes')  { should have_key "Inherited" }
   end
 
   context '#responses' do
@@ -83,13 +83,21 @@ describe Praxis::ActionDefinition do
   end
 
   describe '#headers' do
+    it 'is backed by a Hash' do 
+      expect(subject.headers.type < Attributor::Hash).to be(true)
+    end
+
+    it 'is has case_sensitive_load enabled' do
+      expect(subject.headers.type.options[:case_insensitive_load]).to be(true) 
+    end
+
     it 'merges in more headers' do
       subject.headers do
-        header :more
+        header "more"
       end
 
       expect(subject.headers.attributes.keys).to match_array([
-        :X_REQUESTED_WITH, :INHERITED, :MORE
+        "X_REQUESTED_WITH", "Inherited", "more"
       ])
     end
   end

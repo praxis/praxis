@@ -76,7 +76,8 @@ class Instances < BaseClass
 
     result = {
       destination_path: destination_path,
-      file: file.dump
+      file: file.dump,
+      options: request.payload['options'].dump
     }
 
     response.body = JSON.pretty_generate(result)

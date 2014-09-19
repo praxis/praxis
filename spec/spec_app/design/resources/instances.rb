@@ -29,6 +29,11 @@ module ApiResources
       params do
         attribute :response_content_type, String, default: response_content_type
       end
+      headers do
+        # BOTH ARE EQUIVALENT
+        #key "FOO", String, required: true
+        header "FOO", /bar/
+      end
 
       response :ok, media_type: response_content_type
     end
@@ -108,9 +113,10 @@ module ApiResources
         attribute :id
       end
 
-      payload Praxis::Multipart do
+      payload Praxis::Multipart, allow_extra: true do
         key 'destination_path', String, required: true
-        key 'file', Attributor::FileUpload, required: true
+        key 'file', Attributor::FileUpload, required: false
+        extra 'options'
       end
 
       response :ok, media_type: 'application/json'

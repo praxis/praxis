@@ -9,7 +9,7 @@ describe 'Functional specs' , focus: true do
   context 'index' do
     context 'with an incorrect response_content_type param' do
       it 'fails to validate the response' do
-        get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0'
+        get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0', nil, 'HTTP_FOO' => "bar"
         response = JSON.parse(last_response.body)
         expect(response['name']).to eq('Praxis::Exceptions::Validation')
         expect(response["message"]).to match(/Bad Content-Type/)
@@ -120,21 +120,6 @@ describe 'Functional specs' , focus: true do
       end
     end
 
-    context 'with unknown key in form' do
-      before do
-        junk = MIME::Text.new('junk_value')
-        form.add junk, 'junk_name'
-      end
-
-      it 'returns an error' do
-        post '/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type
-        response = JSON.parse(last_response.body)
-        expect(response['name']).to eq('ValidationError')
-        expect(response["message"]).to match(/Unknown key received:/)
-      end
-
-    end
-
     context 'with a missing value in form' do
       let(:form) do
         form_data = MIME::Multipart::FormData.new
@@ -152,9 +137,36 @@ describe 'Functional specs' , focus: true do
         response = JSON.parse(last_response.body)
 
         expect(response['name']).to eq('ValidationError')
-        expect(response['errors']).to eq(["Attribute $.payload.get(\"destination_path\") is required"])
+        expect(response['errors']).to eq(["Attribute $.payload.key(\"destination_path\") is required"])
       end
 
+    end
+    
+    context 'with an extra key in the form' do
+      let(:form) do
+        form_data = MIME::Multipart::FormData.new
+
+        destination_path = MIME::Text.new('/etc/defaults')
+        form_data.add destination_path, 'destination_path'
+
+        text = MIME::Text.new('DOCKER_HOST=tcp://127.0.0.1:2375')
+        form_data.add text, 'file', 'docker'
+
+        # TEST EXTRA KEYS USING THE MULTIPART FORM
+        other = MIME::Text.new('I am extra')
+        form_data.add other, 'extra_thing'
+
+        form_data
+      end
+
+      let(:body) { form.body.to_s }
+      subject(:response) { JSON.parse(last_response.body) }
+      
+      before do
+        post '/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type
+      end
+      its(:keys){ should eq(['destination_path','file','options'])}
+      its(['options']){ should eq({"extra_thing"=>"I am extra"})}
     end
 
   end

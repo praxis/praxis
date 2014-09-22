@@ -30,7 +30,7 @@ module Praxis
 
     def response(name)
       return @responses.fetch(name) do
-        raise ArgumentError, "no response defined with name #{name.inspect}"
+        raise ArgumentError, "no response template defined with name #{name.inspect}. Are you forgetting to register it with ApiDefinition?"
       end
     end
 

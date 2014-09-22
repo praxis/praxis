@@ -53,6 +53,9 @@ class MyTeaPotIsSteaming < Praxis::Response
 end
 {% endhighlight %}
 
+*Note:* Each of the response classes you create in the runtime part of your application will need a corresponding response template defined in the design area that shares the same name. Make sure you use the `register_response` DSL that the ApiDefinition class provides. In this case, we would need to register a template named `:tea_pot`, which must match a status code of 418 and a 'X-TeaPot' header of value 'MadeInJapan'. See [Response Definitions](../response-definitions/) for more information on how to do that. If you don't register a template for each of your classes, you will not be able to refer to them in your `response` stanzas of your actions in your ResourceDefinitions.
+
+
 ## Using Custom Response in Your Controller
 
 When instantiating a new instance of your Praxis::Response derived class, you
@@ -70,6 +73,7 @@ end
 
 For more information on returning responses from controllers, see [Returning a
 Response](../controllers/#returning-a-response) in the controllers section.
+
 
 ## Generating Multipart Responses
 

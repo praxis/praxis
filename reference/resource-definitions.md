@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Designing Api Resources And Their Actions
+title: Designing API Resources And Their Actions
 ---
 With Praxis, you can easily define the resources, routes and actions for your
 application.
@@ -309,6 +309,9 @@ end
 Praxis already provides a set of common responses to work with, but an
 application can register its own custom responses too. Each registered response
 has a unique name which is the name to use in this `responses` stanza.
+
+If the controller for this action can explicitly return any of the common HTTP errors, its resource definition for the action must also explicitly list those responses. For example, if the controller for the "show" action uses a 404 (`:not found`) to indicate that a given resource id is not present in the DB, the response `:not_found` must be defined in its list of responses. Another way to see this requirement is that any response class that any controller action can return, must have its name listed in the allowed responses of its resource definition.
+
 
 For more information, please see [Responses](../responses/).
 

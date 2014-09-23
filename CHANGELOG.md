@@ -25,5 +25,13 @@
 * Fix: ValidationError not setting a Content-Type header. [Issue #39](https://github.com/rightscale/praxis/issues/19)
 * Relaxed ActiveSupport version dependency (from 4 to >=3 )
 * Fix: InternalServerError not setting a Content-Type header. [Issue #42](https://github.com/rightscale/praxis/issues/42)
+* A few document browser improvements:
+	* Avoid showing certain internal type options (i.e. reference).
+	* Fixed type label cide to detect collections better, and differentiate between Attributor ones and MediaType ones.
+	* Tweaked _example.html template to be much more collapsed by default, as it is not great, but makes it easier to review.
+	* Enhanced _links.html template to use the rs-type-label, and rs-attribute-description directives.
+* Mediatype documentation improvements:
+	* Make `Links` always list its attributes when describe (never shallow)
+	* refactored MediaTypeCollection to store a member_attribute (instead of a member_type), and report it in describe much like attributor collections do.
 
 ## 0.9 Initial release

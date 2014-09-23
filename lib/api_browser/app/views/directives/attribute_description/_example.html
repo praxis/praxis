@@ -1,8 +1,13 @@
-﻿<dt ng-if="row.value.length < 250">example</dt>
-<dt ng-if="row.value.length >= 250">
-  <a ng-init="row.isCollapsed = true" ng-click="row.isCollapsed = !row.isCollapsed">example (click to {{row.isCollapsed? 'expand' : 'collapse'}})</a>
+﻿<dt ng-if="row.value.length < 50">example</dt> 
+<dt ng-if="row.value.length >= 50">
+	  example (<a ng-init="row.isCollapsed = true" ng-click="row.isCollapsed = !row.isCollapsed">{{row.isCollapsed? 'show' : 'hide'}}</a>)
+	</dt>
 </dt>
-<dd ng-if="row.value.length <= 50"><code>{{row.value}}</code></dd>
+
+
+<dd ng-if="row.value.length <= 50">
+	<code ng-class="{hide: false}">{{row.value}}</code>
+</dd>
 <dd ng-if="row.value.length > 50">
   <pre ng-class="{hide: row.isCollapsed}">{{row.value}}</pre>
 </dd>

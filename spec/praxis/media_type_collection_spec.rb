@@ -7,6 +7,18 @@ describe Praxis::MediaTypeCollection do
 
   let(:snapshots) { example.snapshots }
 
+  subject(:media_type_collection) do
+    Class.new(Praxis::MediaTypeCollection) do
+      member_type Volume
+    end
+  end
+   
+  context '.member_type' do
+    its(:member_type){ should be(Volume) }
+    its(:member_attribute){ should be_kind_of(Attributor::Attribute) }
+    its('member_attribute.type'){ should be(Volume) }
+  end
+  
   context '.load' do
     let(:volume_data) do
       {

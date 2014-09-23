@@ -1,10 +1,11 @@
 <ng-include src="'views/directives/attribute_table_row/_default.html'" no-container></ng-include>
-<div class="row" ng-repeat="(k,v) in attribute.options.dsl_compiler_options.links">
-  <div class="col-sm-3" ng-bind-html="name + '.' + k | attributeName">
+<div class="row" ng-repeat="(attribute_name,attribute) in attribute.type.attributes">
+  <div class="col-sm-3" ng-bind-html="name + '.' + attribute_name | attributeName">
   </div>
   <div class="col-sm-2">
+		 <rs-type-label type="attribute.type"></rs-type-label>
   </div>
   <div class="col-sm-7">
-    {{v}}
+    <rs-attribute-description attribute="attribute"></rs-attribute-description>
   </div>
 </div>

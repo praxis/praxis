@@ -96,6 +96,17 @@ terminal where you started the server earlier to kill your Praxis app.
 Now it's time to get your hands dirty and see how to use Praxis to build
 services with full-featured REST APIs.
 
+### Other Dependencies
+
+Praxis uses the [randexp](https://github.com/benburkert/randexp) library to generate examples given regular expressions, which expects to find a word list (dictionary) in one of three common locations: ```/usr/share/dict/words``` or ```/usr/dict/words```, or  ```~/.dict/words```. 
+
+This should be present by default in OS X as well as most (but not all) Linux distributions. If you receive an error like "Words file not found. Check if it is installed..." then you need to install a package that provides one. 
+
+For apt-based distributions, you can install one with the ```wamerican``` package (see the relevant [debian](https://packages.debian.org/search?keywords=wamerican) or [ubuntu](http://packages.ubuntu.com/search?keywords=wamerican) pages for more information or alternatives).
+
+For yum-based distributions, you need the the ```words``` (link needed) package.
+
+
 ## Design vs Implementation
 
 One of the goals of the Praxis framework is to allow designers to define a

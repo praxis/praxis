@@ -4376,6 +4376,10 @@ body {
   body a {
     cursor: pointer; }
 
+.content dl {
+  margin-top: 0;
+  margin-bottom: 0; }
+
 .header .navbar-default {
   background-image: -ms-linear-gradient(top, #fff 0%, #f3f3f3 100%);
   background-image: -moz-linear-gradient(top, #fff 0%, #f3f3f3 100%);

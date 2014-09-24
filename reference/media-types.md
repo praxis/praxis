@@ -479,11 +479,29 @@ This new collection media type is a first class media type like any other,
 except collection media types reference the type of members that the collection
 contains.  In this case, the ```Post::Collection``` media type has ```Post```
 as its member_type.  Like any other media_type, rendering a
-```MediaTypeCollection``` will use the views you have defined in it.  But if
-the view to render is not found, it will default to using a view of the same
-name from the member_type (wrapping it in an array).  If a view to render is
-not found in the ```MediaTypeCollection``` or its member type, the operation
-will fail.
+```MediaTypeCollection``` will use the views you have defined in it. 
+
+It is often the case that a media_type collection just wants to render itself
+as a simple array wrapping its containing members. For this reason, Praxis
+adds an additional DSL method to media_type collections called `member_view`. 
+Here is an example of how to use it:
+
+{% highlight ruby %}
+member_view :members, using: :default
+{% endhighlight %}
+
+Adding the above statement to our ```Post::Collection``` media_type 
+will create a new view called `:members`. Rendering this generates an array 
+containing the existing members rendered using their `:default` view:
+
+{% highlight javascript %}
+[
+  { id: 1, title: 'Title1', content: 'This is some text' },
+  { id: 2, title: 'Title2', content: 'And some more' },
+  { id: 3, title: 'Title3', content: 'Lorem ipsum' }
+]
+{% endhighlight %}
+
 
 Defining collections as inner classes within the related member_type has the
 advantage that can be used from other media types. Below are some examples of a

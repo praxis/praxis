@@ -33,5 +33,6 @@
 * Mediatype documentation improvements:
 	* Make `Links` always list its attributes when describe (never shallow)
 	* refactored MediaTypeCollection to store a member_attribute (instead of a member_type), and report it in describe much like attributor collections do.
+* `MediaTypeCollection`. Added `member_view` DSL to define a view that renders the collection's members with the given view.
 
 ## 0.9 Initial release

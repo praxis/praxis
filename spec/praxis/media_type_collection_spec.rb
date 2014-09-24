@@ -78,19 +78,20 @@ describe Praxis::MediaTypeCollection do
 
   context '#render' do
 
-    context 'for views that are not defined on on the collection' do
-      subject(:output) { snapshots.render(:default) }
-
-      it { should eq(snapshots.collect(&:render)) }
-    end
-
-    context 'for defined views' do
+    context 'for standard views' do
       subject(:output) { snapshots.render(:link) }
 
       its([:name]) { should eq(snapshots.name)}
       its([:size]) { should eq(snapshots.size)}
       its([:href]) { should eq(snapshots.href)}
     end
+
+    context 'for member views' do
+      subject(:output) { snapshots.render(:default) }
+
+      it { should eq(snapshots.collect(&:render)) }
+    end
+
 
   end
 

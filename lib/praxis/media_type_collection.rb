@@ -67,7 +67,7 @@ module Praxis
         members << @member_attribute.example(subcontext)
       end
 
-      
+
       result.object._members = members
       result
     end
@@ -99,17 +99,13 @@ module Praxis
       hash
     end
 
-    def render(view_name=:default, context: Attributor::DEFAULT_ROOT_CONTEXT)
-      if (view = self.class.views[view_name])
-        # we have the view ourselves, use it with our atrributes
-        super
-      else
-        # render each member with the view
-        @object.collect.with_index do |member, i| 
-          subcontext = context + ["at(#{i})"]
-          member.render(view_name, context: subcontext)
-        end
+    def self.member_view(name, using: nil)
+      if using
+        member_view = self.member_type.view(using)
+        return self.views[name] = CollectionView.new(name, self, member_view)
       end
+
+      self.views[name]
     end
 
 

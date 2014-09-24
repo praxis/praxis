@@ -33,6 +33,7 @@ class VolumeSnapshot < Praxis::MediaType
       attribute :href
     end
 
+    member_view :default, using: :default
   end
 
 end

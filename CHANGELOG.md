@@ -33,5 +33,8 @@
 * Mediatype documentation improvements:
 	* Make `Links` always list its attributes when describe (never shallow)
 	* refactored MediaTypeCollection to store a member_attribute (instead of a member_type), and report it in describe much like attributor collections do.
+* `MediaTypeCollection`. See [volume_snapshot](spec/spec_app/design/media_types/volume_snapshot.rb) in the specs for an example.
+  * Added `member_view` DSL to define a view that renders the collection's members with the given view.
+  * Change: Now requires all views to be explicitly defined (and will not automatically use the underlying member view if it exists). To define a view for member element (wrapping it in a collection) one can use the new member_view.
 
 ## 0.9 Initial release

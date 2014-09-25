@@ -1,21 +1,27 @@
 <div class="attribute-table">
   <div class="row head">
-    <div class="col-sm-3">
+    <div class="col-sm-2">
       Name
     </div>
-    <div class="col-sm-9">
+    <div class="col-sm-4">
+      Route
+    </div>
+    <div class="col-sm-6">
       Description
     </div>
   </div>
   <div class="content">
     <div class="row" ng-repeat="action in controller.actions">
-      <div class="col-sm-3">
+      <div class="col-sm-2">
         <a ui-sref="root.action({action: action.name, controller: controllerName, version: apiVersion})">{{ action.name }}</a>
       </div>
-      <div class="col-sm-9">
+      <div class="col-sm-4">
         <div ng-repeat="url in action.urls">
-          {{ url.verb }} {{ url.path }}
+          <div class="label label-default">{{ url.verb }}</div>
+          <strong>{{ url.path }}</strong>
         </div>
+      </div>
+      <div class="col-sm-6" style="font-size: 110%;">
         {{ action.description }}
       </div>
     </div>

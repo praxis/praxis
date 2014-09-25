@@ -30,11 +30,14 @@
 	* Fixed type label cide to detect collections better, and differentiate between Attributor ones and MediaType ones.
 	* Tweaked _example.html template to be much more collapsed by default, as it is not great, but makes it easier to review.
 	* Enhanced _links.html template to use the rs-type-label, and rs-attribute-description directives.
+	* Small design improvements on the home page for showing routes and verbs more prominently.
 * Mediatype documentation improvements:
 	* Make `Links` always list its attributes when describe (never shallow)
 	* refactored MediaTypeCollection to store a member_attribute (instead of a member_type), and report it in describe much like attributor collections do.
 * `MediaTypeCollection`. See [volume_snapshot](spec/spec_app/design/media_types/volume_snapshot.rb) in the specs for an example.
   * Added `member_view` DSL to define a view that renders the collection's members with the given view.
   * Change: Now requires all views to be explicitly defined (and will not automatically use the underlying member view if it exists). To define a view for member element (wrapping it in a collection) one can use the new member_view.
-
+* Application.setup now returns the application instance so it can be chained to other application methods.
+  * This allows a more compact way to rackup the application: `run Praxis::Application.instance.setup`.
+	
 ## 0.9 Initial release

@@ -40,6 +40,7 @@ module Praxis
       @root = Pathname.new(root).expand_path
 
       @bootloader.setup!
+      self
     end
 
     def call(env)

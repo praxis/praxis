@@ -279,20 +279,55 @@ in the `params` accessor. Request body parameters will only appear in
 
 Action definitions can call out special request headers that Praxis validates
 and makes available to your actions, just like `params` and `payload`.  Use the
-`headers` method with the attributor interface to define request header
+`headers` method with the attributor interface for hashes to define request header
 expectations:
 
 {% highlight ruby %}
 action :create do
   routing { post '' }
   headers do
-    attribute :Authorization, String, required: true
+    key "Authorization", String, required: true
   end
 end
 {% endhighlight %}
 
+In addition to define a header `key` in the standard `Attributor::Hash` manner, Praxis
+also enhances the DSL with a `header` method that can shortcut the syntax for 
+certain common cases. The `header` DSL takes a String name and an optional expected value: 
+
+* if no value is passed, the only expectation is that a header with that name is received.
+* if a Regexp value is passed, the expectation is that the header value (if exists) matches it
+* if a String value is passed, the expectation is that the incoming header value (if exists) fully matches it.
+
+Any hash-like options provided as the last argument are going to be blindly passed along to the
+underlying `Attributor` types. Here are some examples of how to define header expectations:
+
+{% highlight ruby %}
+headers do	
+  # Defining a required header
+  header "Authorization"
+  # Which is equivalent to
+  key "Authorization", String, required: true
+  
+  # Defining a non-required header that must match a given regexp
+  header "Authorization", /Secret/
+  # Which is equivalent to
+  key "Authorization", String, regexp: /Secret/
+  
+  # Defining a required header that must be equal to "hello"
+  header "Authorization", "hello", required: true
+  # Which is equivalent to
+  key "Authorization", String, values: ["hello"], required: true
+end
+{% endhighlight %}
+
+Using the simplified `headers` syntax can cover most of your typical definitions, while the native 
+Hash syntax allows you to mix and match many more options. Which one to use is up to you. They
+both can perfectly coexist at the same time.
+
 The `headers` method applies to both resource definitions and actions, with the
 same rules as apply to `params` and `payload`
+
 
 #### Responses
 

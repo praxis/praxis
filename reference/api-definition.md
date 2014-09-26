@@ -11,7 +11,7 @@ Response Definitions
 
 Traits
 : A convenient way to share common DSL elements across resource definitions and
-actions (see [traits](../traits/))
+actions (see [traits](../traits/)).
 
 In the future, the ApiDefinition will allow you to define many more API-wide
 constructs.
@@ -26,7 +26,7 @@ Praxis::ApiDefinition.define
 
   trait :authenticated do
     headers do
-      header :auth_token
+      header "Auth-Token"
     end
   end
 end

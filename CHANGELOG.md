@@ -2,6 +2,10 @@
 
 ## next
 
+* next thing here
+
+## 0.10.0
+
 * Avoid loading responses (and templates) lazily as they need to be registered in time
 * Fix: app generator's handling of 404. [@magneland](https://github.com/magneland) [Issue #10](https://github.com/rightscale/praxis/issues/10)
 * Fix: Getting started doc. [@WilliamSnyders](https://github.com/WilliamSnyders) [Issue #19](https://github.com/rightscale/praxis/issues/19)

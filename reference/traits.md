@@ -22,7 +22,7 @@ Praxis::ApiDefinition.define do
 
   trait :authenticated do
     headers do
-      header :auth_token
+      header "Auth-Token"
     end
   end
 end
@@ -34,7 +34,7 @@ trait, it would be as if you had added this params block directly to your
 action.
 
 The second example creates a trait named `authenticated`. All it does is define
-a header named `auth_token` for you to use in your actions.
+a header named `Auth-Token` for you to use in your actions.
 
 ## Using a Trait
 

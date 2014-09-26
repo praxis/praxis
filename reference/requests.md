@@ -43,22 +43,45 @@ exposed through the `params` accessor.
 
 You can also obtain the complete set of headers for the given request using
 `request.headers`. This will collect the headers from the requested action and
-present them to you as a coerced and validated structure.
+present them to you as a coerced and validated structure. Unlike the `params` 
+object where attributes are accessible with dotted notation methods, the `headers` structure 
+is presented as a hash, and therefore accessible through the "[]" notation.
+
+Note that accessing header keys from the controller is case sensitive. Therefore, the string case 
+used must always match the one described in your Resource Definition headers. For
+example, let's assume that our API designer has defined the following action in some ResourceDefinition:
+
+{% highlight ruby %}
+action :create do
+  routing { post '' }
+  headers do
+    key "Authorization", String, required: true
+  end
+end
+{% endhighlight %}
+
+In our controller we would need to check the headers using `request.headers['Authorization']`. Checking `request.headers['AuThOrIzAtIoN']` wouldn't yield any value.
+
+Since the HTTP protocol defines headers are case insensitive, Praxis will allow loading 
+incoming header names to the exact case that your definition describes. That
+means that if an HTTP client send an "AuThOrIzAtIoN" header, Praxis will happily convert it to 
+an "Authorization" key in your `request.headers` hash.
 
 Please see [Resource Definitions and Actions](../resource-definitions/), for
-more information on request headers.
+more information on defining request headers in your action.
 
 ## Payload
 
 `request.payload` will return any parameters that were passed through the
-request body. Much like params and headers, the exposed payload values will be
-properly coerced and validated according to your payload spec in the
-corresponding action definition. The `request.payload` object is typically an
-`Attributor::Struct` which responds to attribute names using dotted notation
-(unless you have defined the payload block using a different type).
+request body. The exposed payload values will be properly coerced and validated according 
+to your payload spec in the corresponding action definition. Much like `request.params`, the 
+`request.payload` object is an `Attributor::Struct` which responds to attribute names 
+using dotted notation.
 
-Please see [Resource Definitions and Actions](../resource-definitions/), for
-more information on action payload.
+Note to advanced users: It is possible to override the default underlying structures for `params` 
+and `payload` (which default to `Attributor::Struct`s), as well as `headers` (which defaults to `Hash.of(key:String)`) by providing a type rather than a simple block in the action definition. Please see
+examples of that in the `bulk_create` action of the [Instances](https://github.com/rightscale/praxis/blob/master/spec/spec_app/design/resources/instances.rb) resource definition.
+.
 
 ## Action
 

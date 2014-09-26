@@ -16,7 +16,6 @@ module Praxis
     attr_reader :named_routes
     attr_reader :responses
 
-
     def initialize(name, resource_definition, **opts, &block)
       @name = name
       @resource_definition = resource_definition
@@ -105,15 +104,31 @@ module Praxis
       end
     end
 
-    def headers(**opts, &block)
+    def headers(type=Attributor::Hash.of(key:String), **opts, &block)
       return @headers unless block
-
       if @headers
         update_attribute(@headers, opts, block)
       else
-        @headers = create_attribute(dsl_compiler: HeadersDSLCompiler, **opts, &block)
+        @headers = create_attribute(type,
+          dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true, 
+          **opts, &block)
+      end
+      @precomputed_header_keys_for_rack = nil #clear memoized data
+    end
+
+    # Good optimization to avoid creating lots of strings and comparisons
+    # on a per-request basis.
+    # However, this is hacky, as it is rack-specific, and does not really belong here
+    def precomputed_header_keys_for_rack
+      @precomputed_header_keys_for_rack ||= begin
+        @headers.attributes.keys.each_with_object(Hash.new) do |key,hash|
+          name = key.to_s
+          name = "HTTP_#{name.upcase}" unless ( name == "CONTENT_TYPE" || name == "CONTENT_LENGTH" )
+          hash[name] = key
+        end
       end
     end
+    
 
     def routing(&block)
       routing_config = Skeletor::RestfulRoutingConfig.new(name, resource_definition, &block)

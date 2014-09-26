@@ -7,6 +7,7 @@ describe Praxis::Request do
     env['rack.input'] = rack_input
     env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
     env['HTTP_VERSION'] = 'HTTP/1.1'
+    env['HTTP_AUTHORIZATION'] = 'Secret'
     env
   end
 
@@ -63,6 +64,19 @@ describe Praxis::Request do
 
   end
 
+  context '#load_headers' do
+
+    it 'is done preserving the original case' do
+      request.load_headers(context[:headers])
+      expect(request.headers).to match({"Authorization" => "Secret"})
+    end
+
+    it 'performs it using the memoized rack keys from the action (Hacky but...performance is important)' do
+      expect(action).to receive(:precomputed_header_keys_for_rack).and_call_original
+      request.load_headers(context[:headers])
+    end
+  end
+  
   context "performs request validation" do
     before(:each) do
       request.load_headers(context[:headers])

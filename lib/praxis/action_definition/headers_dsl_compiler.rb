@@ -2,7 +2,6 @@ module Praxis
   class ActionDefinition
     class HeadersDSLCompiler < Attributor::DSLCompiler
 
-      alias_method :orig_attribute, :attribute
       # it allows to define expectations on incoming headers. For example:
       # header :X_SpecialCookie                        => implies the header is required
       # header :X_Something, /matching_this/           => implies that if the name header exists, it should match the regexp
@@ -22,14 +21,15 @@ module Praxis
           # Defining the existence without any other options can only mean that it is required (otherwise it is a useless definition)
           options[:required] = true if options.empty?
         end
-        orig_attribute name.upcase , String, options
+        #orig_attribute name.upcase , String, options
+        key name , String, options
       end
 
-#      def attribute( name, type, **rest)
-#        raise Exceptions::InvalidConfiguration.new(
-#          "You cannot use the 'attribute' DSL inside a headers definition"
-#        )
-#      end
+      # Override the attribute to really call "key" in the hash (for temporary backwards compat)      
+      def attribute(name, attr_type=nil, **opts, &block)
+        warn "[DEPRECATION] `attribute` is deprecated when defining headers.  Please use `key` instead."
+        key(name, attr_type, **opts, &block)
+      end
 
     end
   end

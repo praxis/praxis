@@ -5,7 +5,7 @@ module Concerns
     
     included do
       before :action do |controller|
-        auth_data = controller.request.headers.AUTHORIZATION
+        auth_data = controller.request.headers['Authorization']
         if auth_data && auth_data !~ /secret/ 
           Praxis::Responses::Unauthorized.new(body: 'Authentication info is invalid')
         end

@@ -73,13 +73,8 @@ module Praxis
 
     def load_headers(context)
       return unless action.headers
-      defined_headers = action.headers.attributes.keys.each_with_object(Hash.new) do |name, hash|
-        env_name = if name == :CONTENT_TYPE || name == :CONTENT_LENGTH
-          name.to_s
-        else
-          "HTTP_#{name}"
-        end
-        hash[name] = self.env[env_name] if self.env.has_key? env_name
+      defined_headers = action.precomputed_header_keys_for_rack.each_with_object(Hash.new) do |(upper,original), hash|
+        hash[original] = self.env[upper] if self.env.has_key? upper
       end
       self.headers = action.headers.load(defined_headers, context)
     end

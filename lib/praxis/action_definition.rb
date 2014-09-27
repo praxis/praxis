@@ -123,7 +123,7 @@ module Praxis
       @precomputed_header_keys_for_rack ||= begin
         @headers.attributes.keys.each_with_object(Hash.new) do |key,hash|
           name = key.to_s
-          name = "HTTP_#{name.upcase}" unless ( name == "CONTENT_TYPE" || name == "CONTENT_LENGTH" )
+          name = "HTTP_#{name.gsub('-','_').upcase}" unless ( name == "CONTENT_TYPE" || name == "CONTENT_LENGTH" )
           hash[name] = key
         end
       end

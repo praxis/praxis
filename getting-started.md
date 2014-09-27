@@ -211,7 +211,7 @@ module V1
             description: "Post body contents"
         end
 
-        response :ok
+        response :created
       end
     end
   end
@@ -497,6 +497,7 @@ module Controllers
     implements V1::Resources::Posts
 
     def show(id:, allow_deleted:)
+      response.headers['Content-Type'] = 'application/vnd.acme.post'
       # Do businessy logic here
       # look ma! id is an Integer!
       JSON.dump( V1::MediaTypes::Post.example.render(:default) )

@@ -80,7 +80,7 @@ describe Praxis::Skeletor::RestfulRoutingConfig do
         path = "/path_for_#{verb}"
         options = {option: verb}
         expect(subject).to receive(:add_route).with(verb.to_s.upcase,path,options)
-        subject.send(verb, path, options)
+        subject.__send__(verb, path, options)
       end
     end
   end

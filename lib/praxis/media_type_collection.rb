@@ -83,7 +83,7 @@ module Praxis
       when Hash
         # Need to parse/deserialize first
         self.new(self.attribute.load(value,context, **options))
-      when Array
+      when Array, Praxis::Mapper::ResourceDecorator
         object = self.attribute.load({})
         object._members = value.collect { |subvalue| @member_attribute.load(subvalue) }
         self.new(object)
@@ -116,8 +116,7 @@ module Praxis
 
     def validate(context=Attributor::DEFAULT_ROOT_CONTEXT)
       errors = super
-
-      @object.each_with_object(errors) do |member, errors|
+      self.each_with_object(errors) do |member, errors|
         errors.push(*member.validate(context))
       end
     end

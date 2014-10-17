@@ -63,7 +63,7 @@ module Praxis
       end
 
       define_method(name) do
-        value = @object.send(using)
+        value = @object.__send__(using)
         return value if value.nil? || value.kind_of?(attribute.type)
         attribute.type.new(value)
       end
@@ -72,13 +72,13 @@ module Praxis
       unless name == using
         @attribute.type.instance_eval do
           define_method(using) do
-            self.send(name)
+            self.__send__(name)
           end
         end
 
         @reference.attribute.type.instance_eval do
           define_method(using) do
-            self.send(name)
+            self.__send__(name)
           end
         end
       end
@@ -103,10 +103,15 @@ module Praxis
         @reference.attribute.type.instance_eval do
           define_method(using) do
             return nil unless attributes[:links]
-            attributes[:links].send(name)
+            attributes[:links].__send__(name)
           end
         end
       end
+    end
+
+    def self.validate(*args)
+      # FIXME: what to validate for links?
+      []
     end
 
   end

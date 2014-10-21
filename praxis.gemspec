@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rack', '~> 1'
   spec.add_dependency 'mustermann', '~> 0'
   spec.add_dependency 'activesupport', '>= 3'
-  spec.add_dependency 'ruport', '~> 1'
+  spec.add_dependency 'table_print', '~> 1.5.3'
   spec.add_dependency 'mime', '~> 0'
   spec.add_dependency 'praxis-mapper', '~> 3.1'
   spec.add_dependency 'praxis-blueprints', '~> 1.1'

@@ -34,7 +34,7 @@ namespace :praxis do
 
     case args[:format] || "table"
     when "json"
-      puts JSON.pretty_generate(table.collect { |r| r.to_hash })
+      puts JSON.pretty_generate(table.collect { |r| r.to_h })
     when "table"
       tp table, column_names
     else

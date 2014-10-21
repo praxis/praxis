@@ -2,10 +2,10 @@ namespace :praxis do
 
   desc 'List routes, format=json or table, default table'
   task :routes, [:format] => [:environment] do |t, args|
-    require 'ruport'
+    require 'table_print'
 
-    table = Table(:version, :path, :verb, :resource, 
-      :action, :implementation, :name, :primary)
+    table = []
+    column_names = %w(version path verb resource action implementation name primary)
 
     Praxis::Application.instance.resource_definitions.each do |resource_definition|
       resource_definition.actions.each do |name, action|
@@ -18,16 +18,16 @@ namespace :praxis do
         method_name = method ? "#{method.owner.name}##{method.name}" : 'n/a'
 
         action.routes.each do |route|
-          table << {
-            resource: resource_definition.name,
-            version: route.version,
-            verb: route.verb,
-            path: route.path,
-            action: name,
-            implementation: method_name,
-            name: route.name,
-            primary: (action.primary_route == route ? 'yes' : '')
-          }
+            table << OpenStruct.new(
+              resource: resource_definition.name,
+              version: route.version,
+              verb: route.verb,
+              path: route.path,
+              action: name,
+              implementation: method_name,
+              name: route.name,
+              primary: (action.primary_route == route ? 'yes' : '')
+            )
         end
       end
     end
@@ -36,7 +36,7 @@ namespace :praxis do
     when "json"
       puts JSON.pretty_generate(table.collect { |r| r.to_hash })
     when "table"
-      puts table.to_s
+      tp table, column_names
     else
       raise "unknown output format: #{args[:format]}"
     end

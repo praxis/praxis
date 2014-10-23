@@ -31,8 +31,49 @@ describe Praxis::Request do
   its(:path) { should eq('/instances/1') }
   its(:raw_params) { should eq({'junk' => 'foo'}) }
   its(:version) { should eq('1.0') }
+  
+  context 'path versioning' do
+    its('class.path_version_prefix'){ should eq("/v") }
+    its(:path_version_matcher){ should be_kind_of(Regexp) }
+    it 'uses a "/v*" default matcher with a "version" named capture' do
+      match = subject.path_version_matcher.match("/v5.5/something")
+      expect(match).to_not be(nil)
+      expect(match['version']).to eq("5.5")
+    end
+  end
+  
+  context 'loading api version' do
+    let(:request) { Praxis::Request.new(env) }
+    subject(:version){ request.version( version_options ) }
+    context 'using X-Api-Header' do
+      let(:env){ {'HTTP_X_API_VERSION' => "5.0", "PATH_INFO" => "/something"} }
+      let(:version_options){ {using: :header} }
+      it { should eq('5.0') }
+    end
+    context 'using query param' do
+      let(:env) { Rack::MockRequest.env_for('/instances/1?junk=foo&api_version=5.0') }
+      let(:version_options){ {using: :params} }
+      it { should eq('5.0') }
+    end
+    context 'using path (with the default pattern matcher)' do
+      let(:env){ Rack::MockRequest.env_for('/v5.0/instances/1?junk=foo') }
+      let(:version_options){ {using: :path} }
+      it { should eq('5.0') }
+    end
+    context 'using defaults' do
+      subject(:version){ request.version }
+      context 'would succeed if passed through the header' do
+        let(:env){ {'HTTP_X_API_VERSION' => "5.0", "PATH_INFO" => "/something"} }
+        it { should eq('5.0') }
+      end
+      context 'would succeed if passed through params' do
+        let(:env) { Rack::MockRequest.env_for('/instances/1?junk=foo&api_version=5.0') }
+        it { should eq('5.0') }
+      end
+    end
+  end
 
-  context 'with a multipart requset' do
+  context 'with a multipart request' do
     let(:form) do
       form_data = MIME::Multipart::FormData.new
 

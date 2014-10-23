@@ -205,7 +205,7 @@ describe 'Functional specs' , focus: true do
   context 'volumes' do
     context 'when no authorization header is passed' do
       it 'works as expected' do
-        get '/volumes/123?api_version=1.0&junk=stuff'#, nil, 'AUTHORIZATION' => 'foobar'
+        get '/v1.0/volumes/123?junk=stuff'#, nil, 'AUTHORIZATION' => 'foobar'
         expect(last_response.status).to eq(200)
         expect(JSON.parse(last_response.body)).to eq({"id"=>123,
                                                       "other_params"=>{
@@ -217,12 +217,12 @@ describe 'Functional specs' , focus: true do
     end
     context 'when an authorization header is passed' do
       it 'returns 401 when it does not match "secret" ' do
-        get '/volumes/123?api_version=1.0&junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'foobar'
+        get '/v1.0/volumes/123?junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'foobar'
         expect(last_response.status).to eq(401)
         expect(last_response.body).to match(/Authentication info is invalid/)
       end
       it 'succeeds as expected when it matches "secret" ' do
-        get '/volumes/123?api_version=1.0&junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'the secret'
+        get '/v1.0/volumes/123?junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'the secret'
         expect(last_response.status).to eq(200)
       end
       

@@ -18,7 +18,8 @@ module Praxis
       attr_reader :actions
       attr_reader :routing_config
       attr_reader :responses
-
+      attr_reader :version_options
+      
       attr_accessor :controller
 
       # FIXME: this is inconsistent with the rest of the magic DSL convention.
@@ -35,11 +36,13 @@ module Praxis
         @media_type = media_type
       end
 
-      def version(version=nil)
+      def version(version=nil, options= { using: [:header,:params] }.freeze )
         return @version unless version
         @version = version
+        @version_options = options
       end
 
+      
       def action(name, &block)
         @actions[name] = ActionDefinition.new(name, self, &block)
       end

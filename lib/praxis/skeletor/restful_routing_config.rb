@@ -9,8 +9,15 @@ module Praxis
         @resource_definition = resource_definition
         @routes = []
 
-        @prefix = "/" + resource_definition.name.split("::").last.underscore
-
+        @version_prefix = ""
+        if resource_definition.version_options
+          version_using = Array(resource_definition.version_options[:using])
+          if version_using.include?(:path)  
+            @version_prefix = "#{Praxis::Request::path_version_prefix}#{resource_definition.version}"
+          end
+        end
+        prefix( "/" + resource_definition.name.split("::").last.underscore )
+        
         if resource_definition.routing_config
           instance_eval(&resource_definition.routing_config)
         end
@@ -19,8 +26,8 @@ module Praxis
       end
 
       def prefix(prefix=nil)
-        return @prefix unless prefix
-        @prefix = prefix
+        @path_prefix = prefix if prefix
+        @version_prefix + @path_prefix 
       end
 
       def options(path, opts={}) add_route 'OPTIONS', path, opts end
@@ -34,7 +41,7 @@ module Praxis
       def patch(path, opts={})   add_route 'PATCH',   path, opts end
 
       def add_route(verb, path, options={})
-        path = Mustermann.new(@prefix + path)
+        path = Mustermann.new(prefix + path)
 
         @routes << Route.new(verb, path, resource_definition.version, **options)
       end

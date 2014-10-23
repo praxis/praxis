@@ -8,6 +8,7 @@ describe Praxis::ResourceDefinition do
 
   its(:responses) { should eq(Hash.new) }
   its(:version) { should eq('1.0') }
+  its(:version_options) { should eq({using: [:header,:params]}) }
 
   its(:routing_config) { should be_kind_of(Proc) }
 

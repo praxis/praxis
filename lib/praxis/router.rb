@@ -11,7 +11,7 @@ module Praxis
         @version = version
       end
       def call(request)
-        if request.version == @version
+        if request.version(@target.action.resource_definition.version_options) == @version          
           @target.call(request)
         else
           # Version doesn't match, pass and continue
@@ -63,18 +63,19 @@ module Praxis
         raise ArgumentError, "received #{env_or_request.class}"
       end
 
-      version = request.version
       verb = request.verb
       result = @routes[verb].call(request)
       if result == :not_found
-        
+        # no need to try :path as we cannot really know if you've attempted to pass a version through it here
+        # plus we wouldn't have tracked it as unmatched
+        version = request.version(using: [:header,:params]) 
         attempted_versions = request.unmatched_versions
         body = "NotFound"
         unless attempted_versions.empty? || (attempted_versions.size == 1 && attempted_versions.first == 'n/a')
-          body += if request.version == 'n/a' 
+          body += if version == 'n/a' 
                     ". Your request did not specify an API version.".freeze 
                   else 
-                    ". Your request speficied API version = \"#{request.version}\"."
+                    ". Your request speficied API version = \"#{version}\"."
                   end
           pretty_versions = attempted_versions.collect(&:inspect).join(', ')
           body += " Available versions = #{pretty_versions}."

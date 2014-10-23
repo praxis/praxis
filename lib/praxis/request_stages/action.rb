@@ -4,7 +4,7 @@ module Praxis
     class Action < RequestStage 
       
       def execute
-        response = controller.send(action.name, **request.params_hash)
+        response = controller.__send__(action.name, **request.params_hash)
         case response
         when String
           controller.response.body = response

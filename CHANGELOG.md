@@ -2,7 +2,8 @@
 
 ## next
 
-* next thing here
+* `MediaTypeCollection`:
+  * Added support fo loading  `decorate`ed `Resource` associations.
 
 ## 0.10.0
 
@@ -41,11 +42,7 @@
 * `MediaTypeCollection`. See [volume_snapshot](spec/spec_app/design/media_types/volume_snapshot.rb) in the specs for an example.
   * Added `member_view` DSL to define a view that renders the collection's members with the given view.
   * Change: Now requires all views to be explicitly defined (and will not automatically use the underlying member view if it exists). To define a view for member element (wrapping it in a collection) one can use the new member_view.
-* Application.setup now returns the application instance so it can be chained to other application methods.
-  * This allows a more compact way to rackup the application: `run Praxis::Application.instance.setup`.
-* Request headers are now backed by `Attributor::Hash` rather than (Structs)
-** Header keys are case sensitive now (although Praxis gracefully allows loading the uppercased RACK names )
-* Added tests for using `Attributor::Hash` attributes that can accept "extra" keys:
-** See the `bulk_create` action for an example applied to `Praxis::Multipart` (which derives from `Attributor::Hash`) payload [here](https://github.com/rightscale/praxis/blob/master/spec/spec_app/design/resources/instances.rb).
-	
+  * 
+
+
 ## 0.9 Initial release

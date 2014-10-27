@@ -5,19 +5,24 @@ module ApiResources
     media_type Instance
     version '1.0'
 
-    #response_groups :premium
     #responses :instance_limit_reached
     #responses :pay_us_money
     #response :create, location: /instances/
 
-    use :authenticated
+    
 
     routing do
       prefix '/clouds/:cloud_id/instances'
     end
 
-    params do
-      attribute :cloud_id, Integer, required: true
+    action_defaults do
+      use :authenticated
+
+      requires_ability :read
+
+      params do
+        attribute :cloud_id, Integer, required: true
+      end
     end
 
     action :index do
@@ -68,18 +73,18 @@ module ApiResources
 
       # Using a hash param for parts
       response :bulk_response ,
-                parts: {
-                  like: :created,
-                  location: /\/instances\//
-                }
+      parts: {
+        like: :created,
+        location: /\/instances\//
+      }
 
-# Using a block for parts to defin a sub-request
-#     sub_request = proc do
-#                     status 201
-#                     media_type Instance
-#                     headers ['X-Foo','X-Bar']
-#                   end
-#     response :bulk_response, parts: sub_request
+      # Using a block for parts to defin a sub-request
+      #     sub_request = proc do
+      #                     status 201
+      #                     media_type Instance
+      #                     headers ['X-Foo','X-Bar']
+      #                   end
+      #     response :bulk_response, parts: sub_request
 
 
       # multi 200, H1
@@ -122,6 +127,32 @@ module ApiResources
       response :ok, media_type: 'application/json'
     end
 
+    action :terminate do
+      routing do
+        post '/:id/terminate'
+      end
+      
+      requires_ability :terminate
+
+      params do
+        attribute :id
+      end
+
+      response :ok, media_type: 'application/json'
+    end
+
+    action :stop do
+      routing do
+        post '/:id/stop'
+      end
+      requires_ability :stop
+
+      params do
+        attribute :id
+      end
+
+      response :ok, media_type: 'application/json'
+    end
 
     # OTHER USAGES:
     #   note: these are all hypothetical, pending, brainstorming usages.

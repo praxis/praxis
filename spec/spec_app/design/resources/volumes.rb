@@ -5,7 +5,9 @@ module ApiResources
     media_type Volume
     version '1.0', using: :path
 
-    use :authenticated
+    action_defaults do
+      use :authenticated
+    end
 
     action :show do
       routing do

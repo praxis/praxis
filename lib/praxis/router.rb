@@ -65,6 +65,7 @@ module Praxis
 
       verb = request.verb
       result = @routes[verb].call(request)
+      
       if result == :not_found
         # no need to try :path as we cannot really know if you've attempted to pass a version through it here
         # plus we wouldn't have tracked it as unmatched

@@ -16,6 +16,16 @@ module Praxis
     attr_reader :named_routes
     attr_reader :responses
 
+    class << self
+      attr_accessor :doc_decorations      
+    end
+
+    @doc_decorations = []
+
+    def self.decorate_docs(&callback)
+      self.doc_decorations << callback
+    end
+
     def initialize(name, resource_definition, **opts, &block)
       @name = name
       @resource_definition = resource_definition
@@ -27,23 +37,8 @@ module Praxis
         end
       end
 
-      if resource_definition.params
-        saved_type, saved_opts, saved_block = resource_definition.params
-        params(saved_type, saved_opts, &saved_block)
-      end
-
-      if resource_definition.payload
-        saved_type, saved_opts, saved_block = resource_definition.payload
-        payload(saved_type, saved_opts, &saved_block)
-      end
-
-      if resource_definition.headers
-        saved_opts, saved_block = resource_definition.headers
-        headers(saved_opts, &saved_block)
-      end
-
-      resource_definition.responses.each do |name, args|
-        response(name, args)
+      resource_definition.action_defaults.each do |defaults|
+        self.instance_eval(&defaults)
       end
 
       self.instance_eval(&block) if block_given?
@@ -141,11 +136,11 @@ module Praxis
       end
     end
 
+
     def description(text = nil)
       @description = text if text
       @description
     end
-
 
 
     def describe
@@ -160,6 +155,9 @@ module Praxis
         hash[:responses] = responses.inject({}) do |memo, (response_name, response)|
           memo[response.name] = response.describe
           memo
+        end
+        self.class.doc_decorations.each do |callback|
+          callback.call(self, hash)
         end
       end
     end

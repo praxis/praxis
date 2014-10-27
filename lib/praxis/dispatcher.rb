@@ -70,24 +70,28 @@ module Praxis
       @action = action
       @request = request
 
-      @stages.each do |stage|
-        result = stage.run
-        case result
-        when Response
-          return result.finish
+      payload = {request: request, response: nil}
+
+      Notifications.instrument 'praxis.request.all'.freeze, payload do
+        response = nil
+        @stages.each do |stage|
+          result = stage.run
+          case result
+          when Response
+            response = result
+            break
+          end
         end
-      end
 
-      controller.response.finish
+        unless response
+          response = @controller.response
+        end
+
+        payload[:response] = response
+        response.finish
+      end
     rescue => e
-      Application.instance.logger.error e.inspect
-      e.backtrace.each do |line|
-        Application.instance.logger.error line
-      end
-
-      response = Responses::InternalServerError.new(error: e)
-      response.request = controller.request
-      response.finish
+      @application.error_handler.handle!(request, e)
     ensure
       @controller = nil
       @action = nil

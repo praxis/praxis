@@ -28,6 +28,9 @@ RSpec.configure do |config|
   config.before(:suite) do
     Praxis::Blueprint.caching_enabled = true
     Praxis::Application.instance.setup(root:'spec/spec_app')
+
+    # create the table
+    setup_database!
   end
 
   config.before(:each) do
@@ -36,4 +39,15 @@ RSpec.configure do |config|
     end
   end
 
+end
+
+# create the test db schema
+def setup_database!
+  mapper = Praxis::Application.instance.plugins[:praxis_mapper]
+  Sequel.connect(mapper.config.repositories["default"]['connection_settings'].dump) do |db|
+    db.create_table! :people do
+      primary_key :id
+      string :name
+    end
+  end
 end

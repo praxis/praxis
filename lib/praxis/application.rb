@@ -9,6 +9,8 @@ module Praxis
     attr_reader :router
     attr_reader :controllers
     attr_reader :resource_definitions
+    attr_reader :app
+    attr_reader :builder
 
     attr_accessor :bootloader
     attr_accessor :file_layout
@@ -16,6 +18,8 @@ module Praxis
     attr_accessor :logger
     attr_accessor :plugins
     attr_accessor :root
+    attr_accessor :error_handler
+
 
     def self.configure
       yield(self.instance)
@@ -25,11 +29,16 @@ module Praxis
       @controllers = Set.new
       @resource_definitions = Set.new
 
+      @error_handler = ErrorHandler.new
+
       @router = Router.new(self)
+
+      @builder = Rack::Builder.new
+      @app = nil
 
       @bootloader = Bootloader.new(self)
       @file_layout = nil
-      @plugins = Array.new
+      @plugins = Hash.new
       @loaded_files = Set.new
       @config = Config.new
       @root = nil
@@ -40,11 +49,30 @@ module Praxis
       @root = Pathname.new(root).expand_path
 
       @bootloader.setup!
+
+      @builder.run(@router)
+      @app = @builder.to_app
+
+      Notifications.subscribe 'rack.request.all'.freeze do |name, start, finish, _id, payload|
+        duration = (finish - start) * 1000
+        Stats.timing(name, duration)
+
+        status, _, _ = payload[:response]
+        Stats.increment "rack.request.#{status}"
+      end
+
       self
     end
 
+    def middleware(middleware, *args, &block)
+      @builder.use(middleware, *args, &block)
+    end
+
     def call(env)
-      self.router.call(env)
+      response = []
+      Notifications.instrument 'rack.request.all'.freeze, response: response do
+        response.push(*@app.call(env))
+      end
     end
 
     def layout(&block)
@@ -62,5 +90,6 @@ module Praxis
     def config=(config)
       @config.set(config)
     end
+    
   end
 end

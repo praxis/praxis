@@ -20,16 +20,19 @@ class Instances < BaseClass
     blk.call
     #puts "After validate decorator"
   end
+
   around :action do |controller, blk|
     #puts "Decorator one (all actions) start"
     blk.call
     #puts "Decorator one end"
   end
+
   around :action, actions: [:show] do |controller, blk|
     #puts "Decorator two (show action) start"
     blk.call
     #puts "Decorator two end"
   end
+  
   around :action, actions: [:index] do |controller, blk|
     #puts "Decorator three (index action) start"
     blk.call
@@ -85,5 +88,14 @@ class Instances < BaseClass
     response
   end
 
+  def terminate(id:, cloud_id:)
+    response.headers['Content-Type'] = 'application/json'
+    response
+  end
+
+  def stop(id:, cloud_id:)
+    response.headers['Content-Type'] = 'application/json'
+    response
+  end
 
 end

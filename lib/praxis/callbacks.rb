@@ -1,5 +1,3 @@
-require 'active_support/concern'
-
 module Praxis
   module Callbacks
     extend ::ActiveSupport::Concern

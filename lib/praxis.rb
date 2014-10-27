@@ -3,6 +3,8 @@ require 'attributor'
 require 'praxis-mapper'
 require 'praxis-blueprints'
 
+require 'active_support/concern'
+
 $:.unshift File.dirname(__FILE__)
 
 module Attributor
@@ -24,6 +26,7 @@ module MIME
 end
 
 module Praxis
+
   autoload :ActionDefinition, 'praxis/action_definition'
   autoload :ApiDefinition, 'praxis/api_definition'
   autoload :Application, 'praxis/application'
@@ -32,9 +35,11 @@ module Praxis
   autoload :Controller, 'praxis/controller'
   autoload :Callbacks, 'praxis/callbacks'
   autoload :Dispatcher, 'praxis/dispatcher'
+  autoload :ErrorHandler, 'praxis/error_handler'
   autoload :Exception, 'praxis/exception'
   autoload :FileGroup,'praxis/file_group'
   autoload :Plugin, 'praxis/plugin'
+  autoload :PluginConcern, 'praxis/plugin_concern'
   autoload :Request, 'praxis/request'
   autoload :ResourceDefinition, 'praxis/resource_definition'
   autoload :Response, 'praxis/response'
@@ -46,6 +51,9 @@ module Praxis
   autoload :Stage, 'praxis/stage'
   autoload :ContentTypeParser, 'praxis/content_type_parser'
 
+  autoload :Stats, 'praxis/stats'
+  autoload :Notifications, 'praxis/notifications'
+  
   # types
   autoload :Links, 'praxis/links'
   autoload :MediaType, 'praxis/media_type'
@@ -79,6 +87,12 @@ module Praxis
   module BootloaderStages
     autoload :FileLoader, 'praxis/bootloader_stages/file_loader'
     autoload :Environment, 'praxis/bootloader_stages/environment'
+
+    autoload :PluginLoader, 'praxis/bootloader_stages/plugin_loader'
+    autoload :PluginConfigPrepare, 'praxis/bootloader_stages/plugin_config_prepare'
+    autoload :PluginConfigLoad, 'praxis/bootloader_stages/plugin_config_load'
+    autoload :PluginSetup, 'praxis/bootloader_stages/plugin_setup'
+
     autoload :SubgroupLoader, 'praxis/bootloader_stages/subgroup_loader'
     autoload :WarnUnloadedFiles, 'praxis/bootloader_stages/warn_unloaded_files'
     autoload :Routing, 'praxis/bootloader_stages/routing'

@@ -6,17 +6,13 @@ describe Praxis::ResourceDefinition do
   its(:description) { should eq('People resource') }
   its(:media_type) { should eq(Person) }
 
-  its(:responses) { should eq(Hash.new) }
   its(:version) { should eq('1.0') }
   its(:version_options) { should eq({using: [:header,:params]}) }
 
   its(:routing_config) { should be_kind_of(Proc) }
 
-  its(:params) { should be_nil }
-  its(:payload) { should be_nil }
-  its(:headers) { should be_nil }
-
   its(:actions) { should have(2).items }
+
 
 
   context '.describe' do
@@ -28,11 +24,16 @@ describe Praxis::ResourceDefinition do
     its([:actions]) { should have(2).items }
   end
 
-
-  it 'creates ActionDefinitions for actions' do
-    index = resource_definition.actions[:index]
-    expect(index).to be_kind_of(Praxis::ActionDefinition)
-    expect(index.description).to eq("index description")
+  context '.action' do
+    it 'requires a block' do
+      expect { resource_definition.action(:something)
+               }.to raise_error(ArgumentError)
+    end
+    it 'creates an ActionDefinition for actions' do
+      index = resource_definition.actions[:index]
+      expect(index).to be_kind_of(Praxis::ActionDefinition)
+      expect(index.description).to eq("index description")
+    end
   end
 
 
@@ -48,60 +49,6 @@ describe Praxis::ResourceDefinition do
       expect(resource_definition.media_type.identifier).to eq('Something')
     end
 
-    context 'sets responses' do
-      before do
-        resource_definition.response(:some_response)
-      end
-      subject(:responses){ resource_definition.responses }
-      it { should be_kind_of(Hash) }
-
-    end
-
-    context 'setting params' do
-      it 'uses the right default values' do
-        resource_definition.params &some_proc
-
-        expect(resource_definition.params[0]).to be(Attributor::Struct)
-        expect(resource_definition.params[1]).to eq({})
-        expect(resource_definition.params[2]).to be(some_proc)
-      end
-
-      it 'accepts specific a type and options' do
-        resource_definition.params Person, required: true
-
-        expect(resource_definition.params[0]).to be(Person)
-        expect(resource_definition.params[1]).to eq({required: true})
-        expect(resource_definition.params[2]).to be(nil)
-      end
-    end
-
-
-    context 'setting payload' do
-      it 'uses the right default values' do
-        resource_definition.payload &some_proc
-
-        expect(resource_definition.payload[0]).to be(Attributor::Struct)
-        expect(resource_definition.payload[1]).to eq({})
-        expect(resource_definition.payload[2]).to be(some_proc)
-      end
-
-      it 'accepts specific a type and options' do
-        resource_definition.payload Person, required: true
-
-        expect(resource_definition.payload[0]).to be(Person)
-        expect(resource_definition.payload[1]).to eq({required: true})
-        expect(resource_definition.payload[2]).to be(nil)
-      end
-
-    end
-
-
-    it "sets headers" do
-      resource_definition.headers(some_hash, &some_proc)
-
-      expect(subject.headers[0]).to be(some_hash)
-      expect(subject.headers[1]).to be(some_proc)
-    end
 
   end
 
@@ -114,4 +61,39 @@ describe Praxis::ResourceDefinition do
     it 'has a spec for actually using a trait'
   end
 
+
+  context 'deprecated action methods' do
+    subject(:resource_definition) do
+      Class.new do
+        include Praxis::ResourceDefinition
+
+        def self.name
+          'FooBar'
+        end
+        silence_warnings do
+          payload { attribute :inherited_payload, String }
+          headers { header "Inherited-Header", String }
+          params  { attribute :inherited_params, String }
+          response :not_found
+        end
+
+        action :index do
+        end
+      end
+    end
+
+    let(:action) { resource_definition.actions[:index] }
+
+    it 'defers the values to procs in action_defaults' do
+      expect(resource_definition.action_defaults).to have(4).items
+    end
+
+    it 'delegates defaults to the action' do
+      expect(action.payload.attributes).to have_key(:inherited_payload)
+      expect(action.headers.attributes).to have_key("Inherited-Header")
+      expect(action.params.attributes).to have_key(:inherited_params)
+      expect(action.responses).to have_key(:not_found)
+    end
+
+  end
 end

@@ -1,0 +1,4 @@
+---
+  :default_abilities: 
+    - :terminate
+    - :read

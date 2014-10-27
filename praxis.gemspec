@@ -30,6 +30,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'praxis-blueprints', '~> 1.1'
   spec.add_dependency 'attributor', '~> 2.2'
   spec.add_dependency 'thor', '~> 0'
+  spec.add_dependency 'terminal-table', '~> 1.4'
+  spec.add_dependency 'harness', '~> 2'
 
   spec.add_development_dependency 'bundler', '~> 1.6'
   spec.add_development_dependency 'rake', '~> 0.9'
@@ -47,4 +49,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'simplecov', '~> 0'
   spec.add_development_dependency 'fuubar', '~> 2'
   spec.add_development_dependency 'yard', '~> 0'
+  spec.add_development_dependency 'sqlite3', '~> 1'
 end

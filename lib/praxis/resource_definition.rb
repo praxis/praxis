@@ -2,7 +2,6 @@ require 'active_support/concern'
 require 'active_support/inflector'
 
 
-
 module Praxis
   module ResourceDefinition
     extend ActiveSupport::Concern
@@ -11,6 +10,7 @@ module Praxis
       @version = 'n/a'.freeze
       @actions = Hash.new
       @responses = Hash.new
+      @action_defaults = []
       Application.instance.resource_definitions << self
     end
 
@@ -42,24 +42,43 @@ module Praxis
         @version_options = options
       end
 
-      
-      def action(name, &block)
-        @actions[name] = ActionDefinition.new(name, self, &block)
-      end
+      def action_defaults(&block)
+        return @action_defaults unless block_given?
 
-      def params(type=Attributor::Struct, **opts, &block)
-        return @params if type == Attributor::Struct && !block
-        @params = [type, opts, block]
+        @action_defaults << block
       end
+  
+      def params(type=Attributor::Struct, **opts, &block)
+        warn 'DEPRECATION: ResourceDefinition.params is deprecated. Use it in action_defaults instead.'
+        action_defaults do
+          params type, **opts, &block
+        end
+      end      
 
       def payload(type=Attributor::Struct, **opts, &block)
-        return @payload if type == Attributor::Struct && !block
-        @payload = [type, opts, block]
+        warn 'DEPRECATION: ResourceDefinition.payload is deprecated. Use action_defaults instead.'
+        action_defaults do
+          payload type, **opts, &block
+        end
       end
 
       def headers(**opts, &block)
-        return @headers unless block
-        @headers = [opts, block]
+        warn 'DEPRECATION: ResourceDefinition.headers is deprecated. Use action_defaults instead.'
+        action_defaults do
+          headers **opts, &block
+        end
+      end
+      
+      def response(name, **args)
+        warn 'DEPRECATION: ResourceDefinition.response is deprecated. Use action_defaults instead.'
+        action_defaults do
+          response name, **args
+        end
+      end
+
+      def action(name, &block)
+        raise ArgumentError, "can not create ActionDefinition without block" unless block_given?
+        @actions[name] = ActionDefinition.new(name, self, &block)
       end
 
       def description(text=nil)
@@ -67,9 +86,7 @@ module Praxis
         @description
       end
 
-      def response(name, **args)
-        @responses[name] = args
-      end
+    
 
       def describe
         {}.tap do |hash|

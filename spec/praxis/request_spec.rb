@@ -58,8 +58,22 @@ describe Praxis::Request do
     context 'using path (with the default pattern matcher)' do
       let(:env){ Rack::MockRequest.env_for('/v5.0/instances/1?junk=foo') }
       let(:version_options){ {using: :path} }
-      it { should eq('5.0') }
+      it { should eq('5.0') }  
     end
+    
+    context 'using a method that it is not allowed in the definition' do
+      context 'allowing query param but passing it through a header' do
+        let(:env){ {'HTTP_X_API_VERSION' => "5.0", "PATH_INFO" => "/something"} }
+        let(:version_options){ {using: :params} }
+        it { should eq('n/a') }
+      end
+      context 'allowing header but passing it through param' do
+        let(:env) { Rack::MockRequest.env_for('/instances/1?junk=foo&api_version=5.0') }
+        let(:version_options){ {using: :header} }
+        it { should eq('n/a') }
+      end
+    end
+    
     context 'using defaults' do
       subject(:version){ request.version }
       context 'would succeed if passed through the header' do

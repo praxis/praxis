@@ -3,7 +3,7 @@ module ApiResources
     include Praxis::ResourceDefinition
 
     media_type Volume
-    version '1.0'
+    version '1.0', using: :path
 
     use :authenticated
 

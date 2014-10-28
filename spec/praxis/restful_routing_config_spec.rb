@@ -28,8 +28,21 @@ describe Praxis::Skeletor::RestfulRoutingConfig do
       expect(subject.routes.empty?).to eq(true)
     end
 
-    it "prefix" do
+    it "prefix without path version" do
       expect(subject.prefix).to eq(default_route_prefix)
+    end
+
+    context 'prefix using path version' do
+      let(:resource_definition) do
+        Class.new do
+          include Praxis::ResourceDefinition
+          version "1.0", using: :path
+          def self.name; 'MyVersionedResource'; end
+        end
+      end
+      it "prefix" do
+        expect(subject.prefix).to eq("/v1.0#{default_route_prefix}")
+      end
     end
   end
 

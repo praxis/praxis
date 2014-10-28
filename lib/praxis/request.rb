@@ -1,15 +1,14 @@
 module Praxis
 
   class Request
-    attr_reader :env, :query, :version
+    attr_reader :env, :query
     attr_accessor :route_params, :action
-
 
     def initialize(env)
       @env = env
       @query = Rack::Utils.parse_nested_query(env['QUERY_STRING'.freeze])
       @route_params = {}
-      load_version
+      @path_version_matcher = path_version_matcher
     end
 
     def content_type
@@ -65,10 +64,31 @@ module Praxis
       self.raw_params
       self.raw_payload
     end
-
-    def load_version
-      @version = env.fetch("HTTP_X_API_VERSION".freeze,
-                           @query.fetch('api_version'.freeze, 'n/a'.freeze))
+    
+    def self.path_version_prefix
+      "/v".freeze
+    end
+    
+    def path_version_matcher
+      %r{^#{Request.path_version_prefix}(?<version>[^\/]+)\/}.freeze
+    end
+    
+    def version(using: [:header,:params].freeze)
+      result = nil
+      Array(using).find do |mode|
+        case mode
+        when :header ;
+          result = env["HTTP_X_API_VERSION".freeze]
+        when :params ;
+          result = @query['api_version'.freeze]
+        when :path ;
+          m = self.path.match(@path_version_matcher) 
+          result = m[:version] unless m.nil?
+        else
+          raise "Unknown method for retrieving the API version: #{mode}"
+        end
+      end
+      return result || 'n/a'.freeze
     end
 
     def load_headers(context)

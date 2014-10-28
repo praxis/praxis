@@ -4,6 +4,14 @@
 
 * `MediaTypeCollection`:
   * Added support fo loading  `decorate`ed `Resource` associations.
+* Refined and enhanced support for API versioning:
+  * version DSL now can take a `using` option which specifies and array of the methods are allowed: `:header`,`:params`,`:path`(new)
+    * if not specified, it will default to `using: [:header, :params]` (so that the version can be passed to the header OR the params)
+  * the new `:path` option will build the action routes by prefixing the version given a common pattern (i.e., "/v1.0/...")
+    * The effects of path versioning will be visible through `rake praxis:routes`
+    * the default api prefix pattern is ("/v(version)/") but can changed by either
+      * overriding ``Praxis::Request.path_version_prefix` and return the appropriate string prefix (i.e., by default this returns "/v") 
+      * or overriding `Praxis::Request.path_version_matcher` and providing the fully custom matching regexp. This regexp must have a capture (named `version`) that would return matched version value.
 
 ## 0.10.0
 

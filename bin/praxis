@@ -2,9 +2,38 @@
 
 require 'bundler'
 
-path_to_praxis    = Bundler.rubygems.find_name('praxis').first.full_gem_path
-path_to_generator = '%s/tasks/praxis_app_generator.thor' % path_to_praxis
+path_to_praxis = File.expand_path(File.dirname(File.dirname(__FILE__)))
+path_to_loader = '%s/tasks/loader.thor' % path_to_praxis
 
-load path_to_generator
+load path_to_loader
 
-PraxisAppGenerator.start(ARGV)
+class PraxisGenerator < Thor
+
+  # Simple helper to go get the existing description for the real action
+  # Usage must still be provided rather than retrieved (since it is not a 
+  # straight "usage" from the remote action when arguments are defined )
+  def self.desc_for( usage_string, klass, action_name)
+    action_name = action_name.to_s
+    cmd = klass.commands[action_name]
+    raise "Error, could not find description for #{klass.name}##{action_name}" if cmd.nil?
+    desc usage_string, cmd.description
+  end
+
+  desc_for "new APP_NAME", ::PraxisGen::App, :new
+  def new(app_name)
+    ::PraxisGen::App.start(['new' , app_name])
+  end
+
+  desc_for "example APP_NAME", ::PraxisGen::Example, :new
+  def example(app_name)
+    ::PraxisGen::Example.start(['new', app_name])
+  end
+  
+  desc_for "generate APP_NAME", ::PraxisGen::Example, :new
+  def generate(app_name)
+    warn "This is a deprecated method.\nTo generate a hello world example, please use:\n  praxis example #{app_name} "
+  end
+end
+
+
+PraxisGenerator.start(ARGV)

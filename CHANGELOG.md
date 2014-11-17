@@ -12,6 +12,10 @@
     * the default api prefix pattern is ("/v(version)/") but can changed by either
       * overriding ``Praxis::Request.path_version_prefix` and return the appropriate string prefix (i.e., by default this returns "/v") 
       * or overriding `Praxis::Request.path_version_matcher` and providing the fully custom matching regexp. This regexp must have a capture (named `version`) that would return matched version value.
+* Enhanced praxis generator:
+  * Added a new generator (available through `praxis new app_name`) which creates a blank new app, with enough basic structure and setup to start building an API.
+  * Changed the example hello world generation command. Instead of `praxis generate app_name`, it is now available through `praxis example app_name`
+  * Changed the path lookup for the praxis directory (to not use installed gems, which could be multiple). [Issue #67]
 
 ## 0.10.0
 

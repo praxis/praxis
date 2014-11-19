@@ -80,6 +80,11 @@ module Praxis
 
       controller.response.finish
     rescue => e
+      Application.instance.logger.error e.inspect
+      e.backtrace.each do |line|
+        Application.instance.logger.error line
+      end
+
       response = Responses::InternalServerError.new(error: e)
       response.request = controller.request
       response.finish
@@ -88,8 +93,8 @@ module Praxis
       @action = nil
       @request = nil
     end
-   
-    
+
+
     def reset_cache!
       return unless Praxis::Blueprint.caching_enabled?
 

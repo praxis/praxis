@@ -8,7 +8,16 @@ describe 'Functional specs' , focus: true do
 
   context 'index' do
     context 'with an incorrect response_content_type param' do
-      it 'fails to validate the response' do
+      around do |example|
+        logger = app.logger
+        app.logger = Logger.new(StringIO.new)
+
+        example.call
+
+        app.logger = logger
+      end
+
+            it 'fails to validate the response' do
         get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0', nil, 'HTTP_FOO' => "bar"
         response = JSON.parse(last_response.body)
         expect(response['name']).to eq('Praxis::Exceptions::Validation')
@@ -22,7 +31,7 @@ describe 'Functional specs' , focus: true do
         before do
           expect(Praxis::Application.instance.config).to receive(:praxis).and_return(praxis_config)
         end
-        
+
         it 'fails to validate the response' do
           expect {
             get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0'
@@ -37,10 +46,10 @@ describe 'Functional specs' , focus: true do
   it 'works' do
     get '/clouds/1/instances/2?junk=foo&api_version=1.0'
     expect(last_response.status).to eq(200)
-    expect(JSON.parse(last_response.body)).to eq({"cloud_id" => 1, "id"=>2, "junk"=>"foo", 
+    expect(JSON.parse(last_response.body)).to eq({"cloud_id" => 1, "id"=>2, "junk"=>"foo",
                                                   "other_params"=>{
                                                     "some_date"=>"2012-12-21T00:00:00+00:00",
-                                                    "fail_filter"=>nil}, 
+                                                    "fail_filter"=>nil},
                                                   "payload"=>{"something"=>nil, "optional"=>"not given"}})
     expect(last_response.headers).to eq({"Content-Type"=>"application/vnd.acme.instance", "Content-Length"=>"213"})
   end
@@ -131,7 +140,7 @@ describe 'Functional specs' , focus: true do
       end
 
       let(:body) { form.body.to_s }
-      
+
       it 'returns an error' do
         post '/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type
         response = JSON.parse(last_response.body)
@@ -141,7 +150,7 @@ describe 'Functional specs' , focus: true do
       end
 
     end
-    
+
     context 'with an extra key in the form' do
       let(:form) do
         form_data = MIME::Multipart::FormData.new
@@ -161,7 +170,7 @@ describe 'Functional specs' , focus: true do
 
       let(:body) { form.body.to_s }
       subject(:response) { JSON.parse(last_response.body) }
-      
+
       before do
         post '/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type
       end
@@ -176,14 +185,14 @@ describe 'Functional specs' , focus: true do
     context 'when no version is speficied' do
       it 'it tells you which available api versions would match' do
         get '/clouds/1/instances/2?junk=foo'
-        
+
         expect(last_response.status).to eq(404)
         expect(last_response.headers["Content-Type"]).to eq("text/plain")
         expect(last_response.body).to eq("NotFound. Your request did not specify an API version. Available versions = \"1.0\".")
       end
       it 'it just gives you a simple not found when nothing would have matched' do
         get '/foobar?junk=foo'
-        
+
         expect(last_response.status).to eq(404)
         expect(last_response.headers["Content-Type"]).to eq("text/plain")
         expect(last_response.body).to eq("NotFound")
@@ -193,13 +202,13 @@ describe 'Functional specs' , focus: true do
     context 'when some version is speficied, but wrong' do
       it 'it tells you which possible correcte api versions exist' do
         get '/clouds/1/instances/2?junk=foo&api_version=50.0'
-        
+
         expect(last_response.status).to eq(404)
         expect(last_response.headers["Content-Type"]).to eq("text/plain")
         expect(last_response.body).to eq("NotFound. Your request speficied API version = \"50.0\". Available versions = \"1.0\".")
       end
     end
-    
+
   end
 
   context 'volumes' do
@@ -213,7 +222,7 @@ describe 'Functional specs' , focus: true do
                                                         "some_date"=>"2012-12-21T00:00:00+00:00"}
                                                      })
         expect(last_response.headers["Content-Type"]).to eq("application/vnd.acme.volume")
-      end      
+      end
     end
     context 'when an authorization header is passed' do
       it 'returns 401 when it does not match "secret" ' do
@@ -225,7 +234,7 @@ describe 'Functional specs' , focus: true do
         get '/v1.0/volumes/123?junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'the secret'
         expect(last_response.status).to eq(200)
       end
-      
+
     end
   end
 end

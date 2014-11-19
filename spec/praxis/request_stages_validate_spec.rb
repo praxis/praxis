@@ -21,13 +21,13 @@ describe Praxis::RequestStages::Validate do
 
   context 'given a request' do
     it 'should validate params and headers from the request' do
-      expect(request).to receive(:validate_headers)
-      expect(request).to receive(:validate_params)
+      expect(request).to receive(:validate_headers).and_return([])
+      expect(request).to receive(:validate_params).and_return([])
       dispatcher.dispatch(controller, action, request)
     end
 
     it 'should validate payload from the request' do
-      expect(request).to receive(:validate_payload)
+      expect(request).to receive(:validate_payload).and_return([])
       dispatcher.dispatch(controller, action, request)
     end
   end

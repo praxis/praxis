@@ -50,6 +50,7 @@ module ApiResources
       end
 
       response :ok
+      response :unauthorized
 
       params do
         attribute :id
@@ -125,6 +126,7 @@ module ApiResources
       end
 
       response :ok, media_type: 'application/json'
+      response :validation_error # TODO: include this by default, or rethink.
     end
 
     action :terminate do
@@ -150,6 +152,7 @@ module ApiResources
       params do
         attribute :id
       end
+
 
       response :ok, media_type: 'application/json'
     end

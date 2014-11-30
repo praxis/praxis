@@ -15,7 +15,8 @@ module ApiResources
       end
 
       response :ok
-
+      response :unauthorized
+      
       params do
         attribute :id
         attribute :junk, String, default: ''

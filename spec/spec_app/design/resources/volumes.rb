@@ -9,6 +9,14 @@ module ApiResources
       use :authenticated
     end
 
+    action :index do
+      routing do
+        get ''
+      end
+      response :ok
+      response :unauthorized
+    end
+
     action :show do
       routing do
         get '/:id'
@@ -16,7 +24,7 @@ module ApiResources
 
       response :ok
       response :unauthorized
-      
+
       params do
         attribute :id
         attribute :junk, String, default: ''

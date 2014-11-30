@@ -241,6 +241,13 @@ describe 'Functional specs' do
       end
 
     end
+
+    context 'index action with no args defined' do
+      it 'dispatches successfully' do
+        get '/v1.0/volumes', nil, 'HTTP_AUTHORIZATION' => 'the secret', 'global_session' => session
+        expect(last_response.status).to eq(200)
+      end
+    end
   end
 
   context 'auth_plugin' do

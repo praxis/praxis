@@ -54,6 +54,8 @@ module Praxis
   autoload :Stats, 'praxis/stats'
   autoload :Notifications, 'praxis/notifications'
   
+  autoload :RestfulDocGenerator, 'praxis/restful_doc_generator'
+  
   # types
   autoload :Links, 'praxis/links'
   autoload :MediaType, 'praxis/media_type'

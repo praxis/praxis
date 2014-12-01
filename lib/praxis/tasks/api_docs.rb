@@ -7,9 +7,8 @@ namespace :praxis do
     generator = Praxis::RestfulDocGenerator.new(Dir.pwd)
   end
 
-  desc "API Documenation Browser"
   desc "API Documentation Browser"
-  task :doc_browser => [:api_docs] do
+  task :doc_browser => [:api_docs] do |t, args|
     public_folder =  File.expand_path("../../../", __FILE__) + "/api_browser/app"
     app = Rack::Builder.new do
       map "/docs" do # application JSON docs
@@ -22,6 +21,8 @@ namespace :praxis do
       run lambda { |env| [404, {'Content-Type' => 'text/plain'}, ['Not Found']] }
     end
 
-    Rack::Server.start app: app, Port: 4567
+    port = args[:port] || 4567 
+    Rack::Server.start app: app, port: port
   end
+  
 end

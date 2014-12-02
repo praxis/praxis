@@ -21,9 +21,11 @@ describe 'Functional specs' do
 
       it 'fails to validate the response' do
         get '/clouds/1/instances?response_content_type=somejunk&api_version=1.0', nil, 'HTTP_FOO' => "bar", 'global_session' => session
+        expect(last_response.status).to eq(400)
         response = JSON.parse(last_response.body)
 
-        expect(response['name']).to eq('Praxis::Exceptions::Validation')
+        expect(response['name']).to eq('ValidationError')
+
         expect(response["message"]).to match(/Bad Content-Type/)
       end
 

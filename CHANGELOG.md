@@ -3,7 +3,7 @@
 ## next
 
 * `MediaTypeCollection`:
-  * Added support fo loading  `decorate`ed `Resource` associations.
+  * Added support for loading  `decorate`ed `Resource` associations.
 * Refined and enhanced support for API versioning:
   * version DSL now can take a `using` option which specifies and array of the methods are allowed: `:header`,`:params`,`:path`(new)
     * if not specified, it will default to `using: [:header, :params]` (so that the version can be passed to the header OR the params)

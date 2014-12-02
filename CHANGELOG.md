@@ -43,6 +43,7 @@
   * Its supports several repositories (by name)
   * Each repository can be of a different type (default is sequel)
 * `praxis:doc_browser` rake task now takes a port argument for specifying the port to run on, e.g. `rake praxis:doc_browser[9000]` to run on port 9000.
+* Added `show_exceptions` configuration option to to control default ErrorHandler behavior.
 
 ## 0.10.0
 

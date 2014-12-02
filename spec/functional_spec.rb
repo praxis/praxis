@@ -55,11 +55,11 @@ describe 'Functional specs' do
     expect(JSON.parse(last_response.body)).to eq({"cloud_id" => 1, "id"=>2, "junk"=>"foo",
                                                   "other_params"=>{
                                                     "some_date"=>"2012-12-21T00:00:00+00:00",
-                                                  "fail_filter"=>nil},
+                                                  "fail_filter"=>false},
                                                   "payload"=>{"something"=>nil, "optional"=>"not given"}})
     expect(last_response.headers).
       to eq({"Content-Type"=>"application/vnd.acme.instance",
-             "Content-Length"=>"213", 'Spec-Middleware' => 'used'})
+             "Content-Length"=>"214", 'Spec-Middleware' => 'used'})
       end
 
   it 'returns early when making the before filter break' do

@@ -49,6 +49,7 @@ describe Praxis::ResourceDefinition do
       expect(resource_definition.media_type.identifier).to eq('Something')
     end
 
+    its(:version_options){ should be_kind_of(Hash) }
 
   end
 

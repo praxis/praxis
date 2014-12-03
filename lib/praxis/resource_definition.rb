@@ -11,6 +11,7 @@ module Praxis
       @actions = Hash.new
       @responses = Hash.new
       @action_defaults = []
+      @version_options = {}
       Application.instance.resource_definitions << self
     end
 

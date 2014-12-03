@@ -3,7 +3,7 @@
 ## next
 
 * `MediaTypeCollection`:
-  * Added support fo loading  `decorate`ed `Resource` associations.
+  * Added support for loading  `decorate`ed `Resource` associations.
 * Refined and enhanced support for API versioning:
   * version DSL now can take a `using` option which specifies and array of the methods are allowed: `:header`,`:params`,`:path`(new)
     * if not specified, it will default to `using: [:header, :params]` (so that the version can be passed to the header OR the params)
@@ -16,6 +16,33 @@
   * Added a new generator (available through `praxis new app_name`) which creates a blank new app, with enough basic structure and setup to start building an API.
   * Changed the example hello world generation command. Instead of `praxis generate app_name`, it is now available through `praxis example app_name`
   * Changed the path lookup for the praxis directory (to not use installed gems, which could be multiple). [Issue #67]
+* `ResourceDefinition`:
+  * Added: `action_defaults` method, to define default options for actions. May be called more than once.
+  * Removed: `params`, `payload`, `headers`, and `response`. Specify these inside `action_defaults` instead.
+* `Application`:
+  * Added `middleware` method to use Rack middleware.
+* `ErrorHandler`
+  * It is now possible to register the error handler class to be invoked when an uncaught exception is thrown by setting `Application#error_handler`.
+  * The default error handler writes the error and backtrace into the Praxis logger, and returns an `InternalServerError` response
+* Added `Praxis::Notifications` framework backed by ActiveSupport::Notifications
+  * Its interface is the same as AS::Notifications (.publish, .instrument, .subscribe, and etc.)
+  * Each incoming rack request is instrumented as `rack.request.all`, with a payload of `{response: response}`, where `response` is the `Response` object that will be returned to the client. Internally, Praxis subscribes to this to generate timing statistics with `Praxis::Stats`.
+  * Additionally, each request that is dispatched to an action is instrumented as `praxis.request.all`, with a payload of `{request: request, response: response}`, where `response` is as above, and `request` is the `Request` object for the request.
+* Added `Praxis::Stats` framework backed by `Harness` (i.e. a statsd interface)
+  * Can be configured with a collector type (fake, Statsd) and an asynchronous queue + thread
+  * Wraps the statsd interface: count, increment, decrement, time ...
+* Added a new `decorate_docs` method to enhance generated JSON docs for actions in `ResourceDefinitions`
+  * Using this hook, anybody can register a block that can change/enhance the JSON structure of generated documents for any given action
+* Added a brand new Plugins architecture
+  * Plugins can easily inject code in the Request, Controller, ResourceDefinition or ActionDefinition
+  * Can be instances or singletons (and will be initialized correspondingly)
+  * Plugins can be easily configured under a unique "config key" in the Praxis config
+  * See the [Plugins](http://praxis-framework.io/reference/plugins/) section in the documentation for more information.
+* Added a Plugin for using the Praxis::Mapper gem
+  * Configurable through a simple `praxis_mapper.yml` file
+  * Its supports several repositories (by name)
+  * Each repository can be of a different type (default is sequel)
+
 
 ## 0.10.0
 
@@ -35,7 +62,7 @@
   * Fixes [Issue #21](https://github.com/rightscale/praxis/issues/21)
 * Introduced `around` filters using blocks:
 	* Around filters can be set wrapping any of the request stages (load, validate, action...) and might apply to only certain actions (i.e. exactly the same as the before/after filters)
-  * Therefore they supports the same attributes as `before` and `after` filters. The only difference is that an around filter block will get an extra parameter with the block to call to continue the chain.	
+  * Therefore they supports the same attributes as `before` and `after` filters. The only difference is that an around filter block will get an extra parameter with the block to call to continue the chain.
 	* See the [Instances](https://github.com/rightscale/praxis/blob/master/spec/spec_app/app/controllers/instances.rb) controller for examples.
 * Fix: Change :created response template to take an optiona ‘location’ parameter (instead of a media_type one, since it doesn’t make sense for a 201 type response) [Issue #26](https://github.com/rightscale/praxis/issues/23)
 * Make the system be more robust in error reporting when controllers do not return a String or a Response
@@ -54,7 +81,7 @@
 * `MediaTypeCollection`. See [volume_snapshot](spec/spec_app/design/media_types/volume_snapshot.rb) in the specs for an example.
   * Added `member_view` DSL to define a view that renders the collection's members with the given view.
   * Change: Now requires all views to be explicitly defined (and will not automatically use the underlying member view if it exists). To define a view for member element (wrapping it in a collection) one can use the new member_view.
-  * 
+  *
 
 
 ## 0.9 Initial release

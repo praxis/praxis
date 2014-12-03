@@ -7,7 +7,10 @@ module Praxis
   }.freeze
 
   class Dispatcher
-    attr_reader :controller, :action, :request, :application
+    attr_reader :controller
+    attr_reader :action
+    attr_reader :request
+    attr_reader :application
 
     @deferred_callbacks = Hash.new do |hash,stage|
       hash[stage] = {before: [], after:[]}
@@ -70,24 +73,28 @@ module Praxis
       @action = action
       @request = request
 
-      @stages.each do |stage|
-        result = stage.run
-        case result
-        when Response
-          return result.finish
+      payload = {request: request, response: nil}
+
+      Notifications.instrument 'praxis.request.all'.freeze, payload do
+        # the response stage must be the final stage in the list
+        *stages, response_stage = @stages
+        
+        stages.each do |stage|
+          result = stage.run
+          case result
+          when Response
+            controller.response = result
+            break
+          end
         end
-      end
 
-      controller.response.finish
+        response_stage.run
+
+        payload[:response] = controller.response
+        controller.response.finish
+      end
     rescue => e
-      Application.instance.logger.error e.inspect
-      e.backtrace.each do |line|
-        Application.instance.logger.error line
-      end
-
-      response = Responses::InternalServerError.new(error: e)
-      response.request = controller.request
-      response.finish
+      @application.error_handler.handle!(request, e)
     ensure
       @controller = nil
       @action = nil

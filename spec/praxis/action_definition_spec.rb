@@ -12,14 +12,16 @@ describe Praxis::ActionDefinition do
       media_type 'application/json'
       version '1.0'
       routing { prefix '/api/hello_world' }
-      payload { attribute :inherited, String }
-      headers { header "Inherited", String }
-      params  { attribute :inherited, String }
+      action_defaults do
+        payload { attribute :inherited, String }
+        headers { header "Inherited", String }
+        params  { attribute :inherited, String }
+      end
     end
   end
 
   subject(:action) do
-    described_class.new('foo', resource_definition) do
+    Praxis::ActionDefinition.new('foo', resource_definition) do
       routing { get '/:one' }
       payload { attribute :two, String }
       headers { header "X_REQUESTED_WITH", 'XMLHttpRequest' }
@@ -44,7 +46,7 @@ describe Praxis::ActionDefinition do
       action.response :ok
       action.response :internal_server_error
     end
-    
+
     it { should be_kind_of Hash }
     it { should include :ok }
     it { should include :internal_server_error }
@@ -64,9 +66,8 @@ describe Praxis::ActionDefinition do
         attribute :more, Attributor::Integer
       end
 
-      expect(subject.params.attributes.keys).to match_array([
-        :one, :inherited, :more
-      ])
+      attributes = subject.params.attributes.keys
+      expect(attributes).to match_array([:one, :inherited, :more])
     end
   end
 
@@ -77,18 +78,18 @@ describe Praxis::ActionDefinition do
       end
 
       expect(subject.payload.attributes.keys).to match_array([
-        :two, :inherited, :more
+                                                               :two, :inherited, :more
       ])
     end
   end
 
   describe '#headers' do
-    it 'is backed by a Hash' do 
+    it 'is backed by a Hash' do
       expect(subject.headers.type < Attributor::Hash).to be(true)
     end
 
     it 'is has case_sensitive_load enabled' do
-      expect(subject.headers.type.options[:case_insensitive_load]).to be(true) 
+      expect(subject.headers.type.options[:case_insensitive_load]).to be(true)
     end
 
     it 'merges in more headers' do
@@ -97,7 +98,7 @@ describe Praxis::ActionDefinition do
       end
 
       expect(subject.headers.attributes.keys).to match_array([
-        "X_REQUESTED_WITH", "Inherited", "more"
+                                                               "X_REQUESTED_WITH", "Inherited", "more"
       ])
     end
   end

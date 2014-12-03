@@ -14,4 +14,9 @@ class Volumes < BaseClass
     response
   end
 
+  def index
+    response.headers['Content-Type'] = 'application/vnd.acme.volume'
+    response
+  end
+
 end

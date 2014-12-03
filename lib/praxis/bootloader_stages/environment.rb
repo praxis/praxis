@@ -1,6 +1,5 @@
 module Praxis
 
-
   module BootloaderStages
 
     class Environment < Stage
@@ -12,15 +11,11 @@ module Praxis
         env_file = application.root + "config/environment.rb"
         require env_file if File.exists? env_file
 
-        application.plugins.each do |plugin|
-          plugin.setup!
-        end
+        setup_initial_config!
 
         unless application.file_layout
           setup_default_layout!
         end
-
-        setup_initial_config!
       end
 
       def setup_default_layout!

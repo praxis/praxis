@@ -1,0 +1,8 @@
+collector:
+  :type: Harness::FakeCollector
+  #:args:
+  #  :host: localhost
+  #  :postfix: somepostfix
+  #  :prefix: someprefix
+queue:
+  :type: Harness::AsyncQueue

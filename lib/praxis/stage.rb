@@ -2,7 +2,11 @@ module Praxis
 
   class Stage
 
-    attr_reader :name, :context, :stages, :before_callbacks, :after_callbacks
+    attr_reader :name
+    attr_reader :context
+    attr_reader :stages
+    attr_reader :before_callbacks
+    attr_reader :after_callbacks
 
     def application
       context

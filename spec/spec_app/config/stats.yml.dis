@@ -1,0 +1,8 @@
+namespace: my-app
+collector:
+  type: Harness::FakeCollector
+  args:
+    - example.com
+    - 8000
+queue:
+  type: Harness::AsyncQueue

@@ -5,7 +5,17 @@ module ApiResources
     media_type Volume
     version '1.0', using: :path
 
-    use :authenticated
+    action_defaults do
+      use :authenticated
+    end
+
+    action :index do
+      routing do
+        get ''
+      end
+      response :ok
+      response :unauthorized
+    end
 
     action :show do
       routing do
@@ -13,6 +23,7 @@ module ApiResources
       end
 
       response :ok
+      response :unauthorized
 
       params do
         attribute :id

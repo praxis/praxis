@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Praxis::Bootloader do
   let(:application) do
-    instance_double("Praxis::Application", config: "config", root: "root", plugins: [])
+    instance_double("Praxis::Application", config: "config", root: "root", plugins: {})
   end
 
   subject(:bootloader) {Praxis::Bootloader.new(application)}
@@ -10,7 +10,7 @@ describe Praxis::Bootloader do
   context 'attributes' do
     its(:application) {should be(application)}
     it 'stages' do
-      init_stages = [:environment, :initializers, :lib, :design, :app, :routing, :warn_unloaded_files]
+      init_stages = [:environment, :plugins, :initializers, :lib, :design, :app, :routing, :warn_unloaded_files]
       expect(bootloader.stages.map {|s| s.name}).to eq(init_stages)
     end
     its(:config) {should be(application.config)}
@@ -49,10 +49,17 @@ describe Praxis::Bootloader do
   end
 
   context ".use" do
+    let(:plugin) do
+      Class.new(Praxis::Plugin) do
+        def config_key
+          :foo
+        end
+      end
+    end
+
     it "plugin add to application" do
-      bootloader.use(Praxis::Plugin)
-      new_plugin = Praxis::Plugin.new(bootloader.application)
-      expect(bootloader.application.plugins.last.class).to be(Praxis::Plugin)
+      bootloader.use(plugin)
+      expect(bootloader.application.plugins[:foo].class).to be(plugin)
     end
   end
 end

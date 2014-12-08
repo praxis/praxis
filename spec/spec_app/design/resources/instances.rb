@@ -64,7 +64,6 @@ module ApiResources
       end
     end
 
-
     action :bulk_create do
       routing do
         post ''
@@ -138,6 +137,10 @@ module ApiResources
 
       params do
         attribute :id
+      end
+
+      payload do 
+        attribute :when, DateTime
       end
 
       response :ok, media_type: 'application/json'

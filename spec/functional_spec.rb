@@ -9,6 +9,7 @@ describe 'Functional specs' do
   let(:session) { double("session", valid?: true)}
 
   context 'index' do
+
     context 'with an incorrect response_content_type param' do
       around do |example|
         logger = app.logger
@@ -54,12 +55,12 @@ describe 'Functional specs' do
     expect(JSON.parse(last_response.body)).to eq({"cloud_id" => 1, "id"=>2, "junk"=>"foo",
                                                   "other_params"=>{
                                                     "some_date"=>"2012-12-21T00:00:00+00:00",
-                                                    "fail_filter"=>nil},
+                                                  "fail_filter"=>nil},
                                                   "payload"=>{"something"=>nil, "optional"=>"not given"}})
     expect(last_response.headers).
       to eq({"Content-Type"=>"application/vnd.acme.instance",
-        "Content-Length"=>"213", 'Spec-Middleware' => 'used'})
-  end
+             "Content-Length"=>"213", 'Spec-Middleware' => 'used'})
+      end
 
   it 'returns early when making the before filter break' do
     get '/clouds/1/instances/2?junk=foo&api_version=1.0&fail_filter=true', nil, 'global_session' => session
@@ -185,6 +186,9 @@ describe 'Functional specs' do
       its(['options']){ should eq({"extra_thing"=>"I am extra"})}
     end
 
+
+
+
   end
 
 
@@ -226,8 +230,8 @@ describe 'Functional specs' do
         expect(JSON.parse(last_response.body)).to eq({"id"=>123,
                                                       "other_params"=>{
                                                         "junk"=>"stuff",
-                                                        "some_date"=>"2012-12-21T00:00:00+00:00"}
-                                                     })
+                                                      "some_date"=>"2012-12-21T00:00:00+00:00"}
+                                                      })
         expect(last_response.headers["Content-Type"]).to eq("application/vnd.acme.volume")
       end
     end
@@ -261,6 +265,21 @@ describe 'Functional specs' do
     it 'can not stop' do
       post '/clouds/23/instances/1/stop?api_version=1.0', nil, 'global_session' => session
       expect(last_response.status).to eq(403)
+    end
+  end
+
+  context 'with mismatch between Content-Type and payload' do
+    let(:body) { '{}' }
+    let(:content_type) { 'application/x-www-form-urlencoded' }
+
+    before do
+      post '/clouds/1/instances/2/terminate?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
+    end
+
+    it 'returns a useful error message' do
+      body = JSON.parse(last_response.body)
+      expect(body['name']).to eq('ValidationError')
+      expect(body['message']).to match("For request Content-Type: 'application/x-www-form-urlencoded'")
     end
   end
 

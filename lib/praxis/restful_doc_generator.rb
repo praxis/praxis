@@ -148,7 +148,7 @@ module Praxis
           action_description[:payload][:example] = generated_examples[:payload] if generated_examples[:payload]
         end
 
-        File.open(filename, 'w') {|f| f.write(JSON.dump(resource_description))}
+        File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(resource_description))}
       end
     end
 
@@ -182,7 +182,7 @@ module Praxis
           end
 
           # add an example for each attribute??
-          File.open(filename, 'w') {|f| f.write(JSON.dump(type_output))}
+          File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(type_output))}
         end
       end
     end
@@ -240,7 +240,7 @@ module Praxis
       filename = File.join(@doc_root_dir, "index.json")
       dirname = File.dirname(filename)
       FileUtils.mkdir_p dirname unless File.exists? dirname
-      File.open(filename, 'w') {|f| f.write(JSON.dump(index))}
+      File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(index))}
     end
 
     def write_templates(versioned_types)
@@ -299,7 +299,7 @@ module Praxis
       filename = File.join(@doc_root_dir, version, "templates.json")
       dirname = File.dirname(filename)
       FileUtils.mkdir_p dirname unless File.exists? dirname
-      File.open(filename, 'w') {|f| f.write(JSON.dump(templates))}
+      File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(templates))}
       return templates
     end
     private

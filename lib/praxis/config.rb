@@ -28,6 +28,7 @@ module Praxis
     #     attribute :two String
     #   end
     # end
+    
     # ...or using this way too (equivalent)
     # define(:app) do
     #   attribute :two, String
@@ -69,7 +70,7 @@ module Praxis
       context = ['Application', 'config']
 
       begin
-        @value = @attribute.load(config, context)
+        @value = @attribute.load(config, context, recurse: true)
       rescue Attributor::AttributorException => e
         raise Exceptions::ConfigLoad.new(exception: e)
       end
@@ -84,7 +85,7 @@ module Praxis
     def get
       @value ||= begin
         context = ['Application','config'].freeze
-        @attribute.load({},context)
+        @attribute.load({},context, recurse: true)
       end
     end
 

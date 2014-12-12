@@ -15,31 +15,47 @@ describe Praxis::Responses::InternalServerError do
     end
   end
 
+
   context '.format!' do
     let(:error) { double('error', message: 'error message', backtrace: [1, 2], cause: cause) }
+
+    let(:show_exceptions) { true }
+    let(:config) { double("config", show_exceptions: show_exceptions) }
+
+    before do
+      allow(Praxis::Application.instance.config).to receive(:praxis).and_return(config)
+    end
+
+    context 'with show_exceptions false' do
+    end
+
+    context 'with show_exceptions true' do
+
+      context 'without a cause' do
+        let(:cause) { nil }
+        it 'it fills message and backtrace' do
+          expect(response.body).to eq({name: error.class.name, message: error.message, backtrace: error.backtrace})
+        end
+      end
+
+      context 'with a cause' do
+        let(:cause) { Exception.new('cause message') }
+        it 'it fills message, backtrace and cause' do
+          expect(response.body.keys).to eq([:name, :message, :backtrace, :cause])
+          expect(response.body[:name]).to eq(error.class.name)
+          expect(response.body[:message]).to eq(error.message)
+          expect(response.body[:backtrace]).to eq(error.backtrace)
+          expect(response.body[:cause]).to eq({ name: cause.class.name, message: cause.message, backtrace: cause.backtrace })
+        end
+      end
+    end
+
     subject(:response) { Praxis::Responses::InternalServerError.new(error: error) }
     before do
       expect(response.body).to be_empty
       response.format!
     end
 
-    context 'without a cause' do
-      let(:cause) { nil }
-      it 'it fills message and backtrace' do
-        expect(response.body).to eq({name: error.class.name, message: error.message, backtrace: error.backtrace})
-      end
-    end
-
-    context 'with a cause' do
-      let(:cause) { Exception.new('cause message') }
-      it 'it fills message, backtrace and cause' do
-        expect(response.body.keys).to eq([:name, :message, :backtrace, :cause])
-        expect(response.body[:name]).to eq(error.class.name)
-        expect(response.body[:message]).to eq(error.message)
-        expect(response.body[:backtrace]).to eq(error.backtrace)
-        expect(response.body[:cause]).to eq({ name: cause.class.name, message: cause.message, backtrace: cause.backtrace })
-      end
-    end
   end
 
   context 'its response template' do

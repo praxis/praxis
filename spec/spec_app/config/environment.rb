@@ -21,6 +21,10 @@ Praxis::Application.configure do |application|
 
   application.bootloader.use PraxisMapperPlugin
 
+  # enable "development-mode" options
+  application.config.praxis.validate_responses = true
+  application.config.praxis.show_exceptions = true
+
   application.layout do
     layout do
       map :initializers, 'config/initializers/**/*'

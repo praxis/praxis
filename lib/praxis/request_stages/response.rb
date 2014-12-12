@@ -16,8 +16,7 @@ module Praxis
 
         response.handle
 
-        praxis_config = Application.instance.config.praxis
-        unless praxis_config && praxis_config.validate_responses == false
+        if Application.instance.config.praxis.validate_responses == true
           response.validate(action)
         end
       rescue Exceptions::Validation => e

@@ -13,14 +13,20 @@ module Praxis
         @error = error
       end
 
-      def format!(exception = @error) #_exception(exception)
+      def format!(exception = @error)
         if @error
-          msg = {
-            name: exception.class.name,
-            message: exception.message,
-            backtrace: exception.backtrace
-          }
-          msg[:cause] = format!(exception.cause) if exception.cause
+
+          if Application.instance.config.praxis.show_exceptions == true
+            msg = {
+              name: exception.class.name,
+              message: exception.message,
+              backtrace: exception.backtrace
+            }
+            msg[:cause] = format!(exception.cause) if exception.cause
+          else
+            msg = {name: 'InternalServerError', message: "Something bad happened."}
+          end
+
           @body = msg
         end
       end
@@ -37,4 +43,3 @@ module Praxis
   end
 
 end
-

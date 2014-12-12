@@ -12,11 +12,11 @@ class PraxisGenerator < Thor
   # Simple helper to go get the existing description for the real action
   # Usage must still be provided rather than retrieved (since it is not a 
   # straight "usage" from the remote action when arguments are defined )
-  def self.desc_for( usage_string, klass, action_name)
+  def self.desc_for( usage_string, klass, action_name, description_prefix="")
     action_name = action_name.to_s
     cmd = klass.commands[action_name]
     raise "Error, could not find description for #{klass.name}##{action_name}" if cmd.nil?
-    desc usage_string, cmd.description
+    desc usage_string, "#{description_prefix}#{cmd.description}"
   end
 
   desc_for "new APP_NAME", ::PraxisGen::App, :new
@@ -29,7 +29,7 @@ class PraxisGenerator < Thor
     ::PraxisGen::Example.start(['new', app_name])
   end
   
-  desc_for "generate APP_NAME", ::PraxisGen::Example, :new
+  desc_for "generate APP_NAME", ::PraxisGen::Example, :new, "DEPRECATED!: "
   def generate(app_name)
     warn "This is a deprecated method.\nTo generate a hello world example, please use:\n  praxis example #{app_name} "
   end

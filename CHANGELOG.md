@@ -42,7 +42,7 @@
   * Configurable through a simple `praxis_mapper.yml` file
   * Its supports several repositories (by name)
   * Each repository can be of a different type (default is sequel)
-
+* `praxis:doc_browser` rake task now takes a port argument for specifying the port to run on, e.g. `rake praxis:doc_browser[9000]` to run on port 9000.
 
 ## 0.10.0
 

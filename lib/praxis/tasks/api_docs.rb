@@ -8,7 +8,9 @@ namespace :praxis do
   end
 
   desc "API Documentation Browser"
-  task :doc_browser => [:api_docs] do |t, args|
+  task :doc_browser, [:port] => :api_docs do |t, args|
+    args.with_defaults port: 4567
+
     public_folder =  File.expand_path("../../../", __FILE__) + "/api_browser/app"
     app = Rack::Builder.new do
       map "/docs" do # application JSON docs
@@ -21,8 +23,8 @@ namespace :praxis do
       run lambda { |env| [404, {'Content-Type' => 'text/plain'}, ['Not Found']] }
     end
 
-    port = args[:port] || 4567 
-    Rack::Server.start app: app, port: port
+    
+    Rack::Server.start app: app, Port: args[:port]
   end
   
 end

@@ -1,6 +1,6 @@
 # praxis changelog
 
-## next
+## 0.11
 
 * `MediaTypeCollection`:
   * Added support for loading  `decorate`ed `Resource` associations.

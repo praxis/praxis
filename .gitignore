@@ -8,3 +8,4 @@ _site/
 .tmp/
 node_modules/
 *.css.map
+pkg

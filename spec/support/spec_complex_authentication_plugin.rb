@@ -63,7 +63,7 @@ class GlobalSessionAuthenticator < Authenticator
 end
 
 
-module AuthenticationPlugin
+module ComplexAuthenticationPlugin
   include Praxis::PluginConcern
 
   class Plugin < Praxis::Plugin

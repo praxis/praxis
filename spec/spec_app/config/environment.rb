@@ -16,7 +16,7 @@ Praxis::Application.configure do |application|
 
   application.middleware SetHeader, 'Spec-Middleware', 'used'
 
-  application.bootloader.use AuthenticationPlugin, config_file: 'config/authentication.yml'
+  application.bootloader.use SimpleAuthenticationPlugin, config_file: 'config/authentication.yml'
   application.bootloader.use AuthorizationPlugin
 
   application.bootloader.use PraxisMapperPlugin

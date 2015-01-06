@@ -49,16 +49,23 @@ module Praxis
       def load_type(hash)
         type = hash[:type].constantize
         args = hash[:args]
-        case args
+        args_hash = case args
         when Attributor::Hash
-          type.new(**args.contents.symbolize_keys)
+          args.contents.symbolize_keys
         when Hash
-          type.new(**args.symbolize_keys)
+          args.symbolize_keys
         when nil
-          type.new
+          {}
         else
           raise "unknown args type: #{args.class.name}"
         end
+        
+        if args_hash.any?        
+          type.new(**args_hash)
+        else
+          type.new
+        end
+
       end
 
     end

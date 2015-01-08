@@ -14,14 +14,14 @@ module Praxis
     def describe
       result = {
         verb: verb,
-        path: path,
+        path: path.to_s,
         version: version
       }
       result[:name] = name unless name.nil?
       result[:options] = options if options.any?
       result
     end
-    
+
   end
 
 end

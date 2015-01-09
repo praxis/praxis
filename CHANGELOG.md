@@ -1,5 +1,9 @@
 # praxis changelog
 
+## next
+
+* The Doc Browser will now not change the menu when refreshing.
+
 ## 0.11.1
 
 * Fix `Stats` plugin to handle empty `args` hashes.
@@ -14,7 +18,7 @@
   * the new `:path` option will build the action routes by prefixing the version given a common pattern (i.e., "/v1.0/...")
     * The effects of path versioning will be visible through `rake praxis:routes`
     * the default api prefix pattern is ("/v(version)/") but can changed by either
-      * overriding ``Praxis::Request.path_version_prefix` and return the appropriate string prefix (i.e., by default this returns "/v") 
+      * overriding ``Praxis::Request.path_version_prefix` and return the appropriate string prefix (i.e., by default this returns "/v")
       * or overriding `Praxis::Request.path_version_matcher` and providing the fully custom matching regexp. This regexp must have a capture (named `version`) that would return matched version value.
 * Enhanced praxis generator:
   * Added a new generator (available through `praxis new app_name`) which creates a blank new app, with enough basic structure and setup to start building an API.

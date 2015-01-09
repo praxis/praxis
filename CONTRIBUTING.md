@@ -110,6 +110,8 @@ merged.
 Please do not add yourself to the `AUTHORS` file unless you are on the Praxis
 github team.
 
+Add a quick summary of your change to the changelog, under the `next` heading.
+
 ### Sign your work
 
 The sign-off is a simple line at the end of the explanation for the
@@ -181,4 +183,3 @@ There are several exceptions to the signing requirement. Currently these are:
 Don't forget: being a maintainer is a time investment. Make sure you will have
 time to make yourself available.  You don't have to be a maintainer to make a
 difference on the project!
-

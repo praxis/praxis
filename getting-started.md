@@ -20,7 +20,7 @@ you'll need to install the Praxis gem.
 $ gem install praxis
 # or if your GEM_HOME is system-wide
 $ sudo gem install praxis
-$ praxis generate blog
+$ praxis example blog
       create  blog/app
       create  blog/design
       create  blog/lib

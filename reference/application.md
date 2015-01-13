@@ -19,7 +19,9 @@ The error handler must implement a `handle!(request, error)` method, where `requ
 
 ### Rack Middleware
 
-Praxis supports registering Rack middleware to run as part of request handling with `Application#middleware`. The syntax is analogous to the `use` directive in `Rack::Builder` (and in fact does that internally).
+Praxis supports registering Rack middleware to run _internally_ during handling with `Application#middleware`. The syntax is analogous to the `use` directive in `Rack::Builder` (and in fact does that internally). This is in addition to configuring middleware through standard Rack means such as a `config.ru` file, and is entirely optional.
+
+The primary distinction being that the effects of middleware run through `Application#middleware` *will* be included in `Stats` and `Notifications` timings such as the "rack.request.all" notification.
 
 For example, to use middleware named `MyMiddleware` you would put the following in your `config/environment.rb`:
 ```ruby
@@ -27,5 +29,3 @@ Praxis::Application.configure do |application|
   application.middleware MyMiddleware
 end
 ```
-
-This may be used in addition to, or in replacement of, configuring middleware in an application's `config.ru`.

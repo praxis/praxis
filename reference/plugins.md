@@ -5,30 +5,31 @@ title: Plugins
 
 ## Overview
 
-Plugins provide a means to cleanly add new functionality to Praxis, either by extending the core classes with additional features, or by registering callbacks to run during request handling.
+Plugins provide a means to cleanly add new functionality to Praxis. This extra functionality can be enhanced in different areas of the framework: by dynamically extending core classes, or registering runtime hooks to be executed during request handling.
 
-For example, extensions to the core classes might include:
+Here are a few different examples of what plugins can do:
 
- * Adding a `requires_authentication` directive to `ActionDefinition` to specify specify that the action requires an authenticated user. 
- * Encapsulate access to the information about the currently logged-in user with a `Request#current_user` method that might return a `User` object.
- * Inject a `before :action` filter into every `Controller` to perform authentication.
+* Adding new DSL directives available when defining resources and actions. For example, an authentication plugin can add a `requires_authentication` directive available to all `ActionDefinitions` to specify that the action requires an authenticated user.
+* Enhancing the `Request` object to carry contextual information. For example, expose a similar authentication plugin could add information about the currently logged-in user through the `Request#current_user` method, which when invoked might even return a fully loaded `User` object.
+* Enforce application-wide logic. For example, the same authentication plugin could inject a before :action filter into every existing `Controller` to enforce the authentication checks, or install global middleware or around filters for specific common Controllers.
+* Decorate resulting Praxis docs with attributes defined by the plugin. For example, we might want to include which actions require authentication to the generated documentation.
 
 
 ### Anatomy of a Plugin
 
-What follows is an example plugin for user authentication, `SimpleAuthenticationPlugin`, broken into sections for explanation. 
+To highlight the functionality and power available to plugins, it is best to start with a concrete example of a simple, yet complete one. What follows is an example plugin for user authentication, `SimpleAuthenticationPlugin`, broken into sections for explanation. 
 
-*Note: each class is inside the `SimpleAuthenticationPlugin` module, it's merely omitted here for conciseness.*
+The first thing to do to create a Plugin is to define the plugin's module, and include `Praxis::PluginConcern`:
 
-Define the plugin's module, and include the `Praxis::PluginConcern` module:
 {% highlight ruby %}
 module SimpleAuthenticationPlugin
   include Praxis::PluginConcern
 end
 {% endhighlight %}
 
+*Note: each class in our examples below must live inside the `SimpleAuthenticationPlugin` module. We are merely omitting it here for conciseness.*
 
-The inner `Plugin` class for `SimpleAuthenticationPlugin` is responsible for setting up the plugin's configuration details. We've also thrown in an `authenticate` instance method, because it seemed as good of a place as any.
+Then we'll need an inner `Plugin` class inside our defined `SimpleAuthenticationPlugin` module. This class is responsible for setting up the plugin's configuration details. We can also define any other utility methods that might seem appropriate for the Plugin. For example, we've thrown in an `authenticate` instance method, because it seemed as good of a place as any. 
 
 {% highlight ruby %}
 class Plugin < Praxis::Plugin
@@ -48,9 +49,10 @@ class Plugin < Praxis::Plugin
     :authentication
   end
 
-  # Define the plugin's configuration attribute(s), which in this case
-  # is just a simple boolean for whether to require authentication for actions
+  # Define the structure of the plugin's configuration attribute(s). In this case
+  # it is just a simple boolean for whether to require authentication for actions
   # by default, or only only specific actions.
+  # The `node` parameter is an empty Attributor::Struct to which we'll add attributes
   def prepare_config!(node)
     node.attributes do
       attribute :authentication_default, Attributor::Boolean, default: false,
@@ -67,16 +69,18 @@ class Plugin < Praxis::Plugin
 end
 {% endhighlight %}
 
-The plugin's `Request` module will be included in to `Praxis::Request`. So we add a simple `current_user` method.
+If we define a `Request` module inside the plugin, that will automatically be included in to `Praxis::Request`. So to add a simple `current_user` method to a Praxis `Request` it is enough to define it like this.
+
 {% highlight ruby %}
 module Request
   def current_user
-    'guest'
+    'guest' # hopefully a more sophisticated logic goes here
   end
 end
 {% endhighlight %}
 
-Extensions to `Praxis::Controller` will typically want to register `before`, `after`, or `around` callbacks. Ours is no different:
+Extensions to `Praxis::Controller` are done by including a `Controller` module within the plugin. As in the case above, any code inside the module will be automatically included in `Praxis::Controller`. Controller extensions typically want to register `before`, `after`, or `around` callbacks. The code below shows an example of that, registering a `before :action` block for all controllers:
+
 {% highlight ruby %}
 module Controller
   # extend AS::Concern so that we can use its included callback to easily register our callback in concrete controllers. Note that Praxis::Controller
@@ -99,7 +103,8 @@ module Controller
 end
 {% endhighlight %}
 
-We add a handy `requires_authentication` method to action definitions in the `ActionDefinition` module.
+Our example authentication Plugin needs to allow designers to tag certain actions as requiring an authenticated used. A clean way to achieve that is to provide a new DSL method available within an `ActionDefinition`. We can do that by adding a handy `requires_authentication` method within the `ActionDefinition` module of our plugin. Similarly, we can include a `decorate_docs` hook to the `ActionDefinition` module so that when documents are generated, this plugin has the chance to decorate the output for actions that `:authentication_required` is true.
+
 {% highlight ruby %}
 module ActionDefinition
   # and again, extend AS::Concern. This time so we can use
@@ -131,9 +136,9 @@ end
 
 
 
-## Using a Plugin
+## Enabling a Plugin
 
-In order to use a plugin named `MyPlugin`, you would typically have the following in your `config/environment.rb`:
+In order to use a plugin named `MyPlugin`, you need to invoke the `use` directive of the Praxis bootloader. To do so, you would typically have the following in your `config/environment.rb`:
 
 {% highlight ruby %}
 Praxis::Application.configure do |application|
@@ -142,8 +147,7 @@ end
 {% endhighlight %}
 
 
-
-As outlined above, `MyPlugin` may be either a subclass of `Plugin` *or* a module that includes `PluginConcern`. In the latter case, Praxis will expect there to be a class named `Plugin`, e.g. `MyPlugin::Plugin`.
+As outlined above, `MyPlugin` may be either a subclass of `Plugin` *or* a module that includes `PluginConcern`. In the latter case, Praxis will expect the module that contains a class named `Plugin`, e.g. `MyPlugin::Plugin`.
 
 
 ## Plugin Components
@@ -162,8 +166,10 @@ Praxis processes your `Bootloader#use` invocations while loading environment.rb 
 1. The plugin module's `setup!` method is called. By default, that method will inject any relevant modules into the core Praxis classes, provided that is the first time the method has been called (in the event the plugin is used multiple times in one application).
 2. An instance of that plugin's `Plugin` class is created and saved in the application's set of plugins. Or, if that subclass is a `Singleton`, then its `instance` is retrieved and used instead.
 
-The configuration of the Plugin instance, however, is deferred until a separate `:plugin` stage during [bootstrapping](reference/bootstrapping). Praxis calls your plugin during the `:prepare`, `:load` and `:setup` sub-stages in that order using the following callback methods:
+The configuration of the Plugin instance, however, is deferred until a separate `:plugin` stage during [bootstrapping](reference/bootstrapping). The `:plugin` stage, contains three sub-stages: `:prepare`, `:load` and `:setup`. Praxis will call your Plugins in this particular by order using the following callback methods:
 
-1. `prepare`: `Plugin#prepare_config(node)`, adds the plugin's configuration definition to the provided node from the application's own configuration.
-2. `load`: `Plugin#load_config!`, loads relevant configuration data and returns it. Note that the callback is not responsible for setting anything on the application, that is taken care of by the stage.
-3. `setup`: `Plugin#setup!`, any final initialization necessary before the application's code is loaded.
+1. `prepare`: The prepare phase will invoke the `Plugin#prepare_config!(node)` method. This phase adds the plugin's configuration definition to the provided `node` from the application's own configuration. The `node` parameter is an `Attributor::Struct` which can be enhanced with whatever attribute structure the plugin requires. Typically the code in `prepare_config!` will pass a block to the `node.attributes` method containing a structure of typed attributes. (see authentication example above)
+2. `load`: The load phase is in charge of loading and returning the relevant configuration data (based on the structure defined in the previous phase). This is implemented in the `Plugin#load_config!` method. This callback method is only responsible for returning the loaded configuration data. Praxis will internally take care of validating and saving such data onto the appropriate place in the application. There is a default implementation of this method in the base Plugin class. Such default method will automatically return the contents of the `:config_file` attribute of the plugin, assuming that is `YAML`-parseable. So, for plugins that simply get their configuration through a single `YAML` file, they can setup their `:config_file` variable appropriately and skip implementing the `load_config!` method in the Plugin class. 
+3. `setup`: The last phase is `setup`, and it allows the Plugin to perform any final initialization before the application's code is loaded. This is implemented in the `Plugin#setup!` method. The default implementation of this method is empty.
+
+Note that these phases are invoked for all registered Plugins as a block, one phase after the other. In other words, all registered Plugins will go throught he `prepare` phase first, before they all move to the `load` phase, and finally move onto the `setup` phase.

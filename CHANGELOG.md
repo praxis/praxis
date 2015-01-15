@@ -4,6 +4,7 @@
 
 * The Doc Browser will now not change the menu when refreshing.
 * Fixes an issue where URLs in the doc browser would display JSON.
+* Refactor Praxis Mapper plugin to be more generic.
 
 ## 0.11.1
 

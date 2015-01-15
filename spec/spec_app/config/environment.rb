@@ -20,8 +20,10 @@ Praxis::Application.configure do |application|
   application.bootloader.use AuthorizationPlugin
 
   application.bootloader.use Praxis::Plugins::PraxisMapperPlugin, {
-    db_config: { default: {adapter: 'sqlite', database: ':memory:'} },
-    log_stats: true
+    config_data: {
+      repositories: { default: {adapter: 'sqlite', database: ':memory:'} },
+      log_stats: 'skip'
+    }
   }
 
   # enable "development-mode" options

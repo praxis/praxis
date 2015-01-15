@@ -7,17 +7,23 @@ require 'terminal-table'
 #
 # This plugin provides the following features:
 #   1. Sets up the PraxisMapper::IdentityMap for your application and assigns
-#      it to the Praxis::Application.instance.request.identity_map for access
-#      from your application.
+#      it to the controller's request.identity_map for access from your
+#      application.
 #   2. Connects to your database and dumps a log of database interaction stats
 #      (if enabled via the :log_stats option).
 #
 # This plugin accepts one of the following options:
-#   1. db_config: A Hash containing the configs for the database repositories
-#      queried through praxis-mapper. This parameter is a Hash where a key
-#      is the identifiers for a repository and the value is the options one
+#   1. config_file: A String indicating the path where this plugin's config
+#      file exists.
+#   2. config_data: A Hash of data that is merged into the YAML hash loaded
+#      from config_file.
+#
+# The config_data Hash contains the following keys:
+#   1. repositories: A Hash containing the configs for the database repositories
+#      queried through praxis-mapper. This parameter is a Hash where a key is
+#      the identifier for a repository and the value is the options one
 #      would give to the 'sequel' gem. For example:
-#           db_config: {
+#           repositories: {
 #             default: {
 #               host: 127.0.0.1,
 #               username: root,
@@ -26,15 +32,13 @@ require 'terminal-table'
 #               adapter: mysql2
 #             }
 #           }
-#   2. scope: A Hash containing scopes for the plugin to provide to the
-#      PraxisMapper::IdentityMap created.
-#   3. log_stats: A Boolean flag indicating whether or not to dump DB stats to
-#      the Praxis::Application.instance.logger app log.
-#   4. config_file: A String indicating the path where this plugin's config
-#      file exists.
+#   2. log_stats: A String indicating what kind of DB stats you would like
+#      output into the Praxis::Application.instance.logger app log. Possible
+#      values are: "detailed", "short", and "skip" (i.e. do not print the stats
+#      at all).
 #
 # See http://praxis-framework.io/reference/plugins/ for further details on how
-# to use a plugin.
+# to use a plugin and pass it options.
 #
 module Praxis
   module Plugins
@@ -58,8 +62,10 @@ module Praxis
         def initialize
           @options = {
             config_file: 'config/praxis_mapper.yml',
-            scopes: {},
-            log_stats: false
+            config_data: {
+              repositories: {},
+              log_stats: 'detailed'
+            }
           }
         end
 
@@ -76,11 +82,9 @@ module Praxis
 
         # Make our own custom load_config! method
         def load_config!
-          return unless options.has_key?(:config_file)
           config_file_path = application.root + options[:config_file]
-          return {} unless config_file_path.exist?
-
-          YAML.load_file(config_file_path).merge(repositories: options[:db_config])
+          result = config_file_path.exist? ? YAML.load_file(config_file_path) : {}
+          result.deep_merge(@options[:config_data])
         end
 
         def setup!
@@ -94,15 +98,13 @@ module Praxis
             else
               raise "unsupported repository type: #{type}"
             end
-
           end
 
           Praxis::Notifications.subscribe 'praxis.request.all' do |name, *junk, payload|
             if (identity_map = payload[:request].identity_map)
-              PraxisMapperPlugin::Statistics.log(identity_map) if @options[:log_stats]
+              PraxisMapperPlugin::Statistics.log(identity_map)
             end
           end
-
         end
 
         def setup_sequel_repository(name, settings)
@@ -112,7 +114,6 @@ module Praxis
             repository(name.to_sym) { db }
           end
         end
-
       end
 
       module Request
@@ -195,9 +196,7 @@ module Praxis
         def self.short(identity_map)
           Praxis::Application.instance.logger.info "Praxis::Mapper Statistics: #{identity_map.query_statistics.sum_totals.to_s}"
         end
-
       end
-
     end
   end
 end

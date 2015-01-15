@@ -33,6 +33,8 @@ navigation:
       href:       '/reference/media-types'
     - title:      'Api Definition'
       href:       '/reference/api-definition'
+    - title:      'Application'
+      href:       '/reference/application'
     - title:      'Resource Definitions and Actions'
       href:       '/reference/resource-definitions'
     - title:      'Response Definitions'

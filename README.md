@@ -9,7 +9,7 @@ syntax](http://daringfireball.net/projects/markdown/syntax).
 
 ## Contents
 
-The Praxis Reference Documentation containts the following sections:
+The Praxis Reference Documentation contains the following sections:
 
 - [Getting Started](http://www.praxis-framework.io/getting-started.html)
 - [Reference](http://www.praxis-framework.io/reference/)

@@ -17,7 +17,7 @@ bootstrapping process to easily locate, configure and change any aspect of the
 application code.
 
 To kick-off the bootstrapping process, call the setup method of the
-```Praxis::Application``` singleton and run it through your favorite rack
+`Praxis::Application` singleton and run it through your favorite rack
 server. Here's a simple example of a config.ru file to achieve that:
 
 {% highlight ruby %}

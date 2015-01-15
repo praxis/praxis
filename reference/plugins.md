@@ -9,8 +9,8 @@ Plugins provide a means to cleanly add new functionality to Praxis. This extra f
 
 Here are a few different examples of what plugins can do:
 
-* Adding new DSL directives available when defining resources and actions. For example, an authentication plugin can add a `requires_authentication` directive available to all `ActionDefinitions` to specify that the action requires an authenticated user.
-* Enhancing the `Request` object to carry contextual information. For example, expose a similar authentication plugin could add information about the currently logged-in user through the `Request#current_user` method, which when invoked might even return a fully loaded `User` object.
+* Add DSL directives available when defining resources and actions. For example, an authentication plugin can add a `requires_authentication` directive available to all `ActionDefinitions` to specify that the action requires an authenticated user.
+* Enhance the `Request` object to carry contextual information. For example, expose a similar authentication plugin could add information about the currently logged-in user through the `Request#current_user` method, which when invoked might even return a fully loaded `User` object.
 * Enforce application-wide logic. For example, the same authentication plugin could inject a before :action filter into every existing `Controller` to enforce the authentication checks, or install global middleware or around filters for specific common Controllers.
 * Decorate resulting Praxis docs with attributes defined by the plugin. For example, we might want to include which actions require authentication to the generated documentation.
 
@@ -69,7 +69,7 @@ class Plugin < Praxis::Plugin
 end
 {% endhighlight %}
 
-If we define a `Request` module inside the plugin, that will automatically be included in to `Praxis::Request`. So to add a simple `current_user` method to a Praxis `Request` it is enough to define it like this.
+If we define a `Request` module inside the plugin, it will automatically be included in `Praxis::Request`. So to add a simple `current_user` method to a Praxis `Request` it is enough to define it like this.
 
 {% highlight ruby %}
 module Request
@@ -79,7 +79,7 @@ module Request
 end
 {% endhighlight %}
 
-Extensions to `Praxis::Controller` are done by including a `Controller` module within the plugin. As in the case above, any code inside the module will be automatically included in `Praxis::Controller`. Controller extensions typically want to register `before`, `after`, or `around` callbacks. The code below shows an example of that, registering a `before :action` block for all controllers:
+Extensions to `Praxis::Controller` are done by defining a `Controller` module within the plugin. As in the case above, any code inside the module will be automatically included in `Praxis::Controller`. Controller extensions typically want to register `before`, `after`, or `around` callbacks. The code below shows an example of that, registering a `before :action` block for all controllers:
 
 {% highlight ruby %}
 module Controller

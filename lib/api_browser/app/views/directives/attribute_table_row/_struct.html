@@ -1,2 +1,2 @@
-<ng-include src="'views/directives/attribute_table_row/_default.html'" no-container></ng-include>
-<rs-attribute-table-row ng-repeat="(k,v) in attribute.type.attributes" name="name + '.' + k" attribute="v"></rs-attribute-table-row>
+<tr ng-include="'views/directives/attribute_table_row/_default.html'" no-container></tr>
+<tr rs-attribute-table-row ng-repeat="(k,v) in attribute.type.attributes" name="name + '.' + k" attribute="v"></tr>

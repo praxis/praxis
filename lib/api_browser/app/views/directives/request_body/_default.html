@@ -1,20 +1,18 @@
-<div class="attribute-table">
-  <div class="row head">
-    <div class="col-sm-3">
-      Type
-    </div>
-    <div class="col-sm-9">
-      Type Attributes
-    </div>
-  </div>
-  <div class="content">
-  <div class="row head">
-    <div class="col-sm-3">
-      {{payload.type.name}}
-    </div>
-    <div class="col-sm-9">
-      <rs-attribute-description attribute="{options:{example:payload.example,typeData:payload.type}}"></rs-attribute-description>
-    </div>
-  </div>
-  </div>
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Type Attributes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{payload.type.name}}</td>
+        <td>
+          <rs-attribute-description attribute="{options:{example:payload.example,typeData:payload.type}}"></rs-attribute-description>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>

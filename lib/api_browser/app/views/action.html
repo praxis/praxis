@@ -43,40 +43,36 @@
   <div class="row" ng-if="hasResponses()">
     <div class="col-lg-12">
       <h2>Responses</h2>
-      <div class="attribute-table">
-        <div class="row head">
-          <div class="col-sm-2">
-            Code
-          </div>
-          <div class="col-sm-2">
-            Name
-          </div>
-          <div class="col-sm-4">
-            Media Type
-          </div>
-          <div class="col-sm-4">
-            Description
-          </div>
-        </div>
-        <div class="content">
-          <div class="row" ng-repeat="response in responses">
-            <div class="col-sm-2">
-              <span ng-if="response.isMultipart">
-                <em>Parts Like:</em>
-              </span>
-              <span>{{response.status}}</span>
-            </div>
-            <div class="col-sm-2">
-              {{response.name}}
-            </div>
-            <div class="col-sm-4">
-              {{response.media_type.name || response.media_type.identifier}}
-            </div>
-            <div class="col-sm-4">
-              <rs-attribute-description attribute="response"></rs-attribute-description>
-            </div>
-          </div>
-        </div>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Media Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="response in responses">
+              <td>
+                <span ng-if="response.isMultipart">
+                  <em>Parts Like:</em>
+                </span>
+                <span>{{response.status}}</span>
+              </td>
+              <td>
+                {{response.name}}
+              </td>
+              <td>
+                {{response.media_type.name || response.media_type.identifier}}
+              </td>
+              <td>
+                <rs-attribute-description attribute="response"></rs-attribute-description>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

@@ -9,7 +9,7 @@ describe Praxis::Plugins::PraxisMapperPlugin do
   context 'Plugin' do
     context 'configuration' do
       subject { config }
-      its(:log_stats) { should eq 'skip' }
+      its(:log_stats) { should eq 'detailed' }
 
       its(:repositories) { should have_key("default") }
 
@@ -32,10 +32,20 @@ describe Praxis::Plugins::PraxisMapperPlugin do
 
     let(:session) { double("session", valid?: true)}
 
+    around(:each) do |example|
+      orig_level = Praxis::Application.instance.logger.level
+      Praxis::Application.instance.logger.level = 2
+      example.run
+      Praxis::Application.instance.logger.level = orig_level
+    end
+
     it 'logs stats' do
-      expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:log).with(kind_of(Praxis::Mapper::IdentityMap)).and_call_original
+      expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:log).
+        with(kind_of(Praxis::Mapper::IdentityMap), 'detailed').
+        and_call_original
 
       get '/clouds/1/instances/2?junk=foo&api_version=1.0', nil, 'global_session' => session
+
       expect(last_response.status).to eq(200)
     end
 
@@ -45,24 +55,20 @@ describe Praxis::Plugins::PraxisMapperPlugin do
     context '.log' do
       let(:identity_map) { double('identity_map') }
 
-      after do
-        Praxis::Plugins::PraxisMapperPlugin::Statistics.log(identity_map)
-      end
-
       it 'when log_stats = detailed' do
-        expect(config).to receive(:log_stats).and_return 'detailed'
         expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:detailed).with(identity_map)
+        Praxis::Plugins::PraxisMapperPlugin::Statistics.log(identity_map, 'detailed')
       end
 
-      it 'when log_stats = detailed' do
-        expect(config).to receive(:log_stats).and_return 'short'
+      it 'when log_stats = short' do
         expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:short).with(identity_map)
+        Praxis::Plugins::PraxisMapperPlugin::Statistics.log(identity_map, 'short')
       end
 
       it 'when log_stats = skip' do
-        expect(config).to receive(:log_stats).and_return 'skip'
         expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to_not receive(:short)
         expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to_not receive(:detailed)
+        Praxis::Plugins::PraxisMapperPlugin::Statistics.log(identity_map, 'skip')
       end
 
     end

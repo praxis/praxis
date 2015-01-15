@@ -63,8 +63,7 @@ module Praxis
           @options = {
             config_file: 'config/praxis_mapper.yml',
             config_data: {
-              repositories: {},
-              log_stats: 'detailed'
+              repositories: {}
             }
           }
         end
@@ -84,7 +83,7 @@ module Praxis
         def load_config!
           config_file_path = application.root + options[:config_file]
           result = config_file_path.exist? ? YAML.load_file(config_file_path) : {}
-          result.deep_merge(@options[:config_data])
+          result.merge(@options[:config_data])
         end
 
         def setup!
@@ -100,9 +99,12 @@ module Praxis
             end
           end
 
-          Praxis::Notifications.subscribe 'praxis.request.all' do |name, *junk, payload|
-            if (identity_map = payload[:request].identity_map)
-              PraxisMapperPlugin::Statistics.log(identity_map)
+          log_stats = PraxisMapperPlugin::Plugin.instance.config.log_stats
+          unless log_stats == 'skip'
+            Praxis::Notifications.subscribe 'praxis.request.all' do |name, *junk, payload|
+              if (identity_map = payload[:request].identity_map)
+                PraxisMapperPlugin::Statistics.log(identity_map, log_stats)
+              end
             end
           end
         end
@@ -138,14 +140,15 @@ module Praxis
 
       module Statistics
 
-        def self.log(identity_map)
+        def self.log(identity_map, log_stats)
           return if identity_map.nil?
-          case PraxisMapperPlugin::Plugin.instance.config.log_stats
+          case log_stats
           when 'detailed'
             self.detailed(identity_map)
           when 'short'
             self.short(identity_map)
           when 'skip'
+            # Shouldn't receive this. But anyway...no-op.
           end
         end
 

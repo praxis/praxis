@@ -19,7 +19,11 @@ Praxis::Application.configure do |application|
   application.bootloader.use SimpleAuthenticationPlugin, config_file: 'config/authentication.yml'
   application.bootloader.use AuthorizationPlugin
 
-  application.bootloader.use PraxisMapperPlugin
+  application.bootloader.use Praxis::Plugins::PraxisMapperPlugin, {
+    config_data: {
+      repositories: { default: {adapter: 'sqlite', database: ':memory:'} }
+    }
+  }
 
   # enable "development-mode" options
   application.config.praxis.validate_responses = true

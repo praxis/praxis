@@ -1,6 +1,2 @@
-log_stats: skip
-repositories:
-  default:    
-    #type: sequel # -- default type
-    adapter: sqlite
-    database: ':memory:'
+---
+:log_stats: skip

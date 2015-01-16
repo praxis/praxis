@@ -17,6 +17,10 @@ require 'rspec/collection_matchers'
 
 require 'pry'
 
+Dir["#{File.dirname(__FILE__)}/../lib/praxis/plugins/*.rb"].each do |file|
+  require file
+end
+
 Dir["#{File.dirname(__FILE__)}/support/*.rb"].each do |file|
   require file
 end
@@ -39,6 +43,10 @@ RSpec.configure do |config|
     end
   end
 
+  config.before(:all) do
+    # disable logging below warn level
+    Praxis::Application.instance.logger.level = 2 # warn
+  end
 end
 
 # create the test db schema

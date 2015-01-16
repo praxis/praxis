@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'praxis/plugins/praxis_mapper_plugin.rb'
 
 describe Praxis::Plugins::PraxisMapperPlugin do
 
@@ -9,7 +8,7 @@ describe Praxis::Plugins::PraxisMapperPlugin do
   context 'Plugin' do
     context 'configuration' do
       subject { config }
-      its(:log_stats) { should eq 'detailed' }
+      its(:log_stats) { should eq 'skip' }
 
       its(:repositories) { should have_key("default") }
 
@@ -35,7 +34,9 @@ describe Praxis::Plugins::PraxisMapperPlugin do
     around(:each) do |example|
       orig_level = Praxis::Application.instance.logger.level
       Praxis::Application.instance.logger.level = 2
+      config.log_stats = 'detailed'; plugin.setup!
       example.run
+      config.log_stats = 'skip'; plugin.setup!
       Praxis::Application.instance.logger.level = orig_level
     end
 

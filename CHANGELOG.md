@@ -1,5 +1,9 @@
 # praxis changelog
 
+## 0.11.2
+
+* Update attributor dependency 
+
 ## 0.11.1
 
 * Fix `Stats` plugin to handle empty `args` hashes.

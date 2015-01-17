@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'mime', '~> 0'
   spec.add_dependency 'praxis-mapper', '~> 3.1'
   spec.add_dependency 'praxis-blueprints', '~> 1.1'
-  spec.add_dependency 'attributor', '~> 2.3.0'
+  spec.add_dependency 'attributor', '~> 2.4.0'
   spec.add_dependency 'thor', '~> 0.18'
   spec.add_dependency 'terminal-table', '~> 1.4'
   spec.add_dependency 'harness', '~> 2'

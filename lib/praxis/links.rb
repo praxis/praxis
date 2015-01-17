@@ -34,6 +34,10 @@ module Praxis
       reference.const_set :Links, klass
     end
 
+    def self.constructable?
+      true
+    end
+
     def self.construct(constructor_block, options)
       options[:reference] = @reference
       options[:dsl_compiler_options] = {links: self.links}

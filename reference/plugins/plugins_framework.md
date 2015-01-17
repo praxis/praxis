@@ -39,10 +39,11 @@ class Plugin < Praxis::Plugin
     :authentication
   end
 
-  # Define the structure of the plugin's configuration attribute(s). In this case
-  # it is just a simple boolean for whether to require authentication for actions
-  # by default, or only only specific actions.
-  # The `node` parameter is an empty Attributor::Struct to which we'll add attributes
+  # Define the structure of the plugin's configuration attribute(s). In this
+  # case it is just a simple boolean for whether to require authentication
+  # for actions by default, or only only specific actions.
+  # The `node` parameter is an empty Attributor::Struct to which we'll add
+  # attributes.
   def prepare_config!(node)
     node.attributes do
       attribute :authentication_default, Attributor::Boolean, default: false,
@@ -73,11 +74,12 @@ Extensions to `Praxis::Controller` are done by defining a `Controller` module wi
 
 {% highlight ruby %}
 module Controller
-  # extend AS::Concern so that we can use its included callback to easily register our callback in concrete controllers. Note that Praxis::Controller
-  # also extends AS::Concern.
+  # extend AS::Concern so that we can use its included callback to
+  # easily register our callback in concrete controllers. Note that
+  # Praxis::Controller also extends AS::Concern.
   extend ActiveSupport::Concern
 
-  # and register our before :action in the included callbak
+  # and register our before :action in the included callback
   # from AS::Concern
   included do
     before :action do |controller|
@@ -93,7 +95,7 @@ module Controller
 end
 {% endhighlight %}
 
-Our example authentication Plugin needs to allow designers to tag certain actions as requiring an authenticated used. A clean way to achieve that is to provide a new DSL method available within an `ActionDefinition`. We can do that by adding a handy `requires_authentication` method within the `ActionDefinition` module of our plugin. Similarly, we can include a `decorate_docs` hook to the `ActionDefinition` module so that when documents are generated, this plugin has the chance to decorate the output for actions that `:authentication_required` is true.
+Our example authentication Plugin needs to allow designers to tag certain actions as requiring an authenticated user. A clean way to achieve that is to provide a new DSL method available within an `ActionDefinition`. We can do that by adding a handy `requires_authentication` method within the `ActionDefinition` module of our plugin. Similarly, we can include a `decorate_docs` hook to the `ActionDefinition` module so that when documents are generated, this plugin has the chance to decorate the output for actions that `:authentication_required` is true.
 
 {% highlight ruby %}
 module ActionDefinition
@@ -156,10 +158,10 @@ Praxis processes your `Bootloader#use` invocations while loading environment.rb 
 1. The plugin module's `setup!` method is called. By default, that method will inject any relevant modules into the core Praxis classes, provided that is the first time the method has been called (in the event the plugin is used multiple times in one application).
 2. An instance of that plugin's `Plugin` class is created and saved in the application's set of plugins. Or, if that subclass is a `Singleton`, then its `instance` is retrieved and used instead.
 
-The configuration of the Plugin instance, however, is deferred until a separate `:plugin` stage during [bootstrapping](reference/bootstrapping). The `:plugin` stage, contains three sub-stages: `:prepare`, `:load` and `:setup`. Praxis will call your Plugins in this particular by order using the following callback methods:
+The configuration of the Plugin instance, however, is deferred until a separate `:plugin` stage during [bootstrapping](/reference/bootstrapping). The `:plugin` stage, contains three sub-stages: `:prepare`, `:load` and `:setup`. Praxis will call your Plugins in this particular order by using the following callback methods:
 
 1. `prepare`: The prepare phase will invoke the `Plugin#prepare_config!(node)` method. This phase adds the plugin's configuration definition to the provided `node` from the application's own configuration. The `node` parameter is an `Attributor::Struct` which can be enhanced with whatever attribute structure the plugin requires. Typically the code in `prepare_config!` will pass a block to the `node.attributes` method containing a structure of typed attributes. (see authentication example above)
 2. `load`: The load phase is in charge of loading and returning the relevant configuration data (based on the structure defined in the previous phase). This is implemented in the `Plugin#load_config!` method. This callback method is only responsible for returning the loaded configuration data. Praxis will internally take care of validating and saving such data onto the appropriate place in the application. There is a default implementation of this method in the base Plugin class. Such default method will automatically return the contents of the `:config_file` attribute of the plugin, assuming that is `YAML`-parseable. So, for plugins that simply get their configuration through a single `YAML` file, they can setup their `:config_file` variable appropriately and skip implementing the `load_config!` method in the Plugin class. 
 3. `setup`: The last phase is `setup`, and it allows the Plugin to perform any final initialization before the application's code is loaded. This is implemented in the `Plugin#setup!` method. The default implementation of this method is empty.
 
-Note that these phases are invoked for all registered Plugins as a block, one phase after the other. In other words, all registered Plugins will go throught he `prepare` phase first, before they all move to the `load` phase, and finally move onto the `setup` phase.
+Note that these phases are invoked for all registered Plugins as a block, one phase after the other. In other words, all registered Plugins will go through the `prepare` phase first, before they all move to the `load` phase, and finally move onto the `setup` phase.

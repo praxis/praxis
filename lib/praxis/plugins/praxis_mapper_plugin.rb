@@ -133,7 +133,7 @@ module Praxis
 
         included do
           before :action do |controller|
-            controller.request.identity_map = Praxis::Mapper::IdentityMap.setup!
+            controller.request.identity_map = Praxis::Mapper::IdentityMap.new
           end
         end
       end

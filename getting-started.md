@@ -242,8 +242,8 @@ to all of its actions.  The default prefix for a resource definition is the
 snake-cased name of its class (e.g., ```Posts``` becomes ```/posts``` and
 ```UserComments``` becomes ```/user_comments```). You may specify an
 alternative prefix by calling the ```prefix``` method with the prefix you want
-to use. See the documentation on [ResourceDefinitions and
-Actions](resource-definitions/) for more information.
+to use. See the documentation on [Resource Definitions and
+Actions](/reference/resource-definitions) for more information.
 
 {% highlight ruby %}
 # design/v1/resources/posts.rb

@@ -106,7 +106,7 @@ that your filters around your actions are always going to be successfully execut
 by the time the `:response` stage code is invoked. For example, if there is a `before :action`
 filter that sets the current user into the request object, do not assume that this
 user will be correctly set when the response stage executes, as previous `before :action`
-filter might have sortcut the cycle first.
+filter might have shortcut the cycle first.
 
 ## Hooking Into the Request Life Cycle
 
@@ -184,7 +184,7 @@ Any of the registered callback blocks (or the core stage execution code itself) 
 ```Praxis::Response```-derived object to signal the interruption of the request lifecycle processing. Anything else that the block returns (i.e., nil or any other value) will be ignored and assumed that it signals that the processing should continue.
 
 If a `before` callback returns a response, the system will immediately stop processing any further
-callbacks of any kind, and sortcut the execution to the `:response` stage. This means that (with
+callbacks of any kind, and shortcut the execution to the `:response` stage. This means that (with
 the exception of the `:request` stage):
 
 * no other `before` callbacks in the chain will be executed

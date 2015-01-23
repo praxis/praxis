@@ -9,7 +9,8 @@ unique name and is connected to the other stages in a well-known order.
 
 Praxis allows applications to 'hook into' any of those existing stages through
 `before` and `after` callbacks and provides facilities to create or alter the
-pipeline.
+pipeline. Any stage or its hooks are able to abort the pipeline processing early,
+and shortcut directly to sending a response to the client.
 
 Note: while stages in the request lifecycle might behave similarly to bootstrap
 stages, they perform a different role. Request life cycle stages define the
@@ -18,7 +19,7 @@ the execution order when the application first boots.
 
 Praxis comes out of the box with the following stage pipeline:
 
-![Request Life Cycle Diagram]({{ site.baseurl }}/public/images/praxis_request_life_cycle_diagram.svg)
+![Request Life Cycle Diagram]({{ site.baseurl }}/public/images/praxis_request_life_cycle_diagram.png)
 
 The first of these stages in the pipeline will only be invoked after the routing has 
 been processed for the incoming request, and the appropriate controller and action has 
@@ -53,9 +54,9 @@ loading stage and will:
 
 These two tasks are done for data corresponding to headers, parameters and
 payload. Any errors while loading the data into the right types, or validating
-their integrity will cause Praxis to abort the pipeline and return an error
-response to the end user indicating the exact problem (or problems) that were
-encountered about the incoming data.
+their integrity will cause Praxis to abort the pipeline (by shortcutting to the 
+`:response` stage) and return an error to the end user indicating the exact 
+problem (or problems) that were encountered about the incoming data.
 
 In particular, the Validation stage is composed of two sub-stages.
 
@@ -65,7 +66,7 @@ First, this stage will load the headers and the parameters. If all loaded fine
 they will both be validated in the same order.
 
 Note that separating headers+params from the payload validation makes it
-impossible to have conditional requirements for headers or parameters that
+not possible to have conditional requirements for headers or parameters that
 depend on payload values.
 
 ### Validate payload stage (`:payload`)
@@ -75,7 +76,7 @@ after that.
 
 Note that because the payload is validated after the headers and params, it is
 completely possible to use conditional requirements based on their (loaded)
-values.
+values. That is using the `:required_if` option on payload attributes.
 
 ## Action stage(`:action`)
 
@@ -85,12 +86,27 @@ deliver it to the controller action that will service it.
 The request enters the Action stage at the point when the controller action is
 invoked. This is the stage where the application will do its logic.
 
+
 ## Response Stage (`:response`)
 
-The Response stage is entered when the control returns from the controller
-action. The responsibility of this action is to inspect the returned value
+The Response stage is going to *always* be invoked, even when any of the previous
+pipeline stages have decided to shortcut the cycle. This is done to give the application
+a chance to catch and possibly modify the logic involved in returning the response 
+to the user, even when it is an error response. In the normal, non-error case however, 
+the Response stage is entered when the control returns from the controller action stage.
+
+The responsibility of this action is to inspect the returned value
 (usually a response instance) and perform the necessary steps to unpack it and
 send it back to the client.
+
+
+Note that any of the around, before or after filters in any other stage will immediately
+shortcut the pipeline to this `:response` stage. Therefore, you should never assume 
+that your filters around your actions are always going to be successfully executed
+by the time the `:response` stage code is invoked. For example, if there is a `before :action`
+filter that sets the current user into the request object, do not assume that this
+user will be correctly set when the response stage executes, as previous `before :action`
+filter might have sortcut the cycle first.
 
 ## Hooking Into the Request Life Cycle
 
@@ -152,17 +168,24 @@ since they are subsequent stages. Semantically, however, they are different as a
 `after :validate` callbacks will be executed before any of the `before :action` ones.
 So you should really register the callback based on what stage you depend on, and not on neighboring stages. Otherwise, your code might stop functioning when the pipeline order is changed.
 
+There is, however, an important difference beween an `after :action` callback, and a 
+`before :request` one. That is because the `:request` stage is always invoked regardless of
+errors in the previous stages. Therefore `after :action` will be always skipped on previous stage
+shortcuts, while `before :request` will always be invoked regardless of shortcuts (assuming that no other `before :request` callbacks fail before).
+
 There is currently no mechanism to order the callbacks for a given stage. They will be executed
 in the order that they were registered. Also, there is currently no way to install callbacks around the complete request lifecycle, for example, to install an `around` callback wrapping all of the 
 individual request stages. Both of these mechanisms can be added if the need arises.
+To achieve something similar to a request `around` filter, use the [builtin middleware registration](../application) that the Application provides
 
 ### Shortcutting the request processing
 
-Any of the registered callback blocks can return a ```Praxis::Response```-derived object to signal
-the interruption of the request lifecycle processing. Anything else that the block returns (i.e., nil or any other value) will be ignored and assumed that it signals that the processing should continue.
+Any of the registered callback blocks (or the core stage execution code itself) can return a
+```Praxis::Response```-derived object to signal the interruption of the request lifecycle processing. Anything else that the block returns (i.e., nil or any other value) will be ignored and assumed that it signals that the processing should continue.
 
 If a `before` callback returns a response, the system will immediately stop processing any further
-callbacks of any kind, and send that response to the user. This means that:
+callbacks of any kind, and sortcut the execution to the `:response` stage. This means that (with
+the exception of the `:request` stage):
 
 * no other `before` callbacks in the chain will be executed
 * none of the `around` filters will be executed

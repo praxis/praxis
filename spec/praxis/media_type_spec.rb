@@ -10,6 +10,7 @@ describe Praxis::MediaType do
 
   subject(:address) { Address.new(resource) }
 
+
   context 'attributes' do
     its(:id)    { should eq(1) }
     its(:name)  { should eq('Home') }
@@ -74,23 +75,30 @@ describe Praxis::MediaType do
     end
   end
 
-  context 'with nodoc! option' do
-    subject(:media_type) do
-      Class.new(Praxis::MediaType) do
-        nodoc!
-        attributes do
-          attribute :name, String
+  context 'options' do
+    it 'does not have doc_visiblity set by default' do
+      expect(Address.options).to_not have_key(:doc_visiblity)
+    end
+
+    context 'with nodoc! called' do
+      subject(:media_type) do
+        Class.new(Praxis::MediaType) do
+          nodoc!
+          attributes do
+            attribute :name, String
+          end
         end
       end
+
+      it 'has the :doc_visibility set to :nodoc' do
+        expect(media_type.options[:doc_visibility]).to be(:nodoc)
+      end
+
+
     end
 
-    it 'has the :doc_visibility set' do
-      expect(media_type.options[:doc_visibility]).to be(:nodoc)
+    context 'using blueprint caching' do
+      it 'has specs'
     end
-
-  end
-
-  context 'using blueprint caching' do
-    it 'has specs'
   end
 end

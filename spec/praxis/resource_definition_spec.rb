@@ -12,8 +12,7 @@ describe Praxis::ResourceDefinition do
   its(:routing_config) { should be_kind_of(Proc) }
 
   its(:actions) { should have(2).items }
-
-
+  its(:options) { should_not have_key(:doc_visibility) }
 
   context '.describe' do
     subject(:describe) { resource_definition.describe }
@@ -98,12 +97,12 @@ describe Praxis::ResourceDefinition do
 
   end
 
-  context 'with nodoc! option' do
+  context 'with nodoc! called' do
     before do
       resource_definition.nodoc!      
     end
 
-    it 'has the :doc_visibility set' do
+    it 'has the :doc_visibility option set' do
       expect(resource_definition.options[:doc_visibility]).to be(:nodoc)
     end
 

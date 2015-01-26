@@ -15,6 +15,7 @@ module Praxis
     attr_reader :primary_route
     attr_reader :named_routes
     attr_reader :responses
+    attr_reader :options
 
     class << self
       attr_accessor :doc_decorations      
@@ -30,6 +31,7 @@ module Praxis
       @name = name
       @resource_definition = resource_definition
       @responses = Hash.new
+      @options = Hash.new
 
       if (media_type = resource_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::MediaType
@@ -161,6 +163,11 @@ module Praxis
         end
       end
     end
+
+    def nodoc!
+      options[:doc_visibility] = :nodoc
+    end
+
 
   end
 end

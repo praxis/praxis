@@ -1,5 +1,9 @@
 # praxis changelog
 
+## next
+
+* Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition`, and `MediaType` to hide actions, resources, and media types respectively from the generated documentation.
+
 ## 0.11.2
 
 * The Doc Browser will now not change the menu when refreshing.

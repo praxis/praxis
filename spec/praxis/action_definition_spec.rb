@@ -140,4 +140,16 @@ describe Praxis::ActionDefinition do
     end
 
   end
+
+  context 'with nodoc! option' do
+    before do
+      action.nodoc!      
+    end
+
+    it 'has the :doc_visibility set' do
+      expect(action.options[:doc_visibility]).to be(:nodoc)
+    end
+
+  end
+
 end

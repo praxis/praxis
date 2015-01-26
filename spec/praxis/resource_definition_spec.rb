@@ -97,4 +97,16 @@ describe Praxis::ResourceDefinition do
     end
 
   end
+
+  context 'with nodoc! option' do
+    before do
+      resource_definition.nodoc!      
+    end
+
+    it 'has the :doc_visibility set' do
+      expect(resource_definition.options[:doc_visibility]).to be(:nodoc)
+    end
+
+  end
+
 end

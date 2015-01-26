@@ -12,6 +12,7 @@ module Praxis
       @responses = Hash.new
       @action_defaults = []
       @version_options = {}
+      @options = {}
       Application.instance.resource_definitions << self
     end
 
@@ -20,7 +21,7 @@ module Praxis
       attr_reader :routing_config
       attr_reader :responses
       attr_reader :version_options
-      
+      attr_reader :options
       attr_accessor :controller
 
       # FIXME: this is inconsistent with the rest of the magic DSL convention.
@@ -102,6 +103,10 @@ module Praxis
           raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found")
         end
         self.instance_eval(&ApiDefinition.instance.traits[trait_name])
+      end
+
+      def nodoc!
+        options[:doc_visibility] = :nodoc
       end
 
     end

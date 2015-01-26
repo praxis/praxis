@@ -61,12 +61,10 @@ module Praxis
       members = []
       size = rand(3) + 1
 
-
       size.times do |i|
         subcontext = context + ["at(#{i})"]
         members << @member_attribute.example(subcontext)
       end
-
 
       result.object._members = members
       result

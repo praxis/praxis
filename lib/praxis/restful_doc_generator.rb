@@ -8,12 +8,25 @@ module Praxis
     @inspected_types = Set.new
     API_DOCS_DIRNAME = 'api_docs'
 
-    EXCLUDED_TYPES_FROM_TOP_LEVEL = Set.new( [Attributor::Boolean, Attributor::CSV, Attributor::DateTime, Attributor::Float, Attributor::Hash, Attributor::Ids, Attributor::Integer, Attributor::Object,  Attributor::String ] ).freeze
+    EXCLUDED_TYPES_FROM_TOP_LEVEL = Set.new([
+      Attributor::Boolean, 
+      Attributor::CSV,
+      Attributor::DateTime,
+      Attributor::Float,
+      Attributor::Hash,
+      Attributor::Ids,
+      Attributor::Integer,
+      Attributor::Object,
+      Attributor::String
+    ]).freeze
 
     def self.inspect_attributes(the_type)
 
       reachable = Set.new
       return reachable if the_type.nil? || the_type.is_a?(Praxis::SimpleMediaType)
+
+      # skip types with with visiblity of :nodoc
+      return reachable if the_type.options[:doc_visibility] == :nodoc
 
       # If an attribute comes in, get its type
       the_type = the_type.type if the_type.is_a? Attributor::Attribute
@@ -136,6 +149,9 @@ module Praxis
         resource_description = r.controller_config.describe
         # Go through the params/payload of each action and generate an example for them (then stick it into the description hash)
         r.controller_config.actions.each do |action_name, action|
+          # skip actions set to :nodoc
+          next if action.options[:doc_visibility] == :nodoc
+
           generated_examples = {}
           if action.params
             generated_examples[:params] = dump_example_for( r.id, action.params )

@@ -7,7 +7,7 @@ namespace :praxis do
     generator = Praxis::RestfulDocGenerator.new(Dir.pwd)
   end
 
-  desc "API Documentation Browser"
+  desc "Run API Documentation Browser"
   task :doc_browser, [:port] => :api_docs do |t, args|
     args.with_defaults port: 4567
 

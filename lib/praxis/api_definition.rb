@@ -52,7 +52,7 @@ module Praxis
       api.response_template :created do |location: nil|
         location location
         status 201
-        status 'The request has been fulfilled and resulted in a new resource being created.'
+        description 'The request has been fulfilled and resulted in a new resource being created.'
       end
     end
 

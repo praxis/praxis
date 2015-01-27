@@ -3,6 +3,7 @@
 ## next
 
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition`, and `MediaType` to hide actions, resources, and media types respectively from the generated documentation.
+* Added descriptions to the default HTTP responses.
 
 ## 0.11.2
 

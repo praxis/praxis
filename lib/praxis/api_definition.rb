@@ -46,11 +46,13 @@ module Praxis
       api.response_template :ok do |media_type: |
         media_type media_type
         status 200
+        description 'Standard response for successful HTTP requests.'
       end
 
       api.response_template :created do |location: nil|
         location location
         status 201
+        description 'The request has been fulfilled and resulted in a new resource being created.'
       end
     end
 

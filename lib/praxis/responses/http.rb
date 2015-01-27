@@ -2,34 +2,37 @@ module Praxis
 
   module Responses
 
-    # Standard response for successful HTTP requests. 
-    # The actual response will depend on the request method used. 
-    # In a GET request, the response will contain an entity 
-    # corresponding to the requested resource. 
-    # In a POST request the response will contain an entity 
+    # Descriptions from http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+
+    # Standard response for successful HTTP requests.
+    # The actual response will depend on the request method used.
+    # In a GET request, the response will contain an entity
+    # corresponding to the requested resource.
+    # In a POST request the response will contain an entity
     # describing or containing the result of the action.
     class Ok < Praxis::Response
       self.status = 200
     end
 
-
-    # The request has been fulfilled and resulted in a new resource 
+    # The request has been fulfilled and resulted in a new resource
     # being created.
     class Created < Praxis::Response
       self.status = 201
     end
 
 
-    # The request has been accepted for processing, but the 
-    # processing has not been completed. The request might or might 
-    # not eventually be acted upon, as it might be disallowed when 
+    # The request has been accepted for processing, but the
+    # processing has not been completed. The request might or might
+    # not eventually be acted upon, as it might be disallowed when
     # processing actually takes place.
     class Accepted < Praxis::Response
       self.status = 202
     end
 
 
-    # The server successfully processed the request, but is not returning any content. Usually used as a response to a successful delete request.
+    # The server successfully processed the request, but is not
+    # returning any content. Usually used as a response to
+    # a successful delete request.
     class NoContent < Praxis::Response
       self.status = 204
     end
@@ -101,7 +104,7 @@ module Praxis
     end
 
 
-    # A request was made of a resource using a request method not supported by that resource; for example, using GET on a form which requires data to be presented via POST, or using PUT on a read-only resource.
+    # The requested resource is only capable of generating content not acceptable according to the Accept headers sent in the request.
     class NotAcceptable < Praxis::Response
       self.status = 406
     end
@@ -124,19 +127,95 @@ module Praxis
       self.status = 422
     end
 
-
     ApiDefinition.define do |api|
-      self.constants.each do |class_name|
-        response_class = self.const_get(class_name)
-        response_name = response_class.response_name
-        next if api.responses.key?(response_name)
 
-        api.response_template response_name do
-          status response_class.status
-        end
-
+      api.response_template :accepted do
+        status 202
+        description "The request has been accepted for processing, but the processing has not been completed."
       end
+
+      api.response_template :no_content do
+        status 204
+        description "The server successfully processed the request, but is not returning any content."
+      end
+
+      api.response_template :multiple_choices do
+        status 300
+        description "Indicates multiple options for the resource that the client may follow."
+      end
+
+      api.response_template :moved_permanently do
+        status 301
+        description "This and all future requests should be directed to the given URI."
+      end
+
+      api.response_template :found do
+        status 302
+        description "The requested resource resides temporarily under a different URI."
+      end
+
+      api.response_template :see_other do
+        status 303
+        description "The response to the request can be found under another URI using a GET method"
+      end
+
+      api.response_template :not_modified do
+        status 304
+        description "Indicates that the resource has not been modified since the version specified by the request headers If-Modified-Since or If-Match."
+      end
+
+      api.response_template :temporary_redirect do
+        status 307
+        description "In this case, the request should be repeated with another URI; however, future requests should still use the original URI."
+      end
+
+      api.response_template :bad_request do
+        status 400
+        description "The request cannot be fulfilled due to bad syntax."
+      end
+
+      api.response_template :unauthorized do
+        status 401
+        description "Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided."
+      end
+
+      api.response_template :forbidden do
+        status 403
+        description "The request was a valid request, but the server is refusing to respond to it."
+      end
+
+      api.response_template :not_found do
+        status 404
+        description "The requested resource could not be found but may be available again in the future."
+      end
+
+      api.response_template :method_not_allowed do
+        status 405
+        description "A request was made of a resource using a request method not supported by that resource."
+      end
+
+      api.response_template :not_acceptable do
+        status 406
+        description "The requested resource is only capable of generating content not acceptable according to the Accept headers sent in the request."
+      end
+
+      api.response_template :conflict do
+        status 409
+        description "Indicates that the request could not be processed because of conflict in the request, such as an edit conflict in the case of multiple updates."
+      end
+
+      api.response_template :precondition_failed do
+        status 412
+        description "The server does not meet one of the preconditions that the requester put on the request."
+      end
+
+      api.response_template :unprocessable_entity do
+        status 422
+        description "The request was well-formed but was unable to be followed due to semantic errors."
+      end
+
     end
+
 
   end
 end

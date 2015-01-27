@@ -1,0 +1,323 @@
+{
+  "description": "Description text",
+  "media_type": "V1::MediaTypes::Post",
+  "actions": [
+    {
+      "description": "Lists all existing Posts",
+      "name": "index",
+      "urls": [
+        {
+          "verb": "GET",
+          "path": "/posts",
+          "version": "1.0"
+        }
+      ],
+      "responses": {
+        "ok": {
+          "description": null,
+          "status": 200,
+          "headers": {
+          },
+          "media_type": {
+            "name": "V1::MediaTypes::Post",
+            "key": {
+              "type": {
+                "name": "Symbol"
+              }
+            },
+            "attributes": null
+          }
+        }
+      }
+    },
+    {
+      "description": "Shows an existing Post by id",
+      "name": "show",
+      "urls": [
+        {
+          "verb": "GET",
+          "path": "/posts/:id",
+          "version": "1.0"
+        }
+      ],
+      "params": {
+        "options": {
+          "reference": "V1::MediaTypes::Post"
+        },
+        "type": {
+          "name": "Struct",
+          "key": {
+            "type": {
+              "name": "Symbol"
+            }
+          },
+          "attributes": {
+            "id": {
+              "required": true,
+              "options": {
+                "regexp": "(?-mix:\\d{5})"
+              },
+              "type": {
+                "name": "String"
+              }
+            }
+          }
+        },
+        "example": {
+          "id": "05837"
+        }
+      },
+      "responses": {
+        "ok": {
+          "description": null,
+          "status": 200,
+          "headers": {
+          },
+          "media_type": {
+            "name": "V1::MediaTypes::Post",
+            "key": {
+              "type": {
+                "name": "Symbol"
+              }
+            },
+            "attributes": null
+          }
+        },
+        "not_found": {
+          "description": null,
+          "status": 404,
+          "headers": {
+          }
+        }
+      }
+    },
+    {
+      "description": "Creates a new post for a Blog",
+      "name": "create",
+      "urls": [
+        {
+          "verb": "POST",
+          "path": "/posts",
+          "version": "1.0"
+        },
+        {
+          "verb": "POST",
+          "path": "/blogs/:blog_id/posts",
+          "version": "1.0",
+          "name": "inner"
+        }
+      ],
+      "params": {
+        "options": {
+          "reference": "V1::MediaTypes::Post"
+        },
+        "type": {
+          "name": "Struct",
+          "key": {
+            "type": {
+              "name": "Symbol"
+            }
+          },
+          "attributes": {
+            "blog_id": {
+              "required": false,
+              "type": {
+                "name": "String"
+              }
+            },
+            "the_author": {
+              "required": true,
+              "type": {
+                "name": "Struct",
+                "key": {
+                  "type": {
+                    "name": "Symbol"
+                  }
+                },
+                "attributes": {
+                  "id": {
+                    "required": true,
+                    "type": {
+                      "name": "Integer"
+                    }
+                  },
+                  "nested": {
+                    "required": false,
+                    "type": {
+                      "name": "Struct",
+                      "key": {
+                        "type": {
+                          "name": "Symbol"
+                        }
+                      },
+                      "attributes": {
+                        "foo": {
+                          "type": {
+                            "name": "String"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "prospect": {
+              "options": {
+                "reference": null
+              },
+              "type": {
+                "name": "Struct",
+                "key": {
+                  "type": {
+                    "name": "Symbol"
+                  }
+                },
+                "attributes": {
+                  "email": {
+                    "description": "Prospect's email",
+                    "required": true,
+                    "type": {
+                      "name": "String"
+                    }
+                  },
+                  "phone": {
+                    "description": "Phone Number",
+                    "type": {
+                      "name": "String"
+                    }
+                  },
+                  "name": {
+                    "description": "First and Last Names",
+                    "type": {
+                      "name": "String"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "example": {
+          "blog_id": "pediadontic",
+          "the_author": {
+            "id": 563,
+            "nested": {
+              "foo": "prerupt"
+            }
+          },
+          "prospect": {
+            "email": "unobscured",
+            "phone": "unregimented",
+            "name": "Robbin"
+          }
+        }
+      },
+      "payload": {
+        "options": {
+          "reference": "V1::MediaTypes::Post"
+        },
+        "type": {
+          "name": "V1::MediaTypes::Post",
+          "key": {
+            "type": {
+              "name": "Symbol"
+            }
+          },
+          "attributes": null
+        },
+        "example": {
+          "id": "05837",
+          "href": "/posts/05837",
+          "title": "overbold",
+          "content": "costerdom",
+          "url": "orchioncus",
+          "author": {
+            "id": "64103",
+            "href": "/users/64103",
+            "first": "Ernestina",
+            "last": "Hessel",
+            "links": {
+              "blogs": {
+                "href": "venturousness"
+              },
+              "posts": {
+                "href": "consignatory"
+              }
+            }
+          },
+          "timestamps": {
+            "created_at": "2014-05-22T00:00:00+00:00",
+            "updated_at": "2013-01-23T00:00:00+00:00"
+          },
+          "links": {
+            "blog": {
+              "href": "/blogs/07974"
+            },
+            "author": {
+              "href": "/users/64103"
+            }
+          }
+        }
+      },
+      "responses": {
+        "created": {
+          "description": null,
+          "status": 201,
+          "headers": {
+          },
+          "location": {
+            "value": "/^\\/posts\\/\\w/",
+            "type": "regexp"
+          }
+        }
+      }
+    },
+    {
+      "description": "Deletes a single Post, by id",
+      "name": "delete",
+      "urls": [
+        {
+          "verb": "DELETE",
+          "path": "/posts/:id",
+          "version": "1.0"
+        }
+      ],
+      "params": {
+        "options": {
+          "reference": "V1::MediaTypes::Post"
+        },
+        "type": {
+          "name": "Struct",
+          "key": {
+            "type": {
+              "name": "Symbol"
+            }
+          },
+          "attributes": {
+            "id": {
+              "required": true,
+              "options": {
+                "regexp": "(?-mix:\\d{5})"
+              },
+              "type": {
+                "name": "String"
+              }
+            }
+          }
+        },
+        "example": {
+          "id": "05837"
+        }
+      },
+      "responses": {
+        "no_content": {
+          "description": null,
+          "status": 204,
+          "headers": {
+          }
+        }
+      }
+    }
+  ]
+}

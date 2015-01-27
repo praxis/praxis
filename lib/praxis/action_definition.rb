@@ -217,7 +217,7 @@ module Praxis
 
     def describe(context: nil)
       {}.tap do |hash|
-        hash[:description] = description
+        hash[:description] = description if description
         hash[:name] = name
         hash[:metadata] = metadata
         if headers

@@ -1,0 +1,11 @@
+{
+  "description" : "An attributor struct has properties",
+  "type": "object",
+  "properties" : {
+    "name" : { "type" : "string" },
+    "properties" : {
+      "type" : "object"
+    }
+  },
+  "required" : ["name","properties"]
+}

@@ -1,0 +1,8 @@
+{
+  "description" : "An attributor type is a hash that has NAME, NAMED OPTIONS and any other type-dependent things like 'keys/attributes' (top level)",
+  "type": "object",
+  "properties" : {
+    "name" : { "type" : "string" }    
+  },
+  "required" : ["name"]
+}

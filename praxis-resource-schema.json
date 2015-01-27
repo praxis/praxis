@@ -1,0 +1,23 @@
+{
+    "id": "resource-schema#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "schema for a Praxis resource definition",
+    "type": "object",
+    "required": [ "actions" ],
+    "properties": {
+        "description" : { 
+           "type": "string"
+        },
+        "media_type" : { 
+          "type" : { "$ref": "#/definitions/media_type" }
+        },
+        "actions": {
+            "type": "array",
+            "items": { "$ref": "praxis-action-schema.json#" }
+        }
+    },
+    "additionalProperties": false,
+    "definitions": {
+        "media_type": {}
+    }
+}

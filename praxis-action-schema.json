@@ -1,0 +1,30 @@
+{
+      "description": "schema for a Praxis action definition",
+      "type": "object",
+      "required": [ "name" ],
+      "properties": {
+        "description" : { 
+           "type": "string"
+        },
+        "name" : { 
+           "type": "string"
+        },
+        "urls": {
+            "type": "array",
+            "items": { "$ref": "praxis-route-schema.json#" }
+        },
+        "headers": {
+            "type": { "$ref": "praxis-headers-schema.json#" }
+        },
+        "params": {
+          "$ref": "attributor-attribute-schema.json#" 
+        },
+        "payload": {
+            "type": { "$ref": "praxis-payload-schema.json#" }
+        },
+        "responses": {
+            "type": { "$ref": "#/definitions/response" }
+        }
+      },
+      "additionalProperties": true
+}

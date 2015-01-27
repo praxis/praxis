@@ -38,7 +38,7 @@ describe Praxis::ActionDefinition do
     its('payload.attributes')  { should have_key :inherited }
     its('headers.attributes')  { should have_key "X_REQUESTED_WITH" }
     its('headers.attributes')  { should have_key "Inherited" }
-    its('options') { should_not have_key :doc_visibility }
+    its('metadata') { should_not have_key :doc_visibility }
   end
 
   context '#responses' do
@@ -142,13 +142,17 @@ describe Praxis::ActionDefinition do
 
   end
 
-  context 'with nodoc! option' do
+  context 'with nodoc!' do
     before do
       action.nodoc!      
     end
 
-    it 'has the :doc_visibility set' do
-      expect(action.options[:doc_visibility]).to be(:nodoc)
+    it 'has :doc_visibility set in metadata' do
+      expect(action.metadata[:doc_visibility]).to be(:none)
+    end
+
+    it 'is exposed by describe' do
+      expect(action.describe[:metadata][:doc_visibility]).to be(:none)
     end
 
   end

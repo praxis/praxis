@@ -12,7 +12,7 @@ module Praxis
       @responses = Hash.new
       @action_defaults = []
       @version_options = {}
-      @options = {}
+      @metadata = {}
       Application.instance.resource_definitions << self
     end
 
@@ -21,7 +21,11 @@ module Praxis
       attr_reader :routing_config
       attr_reader :responses
       attr_reader :version_options
-      attr_reader :options
+  
+      # opaque hash of user-defined medata, used to decorate the definition,
+      # and also available in the generated JSON documents
+      attr_reader :metadata
+
       attr_accessor :controller
 
       # FIXME: this is inconsistent with the rest of the magic DSL convention.
@@ -95,6 +99,7 @@ module Praxis
           hash[:description] = description
           hash[:media_type] = media_type.name if media_type
           hash[:actions] = actions.values.map(&:describe)
+          hash[:metadata] = metadata
         end
       end
 
@@ -106,7 +111,7 @@ module Praxis
       end
 
       def nodoc!
-        options[:doc_visibility] = :nodoc
+        metadata[:doc_visibility] = :none
       end
 
     end

@@ -12,7 +12,7 @@ describe Praxis::ResourceDefinition do
   its(:routing_config) { should be_kind_of(Proc) }
 
   its(:actions) { should have(2).items }
-  its(:options) { should_not have_key(:doc_visibility) }
+  its(:metadata) { should_not have_key(:doc_visibility) }
 
   context '.describe' do
     subject(:describe) { resource_definition.describe }
@@ -21,6 +21,7 @@ describe Praxis::ResourceDefinition do
     its([:media_type]) { should eq(resource_definition.media_type.name) }
 
     its([:actions]) { should have(2).items }
+    its([:metadata]) { should be_kind_of(Hash) }
   end
 
   context '.action' do
@@ -103,7 +104,11 @@ describe Praxis::ResourceDefinition do
     end
 
     it 'has the :doc_visibility option set' do
-      expect(resource_definition.options[:doc_visibility]).to be(:nodoc)
+      expect(resource_definition.metadata[:doc_visibility]).to be(:none)
+    end
+
+    it 'is exposed in the describe' do
+      expect(resource_definition.describe[:metadata][:doc_visibility]).to be(:none)
     end
 
   end

@@ -30,14 +30,9 @@ module Praxis
       super(opts.merge(dsl_compiler: MediaType::DSLCompiler), &block)
     end
 
-    def self.nodoc!
-      self.options[:doc_visibility] = :nodoc
-    end
-    
     def links
       self.class::Links.new(@object)
     end
-
 
   end
 

@@ -9,7 +9,7 @@ module Praxis
     API_DOCS_DIRNAME = 'api_docs'
 
     EXCLUDED_TYPES_FROM_TOP_LEVEL = Set.new([
-      Attributor::Boolean, 
+      Attributor::Boolean,
       Attributor::CSV,
       Attributor::DateTime,
       Attributor::Float,
@@ -24,9 +24,6 @@ module Praxis
 
       reachable = Set.new
       return reachable if the_type.nil? || the_type.is_a?(Praxis::SimpleMediaType)
-
-      # skip types with with visiblity of :nodoc
-      return reachable if the_type.options[:doc_visibility] == :nodoc
 
       # If an attribute comes in, get its type
       the_type = the_type.type if the_type.is_a? Attributor::Attribute
@@ -79,6 +76,9 @@ module Praxis
 
         # Collect reachable types from the params and payload definitions
         @controller_config.actions.each do |name, action_config|
+          # skip actions with doc_visibility of :none
+          next if action_config.metadata[:doc_visibility] == :none
+
           add_to_reachable RestfulDocGenerator.inspect_attributes(action_config.params)
           add_to_reachable RestfulDocGenerator.inspect_attributes(action_config.payload)
         end
@@ -124,6 +124,9 @@ module Praxis
 
     def load_resources
       Praxis::Application.instance.resource_definitions.map do |resource|
+        # skip resources with doc_visibility of :none
+        next if resource.metadata[:doc_visibility] == :none
+
         @resources << Resource.new(resource)
       end
 
@@ -142,15 +145,20 @@ module Praxis
 
     def write_resources
       @resources.each do |r|
+
         filename = File.join(@doc_root_dir, r.version, "resources","#{r.id}.json")
         #puts "Dumping #{r.id} to #{filename}"
         base = File.dirname(filename)
         FileUtils.mkdir_p base unless File.exists? base
         resource_description = r.controller_config.describe
+
+        # strip actions with doc_visibility of :none
+        resource_description[:actions].reject! { |a| a[:metadata][:doc_visibility] == :none }
+
         # Go through the params/payload of each action and generate an example for them (then stick it into the description hash)
         r.controller_config.actions.each do |action_name, action|
-          # skip actions set to :nodoc
-          next if action.options[:doc_visibility] == :nodoc
+          # skip actions with doc_visibility of :none
+          next if action.metadata[:doc_visibility] == :none
 
           generated_examples = {}
           if action.params
@@ -238,7 +246,7 @@ module Praxis
         # Discard any mediatypes that we've already seen and processed as controller related
         reportable_types = types - media_types_seen_from_controllers - EXCLUDED_TYPES_FROM_TOP_LEVEL
         #TODO: think about these special cases, is it needed?
-        reportable_types.reject!{|type| type < Praxis::Links || type < Praxis::MediaTypeCollection } 
+        reportable_types.reject!{|type| type < Praxis::Links || type < Praxis::MediaTypeCollection }
 
         reportable_types.each do |type|
           index[version] ||= Hash.new

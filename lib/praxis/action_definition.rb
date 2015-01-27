@@ -15,7 +15,10 @@ module Praxis
     attr_reader :primary_route
     attr_reader :named_routes
     attr_reader :responses
-    attr_reader :options
+
+    # opaque hash of user-defined medata, used to decorate the definition,
+    # and also available in the generated JSON documents
+    attr_reader :metadata
 
     class << self
       attr_accessor :doc_decorations      
@@ -31,7 +34,7 @@ module Praxis
       @name = name
       @resource_definition = resource_definition
       @responses = Hash.new
-      @options = Hash.new
+      @metadata = Hash.new
 
       if (media_type = resource_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::MediaType
@@ -149,6 +152,7 @@ module Praxis
       {}.tap do |hash|
         hash[:description] = description
         hash[:name] = name
+        hash[:metadata] = metadata
         # FIXME: change to :routes along with api browser
         hash[:urls] = routes.collect(&:describe)
         hash[:headers] = headers.describe if headers
@@ -165,7 +169,7 @@ module Praxis
     end
 
     def nodoc!
-      options[:doc_visibility] = :nodoc
+      metadata[:doc_visibility] = :none
     end
 
 

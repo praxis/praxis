@@ -104,6 +104,21 @@ By default the prefix matching for path versions is `"/v(version_string)/"`, but
 
 Overriding these settings whould be rare but there are situations that might be required. For example, to conform to an already published version path, to add additional prefix segments or to allow case insensitive version strings.
 
+## nodoc!
+
+You can mark a resource for exclusion from generated documentation by using the `nodoc!` method:
+
+{% highlight ruby %}
+class Blogs
+  include Praxis::ResourceDefinition
+
+  nodoc!
+end
+{% endhighlight %}
+
+Additionally, the resource's actions and media type (if specified) will not be used when determining which media types should be documented.
+
+
 ## Actions
 
 To define which actions are available for a resource definition, use the
@@ -125,6 +140,9 @@ payload
 headers
 : specific named headers that Praxis should parse and make available to this
   action
+
+nodoc!
+: this action should not be included in documentation, and any payload or parameters it may have should not be used for determining media types to document.
 
 Here is an example of a resource definition with a single `index` action, which
 responds to a `GET /blogs` HTTP request:

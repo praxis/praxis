@@ -4,6 +4,7 @@
 
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.
 * Added descriptions to the default HTTP responses.
+* Replaced Ruport dependency in `praxis:routes` rake task with TerminalTable.
 
 ## 0.11.2
 

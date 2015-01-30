@@ -141,7 +141,7 @@ module Praxis
       module Statistics
 
         def self.log(identity_map, log_stats)
-          return if identity_map.nil?
+          return if identity_map.nil? || identity_map.queries.empty?
           case log_stats
           when 'detailed'
             self.detailed(identity_map)
@@ -187,7 +187,7 @@ module Praxis
           table.align_column(3, :right)
           table.align_column(4, :right)
           table.align_column(5, :right)
-          Praxis::Application.instance.logger.info "Praxis::Mapper Statistics:\n#{table.to_s}"
+          Praxis::Application.instance.logger.debug "Praxis::Mapper Statistics:\n#{table.to_s}"
         end
 
         def self.round_fields_at(values, indices)
@@ -197,7 +197,7 @@ module Praxis
         end
 
         def self.short(identity_map)
-          Praxis::Application.instance.logger.info "Praxis::Mapper Statistics: #{identity_map.query_statistics.sum_totals.to_s}"
+          Praxis::Application.instance.logger.debug "Praxis::Mapper Statistics: #{identity_map.query_statistics.sum_totals.to_s}"
         end
       end
     end

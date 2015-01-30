@@ -42,11 +42,6 @@ RSpec.configure do |config|
       hash[key] = Hash.new
     end
   end
-
-  config.before(:all) do
-    # disable logging below warn level
-    Praxis::Application.instance.logger.level = 2 # warn
-  end
 end
 
 # create the test db schema

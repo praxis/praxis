@@ -32,12 +32,9 @@ describe Praxis::Plugins::PraxisMapperPlugin do
     let(:session) { double("session", valid?: true)}
 
     around(:each) do |example|
-      orig_level = Praxis::Application.instance.logger.level
-      Praxis::Application.instance.logger.level = 2
       config.log_stats = 'detailed'; plugin.setup!
       example.run
       config.log_stats = 'skip'; plugin.setup!
-      Praxis::Application.instance.logger.level = orig_level
     end
 
     it 'logs stats' do
@@ -54,7 +51,7 @@ describe Praxis::Plugins::PraxisMapperPlugin do
 
   context 'Statistics' do
     context '.log' do
-      let(:identity_map) { double('identity_map') }
+      let(:identity_map) { double('identity_map', queries: {query: true} ) }
 
       it 'when log_stats = detailed' do
         expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:detailed).with(identity_map)

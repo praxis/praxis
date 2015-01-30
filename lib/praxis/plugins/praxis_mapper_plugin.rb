@@ -141,7 +141,11 @@ module Praxis
       module Statistics
 
         def self.log(identity_map, log_stats)
-          return if identity_map.nil? || identity_map.queries.empty?
+          return if identity_map.nil?
+          if identity_map.queries.empty?
+            Praxis::Application.instance.logger.debug "Praxis::Mapper Statistics: No database interactions observed."
+            return
+          end
           case log_stats
           when 'detailed'
             self.detailed(identity_map)

@@ -42,6 +42,11 @@ RSpec.configure do |config|
       hash[key] = Hash.new
     end
   end
+
+  config.before(:all) do
+    # disable debug logging (to avoid PraxisMapper plugin logging)
+    Praxis::Application.instance.logger.level = 1 # info
+  end
 end
 
 # create the test db schema

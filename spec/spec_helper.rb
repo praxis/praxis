@@ -44,8 +44,8 @@ RSpec.configure do |config|
   end
 
   config.before(:all) do
-    # disable logging below warn level
-    Praxis::Application.instance.logger.level = 2 # warn
+    # disable debug logging (to avoid PraxisMapper plugin logging)
+    Praxis::Application.instance.logger.level = 1 # info
   end
 end
 

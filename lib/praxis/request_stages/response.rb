@@ -2,11 +2,10 @@ module Praxis
   module RequestStages
 
     class Response < RequestStage
-      WHITELIST_RESPONSES = [:validation_error] 
+      WHITELIST_RESPONSES = [:validation_error]
 
       def execute
         response = controller.response
-
 
         unless action.responses.include?(response.response_name) || WHITELIST_RESPONSES.include?(response.response_name)
           raise Exceptions::InvalidResponse.new(
@@ -21,7 +20,7 @@ module Praxis
         end
       rescue Exceptions::Validation => e
         controller.response = Responses::ValidationError.new(exception: e)
-        retry 
+        retry
       end
 
     end

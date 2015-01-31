@@ -21,62 +21,81 @@ module Praxis
               next unless conditions[:actions].include? action.name
             end
             result = block.call(controller)
-            return result if result && result.kind_of?(Praxis::Response)
+            if result && result.kind_of?(Praxis::Response)
+              controller.response = result
+              return result
+            end
           end
         end
         nil
       end
-      
+
       def run
         setup!
         setup_deferred_callbacks!
-        
+
+        # stage-level callbacks (typically empty) will never shortcut
         execute_callbacks(self.before_callbacks)
-        # Shortcut lifecycle if filters return a response (non-nil but non-response-class response is ignored)
+
         r = execute_controller_callbacks(controller.class.before_callbacks)
+        # Shortcut lifecycle if filters return non-nil value
+        # (which should only be a Response)
         return r if r
 
         result = execute_with_around
-        # Still allow the after callbacks to shortcut it if necessary.
+        # Shortcut lifecycle if filters return a response
+        # (non-nil but non-response-class response is ignored)
+        if result && result.kind_of?(Praxis::Response)
+          controller.response = result
+          return result
+        end
+
         r = execute_controller_callbacks(controller.class.after_callbacks)
-        return r if r 
-        execute_callbacks(self.after_callbacks) 
+        # Shortcut lifecycle if filters return non-nil value
+        # (which should only be a Response)
+        return r if r
+
+        # stage-level callbacks (typically empty) will never shortcut
+        execute_callbacks(self.after_callbacks)
 
         result
       end
 
       def execute_with_around
-          cb = controller.class.around_callbacks[ path ]
-          if cb == nil || cb.empty?
-            execute
-          else
-            inner_proc = proc { execute }
-            
-            applicable = cb.select do |(conditions, handler)| 
-              if conditions.has_key?(:actions)
-                (conditions[:actions].include? action.name) ? true : false
-              else
-                true
-              end
+        cb = controller.class.around_callbacks[ path ]
+        if cb == nil || cb.empty?
+          execute
+        else
+          inner_proc = proc { execute }
+
+          applicable = cb.select do |(conditions, handler)|
+            if conditions.has_key?(:actions)
+              (conditions[:actions].include? action.name) ? true : false
+            else
+              true
             end
-            
-            chain = applicable.reverse.inject(inner_proc) do |blk, (conditions, handler)|
-              if blk
-                proc{ handler.call(controller,blk) }
-              else
-                proc{ handler.call }
-              end
-            end  
-            chain.call
           end
+
+          chain = applicable.reverse.inject(inner_proc) do |blk, (conditions, handler)|
+            if blk
+              proc{ handler.call(controller,blk) }
+            else
+              proc{ handler.call }
+            end
+          end
+          chain.call
+        end
       end
-      
+
       def execute
         raise NotImplementedError, 'Subclass must implement Stage#execute' unless @stages.any?
 
         @stages.each do |stage|
           shortcut = stage.run
-          return shortcut if shortcut && shortcut.kind_of?(Praxis::Response)
+          if shortcut && shortcut.kind_of?(Praxis::Response)
+            controller.response = shortcut
+            return shortcut 
+          end
         end
         nil
       end

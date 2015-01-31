@@ -9,7 +9,7 @@
 * Enhanced several logging aspects of the PraxisMapper plugin:
   * The log-level of the stats is now configurable in the plugin (see the comments [here](https://github.com/rightscale/praxis/blob/master/lib/praxis/plugins/praxis_mapper_plugin.rb) for details)
   * Added a "silence_mapper_stats" attribute in the Request objects so, actions and/or controllers can selectively skip logging stats (for example, health check controllers, etc)
-  * It now logs a compact message (with the same heading) when the identity map has had interactions.
+  * It now logs a compact message (with the same heading) when the identity map has had no interactions.
 
 ## 0.11.2
 

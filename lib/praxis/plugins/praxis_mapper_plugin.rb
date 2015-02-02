@@ -36,6 +36,7 @@ require 'terminal-table'
 #      output into the Praxis::Application.instance.logger app log. Possible
 #      values are: "detailed", "short", and "skip" (i.e. do not print the stats
 #      at all).
+#   3. stats_log_level: the logging level with which the statistics should be logged. 
 #
 # See http://praxis-framework.io/reference/plugins/ for further details on how
 # to use a plugin and pass it options.
@@ -75,6 +76,7 @@ module Praxis
         def prepare_config!(node)
           node.attributes do
             attribute :log_stats, String, values: ['detailed', 'short', 'skip'], default: 'detailed'
+            attribute :stats_log_level, Symbol, values: [:fatal,:error,:warn,:info,:debug], default: :info            
             attribute :repositories, Attributor::Hash.of(key: String, value: RepositoryConfig)
           end
         end
@@ -103,7 +105,7 @@ module Praxis
           unless log_stats == 'skip'
             Praxis::Notifications.subscribe 'praxis.request.all' do |name, *junk, payload|
               if (identity_map = payload[:request].identity_map)
-                PraxisMapperPlugin::Statistics.log(identity_map, log_stats)
+                PraxisMapperPlugin::Statistics.log(payload[:request], identity_map, log_stats)
               end
             end
           end
@@ -126,6 +128,15 @@ module Praxis
         def identity_map=(map)
           @identity_map = map
         end
+        
+        def silence_mapper_stats
+          @silence_mapper_stats
+        end
+
+        def silence_mapper_stats=(value)
+          @silence_mapper_stats = value
+        end
+
       end
 
       module Controller
@@ -140,8 +151,15 @@ module Praxis
 
       module Statistics
 
-        def self.log(identity_map, log_stats)
+        def self.log(request, identity_map, log_stats)
           return if identity_map.nil?
+          return if request.silence_mapper_stats == true
+          if identity_map.queries.empty?
+            self.to_logger "No database interactions observed."
+            return
+          end
+          
+          
           case log_stats
           when 'detailed'
             self.detailed(identity_map)
@@ -187,7 +205,7 @@ module Praxis
           table.align_column(3, :right)
           table.align_column(4, :right)
           table.align_column(5, :right)
-          Praxis::Application.instance.logger.info "Praxis::Mapper Statistics:\n#{table.to_s}"
+          self.to_logger "\n#{table.to_s}"
         end
 
         def self.round_fields_at(values, indices)
@@ -197,7 +215,11 @@ module Praxis
         end
 
         def self.short(identity_map)
-          Praxis::Application.instance.logger.info "Praxis::Mapper Statistics: #{identity_map.query_statistics.sum_totals.to_s}"
+          self.to_logger identity_map.query_statistics.sum_totals.to_s
+        end
+        
+        def self.to_logger(message)
+            Praxis::Application.instance.logger.__send__(Plugin.instance.config.stats_log_level, "Praxis::Mapper Statistics: #{message}")
         end
       end
     end

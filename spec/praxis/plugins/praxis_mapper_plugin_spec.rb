@@ -9,7 +9,7 @@ describe Praxis::Plugins::PraxisMapperPlugin do
     context 'configuration' do
       subject { config }
       its(:log_stats) { should eq 'skip' }
-
+      its(:stats_log_level) { should eq :info }
       its(:repositories) { should have_key("default") }
 
       context 'default repository' do
@@ -23,6 +23,17 @@ describe Praxis::Plugins::PraxisMapperPlugin do
     end
   end
 
+  context 'Request' do
+    
+    it 'should have identity_map accessors' do
+      expect(Praxis::Plugins::PraxisMapperPlugin::Request.instance_methods).to include(:identity_map,:identity_map=)
+    end
+    
+    it 'should have silence_mapper_stats accessors' do
+      expect(Praxis::Plugins::PraxisMapperPlugin::Request.instance_methods)
+            .to include(:silence_mapper_stats,:silence_mapper_stats=)
+    end
+  end
   context 'functional test' do
 
     def app
@@ -42,7 +53,7 @@ describe Praxis::Plugins::PraxisMapperPlugin do
 
     it 'logs stats' do
       expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:log).
-        with(kind_of(Praxis::Mapper::IdentityMap), 'detailed').
+        with(kind_of(Praxis::Request),kind_of(Praxis::Mapper::IdentityMap), 'detailed').
         and_call_original
 
       get '/clouds/1/instances/2?junk=foo&api_version=1.0', nil, 'global_session' => session
@@ -54,24 +65,60 @@ describe Praxis::Plugins::PraxisMapperPlugin do
 
   context 'Statistics' do
     context '.log' do
-      let(:identity_map) { double('identity_map') }
+      let(:queries){ { some: :queries } }
+      let(:identity_map) { double('identity_map', queries: queries) }
+      let(:log_stats){ 'detailed' }
+      let(:request){ double('request', silence_mapper_stats: false ) }
 
-      it 'when log_stats = detailed' do
-        expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:detailed).with(identity_map)
-        Praxis::Plugins::PraxisMapperPlugin::Statistics.log(identity_map, 'detailed')
+      after do
+        Praxis::Plugins::PraxisMapperPlugin::Statistics.log(request, identity_map, log_stats)
       end
 
-      it 'when log_stats = short' do
-        expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:short).with(identity_map)
-        Praxis::Plugins::PraxisMapperPlugin::Statistics.log(identity_map, 'short')
+      context 'when the request silences mapper stats' do
+        let(:request){ double('request', silence_mapper_stats: true ) }
+        it 'should not log anything' do
+          expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to_not receive(:to_logger) 
+        end
       end
-
-      it 'when log_stats = skip' do
-        expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to_not receive(:short)
-        expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to_not receive(:detailed)
-        Praxis::Plugins::PraxisMapperPlugin::Statistics.log(identity_map, 'skip')
+      
+      context 'without the request silencing mapper stats' do
+        context 'when log_stats = detailed' do
+          it 'should call the detailed method' do
+             expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:detailed).with(identity_map) 
+           end
+        end
+      
+        context 'when log_stats = short' do
+          let(:log_stats){ 'short' }
+          it 'should call the short method' do
+             expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:short).with(identity_map) 
+           end
+        end
+      
+        context 'when log_stats = skip' do
+          let(:log_stats){ 'skip' }
+          
+          it 'should not log anything' do
+            expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to_not receive(:to_logger) 
+          end
+        end
+      
+        context 'when there is no identity map' do
+          let(:identity_map) { nil }
+          it 'should not log anything' do
+            expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to_not receive(:to_logger)
+          end        
+        end
+      
+        context 'when no queries are logged in the identity map' do
+          let(:queries){ {} }
+          it 'should log a special message' do
+            expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:to_logger)
+                                                                   .with("No database interactions observed.")
+          end
+        end
+        
       end
-
     end
 
     it 'has specs for testing the detailed log output'

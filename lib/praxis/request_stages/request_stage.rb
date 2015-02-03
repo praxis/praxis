@@ -15,9 +15,9 @@ module Praxis
       end
 
       def execute_controller_callbacks(callbacks)
-        if callbacks.has_key?(path)
+        if callbacks.key?(path)
           callbacks[path].each do |(conditions, block)|
-            if conditions.has_key?(:actions)
+            if conditions.key?(:actions)
               next unless conditions[:actions].include? action.name
             end
             result = block.call(controller)
@@ -27,6 +27,7 @@ module Praxis
             end
           end
         end
+
         nil
       end
 
@@ -86,6 +87,7 @@ module Praxis
           chain.call
         end
       end
+
 
       def execute
         raise NotImplementedError, 'Subclass must implement Stage#execute' unless @stages.any?

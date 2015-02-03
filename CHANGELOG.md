@@ -3,7 +3,9 @@
 ## next
 
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.
-* Added descriptions to the default HTTP responses.
+* Default HTTP responses:
+  * Added descriptions
+  * Added 408 RequestTimeout response
 * Replaced Ruport dependency in `praxis:routes` rake task with TerminalTable.
 * Fixed doc browser issue when attributes defaulting to false wouldn't display the default section.
 * Enhanced several logging aspects of the PraxisMapper plugin:

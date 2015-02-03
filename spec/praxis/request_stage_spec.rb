@@ -2,11 +2,6 @@ require 'spec_helper'
 
 describe Praxis::RequestStages::RequestStage do
 
-  #let(:before_controller_callback) { Proc.new { nil } }
-  #let(:after_controller_callback) { Proc.new { nil } }
-
-  #let(:before_show_controller_callback) { Proc.new { Praxis::Responses::Unauthorized.new } }
-
   let(:controller_class) do
     Class.new do
       include Praxis::Controller
@@ -18,9 +13,8 @@ describe Praxis::RequestStages::RequestStage do
   let(:request) { instance_double("Praxis::Request") }
   let(:controller){ controller_class.new(request) }
 
-  let(:action_name) { :unknown }
 
-  let(:action){ instance_double("Praxis::ActionDefinition", name: action_name) }
+  let(:action){ instance_double("Praxis::ActionDefinition") }
   let(:context){ double("context", controller: controller , action: action) }
 
   let(:substage_1) { instance_double('Praxis::RequestStage') }
@@ -39,24 +33,59 @@ describe Praxis::RequestStages::RequestStage do
     # clear any pre-existing callbacks that may have been added by plugins
     controller_class.before_callbacks = Hash.new
     controller_class.after_callbacks = Hash.new
-
-    #controller_class.before :action, &before_controller_callback
-    #controller_class.after :action, &after_controller_callback
-    #controller_class.before actions: [:show], &before_show_controller_callback
   end
 
   context 'for an abstract stage' do
     subject(:stage) { Praxis::RequestStages::RequestStage.new(:action, context) }
     it 'raises NotImplementedError for undefined #execute' do
-      expect{stage.execute}.to raise_error(NotImplementedError,/Subclass must implement Stage#execute/)
+      expect {
+        stage.execute
+      }.to raise_error(NotImplementedError,/Subclass must implement Stage#execute/)
     end
   end
 
+  context 'execute_controller_callbacks' do
+  end
 
-  context ".run" do
-    after do
-      stage.run
+  context 'execute_with_around' do
+  end
+
+  context "#execute" do
+    before do
+      stage.stages.push(substage_1, substage_2, substage_3)
     end
+
+    context 'when all stages succeed' do
+      it "runs them all and returns nil" do
+        expect(substage_1).to receive(:run).once
+        expect(substage_2).to receive(:run).once
+        expect(substage_3).to receive(:run).once
+        expect(stage.execute).to be(nil)
+      end
+    end
+
+    context 'when one stage returns a Response' do
+      let(:response) { Praxis::Responses::Ok.new }
+      before do
+        expect(substage_1).to receive(:run).once
+        expect(substage_2).to receive(:run).once.and_return(response)
+      end
+
+      it "runs no further stages after that" do
+        expect(substage_3).to_not receive(:run)
+        stage.execute
+      end
+
+      it 'assigns the response to controller.response' do
+        stage.execute
+
+        expect(controller.response).to be(response)
+      end
+
+    end
+  end
+
+  context "#run" do
 
     let(:before_callbacks) { double('before_callbacks') }
     let(:after_callbacks) { double('after_callbacks') }
@@ -64,13 +93,17 @@ describe Praxis::RequestStages::RequestStage do
     let(:controller_before_callbacks) { double('controller_before_callbacks') }
     let(:controller_after_callbacks) { double('controller_after_callbacks') }
 
+    after do
+      stage.run
+    end
+
     context 'callback execution' do
       before do
-        expect(stage).to receive(:before_callbacks).once.and_return(before_callbacks)
-        expect(stage).to receive(:after_callbacks).once.and_return(after_callbacks)
+        allow(stage).to receive(:before_callbacks).once.and_return(before_callbacks)
+        allow(stage).to receive(:after_callbacks).once.and_return(after_callbacks)
 
-        expect(controller_class).to receive(:before_callbacks).once.and_return(controller_before_callbacks)
-        expect(controller_class).to receive(:after_callbacks).once.and_return(controller_after_callbacks)
+        allow(controller_class).to receive(:before_callbacks).once.and_return(controller_before_callbacks)
+        allow(controller_class).to receive(:after_callbacks).once.and_return(controller_after_callbacks)
       end
 
       it "sets up and executes callbacks" do
@@ -87,10 +120,12 @@ describe Praxis::RequestStages::RequestStage do
 
     context 'when the before execute_controller_callbacks return a Response' do
       let(:action_name) { :show }
+      let(:response) { Praxis::Responses::Unauthorized.new }
 
       before do
-        expect(stage).to receive(:execute_controller_callbacks).once.and_return(Praxis::Responses::Unauthorized.new)
+        expect(stage).to receive(:execute_controller_callbacks).once.and_return(response)
       end
+
 
       it 'does not call "execute"' do
         expect(stage).to_not receive(:execute)
@@ -100,6 +135,7 @@ describe Praxis::RequestStages::RequestStage do
         expect(stage).to_not receive(:after_callbacks)
         expect(controller_class).to_not receive(:after_callbacks)
       end
+
     end
 
     context 'with substages' do
@@ -107,45 +143,31 @@ describe Praxis::RequestStages::RequestStage do
         stage.stages.push(substage_1, substage_2, substage_3)
       end
 
+
       context 'when one returns a Response' do
+        let(:response) { Praxis::Responses::Unauthorized.new }
+
         before do
           expect(substage_1).to receive(:run).once
-          expect(substage_2).to receive(:run).once.and_return(Praxis::Responses::Ok.new)
+          expect(substage_2).to receive(:run).once.and_return(response)
+          expect(substage_3).to_not receive(:run)
         end
 
-        it 'runs no after callbacks' do
+        it 'runs no after callbacks (including from the controller) ' do
           expect(stage).to_not receive(:after_callbacks)
           expect(controller_class).to_not receive(:after_callbacks)
         end
+
+        it 'assigns controller.response' do
+          # twice, because we do it once in #execute, and again in #run...
+          expect(controller).to receive(:response=).
+            with(response).twice.and_call_original
+        end
+
       end
     end
   end
 
 
-  context ".execute" do
-    before do
-      stage.stages.push(substage_1, substage_2, substage_3)
-    end
 
-    context 'when all stages succeed' do
-      it "runs them all and returns nil" do
-        expect(substage_1).to receive(:run).once
-        expect(substage_2).to receive(:run).once
-        expect(substage_3).to receive(:run).once
-        expect(stage.execute).to be(nil)
-      end
-    end
-
-    context 'when one stage returns a Response' do
-      before do
-        expect(substage_1).to receive(:run).once
-        expect(substage_2).to receive(:run).once.and_return(Praxis::Responses::Ok.new)
-      end
-
-      it "runs no further stages after that" do
-        expect(substage_3).to_not receive(:run)
-        stage.execute
-      end
-    end
-  end
 end

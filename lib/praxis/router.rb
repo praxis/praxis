@@ -81,7 +81,11 @@ module Praxis
           pretty_versions = attempted_versions.collect(&:inspect).join(', ')
           body += " Available versions = #{pretty_versions}."
         end
-        result = [404, {"Content-Type" => "text/plain", }, [body]] 
+        headers = {"Content-Type" => "text/plain"}
+        if Praxis::Application.instance.config.praxis.x_cascade
+          headers['X-Cascade'] = 'pass'
+        end
+        result = [404, headers, [body]] 
       end
       result
     end

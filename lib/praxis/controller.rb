@@ -4,6 +4,7 @@ require 'active_support/all'
 module Praxis
   module Controller
     extend ::ActiveSupport::Concern
+    
     # A Controller always requires the callbacks
     include Praxis::Callbacks
     
@@ -11,6 +12,7 @@ module Praxis
       attr_reader :request
       attr_accessor :response
     end
+
     module ClassMethods
       def implements(definition)
         define_singleton_method(:definition) do
@@ -27,16 +29,5 @@ module Praxis
       @response = response
     end
 
-#    def request
-#      @request
-#    end
-#
-#    def response
-#      @response
-#    end
-#
-#    def response=(value)
-#      @response = value
-#    end
   end
 end

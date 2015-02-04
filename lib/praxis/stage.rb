@@ -12,7 +12,7 @@ module Praxis
       context
     end
 
-    def initialize(name, context,**opts)
+    def initialize(name, context, **opts)
       @name = name
       @context = context
       @before_callbacks = Array.new

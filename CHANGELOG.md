@@ -15,6 +15,7 @@
 * Added X-Cascade header support
   * Configured with boolean `praxis.x_cascade` that defaults to true.
   * When enabled, Praxis will add an 'X-Cascade: pass' header to the response when the request was not routable to an action. It is not added if the action explicitly returns a `NotFound` response.
+* Fixed bug in request handling where `after` callbacks were being executed, even if the stage returned a response.
 
 ## 0.11.2
 

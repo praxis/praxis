@@ -56,6 +56,11 @@ class Blogs
 end
 {% endhighlight %}
 
+A MediaType in Praxis is often more than just an Internet media-type string.
+It commonly refers to structure or schema with which resource will be displayed.
+This structure is also often associated with an Internet media-type string (i.e., 
+the string is the `name` for the structure schema).
+
 The value you pass to the media_type method must be a:
 
 * Praxis::MediaType-derived class that defines the attributes and views
@@ -99,7 +104,7 @@ Including the `:path` method has an effect to the routing prefixes, and will be 
 
 By default the prefix matching for path versions is `"/v(version_string)/"`, but it can be easily changed by either:
 
-* overriding ``Praxis::Request.path_version_prefix` to return the appropriate string prefix (i.e., by default this returns `"/v"`)
+* overriding `Praxis::Request.path_version_prefix` to return the appropriate string prefix (i.e., by default this returns `"/v"` )
 * or overriding `Praxis::Request.path_version_matcher` and providing the fully-custom matching regexp. This regexp must have a capture (named `version`) that would return matched version value. The system default is: `/^#{Request.path_version_prefix}(?<version>[^\/]+)\//`
 
 Overriding these settings whould be rare but there are situations that might be required. For example, to conform to an already published version path, to add additional prefix segments or to allow case insensitive version strings.
@@ -142,7 +147,9 @@ headers
   action
 
 nodoc!
-: this action should not be included in documentation, and any payload or parameters it may have should not be used for determining media types to document.
+: this action should not be included in documentation. Also any types defined within
+its payload or parameter blocks not appear in the generated documentation (unless
+they are reachable from other resources without the `nodoc!` stanza).
 
 Here is an example of a resource definition with a single `index` action, which
 responds to a `GET /blogs` HTTP request:
@@ -236,9 +243,10 @@ component of the Praxis documentation generator.
 
 #### Params
 
-In Praxis actions, `params` come from both the action path (route) and from the
-query string. In case of name conflicts, parameters in the path always take
-precedence over parameters in the query string.
+In Praxis actions, the `params` stanza is used to describe incoming parameters that can
+be found in both the action path (route) or the query string. In case of name 
+conflicts, parameters in the path always take precedence over parameters in 
+the query string.
 
 You can define the expected structure of URL and query string parameters by
 using the `params` method with a block. Use the standard Attributor::Struct
@@ -267,35 +275,6 @@ like this:
 {% highlight bash %}
 title=Why%20I%20Ditched%20My%20Co-Working%20Space&author[id]=29&author[name]=Rebekah%20Campbell
 {% endhighlight %}
-
-There are situations in which many actions within a resource definition will
-require a common subset of params. Because of that, Praxis allows params
-declarations to cascade from the resource definition to its actions.
-
-{% highlight ruby %}
-class Blogs
-  include Praxis::ResourceDefinition
-
-  params do
-    attribute :title, String
-    attribute :author do
-      attribute :id, Integer
-      attribute :name, String
-    end
-  end
-
-  action :index do
-    routing { get '' }
-  end
-end
-{% endhighlight %}
-
-In the example above, the params block is on the resource definition. This will
-cause the params definition to be propagated to `index` and any other actions
-on this resource definition. Defining the params at resource definition level
-causes all actions inherit them. Praxis merges the `params` definition from
-both the action and resource definition. The action's `params` block takes
-precedence, if there are any conflicts.
 
 #### Payload
 
@@ -331,9 +310,6 @@ validation:
   }
 }
 {% endhighlight %}
-
-The `payload` method applies to both resource definitions and actions, with the
-same rules as apply to `params`.
 
 Note that unlike other frameworks like Rails and Sinatra, Praxis explicitly
 distinguishes payload parameters from URL parameters (path and query string
@@ -391,9 +367,6 @@ Using the simplified `headers` syntax can cover most of your typical definitions
 Hash syntax allows you to mix and match many more options. Which one to use is up to you. They
 both can perfectly coexist at the same time.
 
-The `headers` method applies to both resource definitions and actions, with the
-same rules as apply to `params` and `payload`
-
 
 #### Responses
 
@@ -416,5 +389,57 @@ If the controller for this action can explicitly return any of the common HTTP e
 
 For more information, please see [Responses](../responses/).
 
-The `responses` method applies to both resource definitions and actions, with
-the same rules as apply to `params`, `payload` and `headers`.
+#### Action Defaults
+
+There are often situations where many actions within a resource definition will
+require a common subset of definitions. For example, a common set of URL parameters,
+a common set of Headers, traits or even a common set of allowed responses. 
+
+Praxis allows you to easily define and share common pieces of code across all actions 
+by placing their definitions inside a `action_defaults` block at the resource definition level. 
+Here is an example:
+
+{% highlight ruby %}
+class Blogs
+  include Praxis::ResourceDefinition
+
+  action_defaults do
+    params do
+      attribute :dry_tun, Attributor::Boolean, default: false
+    end
+    response :bad_request
+    use :authenticated
+  end
+
+  action :index do
+    routing { get '' }
+  end
+  action :show do
+    routing { get '/:id' }
+    params do
+      attribute :id, String
+    end
+  end
+
+end
+{% endhighlight %}
+
+The example above, will cause the the `:dry_run` parameter to be propagated and
+defined in all available actions of the `Blogs` resource definition (i.e., both 
+`:index` and `:show` actions will have such a parameter). The same exact
+propagation will happen for the `:bad_request` response and the use of the 
+`:authenticated` trait.
+
+With `action_defaults` you can use `params`, `payload`, `headers`, 
+`response` and `use` stanzas to propagate definitions to all existing actions.
+If there any of those stanzas defined within an action itself Praxis will
+appropriately merge them. Therefore, in this example, the `:show` action will 
+end up with both the `:dry_run` and  the `:id` parameters.
+
+In case of conflict while merging, Praxis will always give overriding preference 
+to definitions found within the action block itself.
+
+NOTE: Currently `action_defaults` does not support sharing `routing` blocks. It 
+is probable, however, that this is supported soon if use cases arise.
+
+

@@ -179,6 +179,36 @@ Specification](http://tools.ietf.org/html/rfc7231#section-4.3) (OPTIONS, GET,
 HEAD, POST, PUT, DELETE, TRACE and CONNECT) plus
 [PATCH](http://tools.ietf.org/html/rfc5789).
 
+Praxis also accepts the 'ANY' verb keyword to indicate that the given route should
+match for any incoming verb string. Routes with concrete HTTP verbs will always
+take precendence against 'ANY' verb routes. For instance, take a loot at the following 
+simplistic and contrived example:
+
+{% highlight ruby %}
+class Blogs
+  include Praxis::ResourceDefinition
+
+  action :index do
+    routing { get '/' }
+    description 'Fetch all blog entries'
+  end
+  action :other do
+    routing { any '/' }
+    description 'Do other stuff with non GET verbs'
+  end
+end
+{% endhighlight %}
+
+In this case an incoming `"GET /"` request will always invoke the `:index` action, 
+while others like `"POST /"` or `"PATCH /"` will always map the the `:other` action. 
+Using the 'ANY' verb is mostly a convenience to avoid repeating several routes with 
+the same exact path for an action that needs to respond to all those verbs in the 
+same manner. There is a subtle difference, however, and that is that using 'ANY'
+will truly accept any incoming HTTP verb string, while listing them in several routes
+will need to match the specific supported names. For example, an 'ANY' route like the
+above will be able to match incoming requests like `"LINK /"` or `"UNLINK /"` (assuming the Web 
+server supports it).
+
 Remember that Praxis prefixes all your resource's routes with a string based
 on the name of your enclosing resource definition class, in this case
 '/blogs'. You can override the prefix for a single action if the

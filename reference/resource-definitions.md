@@ -57,8 +57,8 @@ end
 {% endhighlight %}
 
 A MediaType in Praxis is often more than just an Internet media-type string.
-It commonly refers to structure or schema with which resource will be displayed.
-This structure is also often associated with an Internet media-type string (i.e., 
+It commonly refers to the structure or schema with which a given resource type
+will be displayed. This structure is also often associated with an Internet media-type string (i.e. 
 the string is the `name` for the structure schema).
 
 The value you pass to the media_type method must be a:
@@ -104,7 +104,7 @@ Including the `:path` method has an effect to the routing prefixes, and will be 
 
 By default the prefix matching for path versions is `"/v(version_string)/"`, but it can be easily changed by either:
 
-* overriding `Praxis::Request.path_version_prefix` to return the appropriate string prefix (i.e., by default this returns `"/v"` )
+* overriding `Praxis::Request.path_version_prefix` to return the appropriate string prefix ( by default this returns `"/v"` )
 * or overriding `Praxis::Request.path_version_matcher` and providing the fully-custom matching regexp. This regexp must have a capture (named `version`) that would return matched version value. The system default is: `/^#{Request.path_version_prefix}(?<version>[^\/]+)\//`
 
 Overriding these settings whould be rare but there are situations that might be required. For example, to conform to an already published version path, to add additional prefix segments or to allow case insensitive version strings.
@@ -148,8 +148,7 @@ headers
 
 nodoc!
 : this action should not be included in documentation. Also any types defined within
-its payload or parameter blocks not appear in the generated documentation (unless
-they are reachable from other resources without the `nodoc!` stanza).
+its payload or parameter blocks will not appear in the generated documentation.
 
 Here is an example of a resource definition with a single `index` action, which
 responds to a `GET /blogs` HTTP request:
@@ -188,7 +187,7 @@ HEAD, POST, PUT, DELETE, TRACE and CONNECT) plus
 
 Praxis also accepts the 'ANY' verb keyword to indicate that the given route should
 match for any incoming verb string. Routes with concrete HTTP verbs will always
-take precendence against 'ANY' verb routes. For instance, take a loot at the following 
+take precendence against 'ANY' verb routes. For instance, take a look at the following 
 simplistic and contrived example:
 
 {% highlight ruby %}
@@ -393,10 +392,10 @@ For more information, please see [Responses](../responses/).
 
 There are often situations where many actions within a resource definition will
 require a common subset of definitions. For example, a common set of URL parameters,
-a common set of Headers, traits or even a common set of allowed responses. 
+a common set of headers, traits or even a common set of allowed responses. 
 
 Praxis allows you to easily define and share common pieces of code across all actions 
-by placing their definitions inside a `action_defaults` block at the resource definition level. 
+by placing their definitions inside an `action_defaults` block at the resource definition level. 
 Here is an example:
 
 {% highlight ruby %}
@@ -424,7 +423,7 @@ class Blogs
 end
 {% endhighlight %}
 
-The example above, will cause the the `:dry_run` parameter to be propagated and
+The example above will cause the the `:dry_run` parameter to be propagated and
 defined in all available actions of the `Blogs` resource definition (i.e., both 
 `:index` and `:show` actions will have such a parameter). The same exact
 propagation will happen for the `:bad_request` response and the use of the 
@@ -432,7 +431,7 @@ propagation will happen for the `:bad_request` response and the use of the
 
 With `action_defaults` you can use `params`, `payload`, `headers`, 
 `response` and `use` stanzas to propagate definitions to all existing actions.
-If there any of those stanzas defined within an action itself Praxis will
+If any of those stanzas are defined within an action itself Praxis will
 appropriately merge them. Therefore, in this example, the `:show` action will 
 end up with both the `:dry_run` and  the `:id` parameters.
 
@@ -440,6 +439,6 @@ In case of conflict while merging, Praxis will always give overriding preference
 to definitions found within the action block itself.
 
 NOTE: Currently `action_defaults` does not support sharing `routing` blocks. It 
-is probable, however, that this is supported soon if use cases arise.
+is probable, however, that this will be supported soon if the use case arises.
 
 

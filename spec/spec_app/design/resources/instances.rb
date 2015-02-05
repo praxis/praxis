@@ -130,7 +130,7 @@ module ApiResources
 
     action :terminate do
       routing do
-        post '/:id/terminate'
+        any '/:id/terminate'
       end
       
       requires_ability :terminate

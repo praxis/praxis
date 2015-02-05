@@ -109,6 +109,10 @@ module Praxis
       self.status = 406
     end
 
+    # The server timed out waiting for the request.
+    class RequestTimeout < Praxis::Response
+      self.status = 408
+    end
 
     # Indicates that the request could not be processed because of conflict in the request, such as an edit conflict in the case of multiple updates.
     class Conflict < Praxis::Response
@@ -197,6 +201,11 @@ module Praxis
       api.response_template :not_acceptable do
         status 406
         description "The requested resource is only capable of generating content not acceptable according to the Accept headers sent in the request."
+      end
+
+      api.response_template :request_timeout do
+        status 408
+        description "The server timed out waiting for the request."
       end
 
       api.response_template :conflict do

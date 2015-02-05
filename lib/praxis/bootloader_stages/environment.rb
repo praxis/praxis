@@ -43,6 +43,7 @@ module Praxis
           attribute :praxis do
             attribute :validate_responses, Attributor::Boolean, default: false
             attribute :show_exceptions, Attributor::Boolean, default: false
+            attribute :x_cascade, Attributor::Boolean, default: true
           end
         end
       end

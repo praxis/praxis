@@ -3,13 +3,19 @@
 ## next
 
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.
-* Added descriptions to the default HTTP responses.
+* Default HTTP responses:
+  * Added descriptions
+  * Added 408 RequestTimeout response
 * Replaced Ruport dependency in `praxis:routes` rake task with TerminalTable.
 * Fixed doc browser issue when attributes defaulting to false wouldn't display the default section.
 * Enhanced several logging aspects of the PraxisMapper plugin:
   * The log-level of the stats is now configurable in the plugin (see the comments [here](https://github.com/rightscale/praxis/blob/master/lib/praxis/plugins/praxis_mapper_plugin.rb) for details)
   * Added a "silence_mapper_stats" attribute in the Request objects so, actions and/or controllers can selectively skip logging stats (for example, health check controllers, etc)
   * It now logs a compact message (with the same heading) when the identity map has had no interactions.
+* Added X-Cascade header support
+  * Configured with boolean `praxis.x_cascade` that defaults to true.
+  * When enabled, Praxis will add an 'X-Cascade: pass' header to the response when the request was not routable to an action. It is not added if the action explicitly returns a `NotFound` response.
+* Fixed bug in request handling where `after` callbacks were being executed, even if the stage returned a response.
 
 ## 0.11.2
 

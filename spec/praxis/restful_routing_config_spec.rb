@@ -88,7 +88,7 @@ describe Praxis::Skeletor::RestfulRoutingConfig do
     let(:route_prefix) { nil }
 
     it 'call the add_route with the correct parameters' do
-      helper_verbs = [:get, :put, :post, :delete, :head, :options, :patch ]
+      helper_verbs = [:get, :put, :post, :delete, :head, :options, :patch, :any]
       helper_verbs.each do |verb|
         path = "/path_for_#{verb}"
         options = {option: verb}

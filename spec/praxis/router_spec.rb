@@ -99,22 +99,72 @@ describe Praxis::Router do
   end
 
   context ".call" do
-    let(:env){ {"PATH_INFO"=>"/"} }
+    let(:env){ {"PATH_INFO"=>request_path_info, "REQUEST_METHOD"=>request_verb} }
+    let(:request_verb) { 'POST' }
+    let(:request_path_info) { '/' }
     let(:request_version){ nil }
     let(:request) {Praxis::Request.new(env)}
     let(:router_response){ 1 }
-
+    let(:router_response_for_post){ "POST result" }
+    let(:router_response_for_wildcard){ "* result" }
+    let(:post_target_router){ double("POST target", call: router_response_for_post) }
+    let(:any_target_router){ double("ANY target", call: router_response_for_wildcard) }
     before do
       env['HTTP_X_API_VERSION'] = request_version if request_version
       allow_any_instance_of(Praxis::Router::RequestRouter).
         to receive(:call).with(request).and_return(router_response)
+      router.add_route(double("P"),double("route1", verb: 'POST', path: '/', options: {} , version: request_version))
+      # Hijack the callable block in the routes (since there's no way to point back to the registered route object)
+      router.instance_variable_get( :@routes )['POST'] = post_target_router
+        
     end
 
-    it "calls the route with params request" do
-      expect(router.call(request)).to eq(router_response)
+    context 'for routes without wildcards (a single POST route)' do
+      
+      context 'and an incoming POST request' do
+        it "finds a match and invokes it the route" do
+          expect(router.call(request)).to eq(router_response_for_post)
+        end
+      end
+      context 'and an incoming PUT request' do
+        let(:request_verb) { 'PUT' }      
+        it "does not find a route" do
+          response_code, _ , _ = router.call(request)
+          expect(response_code).to be(404)
+        end
+      end
+    end
+    
+    context 'for routes with wildcards (a POST and a * route)' do
+      before do
+        router.add_route(double("*"),double("route2", verb: 'ANY', path: '/*', options: {} , version: request_version))
+        # Hijack the callable block in the routes (since there's no way to point back to the registered route object)
+        router.instance_variable_get( :@routes )['ANY'] = any_target_router        
+      end
+      
+      context 'and an incoming PUT request' do
+        let(:request_verb) { 'PUT' }      
+        it "it can successfully find a match using the wildcard target" do
+          expect(router.call(request)).to eq(router_response_for_wildcard)
+        end
+      end
+      context 'and an incoming POST request' do
+        it 'matches the most specific POST route, rather than the wildcard'do
+          expect(router.call(request)).to eq(router_response_for_post)
+        end
+      end
+      context 'and an incoming POST request (but that does not match other route conditions)' do
+        let(:router_response_for_post){ :not_found }
+        it 'still matches wildcard verb if that was route conditions-compatible' do
+          expect(post_target_router).to receive(:call).once # try the match cause it's a POST
+          expect(any_target_router).to receive(:call).once  # fallback to wildcard upon a not_found
+          expect(router.call(request)).to eq(router_response_for_wildcard)
+        end
+      end
     end
 
     context "when not_found is returned" do
+      let(:request_verb) { 'DELETE' }      
       let(:router_response){ :not_found }
 
 

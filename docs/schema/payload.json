@@ -1,0 +1,4 @@
+# TODO! we're simply mapping payload to an attributor attribute
+{
+  "type" : "object"
+}

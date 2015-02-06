@@ -1,0 +1,26 @@
+{
+    "id": "media_type-schema#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "schema for a Praxis MediaType definition",
+    "type": "object",
+    "required": [ "actions" ],
+    "properties": {
+        "identifier" : { 
+           "type": "string"
+        },
+        "description" : { 
+           "type": "string"
+        },
+        "media_type" : { 
+          "type" : { "$ref": "#/definitions/media_type" }
+        },
+        "actions": {
+            "type": "array",
+            "items": { "$ref": "action.json#" }
+        }
+    },
+    "additionalProperties": false,
+    "definitions": {
+        "media_type": {}
+    }
+}

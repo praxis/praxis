@@ -71,8 +71,8 @@ namespace :praxis do
   desc "Validate API docs against JSON schema"
   task :validate do
     require 'json-schema'
-    schema_path = 'praxis-resource-schema.json'
-#    doc_path = 'swagger_docs/1.0.0/swagger.json'
+    # Only 1 single resource for now
+    schema_path = 'docs/schema/resource.json'
     doc_path = 'test.json'
 
     schema_reader = JSON::Schema::Reader.new(:accept_uri => false, :accept_file => true)

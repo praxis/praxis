@@ -1,6 +1,6 @@
 {
   "description": "Description text",
-  "media_type": "V1::MediaTypes::Post",
+  "media_type": { "name" : "V1::MediaTypes::Post", "identifier": "some post" },
   "actions": [
     {
       "description": "Lists all existing Posts",

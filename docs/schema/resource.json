@@ -9,15 +9,21 @@
            "type": "string"
         },
         "media_type" : { 
-          "type" : { "$ref": "#/definitions/media_type" }
+          "type" : "object",
+          "properties": {
+            "name" : { 
+               "type": "string"
+            },
+            "identifier" : { 
+               "type": "string"
+            }
+          },
+          "required": [ "name" ]
         },
         "actions": {
             "type": "array",
-            "items": { "$ref": "praxis-action-schema.json#" }
+            "items": { "$ref": "action.json#" }
         }
     },
-    "additionalProperties": false,
-    "definitions": {
-        "media_type": {}
-    }
+    "additionalProperties": false
 }

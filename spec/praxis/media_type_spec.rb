@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe Praxis::MediaType do
-  let(:owner_resource) { double('owner', id: 100, name: /[:name:]/.gen, href: '/') }
-  let(:manager_resource) { double('manager', id: 101, name: /[:name:]/.gen, href: '/') }
+  let(:owner_resource) { instance_double(Person, id: 100, name: /[:name:]/.gen, href: '/', links: ['one','two']) }
+  let(:manager_resource) { instance_double(Person, id: 101, name: /[:name:]/.gen, href: '/', links: []) }
 
   let(:resource) do
     double('address', id: 1, name: 'Home',owner: owner_resource, manager: manager_resource)
@@ -24,11 +24,28 @@ describe Praxis::MediaType do
     end
   end
 
+
+  
   context 'accessor methods' do
     subject(:address_klass) { address.class }
 
     its(:identifier)  { should be_kind_of(String) }
     its(:description) { should be_kind_of(String) }
+    
+    context 'links' do
+      context 'with an custom links attribute' do
+        subject(:person) { Person.new(owner_resource) }
+
+        its(:links)  { should be_kind_of(Array) }
+        its(:links)  { should eq(owner_resource.links) }
+      end
+  
+      context 'using the links DSL' do
+        subject(:address) { Address.new(resource) }
+        its(:links)  { should be_kind_of(Address::Links) }
+      end
+      
+    end
   end
 
   context "rendering" do

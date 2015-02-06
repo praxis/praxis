@@ -18,6 +18,9 @@
 * Fixed bug in request handling where `after` callbacks were being executed, even if the stage returned a response.
 * Added a handy option to tie an action route to match any HTTP verb.
   * Simply use `any` as the verb when you define it (i.e. any '/things/:id' )
+* Allow a MediaType to define a custom `links` attribute like any other.
+  * This is not compatible if it also wants to use the `links` DSL.
+
 
 ## 0.11.2
 

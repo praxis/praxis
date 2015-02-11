@@ -104,9 +104,9 @@ module Praxis
         end
       end
       
-      def name
+      def friendly_name
         # FIXME: is it really about the controller? or the attached resource definition?
-        segments = self.id.split("::")
+        segments = self.name.split("::")
         # FIXME: Crappy hack to derive a friendly name
         if ["Collection","Links"].include? segments.last
           segments[-2] + segments[-1] # concat the last 2
@@ -299,7 +299,7 @@ module Praxis
       end
       
       @resources.each do |r|
-        resources_by_version[r.version]  << { id: r.id,  friendly_name: r.name}
+        resources_by_version[r.version]  << { id: r.id, name: r.name, friendly_name: r.friendly_name}
       end
 
       versioned_types.each do |version, types|
@@ -317,7 +317,7 @@ module Praxis
             segments.last
           end
           
-          types_by_version[version] << { id: type.name,  friendly_name: friendly_name}
+          types_by_version[version] << { id: type.id,  name: type.name, friendly_name: friendly_name}
         end
       end
       ###############################
@@ -334,10 +334,10 @@ module Praxis
       # Add resources and types list
       versioned_types.keys.each do |v|
         infos[v][:resources] = resources_by_version[v].each_with_object({}) do |element,hash|
-          hash[element[:id]] = { friendly_name: element[:friendly_name] }
+          hash[element[:id]] = { name: element[:name], friendly_name: element[:friendly_name] }
         end
-        infos[v][:types] = types_by_version[v].each_with_object({}) do |element,hash|
-          hash[element[:id]] = { friendly_name: element[:friendly_name] }
+        infos[v][:schemas] = types_by_version[v].each_with_object({}) do |element,hash|
+          hash[element[:id]] = {  name: element[:name], friendly_name: element[:friendly_name] }
         end
       end
 

@@ -2,6 +2,8 @@
 
 ## next
 
+## 0.13.0
+
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.
 * Default HTTP responses:
   * Added descriptions

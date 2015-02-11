@@ -21,7 +21,7 @@ module Praxis
       attr_reader :routing_config
       attr_reader :responses
       attr_reader :version_options
-  
+
       # opaque hash of user-defined medata, used to decorate the definition,
       # and also available in the generated JSON documents
       attr_reader :metadata
@@ -53,13 +53,13 @@ module Praxis
 
         @action_defaults << block
       end
-  
+
       def params(type=Attributor::Struct, **opts, &block)
         warn 'DEPRECATION: ResourceDefinition.params is deprecated. Use it in action_defaults instead.'
         action_defaults do
           params type, **opts, &block
         end
-      end      
+      end
 
       def payload(type=Attributor::Struct, **opts, &block)
         warn 'DEPRECATION: ResourceDefinition.payload is deprecated. Use action_defaults instead.'
@@ -74,7 +74,7 @@ module Praxis
           headers **opts, &block
         end
       end
-      
+
       def response(name, **args)
         warn 'DEPRECATION: ResourceDefinition.response is deprecated. Use action_defaults instead.'
         action_defaults do
@@ -92,13 +92,16 @@ module Praxis
         @description
       end
 
-    
+      def id
+        self.name.gsub('::'.freeze,'-'.freeze)
+      end
 
       def describe
         {}.tap do |hash|
           hash[:description] = description
-          hash[:media_type] = media_type.name if media_type
+          hash[:media_type] = media_type.id if media_type
           hash[:actions] = actions.values.map(&:describe)
+          hash[:name] = self.name 
           hash[:metadata] = metadata
         end
       end

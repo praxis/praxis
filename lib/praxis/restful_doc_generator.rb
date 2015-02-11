@@ -88,6 +88,15 @@ module Praxis
       # TODO: I think that the "id"/"name" of a resource should be provided by the definition/controller...not derived here
       def id
         if @controller_config.controller
+          @controller_config.controller.id
+        else
+          # If an API doesn't quite have the controller defined, let's use the name from the resource definition
+          @controller_config.id
+        end
+      end
+
+      def name
+        if @controller_config.controller
           @controller_config.controller.name
         else
           # If an API doesn't quite have the controller defined, let's use the name from the resource definition
@@ -182,7 +191,7 @@ module Praxis
         FileUtils.mkdir_p dirname unless File.exists? dirname
         reportable_types = types - EXCLUDED_TYPES_FROM_TOP_LEVEL
         reportable_types.each do |type|
-          filename = File.join(dirname, "#{type.name}.json")
+          filename = File.join(dirname, "#{type.id}.json")
           #puts "Dumping #{type.name} to #{filename}"
           type_output = type.describe
           example_data = type.example(type.to_s)
@@ -233,12 +242,12 @@ module Praxis
 
       @resources.each do |r|
         index[r.version] ||= Hash.new
-        info = {controller: r.id}
+        info = {controller: r.id, name: r.name}
         if r.media_type
           info[:media_type] = r.media_type.name
           media_types_seen_from_controllers << r.media_type
         end
-        display_name  = r.id.split("::").last
+        display_name  = r.name.split("::").last
         index[r.version][display_name] = info
       end
 

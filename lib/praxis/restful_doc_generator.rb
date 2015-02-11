@@ -103,6 +103,17 @@ module Praxis
           @controller_config.name
         end
       end
+      
+      def name
+        # FIXME: is it really about the controller? or the attached resource definition?
+        segments = self.id.split("::")
+        # FIXME: Crappy hack to derive a friendly name
+        if ["Collection","Links"].include? segments.last
+          segments[-2] + segments[-1] # concat the last 2
+        else
+          segments.last
+        end
+      end
 
       def add_to_reachable( found )
         return if found == nil
@@ -128,6 +139,7 @@ module Praxis
       write_resources
       write_types(types_for)
       write_index(types_for)
+      write_info(types_for)
       write_templates(types_for)
     end
 
@@ -275,6 +287,67 @@ module Praxis
       FileUtils.mkdir_p dirname unless File.exists? dirname
       File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(index))}
     end
+
+    # Writes an "index" type file inside each version, with some higher level information about the API
+    def write_info( versioned_types )
+
+      resources_by_version = Hash.new do |hash, v|
+        hash[v] = Set.new
+      end
+      types_by_version = Hash.new do |hash, v|
+        hash[v] = Set.new
+      end
+      
+      @resources.each do |r|
+        resources_by_version[r.version]  << { id: r.id,  friendly_name: r.name}
+      end
+
+      versioned_types.each do |version, types|
+#        # Discard any mediatypes that we've already seen and processed as controller related
+        reportable_types = types - EXCLUDED_TYPES_FROM_TOP_LEVEL
+#        #TODO: think about these special cases, is it needed?
+#        reportable_types.reject!{|type| type < Praxis::Links || type < Praxis::MediaTypeCollection }
+
+        reportable_types.each do |type|
+          segments = type.name.split("::")
+          # FIXME: Crappy hack to derive a friendly name
+          friendly_name = if ["Collection","Links"].include? segments.last
+            segments[-2] + segments[-1] # concat the last 2
+          else
+            segments.last
+          end
+          
+          types_by_version[version] << { id: type.name,  friendly_name: friendly_name}
+        end
+      end
+      ###############################
+      
+      diff = resources_by_version.keys - types_by_version.keys - versioned_types.keys
+      raise "!!!!!!!! somehow we have a list of different versions from the types vs. resources seen" unless diff.empty?
+      # Make sure we have every existing version in the info list (so they have the chance to inherit)
+      versioned_types.each do |version, types|
+        ApiDefinition.instance.info( version ) do
+        end
+      end
+      infos = ApiDefinition.instance.describe
+      
+      # Add resources and types list
+      versioned_types.keys.each do |v|
+        infos[v][:resources] = resources_by_version[v].each_with_object({}) do |element,hash|
+          hash[element[:id]] = { friendly_name: element[:friendly_name] }
+        end
+        infos[v][:types] = types_by_version[v].each_with_object({}) do |element,hash|
+          hash[element[:id]] = { friendly_name: element[:friendly_name] }
+        end
+      end
+
+      versioned_types.each do |version, types|
+        dirname = File.join(@doc_root_dir, version)
+        filename = File.join(dirname, "version_index.json")
+        File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(infos[version]))}
+      end
+    end
+
 
     def write_templates(versioned_types)
       # Calculate and write top-level (non-versioned) templates

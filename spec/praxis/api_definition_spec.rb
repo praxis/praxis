@@ -2,15 +2,27 @@ require 'spec_helper'
 
 describe Praxis::ApiDefinition do
   
-  Praxis::ApiDefinition.define do |api|
-    api.response_template :template1, &Proc.new {} 
-    api.trait :trait1, &Proc.new {} 
+  subject(:api){  Praxis::ApiDefinition.instance }  
+  
+  # Without getting a fresh new ApiDefinition it is very difficult to test stuff using the Singleton
+  # So for some tests we're gonna create a new instance and work with it to avoid the singleton issues
+  let(:non_singleton_api) do
+    api_def=Praxis::ApiDefinition.__send__(:new)
+    api_def.instance_eval do |api|
+      api.response_template :template1, &Proc.new {} 
+      api.trait :trait1, &Proc.new {} 
+    end
+    api_def
   end
   
-  subject(:api) {Praxis::ApiDefinition.instance}
+  let(:info_block) do
+    Proc.new do
+      name "Name"
+      title "Title"
+    end
+  end 
   
   context 'singleton' do
-    subject(:api){  Praxis::ApiDefinition.instance }  
     it 'should be a Singleton' do
       expect(Praxis::ApiDefinition.ancestors).to include( Singleton )
       expect(subject).to eq(Praxis::ApiDefinition.instance )
@@ -24,6 +36,7 @@ describe Praxis::ApiDefinition do
   
   context '.response_template' do
     let(:response_template){ Proc.new {} }
+    let(:api){ non_singleton_api }
     
     it 'has the defined template1 response_template' do
       expect(api.responses.keys).to include(:template1)
@@ -37,12 +50,16 @@ describe Praxis::ApiDefinition do
   end
   
   context '.response' do
+    let(:api){ non_singleton_api }
+
     it 'returns a registered response by name' do
       expect(api.response(:template1)).to be_kind_of(Praxis::ResponseTemplate)
     end
   end
   
   context '.trait' do
+    let(:api){ non_singleton_api }
+    
     let(:trait2){ Proc.new{} }
     it 'has the defined trait1 ' do
       expect(api.traits.keys).to include(:trait1)
@@ -55,6 +72,7 @@ describe Praxis::ApiDefinition do
     end
     
     it 'complains trying to register traits with same name' do
+      api.trait :trait2, &trait2
       expect{ 
         api.trait :trait2, &trait2
       }.to raise_error(Praxis::Exceptions::InvalidTrait, /Overwriting a previous trait with the same name/)
@@ -62,12 +80,8 @@ describe Praxis::ApiDefinition do
   end
   
   context '.info' do
-    let(:info_block) do
-      Proc.new do
-        name "Name"
-        title "Title"
-      end
-    end 
+    
+    let(:api){ non_singleton_api }
 
     context 'with a version' do
       it 'saves the data into the correct version hash' do
@@ -94,21 +108,52 @@ describe Praxis::ApiDefinition do
   context '.describe' do
     subject(:output){ api.describe }
 
-    its(:keys){ should include("9.0") }  
-
-    context 'for v9.0 info' do
-      subject(:v9_info){ output["9.0"][:info] }
-      
-      it 'has the info it was set in the call' do
-        expect(v9_info).to include({schema_version: "1.0"})
-        expect(v9_info).to include({name: "Name"})
-        expect(v9_info).to include({title: "Title"})
-      end
-      it 'inherited the description from the nil(global) one' do
-        expect(v9_info).to include({description: "Global Description"})
+    context 'using the spec_app definitions' do
+      subject(:version_output){ output["1.0"][:info] }
+      it 'saves the data into the correct version hash' do
+        expect(api.infos.keys).to include(nil)
+        expect(api.infos.keys).to include("1.0")
       end
 
+      it 'outputs data for 1.0 info' do
+        expect(output.keys).to include("1.0")
+        expect(output["1.0"]).to include(:info)
+      end
+      it 'describes 1.0 Api info properly' do
+        info = output["1.0"][:info]
+        expect(info).to include(:schema_version, :name, :title, :description, :base_path)
+        expect(info[:schema_version]).to eq("1.0")
+        expect(info[:name]).to eq("Spec App")
+        expect(info[:title]).to eq("A simple App to do some simple integration testing")
+        expect(info[:description]).to eq("A simple 1.0 App")
+        expect(info[:base_path]).to eq("/")
+      end
     end
-
+    
+    context 'using a non-singleton object' do
+      let(:api){ non_singleton_api }
+            
+      before do
+        api.info("9.0", &info_block)
+        api.info do
+          description "Global Description"
+        end
+      end
+      its(:keys){ should include("9.0") }  
+      
+      context 'for v9.0 info' do
+        subject(:v9_info){ output["9.0"][:info] }
+        
+        it 'has the info it was set in the call' do
+          expect(v9_info).to include({schema_version: "1.0"})
+          expect(v9_info).to include({name: "Name"})
+          expect(v9_info).to include({title: "Title"})
+        end
+        it 'inherited the description from the nil(global) one' do
+          expect(v9_info).to include({description: "Global Description"})
+        end
+      
+      end
+    end
   end
 end

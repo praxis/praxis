@@ -5,7 +5,6 @@ module Praxis
     attr_accessor :route_params, :action
 
     PATH_VERSION_PREFIX = "/v".freeze
-    PATH_VERSION_MATCHER = %r{^#{PATH_VERSION_PREFIX}(?<version>[^\/]+)\/}.freeze
     CONTENT_TYPE_NAME = 'CONTENT_TYPE'.freeze
     PATH_INFO_NAME = 'PATH_INFO'.freeze
     REQUEST_METHOD_NAME = 'REQUEST_METHOD'.freeze
@@ -79,6 +78,8 @@ module Praxis
     def self.path_version_prefix
       PATH_VERSION_PREFIX
     end
+
+    PATH_VERSION_MATCHER = %r{^#{self.path_version_prefix}(?<version>[^\/]+)\/}.freeze
     
     def path_version_matcher
       PATH_VERSION_MATCHER

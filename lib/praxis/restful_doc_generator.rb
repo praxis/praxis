@@ -324,15 +324,16 @@ module Praxis
       
       diff = resources_by_version.keys - types_by_version.keys - versioned_types.keys
       raise "!!!!!!!! somehow we have a list of different versions from the types vs. resources seen" unless diff.empty?
-      # Make sure we have every existing version in the info list (so they have the chance to inherit)
+
+      infos = {}
       versioned_types.each do |version, types|
-        ApiDefinition.instance.info( version ) do
-        end
+        infos[version] = {info:{}}
       end
-      infos = ApiDefinition.instance.describe
+      infos.merge!(ApiDefinition.instance.describe)
       
       # Add resources and types list
       versioned_types.keys.each do |v|
+
         infos[v][:resources] = resources_by_version[v].each_with_object({}) do |element,hash|
           hash[element[:id]] = { name: element[:name], friendly_name: element[:friendly_name] }
         end

@@ -11,7 +11,7 @@ module Praxis
       alias :dispatcher :application # it's technically application in the base Stage
 
       def path
-        [name]
+        @the_path ||= [name].freeze
       end
 
       def execute_controller_callbacks(callbacks)

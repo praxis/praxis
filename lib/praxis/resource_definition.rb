@@ -1,11 +1,11 @@
 require 'active_support/concern'
 require 'active_support/inflector'
 
-
 module Praxis
   module ResourceDefinition
     extend ActiveSupport::Concern
-
+    DEFAULT_RESOURCE_HREF_ACTION = :show
+    
     included do
       @version = 'n/a'.freeze
       @actions = Hash.new
@@ -48,6 +48,36 @@ module Praxis
         @version_options = options
       end
 
+      def canonical_path_action( action_name=nil )
+        if action_name
+          raise "Action '#{@canonical_action_name}' has already been selected as the canonical path for #{self.name}" if @canonical_action_name
+          @canonical_action_name = action_name
+        else
+          unless @canonical_action
+            href_action = @canonical_action_name || DEFAULT_RESOURCE_HREF_ACTION
+            @canonical_action = actions[href_action]
+            raise "Error: trying to set canonical_href of #{self.name}. Action '#{href_action}' does not exist" unless @canonical_action
+          end
+          return @canonical_action
+        end
+      end
+      
+      def to_href( params )
+        canonical_path_action.primary_route.path.expand(params)
+      end
+
+      def parse_href( path )
+        param_values=canonical_path_action.primary_route.path.match(path)
+        attrs=canonical_path_action.params.attributes
+        idx = 0
+        param_values.names.each_with_object({}) do |key,hash|
+          hash[key.to_sym] = attrs[key.to_sym].load(param_values.captures[idx],[key])
+          idx +=1
+        end
+      rescue => e
+        raise Praxis::Exception.new("Error parsing or coercing parameters from href: #{path}\n"+e.message)
+      end
+      
       def action_defaults(&block)
         return @action_defaults unless block_given?
 

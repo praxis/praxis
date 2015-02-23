@@ -74,6 +74,10 @@ module Praxis
       self.instance_eval(&ApiDefinition.instance.traits[trait_name])
     end
 
+    def canonical_path
+      resource_definition.canonical_path_action self.name
+    end
+    
     def params(type=Attributor::Struct, **opts, &block)
       return @params if !block && type == Attributor::Struct
 

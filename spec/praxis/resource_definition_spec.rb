@@ -113,4 +113,56 @@ describe Praxis::ResourceDefinition do
 
   end
 
+  context '#canonical_path_action' do
+    context 'setting the action' do
+      it 'reads the specified action' do
+        expect(subject.canonical_path_action).to eq(subject.actions[:show])
+      end
+      it 'cannot be done if already been defined' do
+        expect{
+          resource_definition.canonical_path_action :reset
+        }.to raise_error(/Action 'show' has already been selected/)
+      end
+    end  
+    context 'if none specified' do
+      subject(:resource_definition) do
+        Class.new do
+          include Praxis::ResourceDefinition
+          action :show do
+          end
+        end
+      end
+      it 'defaults to the :show action' do
+        expect(subject.canonical_path_action).to eq(subject.actions[:show])        
+      end
+    end
+    context 'with an undefined action' do
+      subject(:resource_definition) do
+        Class.new do
+          include Praxis::ResourceDefinition
+          canonical_path_action :non_existent
+        end
+      end
+      it 'raises an error' do
+        expect{
+          subject.canonical_path_action
+        }.to raise_error(/Action 'non_existent' does not exist/)
+      end
+    end
+  end
+
+  context '#to_href' do
+    it 'accesses the path expansion functions of the primary route' do
+      expect(subject.to_href( id: 1)).to eq("/people/1")
+    end
+  end
+  context '#parse_href' do
+    let(:parsed){ resource_definition.parse_href("/people/1") }
+    it 'accesses the path expansion functions of the primary route' do
+      expect(parsed).to have_key(:id)
+    end
+    it 'coerces the types as specified in the resource definition' do
+      expect(parsed[:id]).to be_kind_of(Integer)
+    end
+  end
 end

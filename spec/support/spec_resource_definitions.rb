@@ -9,6 +9,8 @@ class PeopleResource
 
   version '1.0'
 
+  canonical_path_action :show
+
   routing do
     prefix "/people"
   end

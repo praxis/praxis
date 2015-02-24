@@ -81,6 +81,10 @@ module Praxis
 
           add_to_reachable RestfulDocGenerator.inspect_attributes(action_config.params)
           add_to_reachable RestfulDocGenerator.inspect_attributes(action_config.payload)
+
+          action_config.responses.values.each do |response|
+            add_to_reachable RestfulDocGenerator.inspect_attributes(response.media_type)
+          end
         end
 
       end

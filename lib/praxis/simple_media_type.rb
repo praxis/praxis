@@ -5,6 +5,10 @@ module Praxis
       self.class.name
     end
     
+    def id
+      self.class.name.gsub("::",'-')
+    end
+
     def ===(other_thing)
       case other_thing
       when String

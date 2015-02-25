@@ -28,6 +28,7 @@ end
 module Praxis
 
   autoload :ActionDefinition, 'praxis/action_definition'
+  autoload :ApiGeneralInfo, 'praxis/api_general_info'
   autoload :ApiDefinition, 'praxis/api_definition'
   autoload :Application, 'praxis/application'
   autoload :Bootloader, 'praxis/bootloader'

@@ -22,6 +22,14 @@
   * Simply use `any` as the verb when you define it (i.e. any '/things/:id' )
 * Allow a MediaType to define a custom `links` attribute like any other.
   * This is not compatible if it also wants to use the `links` DSL.
+* First pass at describing (and doc-generating) API global information
+  * Inside a `Praxis::ApiDefinition.define` block one can now specify a few things about the API by using:
+    * info("1.0") `<block>` - Which will apply to a particular version only
+    * info `<block>` - Which will be inherited by any existing API version
+    * The current pieces of information that can be defined in the block are: `name`, `title`, `description` and `basepath`. See [this](https://github.com/rightscale/praxis/blob/master/spec/spec_app/design/api.rb) for details
+  * NOTE: This information is output to the JSON files, BUT not used in the doc browser yet.
+* Changed the doc generation and browser to use "ids" instead of "names" for routes and generated files.
+  * Currently, "ids" are generated using dashes instead of double colons (instead of random ids). This closes issue #31.
 
 
 ## 0.11.2

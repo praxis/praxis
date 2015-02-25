@@ -54,7 +54,7 @@ module Praxis
     def describe
       global_info = @infos[nil].describe
       data = Hash.new do |hash, version|
-          hash[version] = Hash.new
+        hash[version] = Hash.new
       end
       # Fill in the "info" portion
       @infos.each do |version,info|

@@ -27,7 +27,7 @@ Praxis::ApiDefinition.define do
   info do # applies to all API infos
     name "Spec App"
     title "A simple App to do some simple integration testing"
-    description "This example API should really be replaced by a set of more ful-fledged example apps in the future"
+    description "This example API should really be replaced by a set of more full-fledged example apps in the future"
   end
   
   info("1.0") do # Applies to 1.0 version (and inherits everything else form the global one)

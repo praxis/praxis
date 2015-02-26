@@ -453,7 +453,9 @@ class Blogs
 end
 {% endhighlight %}
 
-With a canonical href defined, you can then both generate and parse hrefs for resource by using:
+If no `canonical_path` has been specified, Praxis will use the `:show` action by default.
+
+You can then both generate and parse hrefs for resource by using:
 
   * `ResourceDefinition.to_href(<named arguments hash>)` to generate an href for the resource.
   * `ResourceDefinition.parse_href(<href String>)` to get a type-coerced hash of the parameters for the canonical action from the given string.

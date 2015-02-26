@@ -22,7 +22,6 @@ describe Praxis::ActionDefinition do
 
   subject(:action) do
     Praxis::ActionDefinition.new('foo', resource_definition) do
-      canonical_path
       routing { get '/:one' }
       payload { attribute :two, String }
       headers { header "X_REQUESTED_WITH", 'XMLHttpRequest' }
@@ -156,14 +155,5 @@ describe Praxis::ActionDefinition do
       expect(action.describe[:metadata][:doc_visibility]).to be(:none)
     end
 
-  end
-
-  context '#canonical_path' do
-    it 'will notify its parent resource_definition with its action name' do
-      expect(action.resource_definition).to receive(:canonical_path_action).with(:other_action)
-      Praxis::ActionDefinition.new(:other_action, resource_definition) do
-        canonical_path
-      end
-    end
   end
 end

@@ -48,11 +48,13 @@ module Praxis
         @version_options = options
       end
 
-      def canonical_path_action( action_name=nil )
+      def canonical_path( action_name=nil )
         if action_name
-          raise "Action '#{@canonical_action_name}' has already been selected as the canonical path for #{self.name}" if @canonical_action_name
+          raise "Canonical path for #{self.name} is already defined as: '#{@canonical_action_name}'. 'canonical_path' can only be defined once." if @canonical_action_name
           @canonical_action_name = action_name
         else
+          # Resolution of the actual action definition needs to be done lazily, since we can use the `canonical_path` stanza
+          # at the top of the resource, well before the actual action is defined.
           unless @canonical_action
             href_action = @canonical_action_name || DEFAULT_RESOURCE_HREF_ACTION
             @canonical_action = actions.fetch(href_action) do
@@ -64,12 +66,12 @@ module Praxis
       end
       
       def to_href( params )
-        canonical_path_action.primary_route.path.expand(params)
+        canonical_path.primary_route.path.expand(params)
       end
 
       def parse_href(path)
-        param_values = canonical_path_action.primary_route.path.params(path)
-        attrs = canonical_path_action.params.attributes
+        param_values = canonical_path.primary_route.path.params(path)
+        attrs = canonical_path.params.attributes
         param_values.each_with_object({}) do |(key,value),hash|
           hash[key.to_sym] = attrs[key.to_sym].load(value,[key])
         end

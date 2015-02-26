@@ -5,8 +5,9 @@ module ApiResources
     media_type Instance
     version '1.0'
     
-    # The canonical path for the resource can also be defined here, instead of in the action itself:
-    # canonical_path_action :show
+    # :show action is the canonical path for this resource.
+    # Note that the following is redundant, since :show is the default canonical path if none is defined.
+    canonical_path :show
     
     routing do
       prefix '/clouds/:cloud_id/instances'
@@ -41,7 +42,6 @@ module ApiResources
     end
 
     action :show do
-      canonical_path
       routing do
         get '/:id'
         get '/something/:id', name: :alternate

@@ -113,15 +113,15 @@ describe Praxis::ResourceDefinition do
 
   end
 
-  context '#canonical_path_action' do
+  context '#canonical_path' do
     context 'setting the action' do
       it 'reads the specified action' do
-        expect(subject.canonical_path_action).to eq(subject.actions[:show])
+        expect(subject.canonical_path).to eq(subject.actions[:show])
       end
       it 'cannot be done if already been defined' do
         expect{
-          resource_definition.canonical_path_action :reset
-        }.to raise_error(/Action 'show' has already been selected/)
+          resource_definition.canonical_path :reset
+        }.to raise_error(/'canonical_path' can only be defined once./)
       end
     end  
     context 'if none specified' do
@@ -133,19 +133,19 @@ describe Praxis::ResourceDefinition do
         end
       end
       it 'defaults to the :show action' do
-        expect(subject.canonical_path_action).to eq(subject.actions[:show])        
+        expect(subject.canonical_path).to eq(subject.actions[:show])        
       end
     end
     context 'with an undefined action' do
       subject(:resource_definition) do
         Class.new do
           include Praxis::ResourceDefinition
-          canonical_path_action :non_existent
+          canonical_path :non_existent
         end
       end
       it 'raises an error' do
         expect{
-          subject.canonical_path_action
+          subject.canonical_path
         }.to raise_error(/Action 'non_existent' does not exist/)
       end
     end

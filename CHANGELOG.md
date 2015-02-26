@@ -12,8 +12,7 @@
   * Currently, "ids" are generated using dashes instead of double colons (instead of random ids). This closes issue #31.
 * Added the definition and handling of canonical urls for API resources
   * One can now specify which action URL should be considered as the canonical resource href:
-    * by using `canonical_path_action <action_name>` at the top of the resource definition class
-    * or by using `canonical_path` within the action definition itself.
+    * by using `canonical_path <action_name>` at the top of the resource definition class
     * See the [instances](https://github.com/rightscale/praxis/blob/master/spec/spec_app/design/resources/instances.rb) resource definition for an example.
   * With a canonical href defined, one can then both generate and parse them by using:
     * `.to_href(<named arguments hash>)  =>  <href String>`

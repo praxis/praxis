@@ -21,7 +21,7 @@ describe Praxis::ActionDefinition do
   end
 
   subject(:action) do
-    Praxis::ActionDefinition.new('foo', resource_definition) do
+    Praxis::ActionDefinition.new(:foo, resource_definition) do
       routing { get '/:one' }
       payload { attribute :two, String }
       headers { header "X_REQUESTED_WITH", 'XMLHttpRequest' }
@@ -30,7 +30,7 @@ describe Praxis::ActionDefinition do
   end
 
   context '#initialize' do
-    its('name')                { should eq 'foo' }
+    its('name')                { should eq :foo }
     its('resource_definition') { should be resource_definition }
     its('params.attributes')   { should have_key :one }
     its('params.attributes')   { should have_key :inherited }
@@ -156,5 +156,4 @@ describe Praxis::ActionDefinition do
     end
 
   end
-
 end

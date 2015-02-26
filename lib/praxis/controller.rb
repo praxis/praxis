@@ -33,5 +33,8 @@ module Praxis
       @response = response
     end
 
+    def definition
+      self.class.definition
+    end
   end
 end

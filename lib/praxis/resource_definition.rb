@@ -55,8 +55,9 @@ module Praxis
         else
           unless @canonical_action
             href_action = @canonical_action_name || DEFAULT_RESOURCE_HREF_ACTION
-            @canonical_action = actions[href_action]
-            raise "Error: trying to set canonical_href of #{self.name}. Action '#{href_action}' does not exist" unless @canonical_action
+            @canonical_action = actions.fetch(href_action) do
+              raise "Error: trying to set canonical_href of #{self.name}. Action '#{href_action}' does not exist"
+            end
           end
           return @canonical_action
         end
@@ -66,13 +67,11 @@ module Praxis
         canonical_path_action.primary_route.path.expand(params)
       end
 
-      def parse_href( path )
-        param_values=canonical_path_action.primary_route.path.match(path)
-        attrs=canonical_path_action.params.attributes
-        idx = 0
-        param_values.names.each_with_object({}) do |key,hash|
-          hash[key.to_sym] = attrs[key.to_sym].load(param_values.captures[idx],[key])
-          idx +=1
+      def parse_href(path)
+        param_values = canonical_path_action.primary_route.path.params(path)
+        attrs = canonical_path_action.params.attributes
+        param_values.each_with_object({}) do |(key,value),hash|
+          hash[key.to_sym] = attrs[key.to_sym].load(value,[key])
         end
       rescue => e
         raise Praxis::Exception.new("Error parsing or coercing parameters from href: #{path}\n"+e.message)

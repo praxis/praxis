@@ -11,7 +11,7 @@
 * Changed the doc generation and browser to use "ids" instead of "names" for routes and generated files.
   * Currently, "ids" are generated using dashes instead of double colons (instead of random ids). This closes issue #31.
 * Added the definition and handling of canonical urls for API resources
-  * One can now specify which action URL to be considered as the canonical resource href:
+  * One can now specify which action URL should be considered as the canonical resource href:
     * by using `canonical_path_action <action_name>` at the top of the resource definition class
     * or by using `canonical_path` within the action definition itself.
     * See the [instances](https://github.com/rightscale/praxis/blob/master/spec/spec_app/design/resources/instances.rb) resource definition for an example.

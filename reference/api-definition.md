@@ -9,17 +9,30 @@ ApiDefinition:
 Response Definitions
 : Reusable response templates (see [Response Definitions](../response-definitions/))
 
+API Information
+: Global, or versioned, metadata about the api (see [API Information](../api-general-information/)).
+
 Traits
 : A convenient way to share common DSL elements across resource definitions and
 actions (see [traits](../traits/)).
 
-In the future, the ApiDefinition will allow you to define many more API-wide
-constructs.
 
-Below is a basic ApiDefinition that defines a response template and a trait:
+Below is a basic ApiDefinition that defines a response template, general info, and a trait:
 
 {% highlight ruby %}
 Praxis::ApiDefinition.define
+  
+  info do
+    name 'Some App'
+    title 'An example Praxis application'
+    description 'A simple application meant for testing purposes'
+    base_path '/'
+  end
+
+  info '1.0' do
+    base_path '/v1'  
+  end
+
   response_template :other_response do
     status 200
   end

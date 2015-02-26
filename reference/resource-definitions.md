@@ -441,4 +441,23 @@ to definitions found within the action block itself.
 NOTE: Currently `action_defaults` does not support sharing `routing` blocks. It 
 is probable, however, that this will be supported soon if the use case arises.
 
+## Canonical Paths
 
+You can specify which action should be used for the resource's canonical href with the `canonical_path` method:
+
+{% highlight ruby %}
+class Blogs
+  include Praxis::ResourceDefinition
+
+  canonical_path :show
+end
+{% endhighlight %}
+
+If no `canonical_path` has been specified, Praxis will use the `:show` action by default.
+
+You can then both generate and parse hrefs for resource by using:
+
+  * `ResourceDefinition.to_href(<named arguments hash>)` to generate an href for the resource.
+  * `ResourceDefinition.parse_href(<href String>)` to get a type-coerced hash of the parameters for the canonical action from the given string.
+
+Given a controller (class or instance), you can use use those helpers by first calling its its `definition` method to retrieve the `ResourceDefinition` it implements, and then using either `to_href` or `parse_href` as described above.

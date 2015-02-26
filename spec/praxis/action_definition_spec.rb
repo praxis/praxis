@@ -21,7 +21,7 @@ describe Praxis::ActionDefinition do
   end
 
   subject(:action) do
-    Praxis::ActionDefinition.new('foo', resource_definition) do
+    Praxis::ActionDefinition.new(:foo, resource_definition) do
       routing { get '/:one' }
       payload { attribute :two, String }
       headers { header "X_REQUESTED_WITH", 'XMLHttpRequest' }

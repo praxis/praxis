@@ -31,7 +31,7 @@ module Praxis
     end
 
     def initialize(name, resource_definition, **opts, &block)
-      @name = name.to_sym
+      @name = name
       @resource_definition = resource_definition
       @responses = Hash.new
       @metadata = Hash.new

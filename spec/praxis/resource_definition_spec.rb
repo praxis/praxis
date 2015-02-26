@@ -34,6 +34,16 @@ describe Praxis::ResourceDefinition do
       expect(index).to be_kind_of(Praxis::ActionDefinition)
       expect(index.description).to eq("index description")
     end
+    
+    it 'complains if action names are not symbols' do
+      expect do
+        Class.new do
+          include Praxis::ResourceDefinition
+          action "foo" do
+          end
+        end
+      end.to raise_error(ArgumentError,/Action names must be defined using symbols/)
+    end
   end
 
 

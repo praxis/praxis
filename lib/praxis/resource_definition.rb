@@ -115,6 +115,7 @@ module Praxis
 
       def action(name, &block)
         raise ArgumentError, "can not create ActionDefinition without block" unless block_given?
+        raise ArgumentError, "Action names must be defined using symbols (Got: #{name} (of type #{name.class}))" unless name.is_a? Symbol
         @actions[name] = ActionDefinition.new(name, self, &block)
       end
 

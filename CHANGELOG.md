@@ -20,6 +20,11 @@
     * These helpers can be accessed from:
       * the `definition` object in the controller instance (i.e., `self.definition.to_href(id: 1). )
       * or through the class-level methods in the resource definition (i.e. `MyApiResource.parse_href("/my_resource/1")` )
+* Hooked up rake tasks into the `praxis` binary for convenience. In particular 
+  * praxis routes [json]
+  * praxis docs [browser]
+  * praxis console 
+ 
 
 ## 0.13.0
 

@@ -4,15 +4,25 @@ module Praxis
     attr_reader :env, :query
     attr_accessor :route_params, :action
 
+    PATH_VERSION_PREFIX = "/v".freeze
+    CONTENT_TYPE_NAME = 'CONTENT_TYPE'.freeze
+    PATH_INFO_NAME = 'PATH_INFO'.freeze
+    REQUEST_METHOD_NAME = 'REQUEST_METHOD'.freeze
+    QUERY_STRING_NAME = 'QUERY_STRING'.freeze
+    API_VERSION_HEADER_NAME = "HTTP_X_API_VERSION".freeze
+    API_VERSION_PARAM_NAME = 'api_version'.freeze
+    API_NO_VERSION_NAME = 'n/a'.freeze
+    VERSION_USING_DEFAULTS = [:header,:params].freeze
+    
     def initialize(env)
       @env = env
-      @query = Rack::Utils.parse_nested_query(env['QUERY_STRING'.freeze])
+      @query = Rack::Utils.parse_nested_query(env[QUERY_STRING_NAME])
       @route_params = {}
       @path_version_matcher = path_version_matcher
     end
 
     def content_type
-      @env['CONTENT_TYPE'.freeze]
+      @env[CONTENT_TYPE_NAME]
     end
 
     # The media type (type/subtype) portion of the CONTENT_TYPE header
@@ -26,7 +36,7 @@ module Praxis
     end
 
     def path
-      @env['PATH_INFO'.freeze]
+      @env[PATH_INFO_NAME]
     end
 
     attr_accessor :headers, :params, :payload
@@ -40,13 +50,13 @@ module Praxis
     end
 
     def verb
-      @env['REQUEST_METHOD'.freeze]
+      @env[REQUEST_METHOD_NAME]
     end
 
     def raw_params
       @raw_params ||= begin
         params = query.merge(route_params)
-        params.delete('api_version'.freeze)
+        params.delete(API_VERSION_PARAM_NAME)
         params
       end
     end
@@ -66,21 +76,23 @@ module Praxis
     end
     
     def self.path_version_prefix
-      "/v".freeze
+      PATH_VERSION_PREFIX
     end
+
+    PATH_VERSION_MATCHER = %r{^#{self.path_version_prefix}(?<version>[^\/]+)\/}.freeze
     
     def path_version_matcher
-      %r{^#{Request.path_version_prefix}(?<version>[^\/]+)\/}.freeze
+      PATH_VERSION_MATCHER
     end
     
-    def version(using: [:header,:params].freeze)
+    def version(using: VERSION_USING_DEFAULTS )
       result = nil
       Array(using).find do |mode|
         case mode
         when :header ;
-          result = env["HTTP_X_API_VERSION".freeze]
+          result = env[API_VERSION_HEADER_NAME]
         when :params ;
-          result = @query['api_version'.freeze]
+          result = @query[API_VERSION_PARAM_NAME]
         when :path ;
           m = self.path.match(@path_version_matcher) 
           result = m[:version] unless m.nil?
@@ -88,7 +100,7 @@ module Praxis
           raise "Unknown method for retrieving the API version: #{mode}"
         end
       end
-      return result || 'n/a'.freeze
+      return result || API_NO_VERSION_NAME
     end
 
     def load_headers(context)

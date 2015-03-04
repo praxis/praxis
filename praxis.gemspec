@@ -7,7 +7,6 @@ Gem::Specification.new do |spec|
   spec.name          = "praxis"
   spec.version       = Praxis::VERSION
   spec.authors = ["Josep M. Blanquer","Dane Jensen"]
-  spec.date = "2014-08-19"
   spec.summary = 'Building APIs the way you want it.'
 
   spec.email = ["blanquer@gmail.com","dane.jensen@gmail.com"]
@@ -25,9 +24,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'mustermann', '~> 0'
   spec.add_dependency 'activesupport', '>= 3'
   spec.add_dependency 'mime', '~> 0'
-  spec.add_dependency 'praxis-mapper', '~> 3.1'
-  spec.add_dependency 'praxis-blueprints', '~> 1.1.1'
-  spec.add_dependency 'attributor', '~> 2.4.0'
+  spec.add_dependency 'praxis-mapper', '~> 3.3'
+  spec.add_dependency 'praxis-blueprints', '~> 1.2'
+  spec.add_dependency 'attributor', '~> 2.5.0'
   spec.add_dependency 'thor', '~> 0.18'
   spec.add_dependency 'terminal-table', '~> 1.4'
   spec.add_dependency 'harness', '~> 2'

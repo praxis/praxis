@@ -1,11 +1,11 @@
 require 'active_support/concern'
 require 'active_support/inflector'
 
-
 module Praxis
   module ResourceDefinition
     extend ActiveSupport::Concern
-
+    DEFAULT_RESOURCE_HREF_ACTION = :show
+    
     included do
       @version = 'n/a'.freeze
       @actions = Hash.new
@@ -21,7 +21,7 @@ module Praxis
       attr_reader :routing_config
       attr_reader :responses
       attr_reader :version_options
-  
+
       # opaque hash of user-defined medata, used to decorate the definition,
       # and also available in the generated JSON documents
       attr_reader :metadata
@@ -48,18 +48,49 @@ module Praxis
         @version_options = options
       end
 
+      def canonical_path( action_name=nil )
+        if action_name
+          raise "Canonical path for #{self.name} is already defined as: '#{@canonical_action_name}'. 'canonical_path' can only be defined once." if @canonical_action_name
+          @canonical_action_name = action_name
+        else
+          # Resolution of the actual action definition needs to be done lazily, since we can use the `canonical_path` stanza
+          # at the top of the resource, well before the actual action is defined.
+          unless @canonical_action
+            href_action = @canonical_action_name || DEFAULT_RESOURCE_HREF_ACTION
+            @canonical_action = actions.fetch(href_action) do
+              raise "Error: trying to set canonical_href of #{self.name}. Action '#{href_action}' does not exist"
+            end
+          end
+          return @canonical_action
+        end
+      end
+      
+      def to_href( params )
+        canonical_path.primary_route.path.expand(params)
+      end
+
+      def parse_href(path)
+        param_values = canonical_path.primary_route.path.params(path)
+        attrs = canonical_path.params.attributes
+        param_values.each_with_object({}) do |(key,value),hash|
+          hash[key.to_sym] = attrs[key.to_sym].load(value,[key])
+        end
+      rescue => e
+        raise Praxis::Exception.new("Error parsing or coercing parameters from href: #{path}\n"+e.message)
+      end
+      
       def action_defaults(&block)
         return @action_defaults unless block_given?
 
         @action_defaults << block
       end
-  
+
       def params(type=Attributor::Struct, **opts, &block)
         warn 'DEPRECATION: ResourceDefinition.params is deprecated. Use it in action_defaults instead.'
         action_defaults do
           params type, **opts, &block
         end
-      end      
+      end
 
       def payload(type=Attributor::Struct, **opts, &block)
         warn 'DEPRECATION: ResourceDefinition.payload is deprecated. Use action_defaults instead.'
@@ -74,7 +105,7 @@ module Praxis
           headers **opts, &block
         end
       end
-      
+
       def response(name, **args)
         warn 'DEPRECATION: ResourceDefinition.response is deprecated. Use action_defaults instead.'
         action_defaults do
@@ -84,6 +115,7 @@ module Praxis
 
       def action(name, &block)
         raise ArgumentError, "can not create ActionDefinition without block" unless block_given?
+        raise ArgumentError, "Action names must be defined using symbols (Got: #{name} (of type #{name.class}))" unless name.is_a? Symbol
         @actions[name] = ActionDefinition.new(name, self, &block)
       end
 
@@ -92,13 +124,16 @@ module Praxis
         @description
       end
 
-    
+      def id
+        self.name.gsub('::'.freeze,'-'.freeze)
+      end
 
       def describe
         {}.tap do |hash|
           hash[:description] = description
-          hash[:media_type] = media_type.name if media_type
+          hash[:media_type] = media_type.id if media_type
           hash[:actions] = actions.values.map(&:describe)
+          hash[:name] = self.name 
           hash[:metadata] = metadata
         end
       end

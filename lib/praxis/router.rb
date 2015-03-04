@@ -64,7 +64,17 @@ module Praxis
       end
 
       verb = request.verb
-      result = @routes[verb].call(request)
+      r = ( @routes.key?(verb) ? @routes[verb] : nil )  # Exact verb match
+      result = r.call(request) if r
+      # If we didn't have an exact verb route, or if we did but the rest or route conditions didn't match
+      if( r == nil || result == :not_found )
+         # Fallback to a wildcard router, if there is one registered
+        result = if @routes.key?('ANY')
+           @routes['ANY'].call(request)
+         else
+           :not_found
+         end
+      end
       
       if result == :not_found
         # no need to try :path as we cannot really know if you've attempted to pass a version through it here

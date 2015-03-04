@@ -4,13 +4,11 @@ module ApiResources
 
     media_type Instance
     version '1.0'
-
-    #responses :instance_limit_reached
-    #responses :pay_us_money
-    #response :create, location: /instances/
-
     
-
+    # :show action is the canonical path for this resource.
+    # Note that the following is redundant, since :show is the default canonical path if none is defined.
+    canonical_path :show
+    
     routing do
       prefix '/clouds/:cloud_id/instances'
     end
@@ -130,7 +128,7 @@ module ApiResources
 
     action :terminate do
       routing do
-        post '/:id/terminate'
+        any '/:id/terminate'
       end
       
       requires_ability :terminate

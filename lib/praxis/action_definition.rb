@@ -73,7 +73,7 @@ module Praxis
       end
       self.instance_eval(&ApiDefinition.instance.traits[trait_name])
     end
-
+    
     def params(type=Attributor::Struct, **opts, &block)
       return @params if !block && type == Attributor::Struct
 

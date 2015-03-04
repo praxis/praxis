@@ -4,7 +4,6 @@ namespace :praxis do
   task :routes, [:format] => [:environment] do |t, args|
     require 'terminal-table'
 
-
     table = Terminal::Table.new title: "Routes",
     headings:  [
       "Version", "Path", "Verb",
@@ -22,6 +21,10 @@ namespace :praxis do
 
         method_name = method ? "#{method.owner.name}##{method.name}" : 'n/a'
 
+        if action.routes.empty?
+          raise "No routes defined for #{resource_definition.name}##{name}."
+        end
+
         action.routes.each do |route|
           rows << {
             resource: resource_definition.name,
@@ -36,9 +39,6 @@ namespace :praxis do
         end
       end
     end
-
-
-
 
     case args[:format] || "table"
     when "json"

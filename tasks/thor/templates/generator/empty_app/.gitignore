@@ -1,3 +1,5 @@
 log
 .bundle
 api_docs
+docs/output
+docs/json

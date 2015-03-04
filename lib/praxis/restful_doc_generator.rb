@@ -6,7 +6,7 @@ module Praxis
     end
 
     @inspected_types = Set.new
-    API_DOCS_DIRNAME = 'api_docs'
+    API_DOCS_DIRNAME = 'docs/api'
 
     EXCLUDED_TYPES_FROM_TOP_LEVEL = Set.new([
       Attributor::Boolean,
@@ -107,7 +107,7 @@ module Praxis
           @controller_config.name
         end
       end
-      
+
       def friendly_name
         # FIXME: is it really about the controller? or the attached resource definition?
         segments = self.name.split("::")
@@ -301,7 +301,7 @@ module Praxis
       types_by_version = Hash.new do |hash, v|
         hash[v] = Set.new
       end
-      
+
       @resources.each do |r|
         resources_by_version[r.version]  << { id: r.id, name: r.name, friendly_name: r.friendly_name}
       end
@@ -320,12 +320,12 @@ module Praxis
           else
             segments.last
           end
-          
+
           types_by_version[version] << { id: type.id,  name: type.name, friendly_name: friendly_name}
         end
       end
       ###############################
-      
+
       diff = resources_by_version.keys - types_by_version.keys - versioned_types.keys
       raise "!!!!!!!! somehow we have a list of different versions from the types vs. resources seen" unless diff.empty?
 
@@ -334,7 +334,7 @@ module Praxis
         infos[version] = {info:{}}
       end
       infos.merge!(ApiDefinition.instance.describe)
-      
+
       # Add resources and types list
       versioned_types.keys.each do |v|
 

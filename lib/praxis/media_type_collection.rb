@@ -26,7 +26,12 @@ module Praxis
     class << self
       attr_accessor :member_attribute
     end
-    
+
+    def self.inherited(klass)
+      warn "DEPRECATION: MediaTypeCollection is deprecated and will be removed by 1.0"
+      super
+    end
+
     def self._finalize!
       super
 
@@ -35,7 +40,6 @@ module Praxis
           include StructCollection
         end
       end
-
     end
 
     def self.member_type(type=nil)

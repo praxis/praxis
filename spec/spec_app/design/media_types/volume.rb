@@ -7,12 +7,12 @@ class Volume < Praxis::MediaType
 
     attribute :source, VolumeSnapshot
 
-    # returns VolumeSnapshot::Collection if exists
     attribute :snapshots, Praxis::Collection.of(VolumeSnapshot)
+    attribute :snapshots_summary, VolumeSnapshot::CollectionSummary
 
     links do
       link :source
-      link :snapshots
+      link :snapshots, VolumeSnapshot::CollectionSummary, using: :snapshots_summary
     end
 
   end
@@ -22,6 +22,7 @@ class Volume < Praxis::MediaType
     attribute :name
     attribute :source
     attribute :snapshots
+    
     attribute :links
   end
 

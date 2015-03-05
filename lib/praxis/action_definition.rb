@@ -37,7 +37,7 @@ module Praxis
       @metadata = Hash.new
 
       if (media_type = resource_definition.media_type)
-        if media_type.kind_of?(Class) && media_type < Praxis::MediaType
+        if media_type.kind_of?(Class) && media_type < Praxis::Types::MediaTypeCommon
           @reference_media_type = media_type
         end
       end

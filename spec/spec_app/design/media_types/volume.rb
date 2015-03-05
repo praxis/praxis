@@ -31,7 +31,7 @@ class Volume < Praxis::MediaType
   end
 
   class Collection < Praxis::Collection
-    @member_type = Volume
+    member_type Volume
 
     identifier 'application/vnd.acme.volumes'
   end

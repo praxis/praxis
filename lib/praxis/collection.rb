@@ -21,5 +21,14 @@ module Praxis
       end
 
     end
+
+    def self.member_type(type=nil)
+      unless type.nil?
+        @member_type = type
+      end
+
+      @member_type
+    end
+
   end
 end

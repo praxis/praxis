@@ -32,8 +32,17 @@ describe Praxis::Collection do
       expect(Praxis::Collection.of(media_type)).to be(collection)
     end
 
+    it 'works with explicitly-defined collections' do
+      expect(Praxis::Collection.of(Volume)).to be(Volume::Collection)
+    end
   end
 
+  context 'defined explicitly' do
+    subject(:type) { Volume::Collection }
+    its(:member_type) { should be Volume }
+    its(:identifier) { should eq 'application/vnd.acme.volumes' }
+
+  end
 
   context '.member_type' do
     its(:member_type){ should be(VolumeSnapshot) }

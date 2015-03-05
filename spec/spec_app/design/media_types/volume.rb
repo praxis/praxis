@@ -30,6 +30,12 @@ class Volume < Praxis::MediaType
     attribute :id
   end
 
+  class Collection < Praxis::Collection
+    @member_type = Volume
+
+    identifier 'application/vnd.acme.volumes'
+  end
+
 end
 
 

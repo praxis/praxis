@@ -8,15 +8,21 @@ namespace :praxis do
       unless system("npm install", chdir: path)
         raise Exception.new("NPM Install Failed")
       end
+
+      unless File.directory? File.join(Dir.pwd, 'docs')
+        require 'fileutils'
+        docs_path = File.expand_path(File.join(File.dirname(__FILE__), '../../../tasks/thor/templates/generator/empty_app/docs'))
+        FileUtils.cp_r docs_path, Dir.pwd
+      end
     end
 
     desc "Run API Documentation Browser"
-    task :preview => [:api_docs, :install] do
+    task :preview => [:install, :api_docs] do
       exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs')}, "#{path}/node_modules/.bin/grunt serve --gruntfile '#{path}/Gruntfile.js'")
     end
 
     desc "Build docs that can be shipped"
-    task :build => [:api_docs, :install] do
+    task :build => [:install, :api_docs] do
       exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs')}, "#{path}/node_modules/.bin/grunt build --gruntfile '#{path}/Gruntfile.js'")
     end
 

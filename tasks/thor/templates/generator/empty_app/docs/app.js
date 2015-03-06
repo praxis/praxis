@@ -1,1 +1,1 @@
-angular.module('DocsAppp', ['PraxisDocBrowser']);
+angular.module('DocBrowser', ['PraxisDocBrowser']);

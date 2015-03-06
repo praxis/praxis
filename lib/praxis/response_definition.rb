@@ -36,23 +36,23 @@ module Praxis
       return @spec[:media_type] if media_type.nil?
 
       @spec[:media_type] = case media_type
-        when String
-          SimpleMediaType.new(media_type)
-        when Class
-          if media_type < Praxis::MediaType
-            media_type
-          else
-            raise Exceptions::InvalidConfiguration.new(
-              'Invalid media_type specification. media_type must be a Praxis::MediaType'
-            )
-          end
-        when SimpleMediaType
+      when String
+        SimpleMediaType.new(media_type)
+      when Class
+        if media_type < Praxis::Types::MediaTypeCommon
           media_type
         else
           raise Exceptions::InvalidConfiguration.new(
-            'Invalid media_type specification. media_type must be a String, MediaType or SimpleMediaType'
+            'Invalid media_type specification. media_type must be a Praxis::MediaType'
           )
         end
+      when SimpleMediaType
+        media_type
+      else
+        raise Exceptions::InvalidConfiguration.new(
+          'Invalid media_type specification. media_type must be a String, MediaType or SimpleMediaType'
+        )
+      end
     end
 
     def location(loc=nil)
@@ -94,11 +94,11 @@ module Praxis
             )
           end
           @spec[:headers][k] = v
-       end
+        end
       else
         raise Exceptions::InvalidConfiguration.new(
           "A header definition can only take a String (to match the name) or" +
-            " a Hash (to match both the name and the value). Received: #{hdr.inspect}"
+          " a Hash (to match both the name and the value). Received: #{hdr.inspect}"
         )
       end
     end
@@ -122,7 +122,7 @@ module Praxis
       end
       unless headers == nil
         headers.each do |name, value|
-          content[:headers][name] = _describe_header(value) 
+          content[:headers][name] = _describe_header(value)
         end
       end
       unless parts == nil
@@ -134,7 +134,7 @@ module Praxis
     def _describe_header(data)
       data_type = data.is_a?(Regexp) ? :regexp : :string
       data_value = data.is_a?(Regexp) ? data.inspect : data
-       { :value => data_value, :type => data_type } 
+      { :value => data_value, :type => data_type }
     end
 
     def validate( response )
@@ -151,15 +151,15 @@ module Praxis
         raise ArgumentError, "Parts definition for response #{name} needs a :like argument or a block/proc" if !args.empty?
         return @parts
       end
-       if like && a_proc
+      if like && a_proc
         raise ArgumentError, "Parts definition for response #{name} does not allow :like and a block simultaneously"
       end
       if like
-         template = ApiDefinition.instance.response(like)
-         @parts = template.compile(nil, **args)
-       else # block
-         @parts = Praxis::ResponseDefinition.new('anonymous', **args, &a_proc)
-       end
+        template = ApiDefinition.instance.response(like)
+        @parts = template.compile(nil, **args)
+      else # block
+        @parts = Praxis::ResponseDefinition.new('anonymous', **args, &a_proc)
+      end
     end
 
     # Validates Status code
@@ -238,16 +238,35 @@ module Praxis
     def validate_content_type!(response)
       return unless media_type
 
-      extracted_identifier = nil
+      response_content_type = {}
       if response.headers['Content-Type']
-        extracted_identifier = Praxis::ContentTypeParser.parse(response.headers['Content-Type'])[:type]
+        response_content_type = Praxis::ContentTypeParser.parse(response.headers['Content-Type'])
       end
 
-      if media_type.identifier != extracted_identifier
+      expected_content_type = Praxis::ContentTypeParser.parse(media_type.identifier)
+
+      unless response_content_type[:type] == expected_content_type[:type]
         raise Exceptions::Validation.new(
-          "Bad Content-Type header. Returned type #{extracted_identifier}" +
-          " does not match type #{media_type.identifier} as described in response: #{self.name}"
+          "Bad Content-Type header. #{response.headers['Content-Type']}" +
+          " does not match type #{expected_content_type[:type]} as described in response: #{self.name}"
         )
+      end
+
+      if (expected_params = expected_content_type[:params])
+        expected_params.each do |param_name,expected_param|
+          response_param = response_content_type[:params].fetch(param_name) do
+            raise Exceptions::Validation.new(
+              "Bad Content-Type header: #{response.headers['Content-Type']}" +
+              " does not contain expected param '#{param_name}' as described in response: #{self.name}"
+            )
+          end
+          unless response_param == expected_param
+            raise Exceptions::Validation.new(
+              "Bad Content-Type header: #{response.headers['Content-Type']}" +
+              " param: #{param_name} does not match expected value #{expected_param} as described in response: #{self.name}"
+            )
+          end
+        end
       end
     end
 

@@ -365,7 +365,16 @@ describe Praxis::ResponseDefinition do
 
           context 'when content type matches the mediatype of the spec' do
             let(:response_headers) { {'Content-Type' => content_type } }
-            it 'should raise error telling you so' do
+            it 'validates successfully' do
+              expect {
+                response_definition.validate_content_type!(response)
+              }.to_not raise_error
+            end
+          end
+
+          context 'when content type includes a parameter' do
+            let(:response_headers) { {'Content-Type' => "#{content_type};collection=true" } }
+            it 'validates successfully' do
               expect {
                 response_definition.validate_content_type!(response)
               }.to_not raise_error
@@ -405,7 +414,7 @@ describe Praxis::ResponseDefinition do
         it 'validates each part' do
           response_definition.parts
           expect {
-            response_definition.validate_parts!(response)  
+            response_definition.validate_parts!(response)
           }.to_not raise_error
         end
 
@@ -425,6 +434,7 @@ describe Praxis::ResponseDefinition do
 
   end
 
+
   context 'with invalid definitions' do
     it 'raises an error if status code is not part of the definition' do
       expect do
@@ -442,19 +452,19 @@ describe Praxis::ResponseDefinition do
     let(:parts) { nil }
 
     let(:response) do
-       Praxis::ResponseDefinition.new(:custom) do
-         status 300
-       end
+      Praxis::ResponseDefinition.new(:custom) do
+        status 300
+      end
     end
     subject(:output) { response.describe }
-    
+
     before do
       response.description(description) if description
       response.location(location) if location
-      response.parts(parts) if parts 
+      response.parts(parts) if parts
       response.headers(headers) if headers
     end
-    
+
     context 'for a definition without parts' do
       it{ should be_kind_of(::Hash) }
       its([:description]){ should be(description) }
@@ -465,33 +475,33 @@ describe Praxis::ResponseDefinition do
         expect( output[:headers]['Header1'] ).to eq({value: 'Value1' ,type: :string })
       end
     end
-    
+
     context 'for a definition with (homogeneous) parts' do
       subject(:described_parts){ output[:parts_like] }
       context 'using :like' do
         let(:parts) { {like: :ok, media_type: 'foobar'} }
-        
+
         it 'should contain a parts_like key with a hash' do
           expect( output ).to have_key(:parts_like)
         end
-        
-        it{ should be_kind_of(::Hash) }  
+
+        it{ should be_kind_of(::Hash) }
         its([:media_type]){ should == { identifier: 'foobar'} }
         its([:status]){ should == 200 }
       end
       context 'using a full response definition block' do
         let(:parts) do
-          Proc.new do 
+          Proc.new do
             status 234
             media_type 'custom_media'
           end
         end
-        
+
         it 'should contain a parts_like key with a hash' do
           expect( output ).to have_key(:parts_like)
         end
-        
-        it{ should be_kind_of(::Hash) }  
+
+        it{ should be_kind_of(::Hash) }
         its([:media_type]){ should == { identifier: 'custom_media'} }
         its([:status]){ should == 234 }
       end

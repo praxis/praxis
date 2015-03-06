@@ -3,7 +3,7 @@ class Person < Praxis::MediaType
     attribute :id, Integer
     attribute :name, String, example: /[:name:]/
     attribute :href, String, example: proc { |person| "/people/#{person.id}" }
-    attribute :links, Praxis::Collection.of(String)
+    attribute :links, silence_warnings { Praxis::Collection.of(String) } 
   end
 
   view :default do

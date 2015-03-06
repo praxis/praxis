@@ -16,15 +16,19 @@ class VolumeSnapshot < Praxis::MediaType
   end
 
 
-  class Collection < Praxis::MediaTypeCollection
-    identifier 'application/json+collection'
-
-    member_type VolumeSnapshot
+  class CollectionSummary < Praxis::MediaType
+    identifier 'application/json'
 
     attributes do
       attribute :name, String, regexp: /snapshots-(\w+)/
-      attribute :size, Integer, example: proc { |collection| collection.to_a.count }
+      attribute :size, Integer
       attribute :href, String
+    end
+
+    view :default do
+      attribute :name
+      attribute :size
+      attribute :href
     end
 
     view :link do
@@ -33,7 +37,6 @@ class VolumeSnapshot < Praxis::MediaType
       attribute :href
     end
 
-    member_view :default, using: :default
   end
 
 end

@@ -28,10 +28,10 @@ module Praxis
 
       super(context, options: options).each do |k,v|
         body = if v.respond_to?(:dump) && !v.kind_of?(String)
-                JSON.pretty_generate(v.dump)
-              else
-                v
-              end
+          JSON.pretty_generate(v.dump)
+        else
+          v
+        end
 
         entity = MIME::Text.new(body)
 

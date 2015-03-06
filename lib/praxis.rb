@@ -54,15 +54,19 @@ module Praxis
 
   autoload :Stats, 'praxis/stats'
   autoload :Notifications, 'praxis/notifications'
-  
+
   autoload :RestfulDocGenerator, 'praxis/restful_doc_generator'
-  
+
   # types
+  module Types
+    autoload :MediaTypeCommon, 'praxis/types/media_type_common'
+  end
+
   autoload :Links, 'praxis/links'
   autoload :MediaType, 'praxis/media_type'
   autoload :MediaTypeCollection, 'praxis/media_type_collection'
   autoload :Multipart, 'praxis/types/multipart'
-  autoload :Collection, 'praxis/types/collection'
+  autoload :Collection, 'praxis/collection'
 
   autoload :MultipartParser, 'praxis/multipart/parser'
   autoload :MultipartPart, 'praxis/multipart/part'

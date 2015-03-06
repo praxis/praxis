@@ -24,7 +24,14 @@
   * praxis routes [json]
   * praxis docs [browser]
   * praxis console 
- 
+* Added `MediaTypeCommon` module, which contains the `identifier`, `description`, and `describe` methods formerly found in `MediaType`. This is now the module used for checking whether a given class should be included in generated documentation, or is valid for use in a `ResponseDefinition` 
+* Improved `Praxis::Collection.of` when used with MediaTypes
+  * It will now define an inner `<media_type>::Collection` type that is an `Attributor::Collection` of the MediaType that also will include the `MediaTypeCommon` module.
+  * By default, Praxis will take the identifier of the parent `MediaType` and append a `collection=true` suffix to it.
+* Fixed `ResponseDefinition` Content-Type validation to properly handle parameters (i.e., "application/json;collection=true"). 
+  * Note: For "index" type actions, this now means Praxis will properly validate any 'collection=true' parameter specified in the `ResponseDefintion` and set by the controller.
+* Deprecated `MediaTypeCollection`. Please define separate classes and attributes for "collection" and "summary" uses.
+
 
 ## 0.13.0
 

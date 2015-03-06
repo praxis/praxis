@@ -2,6 +2,17 @@
 
 ## next
 
+* Adds features for customizing and exporting the Doc browser, namely the following changes:
+  1. All doc browser stuff is now centralised under the `praxis:docs` namespace.
+  2. The doc browser requires node.js. (TODO: add this to the docs PR)
+  3. `rake praxis:docs:generate` generates the JSON schema files. `rake praxis:api_docs` is now an alias of this with the idea that `rake praxis:api_docs` will be deprecated.
+  4. `rake praxis:docs:preview` will open a browser window with the doc browser. It will refresh automatically when the design files change as well as when any customisations change.
+  5. `rake praxis:docs:build` will generate a fully built static version of the app in `docs/output`. This can then be put on S3 or GH pages and should work.
+  6. The default app generator will now generate a docs directory with some files to get you started.
+  7. Any `.js` file in the `docs` directory will be included in the doc browser. Angular's dependency injection allows users to override any service or controller as needed.
+  8. The default `docs/styles.scss` simply `@import 'praxis'`. However this means the user can override any of bootstraps variables allowing for easy theme customisation. Rules etc. can now also be overridden.
+  9. Any templates defined in `docs/views` take precedence over those defined in the doc browser. This means the user can easily customise parts of the app, while leaving the rest up to us.
+  10. Any changes to the above customisations will be automatically reloaded on save.
 * First pass at describing (and doc-generating) API global information
   * Inside a `Praxis::ApiDefinition.define` block one can now specify a few things about the API by using:
     * info("1.0") `<block>` - Which will apply to a particular version only
@@ -20,21 +31,20 @@
     * These helpers can be accessed from:
       * the `definition` object in the controller instance (i.e., `self.definition.to_href(id: 1). )
       * or through the class-level methods in the resource definition (i.e. `MyApiResource.parse_href("/my_resource/1")` )
-* Hooked up rake tasks into the `praxis` binary for convenience. In particular 
+* Hooked up rake tasks into the `praxis` binary for convenience. In particular
   * praxis routes [json]
   * praxis docs [browser]
-  * praxis console 
-* Added `MediaTypeCommon` module, which contains the `identifier`, `description`, and `describe` methods formerly found in `MediaType`. This is now the module used for checking whether a given class should be included in generated documentation, or is valid for use in a `ResponseDefinition` 
+  * praxis console
+* Added `MediaTypeCommon` module, which contains the `identifier`, `description`, and `describe` methods formerly found in `MediaType`. This is now the module used for checking whether a given class should be included in generated documentation, or is valid for use in a `ResponseDefinition`
 * Improved `Praxis::Collection.of` when used with MediaTypes
   * It will now define an inner `<media_type>::Collection` type that is an `Attributor::Collection` of the MediaType that also will include the `MediaTypeCommon` module.
   * By default, Praxis will take the identifier of the parent `MediaType` and append a `collection=true` suffix to it.
-* Fixed `ResponseDefinition` Content-Type validation to properly handle parameters (i.e., "application/json;collection=true"). 
+* Fixed `ResponseDefinition` Content-Type validation to properly handle parameters (i.e., "application/json;collection=true").
   * Note: For "index" type actions, this now means Praxis will properly validate any 'collection=true' parameter specified in the `ResponseDefintion` and set by the controller.
 * Deprecated `MediaTypeCollection`. Please define separate classes and attributes for "collection" and "summary" uses.
 
 
 ## 0.13.0
-
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.
 * Default HTTP responses:
   * Added descriptions

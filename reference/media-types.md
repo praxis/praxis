@@ -389,9 +389,7 @@ media types or other Attributor types.
 
 ### Praxis::Collection
 
-Praxis includes a helper, `Praxis::Collection.of(media_type)`, for working with  collections of a given media type. (*Note*: Previously, `Praxis::Collection.of` supported types that did not derive from `MediaType`. This usage has been deprecated and will be removed in a future version. Please use `Attributor::Collection.of` directly instead.)
-
-This defines a `<media_type>::Collection` type that is an `Attributor::Collection.of(<media_type>)`, that also includes  the `MediaTypeCommon` module. By default, Praxis will take the identifier of `<media_type>` and append a "collection=true" suffix to it.
+`Praxis::Collection.of(media_type)` defines an inner `Attributor::Collection.of(<media_type>)` type inside `media_type` (i.e., `Post::Collection`) that also includes the `Praxis::MediaTypeCommon` module. By default, Praxis will take the identifier of `<media_type>` and append a "collection=true" suffix to it. (*Note*: Previously, `Praxis::Collection.of` supported types that did not derive from `MediaType`. This usage has been deprecated and will be removed in a future version. Please use `Attributor::Collection.of` directly instead.)
 
 For example, your blog media type might have an attribute that is a collection of posts:
 
@@ -404,9 +402,11 @@ class Blog < Praxis::MediaType
 end
 {% endhighlight %}
 
-Praxis will look for a `Post::Collection` class to use for the `posts` attribute above, or create one if it does not exist. In the common case, the Praxis-defined `<media_type>::Collection` will be sufficient for any collection of media type instances. You can, however, define your own explicitly and Praxis will use that instead.
+When parsing the :posts definition above, Praxis will resolve the type by looking if a `Post::Collection` class already exists. If it does, it will be used as the type for the `:posts` attribute, otherwise one will be created. One can think of `Praxis::Collection.of(Post)` to be equivalent to `Post::Collection`, except that it will create one if it does not exist already. 
 
-For example, if you want to use a specific identifier for collections of posts that differs from the one Praxis would assume:
+As stated above, the created inner `Collection` class will simply be an `Attributor::Collection` that wraps members of a given MediaType, and that has an identifier that matches the member's identifier, with an added "collection=true" suffix. So in the above case, the `Post::Collection` will have an identifier of "application/vnd.acme.post;collection=true".
+
+This inner `Collection` be sufficient in most cases. However, you can easily define your own explicitly and Praxis will use that instead. Here's an example of how to do that, if you wanted `Post::Collection` to have an identifier of "application/vnd.acme.posts" instead:
 
 {% highlight ruby %}
 class Post < Praxis::MediaType
@@ -478,7 +478,7 @@ class Post < Praxis::MediaType
 end
 {% endhighlight %}
 
-To then use that from another media type, you would do the following:
+Then you can use that from the `Blog` media type in the following way:
 {% highlight ruby %}
 class Blog < Praxis::MediaType
   attributes do

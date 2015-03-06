@@ -9,11 +9,20 @@ namespace :praxis do
         raise Exception.new("NPM Install Failed")
       end
 
-      unless File.directory? File.join(Dir.pwd, 'docs')
-        require 'fileutils'
-        docs_path = File.expand_path(File.join(File.dirname(__FILE__), '../../../tasks/thor/templates/generator/empty_app/docs'))
-        FileUtils.cp_r docs_path, Dir.pwd
+      docs_dir=File.join(Dir.pwd, 'docs')
+      FileUtils.mkdir_p docs_dir unless File.directory? docs_dir
+
+      # The doc browser will need to have a minimal app.js and styles.css file at the root
+      # Let's add them if the app has not overriden them 
+      js_file = File.join(Dir.pwd, 'docs', 'app.js') 
+      scss_file = File.join(Dir.pwd, 'docs', 'styles.scss')   
+      unless File.exists? js_file
+        File.open(js_file, 'w') {|f| f.write(%q{angular.module('DocBrowser', ['PraxisDocBrowser']);}) }
       end
+      unless File.exists? scss_file
+        File.open(scss_file, 'w') {|f| f.write(%q{@import "praxis.scss";}) }
+      end
+
     end
 
     desc "Run API Documentation Browser"

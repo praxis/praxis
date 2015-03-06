@@ -406,7 +406,7 @@ When parsing the :posts definition above, Praxis will resolve the type by lookin
 
 As stated above, the created inner `Collection` class will simply be an `Attributor::Collection` that wraps members of a given MediaType, and that has an identifier that matches the member's identifier, with an added "collection=true" suffix. So in the above case, the `Post::Collection` will have an identifier of "application/vnd.acme.post;collection=true".
 
-This inner `Collection` be sufficient in most cases. However, you can easily define your own explicitly and Praxis will use that instead. Here's an example of how to do that, if you wanted `Post::Collection` to have an identifier of "application/vnd.acme.posts" instead:
+This inner `Collection` should be sufficient in most cases. However, you can explicitly define your own and Praxis will use that instead. Here's an example of how to do that if you wanted `Post::Collection` to have an identifier of "application/vnd.acme.posts" instead:
 
 {% highlight ruby %}
 class Post < Praxis::MediaType
@@ -420,7 +420,7 @@ class Post < Praxis::MediaType
 end
 {% endhighlight %}
 
-Note: When defined explicitly, you must specify `member_type`. 
+Note: When defined explicitly, you use the `member_type` method to specify what type of media type class this collection is wrapping.
 
 
 ### Attributor::Collection

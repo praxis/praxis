@@ -104,11 +104,12 @@ module Praxis
       end
     end
 
-    def headers(type=Attributor::Hash.of(key:String), **opts, &block)
+    def headers(type=nil, **opts, &block)
       return @headers unless block
       if @headers
         update_attribute(@headers, opts, block)
       else
+        type = Attributor::Hash.of(key:String) unless type
         @headers = create_attribute(type,
           dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true, 
           **opts, &block)

@@ -50,6 +50,13 @@ describe Praxis::RequestStages::RequestStage do
   context 'execute_with_around' do
   end
 
+  context '#setup!' do
+    it 'sets up the deferred callbacks' do
+      expect(stage).to receive(:setup_deferred_callbacks!).once
+      stage.setup!
+    end
+  end
+
   context "#execute" do
     before do
       stage.stages.push(substage_1, substage_2, substage_3)
@@ -107,8 +114,6 @@ describe Praxis::RequestStages::RequestStage do
       end
 
       it "sets up and executes callbacks" do
-        expect(stage).to receive(:setup!)
-        expect(stage).to receive(:setup_deferred_callbacks!)
         expect(stage).to receive(:execute)
         expect(stage).to receive(:execute_callbacks).once.with(before_callbacks)
         expect(stage).to receive(:execute_callbacks).once.with(after_callbacks)

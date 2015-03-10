@@ -42,8 +42,10 @@
 * Fixed `ResponseDefinition` Content-Type validation to properly handle parameters (i.e., "application/json;collection=true").
   * Note: For "index" type actions, this now means Praxis will properly validate any 'collection=true' parameter specified in the `ResponseDefintion` and set by the controller.
 * Deprecated `MediaTypeCollection`. Please define separate classes and attributes for "collection" and "summary" uses.
-
-
+* Improved code for stages 
+  * `setup!` is no longer called within the `run` default code of a stage 
+  * removed unnecessary raise error when substages are empty (while not common it can be possible, and totally valid)
+   
 ## 0.13.0
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.
 * Default HTTP responses:

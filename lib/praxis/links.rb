@@ -58,7 +58,7 @@ module Praxis
       end
     end
 
-    def self.define_blueprint_reader!(name)
+    def self.define_reader!(name)
       # it's faster to use define_method in this case than module_eval
       # because we save the attribute lookup on every access.
       attribute = self.attributes[name]

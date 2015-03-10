@@ -98,4 +98,10 @@ class Instances < BaseClass
     response
   end
 
+  def update(id:, cloud_id:)
+    response.body = JSON.pretty_generate(request.payload.dump)
+    response.headers['Content-Type'] = 'application/vnd.acme.instance'
+    response
+  end
+
 end

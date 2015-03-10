@@ -33,7 +33,7 @@ describe Praxis::MediaType do
     its(:description) { should be_kind_of(String) }
     
     context 'links' do
-      context 'with an custom links attribute' do
+      context 'with a custom links attribute' do
         subject(:person) { Person.new(owner_resource) }
 
         its(:links)  { should be_kind_of(Array) }

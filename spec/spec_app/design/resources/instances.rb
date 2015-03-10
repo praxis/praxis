@@ -51,7 +51,7 @@ module ApiResources
       response :unauthorized
 
       params do
-        attribute :id
+        attribute :id, required: true
         attribute :junk, String, default: ''
         attribute :some_date, DateTime, default: DateTime.parse('2012-12-21')
         attribute :fail_filter, Attributor::Boolean, default: false
@@ -156,6 +156,23 @@ module ApiResources
 
 
       response :ok, media_type: 'application/json'
+    end
+
+    action :update do
+      routing do
+        patch '/:id'
+      end
+
+      params do
+        attribute :id, required: true
+      end
+
+      payload do
+        attribute :name
+        attribute :root_volume
+      end
+
+      response :ok
     end
 
     # OTHER USAGES:

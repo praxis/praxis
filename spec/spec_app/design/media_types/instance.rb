@@ -34,4 +34,14 @@ class Instance < Praxis::MediaType
     attribute :name
   end
 
+  view :extended, include_nil: true do
+    attribute :id
+    attribute :name
+    attribute :root_volume
+    attribute :links do
+      attribute :root_volume
+    end
+  end
+
+
 end

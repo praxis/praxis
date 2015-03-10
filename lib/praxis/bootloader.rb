@@ -114,6 +114,7 @@ module Praxis
 
     def run
       stages.each do |stage|
+        stage.setup!
         stage.run
       end
     end

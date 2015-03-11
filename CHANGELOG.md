@@ -47,6 +47,7 @@
   * removed unnecessary raise error when substages are empty (while not common it can be possible, and totally valid)
 * Add `Response` to supported classes in `PluginConcern` 
 * Fix doc generation to use `ids` for top-level types (rather than names) so they are correctly linkable.
+* Doc Browser: Added support for Markdown rendering of descriptions (for resources, media_types, attributes, etc...)
 
 ## 0.13.0
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.

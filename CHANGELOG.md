@@ -45,7 +45,8 @@
 * Improved code for stages 
   * `setup!` is no longer called within the `run` default code of a stage 
   * removed unnecessary raise error when substages are empty (while not common it can be possible, and totally valid)
-   
+* Add `Response` to supported classes in `PluginConcern` 
+
 ## 0.13.0
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.
 * Default HTTP responses:

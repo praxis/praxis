@@ -45,7 +45,7 @@ module Praxis
       def version(version=nil, options=nil)
         return @version unless version
         @version = version
-        @version_options = options || {using: [:header,:params]}.freeze
+        @version_options = options || {using: [:header,:params]}
       end
 
       def canonical_path( action_name=nil )

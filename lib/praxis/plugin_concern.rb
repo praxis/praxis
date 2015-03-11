@@ -12,7 +12,8 @@ module Praxis
         :Request,
         :Controller,
         :ResourceDefinition,
-        :ActionDefinition
+        :ActionDefinition,
+        :Response
       ]
 
       def setup!

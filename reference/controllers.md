@@ -122,14 +122,17 @@ ensure their values match the types that you've specified in the Resource
 Definition. Accessing the `id` variable within the `show` method will always
 get you an Integer.
 
+
 ## Retrieving Headers and Payload Data
 
-The Praxis::Controller module provides a `request` accessor which can be used
-to retrieve incoming `headers` and the `payload` data. The information under
+The `Praxis::Controller` module provides a `request` accessor which can be used
+to retrieve the incoming `headers` and the `payload` data. The information under
 these methods is type-curated much like parameter definitions. They are
 accessible through methods matching your attribute names, and they will always
 return values matching the type of your attribute (possibly coercing them if
-necessary).
+necessary). 
+
+You can also test if a value exists (or has been assigned by a `default` option) for an attribute with the `key?` method. This is useful in those cases where there is an important distinction between a user-provided `nil` value and the user simply not providing a value, as there is in "PATCH" requests. 
 
 For completeness, the request object also gives you access to your `params` in
 the same way, even though you already get them passed in as named arguments.
@@ -139,10 +142,13 @@ Here's an example of how to access these methods from a controller action:
 {% highlight ruby %}
 def show(id:, token:, **other_params)
   accept = request.headers.accept # Retrieve 'Accept' header
-  view   = request.payload.view   # Retrieve a 'view' parameter from the payload
+  if request.payload.key?(:view)  # whether a value was specified for 'view'
+    view = request.payload.view   # Retrieve a 'view' parameter from the payload
+  end
   id == request.params.id         # id argument will be the same as request.params.id
 end
 {% endhighlight %}
+
 
 ## Returning a Response
 

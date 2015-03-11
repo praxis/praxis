@@ -332,7 +332,7 @@ action :create do
 end
 {% endhighlight %}
 
-In addition to define a header `key` in the standard `Attributor::Hash` manner, Praxis
+In addition to defining a header `key` in the standard `Attributor::Hash` manner, Praxis
 also enhances the DSL with a `header` method that can shortcut the syntax for 
 certain common cases. The `header` DSL takes a String name and an optional expected value: 
 
@@ -340,7 +340,7 @@ certain common cases. The `header` DSL takes a String name and an optional expec
 * if a Regexp value is passed, the expectation is that the header value (if exists) matches it
 * if a String value is passed, the expectation is that the incoming header value (if exists) fully matches it.
 
-Any hash-like options provided as the last argument are going to be blindly passed along to the
+Any hash-like options provided as the last argument are passed along to the
 underlying `Attributor` types. Here are some examples of how to define header expectations:
 
 {% highlight ruby %}

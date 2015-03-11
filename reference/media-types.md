@@ -169,6 +169,7 @@ view option is only available when the type of the attribute is a MediaType
 itself. If no view is specified, a view named `default` is used. Non-MediaType
 attributes don't support views, so Praxis just renders them by calling `dump`.
 
+
 {% highlight ruby %}
 class Blog < Praxis::MediaType
   attributes do
@@ -212,6 +213,16 @@ To include an attribute that has sub-attributes in a view, it is enough to list
 its top level name. All of its sub-attributes will follow. For example, the
 above `default` view includes the `locale` attribute, which will cause its
 `language` and `country` sub-attributes to be rendered.
+
+A view will not render values that are `nil` by default. This can be overrided by passing `include_nil: true` when defining the view. For example:
+
+{% highlight ruby %}
+class Blog < Praxis::MediaType
+  view :partial, include_nil: true do
+    # ...
+  end
+end
+{% endhighlight %}
 
 ## Links
 

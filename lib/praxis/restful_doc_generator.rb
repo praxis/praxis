@@ -260,7 +260,7 @@ module Praxis
         index[r.version] ||= Hash.new
         info = {controller: r.id, name: r.name}
         if r.media_type
-          info[:media_type] = r.media_type.name
+          info[:media_type] = r.media_type.id
           media_types_seen_from_controllers << r.media_type
         end
         display_name  = r.name.split("::").last
@@ -280,9 +280,9 @@ module Praxis
             raise "Display name already taken for version #{version}! #{display_name}"
           end
           index[version][display_name] = if type < Praxis::MediaType
-            {media_type: type.name }
+            {media_type: type.id }
           else
-            {kind: type.name}
+            {kind: type.id}
           end
         end
       end

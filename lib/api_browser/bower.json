@@ -21,6 +21,7 @@
     "bootstrap-sass": "~3.0.2",
     "angular-ui-router": "~0.2.10",
     "angular-ui-bootstrap-bower": "~0.11.0",
-    "angular-sanitize": "~1.2.16"
+    "angular-sanitize": "~1.2.16",
+    "showdown": "~0.4.0"
   }
 }

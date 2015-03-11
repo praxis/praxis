@@ -12,7 +12,7 @@
       <p ng-repeat="url in action.urls">
         {{ url.verb }} {{ url.path }}
       </p>
-      <p>{{ action.description }}</p>
+      <p ng-bind-html="action.description | markdown"></p>
     </div>
   </div>
 

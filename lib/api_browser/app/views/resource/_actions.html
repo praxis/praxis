@@ -19,7 +19,7 @@
           </div>
         </td>
         <td style="font-size: 110%;">
-          {{ action.description }}
+          <p ng-bind-html="action.description | markdown"></p>
         </td>
       </tr>
     </tbody>

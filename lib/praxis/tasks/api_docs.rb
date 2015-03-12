@@ -27,8 +27,9 @@ namespace :praxis do
     end
 
     desc "Run API Documentation Browser"
-    task :preview => [:install, 'docs:generate'] do
-      exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs')}, "#{path}/node_modules/.bin/grunt serve --gruntfile '#{path}/Gruntfile.js'")
+    task :preview, [:port] => [:install, 'docs:generate']  do |t, args|      
+      doc_port = args[:port] || '9090'
+      exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs'), 'DOC_PORT' => doc_port}, "#{path}/node_modules/.bin/grunt serve --gruntfile '#{path}/Gruntfile.js'")
     end
 
     desc "Build docs that can be shipped"

@@ -5,7 +5,7 @@ namespace :praxis do
 
     desc "Install dependencies"
     task :install do
-      unless system("npm install", chdir: path)
+      unless system("npm install --production", chdir: path)
         raise Exception.new("NPM Install Failed")
       end
 

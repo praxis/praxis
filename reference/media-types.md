@@ -214,7 +214,7 @@ its top level name. All of its sub-attributes will follow. For example, the
 above `default` view includes the `locale` attribute, which will cause its
 `language` and `country` sub-attributes to be rendered.
 
-By default, a view will not render attributes whose values are `nil`. This can be overrided by passing `include_nil: true` when defining the view. Forl example:
+By default, a view will not render attributes whose values are `nil`. This can be overrided by passing `include_nil: true` when defining the view. For example:
 
 {% highlight ruby %}
 class Blog < Praxis::MediaType

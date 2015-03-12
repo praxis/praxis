@@ -8,9 +8,53 @@ application.
 A resource definition is a class that contains configuration settings for a
 resource. This may include routing information, definitions for actions you can
 perform, its default media type, and more. To create a resource definition,
-create a class which includes the `Praxis::ResourceDefinition` module. Below is
-an example of a `Blogs` resource definition which includes a human-readable
-description.
+create a class which includes the `Praxis::ResourceDefinition` module. 
+
+Here's an example of a `Blogs` resource definition for the `BlogMediaType` media type. It specifies that it's version "1.0", provides a description, uses a routing prefix of "/blogs", exposes simple `:index` and `:show` actions, and that the `:show` action is the canonical representation.
+
+
+{% highlight ruby %}
+class Blogs
+  include Praxis::ResourceDefinition
+
+  media_type BlogMediaType
+  version '1.0'
+
+  description <<-EOS
+    Blogs is the Resource where you write your thoughts.
+
+    And there's much more I could say about this resource...
+  EOS
+
+  routing do
+    prefix '/blogs'
+  end
+
+  action :index do
+    routing { get '' }
+    description 'Fetch all blog entries'
+    response :ok
+  end
+
+  action :show do
+    routing { get '/:id' }
+    description 'Fetch a single blog by id'
+    params do
+      attribute :id
+    end
+    response :ok
+  end
+
+  canonical_path :show
+
+end
+{% endhighlight %}
+
+
+## Description
+
+You can specify a description for the resource definition using the `description`
+method. This description string is just for human consumption and is simply inserted directly into to the generated API documentation. However, the documentation browser will appropriately render any markdown or HTML tags that it contains.
 
 {% highlight ruby %}
 class Blogs
@@ -22,7 +66,6 @@ class Blogs
   EOS
 end
 {% endhighlight %}
-
 
 ## Routing Prefix
 
@@ -38,10 +81,11 @@ class Blogs
   include Praxis::ResourceDefinition
 
   routing do
-    prefix '/my_blogs'
+    prefix '/blogs'
   end
 end
 {% endhighlight %}
+
 
 ## Media Type
 
@@ -370,7 +414,7 @@ both can perfectly coexist at the same time.
 #### Responses
 
 All actions must specify the list of responses that they can return. Do this by
-using the `responses` method, and passing the list of response names.
+using the `response` method and passing a response name, as well as any additional arguments if applicable.
 
 {% highlight ruby %}
 action :create do
@@ -381,12 +425,12 @@ end
 
 Praxis already provides a set of common responses to work with, but an
 application can register its own custom responses too. Each registered response
-has a unique name which is the name to use in this `responses` stanza.
+has a unique name which is the name to use in the call to `response`.
 
-If the controller for this action can explicitly return any of the common HTTP errors, its resource definition for the action must also explicitly list those responses. For example, if the controller for the "show" action uses a 404 (`:not found`) to indicate that a given resource id is not present in the DB, the response `:not_found` must be defined in its list of responses. Another way to see this requirement is that any response class that any controller action can return, must have its name listed in the allowed responses of its resource definition.
-
+If the controller for this action can explicitly return any of the common HTTP errors, its resource definition for the action must also explicitly list those responses. For example, if the controller for the `:show` action uses a "404 Not Found" to indicate that a given resource id is not present in the DB, the response `:not_found` must be defined in its list of responses. Another way to see this requirement is that any response class that any controller action can return, must have its name listed in the allowed responses of its resource definition.
 
 For more information, please see [Responses](../responses/).
+
 
 #### Action Defaults
 

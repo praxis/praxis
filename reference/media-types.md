@@ -100,9 +100,7 @@ at the end of this document.
 ## Description
 
 You can specify a description for the media type using the `description`
-method. This description string is just for human consumption and is only used
-by Praxis when generating the API documentation. Longer descriptions might use
-heredoc or line escaping instead of a single-line string.
+method. This description string is just for human consumption and is simply inserted directly into to the generated API documentation. However, the documentation browser will appropriately render any markdown or HTML tags that it contains.
 
 {% highlight ruby %}
 class Blog < Praxis::MediaType
@@ -150,7 +148,9 @@ Each attribute has a name, type, description and other specific configuration
 options: allowed values, format, examples, etc. While some options, such as
 `description` and `values` are always available for any attribute, different
 attribute types support type-specific options: `min`/`max` values for Integers,
-`regexp` for Strings, etc.
+`regexp` for Strings, etc. 
+
+Similarly to the overall MediaType description, the documentation browser will render attribute `description` values as markdown or HTML as appropriate.
 
 To read more about supported types and defining a complex and rich structures,
 take a look at the [Attributor](https://rubygems.org/gems/attributor) gem and
@@ -214,7 +214,7 @@ its top level name. All of its sub-attributes will follow. For example, the
 above `default` view includes the `locale` attribute, which will cause its
 `language` and `country` sub-attributes to be rendered.
 
-A view will not render values that are `nil` by default. This can be overrided by passing `include_nil: true` when defining the view. For example:
+By default, a view will not render attributes whose values are `nil`. This can be overrided by passing `include_nil: true` when defining the view. Forl example:
 
 {% highlight ruby %}
 class Blog < Praxis::MediaType
@@ -223,6 +223,7 @@ class Blog < Praxis::MediaType
   end
 end
 {% endhighlight %}
+
 
 ## Links
 

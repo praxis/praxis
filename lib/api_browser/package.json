@@ -3,8 +3,9 @@
   "version": "0.13.0",
   "description": "Praxis API Browser app",
   "repository": "https://github.com/rightscale/praxis",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/.bin/grunt ci"
   },
   "author": "",
   "license": "BSD",
@@ -35,8 +36,5 @@
     "karma-jasmine": "^0.3.5",
     "karma-phantomjs-launcher": "^0.1.4",
     "time-grunt": "^0.3.1"
-  },
-  "scripts": {
-    "test": "node_modules/.bin/grunt ci"
   }
 }

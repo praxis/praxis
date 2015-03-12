@@ -1,7 +1,7 @@
-# packaged angular
+# packaged angular-mocks
 
 This repo is for distribution on `npm` and `bower`. The source for this module is in the
-[main AngularJS repo](https://github.com/angular/angular.js).
+[main AngularJS repo](https://github.com/angular/angular.js/tree/master/src/ngMock).
 Please file issues and pull requests against that repo.
 
 ## Install
@@ -11,36 +11,26 @@ You can install this package either with `npm` or with `bower`.
 ### npm
 
 ```shell
-npm install angular
+npm install angular-mocks
 ```
 
-Then add a `<script>` to your `index.html`:
+The mocks are then available at `node_modules/angular-mocks/angular-mocks.js`.
 
-```html
-<script src="/node_modules/angular/angular.js"></script>
-```
-
-Note that this package is not in CommonJS format, so doing `require('angular')` will return `undefined`.
-If you're using [Browserify](https://github.com/substack/node-browserify), you can use
-[exposify](https://github.com/thlorenz/exposify) to have `require('angular')` return the `angular`
-global.
+Note that this package is not in CommonJS format, so doing `require('angular-mocks')` will
+return `undefined`.
 
 ### bower
 
 ```shell
-bower install angular
+bower install angular-mocks
 ```
 
-Then add a `<script>` to your `index.html`:
-
-```html
-<script src="/bower_components/angular/angular.js"></script>
-```
+The mocks are then available at `bower_components/angular-mocks/angular-mocks.js`.
 
 ## Documentation
 
 Documentation is available on the
-[AngularJS docs site](http://docs.angularjs.org/).
+[AngularJS docs site](https://docs.angularjs.org/guide/unit-testing).
 
 ## License
 

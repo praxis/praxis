@@ -1,13 +1,15 @@
 {
   "name": "api_doc_browser",
-  "version": "0.0.0",
-  "description": "",
+  "version": "0.13.0",
+  "description": "Praxis API Browser app",
+  "repository": "https://github.com/rightscale/praxis",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/.bin/grunt ci"
   },
   "author": "",
   "license": "BSD",
-  "devDependencies": {
+  "dependencies": {
     "grunt": "~0.4.2",
     "grunt-angular-templates": "^0.5.5",
     "grunt-cli": "^0.1.13",
@@ -24,8 +26,16 @@
     "grunt-sass": "^0.17.0",
     "grunt-usemin": "^2.1.1",
     "grunt-wiredep": "^1.7.0",
-    "load-grunt-tasks": "^0.4.0",
-    "requirejs": "^2.1.13",
+    "load-grunt-tasks": "^0.4.0"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "^0.11.0",
+    "grunt-karma": "^0.10.1",
+    "jasmine-core": "^2.2.0",
+    "karma": "^0.12.31",
+    "karma-jasmine": "^0.3.5",
+    "karma-phantomjs-launcher": "^0.1.4",
+    "quick_check": "^0.4.2",
     "time-grunt": "^0.3.1"
   }
 }

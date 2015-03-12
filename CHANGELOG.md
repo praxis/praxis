@@ -49,6 +49,7 @@
 * Fix doc generation to use `ids` for top-level types (rather than names) so they are correctly linkable.
 * Doc Browser: Added support for Markdown rendering of descriptions (for resources, media_types, attributes, etc...)
 * Added test framework for the doc browser. Run the tests with `grunt test` from lib/api_browser.
+* Enhanced the `praxis:docs:preview` rake task with an optional port parameter
 
 ## 0.13.0
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.

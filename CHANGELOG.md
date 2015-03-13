@@ -22,6 +22,7 @@
   * Simply use `any` as the verb when you define it (i.e. any '/things/:id' )
 * Allow a MediaType to define a custom `links` attribute like any other.
   * This is not compatible if it also wants to use the `links` DSL.
+*Fixed praxis:routes rake task to support actions that do not have routes defined
 
 
 ## 0.11.2

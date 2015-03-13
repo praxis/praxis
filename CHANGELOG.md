@@ -1,6 +1,7 @@
 # praxis changelog
 
 ## next
+*Fixed praxis:routes rake task to support actions that do not have routes defined
 
 * Adds features for customizing and exporting the Doc browser, namely the following changes:
   1. All doc browser stuff is now centralised under the `praxis:docs` namespace.
@@ -70,6 +71,7 @@
   * Simply use `any` as the verb when you define it (i.e. any '/things/:id' )
 * Allow a MediaType to define a custom `links` attribute like any other.
   * This is not compatible if it also wants to use the `links` DSL.
+
 
 
 ## 0.11.2

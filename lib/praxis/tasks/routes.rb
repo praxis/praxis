@@ -21,24 +21,28 @@ namespace :praxis do
 
         method_name = method ? "#{method.owner.name}##{method.name}" : 'n/a'
 
-        if action.routes.empty?
-          raise "No routes defined for #{resource_definition.name}##{name}."
-        end
+        row = {
+          resource: resource_definition.name,
+          action: name,
+          implementation: method_name,
+        }
 
-        action.routes.each do |route|
-          rows << {
-            resource: resource_definition.name,
-            version: route.version,
-            verb: route.verb,
-            path: route.path,
-            action: name,
-            implementation: method_name,
-            name: route.name,
-            primary: (action.primary_route == route ? 'yes' : '')
-          }
+        if action.routes.empty?
+          warn "Warning: No routes defined for #{resource_definition.name}##{name}."
+          rows << row
+        else
+          action.routes.each do |route|
+            rows << row.merge({
+              version: route.version,
+              verb: route.verb,
+              path: route.path,
+              name: route.name,
+              primary: (action.primary_route == route ? 'yes' : '')
+            })
         end
       end
     end
+  end
 
     case args[:format] || "table"
     when "json"

@@ -2,12 +2,59 @@
 
 require 'bundler'
 
+Bundler.setup :default, :test
+Bundler.require :default, :test
+
+
+if ["routes","docs","console"].include? ARGV[0]
+  require 'rake'
+  require 'praxis'
+  require 'praxis/tasks'
+  
+  case ARGV[0]
+    when "routes"
+      Rake::Task['praxis:routes'].invoke(ARGV[1])
+    when "docs"
+      task_name = case ARGV[1]
+      when nil,'browser'
+        'praxis:docs:preview'
+      when 'generate'
+        'praxis:docs:generate'
+      when 'package'
+        'praxis:docs:build'        
+      end
+#      task_name = ARGV[1] == 'browser' ? 'praxis:doc_browser' : 'praxis:api_docs' 
+      Rake::Task[task_name].invoke
+    when "console"
+      Rake::Task['praxis:console'].invoke
+  end
+  exit 0
+end
+# Thor tasks
 path_to_praxis = File.expand_path(File.dirname(File.dirname(__FILE__)))
 path_to_loader = '%s/tasks/loader.thor' % path_to_praxis
 
 load path_to_loader
 
 class PraxisGenerator < Thor
+  
+  # Include a few fake thor action descriptions (for the rake tasks above) so they can show up in the same usage messages
+  desc "routes [json]", "Prints the route table of the application. Defaults to table format, but can produce json"
+  def routes
+  end
+
+  desc "docs [generate|browser|package]", <<-EOF  
+  Generates API documentation and a Web App to inspect it
+    generate - Generates the JSON docs
+    browser  - (default) Generates JSON docs, and automatically starts a Web app to browse them.
+    package  - Generates JSON docs, and neatly packages all the necessary static files ready for exporting the browsing app.
+  EOF
+  def docs
+  end
+  
+  desc "console", "Open a console to the application, with its environment loaded"
+  def console
+  end
 
   # Simple helper to go get the existing description for the real action
   # Usage must still be provided rather than retrieved (since it is not a 
@@ -33,7 +80,7 @@ class PraxisGenerator < Thor
   def generate(app_name)
     warn "This is a deprecated method.\nTo generate a hello world example, please use:\n  praxis example #{app_name} "
   end
+  
 end
-
-
+    
 PraxisGenerator.start(ARGV)

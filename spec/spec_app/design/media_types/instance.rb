@@ -10,6 +10,8 @@ class Instance < Praxis::MediaType
 
     attribute :root_volume, Volume
 
+    attribute :volumes, Volume::Collection
+    
     links do
       link :root_volume
       link :other_volume, Volume, using: :data_volume

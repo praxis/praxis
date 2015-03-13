@@ -12,7 +12,7 @@
       <p ng-repeat="url in action.urls">
         {{ url.verb }} {{ url.path }}
       </p>
-      <p>{{ action.description }}</p>
+      <p ng-bind-html="action.description | markdown"></p>
     </div>
   </div>
 
@@ -65,7 +65,7 @@
                 {{response.name}}
               </td>
               <td>
-                {{response.media_type.name || response.media_type.identifier}}
+                {{response.media_type.id || response.media_type.identifier}}
               </td>
               <td>
                 <rs-attribute-description attribute="response"></rs-attribute-description>

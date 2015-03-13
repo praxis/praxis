@@ -79,12 +79,6 @@ module Praxis
             self.__send__(name)
           end
         end
-
-        @reference.attribute.type.instance_eval do
-          define_method(using) do
-            self.__send__(name)
-          end
-        end
       end
 
     end
@@ -103,7 +97,7 @@ module Praxis
     # This is primarily necessary only for example generation.
     def self.fixup_reference_struct_methods
       self.links.each do |name, using|
-        next if @reference.attribute.attributes.has_key?(name)
+        next if @reference.attribute.attributes.has_key?(using)
         @reference.attribute.type.instance_eval do
           define_method(using) do
             return nil unless attributes[:links]

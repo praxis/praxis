@@ -10,6 +10,14 @@ describe 'Functional specs' do
 
   context 'index' do
 
+    context 'with a valid request' do
+      it 'is successful' do
+        get '/clouds/1/instances?api_version=1.0', nil, 'global_session' => session
+        expect(last_response.headers['Content-Type']).to(
+          eq("application/vnd.acme.instance;type=collection"))
+      end
+    end
+
     context 'with an incorrect response_content_type param' do
       around do |example|
         logger = app.logger
@@ -267,7 +275,7 @@ describe 'Functional specs' do
     end
 
   end
-  
+
   context 'auth_plugin' do
     it 'can terminate' do
       post '/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session

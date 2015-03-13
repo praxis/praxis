@@ -24,14 +24,13 @@ module Praxis
     end
 
     def run
-      setup!
-      setup_deferred_callbacks!
       execute_callbacks(self.before_callbacks)
       execute
       execute_callbacks(self.after_callbacks)
     end
 
     def setup!
+      setup_deferred_callbacks!
     end
 
     def setup_deferred_callbacks!
@@ -48,8 +47,6 @@ module Praxis
     end
 
     def execute
-      raise NotImplementedError, 'Subclass must implement Stage#execute' unless @stages.any?
-
       @stages.each do |stage|
         stage.run
       end

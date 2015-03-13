@@ -2,49 +2,49 @@ require "spec_helper"
 
 describe Praxis::MediaTypeCollection do
 
-  let(:type) { Volume }
-  let(:example) { Volume.example('example-volume') }
+  subject!(:media_type_collection) do
+    silence_warnings do
+      klass = Class.new(Praxis::MediaTypeCollection) do
+        member_type VolumeSnapshot
 
-  let(:snapshots) { example.snapshots }
+        attributes do
+          attribute :name, String, regexp: /snapshots-(\w+)/
+          attribute :size, Integer
+          attribute :href, String
+        end
 
-  subject(:media_type_collection) do
-    Class.new(Praxis::MediaTypeCollection) do
-      member_type Volume
+        view :link do
+          attribute :name
+          attribute :size
+          attribute :href
+        end
+
+        member_view :default, using: :default
+      end
+
+      klass.finalize!
+      klass
     end
   end
    
   context '.member_type' do
-    its(:member_type){ should be(Volume) }
+    its(:member_type){ should be(VolumeSnapshot) }
     its(:member_attribute){ should be_kind_of(Attributor::Attribute) }
-    its('member_attribute.type'){ should be(Volume) }
+    its('member_attribute.type'){ should be(VolumeSnapshot) }
   end
   
   context '.load' do
-    let(:volume_data) do
-      {
-        id: 1,
-        name: 'bob',
-        snapshots: snapshots_data
-      }
-    end
-
-    let(:snapshots_data) {
-      nil
-    }
-
     context 'with a hash' do
       let(:snapshots_data) { {name: 'snapshots',   href: '/bob/snapshots' } }
+      subject(:snapshots) { media_type_collection.load(snapshots_data) }
 
-      let(:volume) { Volume.load(volume_data) }
-      subject(:snapshots) { volume.snapshots }
+       its(:name) { should eq(snapshots_data[:name]) }
+       its(:href) { should eq(snapshots_data[:href]) }
 
-      its(:name) { should eq(snapshots_data[:name]) }
-      its(:href) { should eq(snapshots_data[:href]) }
-
-      it 'has no members set' do
-        expect(snapshots.to_a).to eq([])
-      end
-    end
+       it 'has no members set' do
+         expect(snapshots.to_a).to eq([])
+       end
+     end
 
 
     context 'loading an array' do
@@ -52,9 +52,8 @@ describe Praxis::MediaTypeCollection do
         [{id: 1, name: 'snapshot-1'},
          {id: 2, name: 'snapshot-2'}]
       end
-
-      let(:volume) { Volume.load(volume_data) }
-      let(:snapshots) { volume.snapshots }
+      
+      let(:snapshots) { media_type_collection.load(snapshots_data) }
       subject(:members) { snapshots.to_a }
 
       it 'sets the collection members' do
@@ -75,10 +74,10 @@ describe Praxis::MediaTypeCollection do
     end
   end
 
-
   context '#render' do
-
     context 'for standard views' do
+      let(:snapshots_data) { {name: 'snapshots',   href: '/bob/snapshots' } }
+      let(:snapshots) { media_type_collection.load(snapshots_data) }
       subject(:output) { snapshots.render(:link) }
 
       its([:name]) { should eq(snapshots.name)}
@@ -86,8 +85,15 @@ describe Praxis::MediaTypeCollection do
       its([:href]) { should eq(snapshots.href)}
     end
 
-    context 'for member views' do
-      subject(:output) { snapshots.render(:default) }
+    context 'for members' do
+      let(:snapshots_data) do
+        [{id: 1, name: 'snapshot-1'},
+         {id: 2, name: 'snapshot-2'}]
+      end
+
+      let(:snapshots) { media_type_collection.load(snapshots_data) }
+
+      subject(:output) { media_type_collection.dump(snapshots, view: :default) }
 
       it { should eq(snapshots.collect(&:render)) }
     end
@@ -96,23 +102,12 @@ describe Praxis::MediaTypeCollection do
   end
 
   context '#validate' do
-    let(:volume_data) do
-      {
-        id: 1,
-        name: 'bob',
-        snapshots: snapshots_data
-      }
-    end
-
-    let(:snapshots_data) {
-      nil
-    }
+ 
 
     context 'with a hash' do
       let(:snapshots_data) { {name: 'snapshots-1',   href: '/bob/snapshots' } }
+      subject(:snapshots) { media_type_collection.load(snapshots_data) }
 
-      let(:volume) { Volume.load(volume_data) }
-      subject(:snapshots) { volume.snapshots }
 
       it 'validates' do
         expect(snapshots.validate).to be_empty
@@ -133,10 +128,8 @@ describe Praxis::MediaTypeCollection do
          {id: 2, name: 'snapshot-2'}]
       end
 
-      let(:volume) { Volume.load(volume_data) }
-      let(:snapshots) { volume.snapshots }
-      subject(:members) { snapshots.to_a }
-      
+      subject(:snapshots) { media_type_collection.load(snapshots_data) }
+
       it 'validates' do
         expect(snapshots.validate).to be_empty
       end

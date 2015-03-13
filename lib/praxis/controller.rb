@@ -22,6 +22,10 @@ module Praxis
         definition.controller = self
         Application.instance.controllers << self
       end
+      
+      def id
+        self.name.gsub('::'.freeze,'-'.freeze)
+      end
     end
 
     def initialize(request, response=Responses::Ok.new)
@@ -29,5 +33,8 @@ module Praxis
       @response = response
     end
 
+    def definition
+      self.class.definition
+    end
   end
 end

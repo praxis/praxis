@@ -4,12 +4,7 @@
 
 .header {
   .navbar-default {
-    background-image: -ms-linear-gradient(top, #fff 0%, $navbar-default-bg 100%);
-    background-image: -moz-linear-gradient(top, #fff 0%, $navbar-default-bg 100%);
-    background-image: -o-linear-gradient(top, #fff 0%, $navbar-default-bg 100%);
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #FFFFFF), color-stop(1, $navbar-default-bg));
-    background-image: -webkit-linear-gradient(top, #fff 0%, $navbar-default-bg 100%);
-    background-image: linear-gradient(to bottom, #fff 0%, $navbar-default-bg 100%);
+    @include gradient-vertical($start-color: $navbar-default-gradient-start, $end-color: $navbar-default-gradient-end);
     box-shadow: 0 0 5px rgba(#000, 0.085);
   }
 }

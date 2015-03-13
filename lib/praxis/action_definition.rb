@@ -38,7 +38,7 @@ module Praxis
       @routes = []
 
       if (media_type = resource_definition.media_type)
-        if media_type.kind_of?(Class) && media_type < Praxis::MediaType
+        if media_type.kind_of?(Class) && media_type < Praxis::Types::MediaTypeCommon
           @reference_media_type = media_type
         end
       end
@@ -74,7 +74,7 @@ module Praxis
       end
       self.instance_eval(&ApiDefinition.instance.traits[trait_name])
     end
-
+    
     def params(type=Attributor::Struct, **opts, &block)
       return @params if !block && type == Attributor::Struct
 
@@ -105,11 +105,12 @@ module Praxis
       end
     end
 
-    def headers(type=Attributor::Hash.of(key:String), **opts, &block)
+    def headers(type=nil, **opts, &block)
       return @headers unless block
       if @headers
         update_attribute(@headers, opts, block)
       else
+        type = Attributor::Hash.of(key:String) unless type
         @headers = create_attribute(type,
           dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true,
           **opts, &block)

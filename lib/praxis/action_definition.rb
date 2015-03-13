@@ -35,6 +35,7 @@ module Praxis
       @resource_definition = resource_definition
       @responses = Hash.new
       @metadata = Hash.new
+      @routes = []
 
       if (media_type = resource_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::Types::MediaTypeCommon
@@ -111,8 +112,8 @@ module Praxis
       else
         type = Attributor::Hash.of(key:String) unless type
         @headers = create_attribute(type,
-                                    dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true,
-                                    **opts, &block)
+          dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true,
+          **opts, &block)
       end
       @precomputed_header_keys_for_rack = nil #clear memoized data
     end

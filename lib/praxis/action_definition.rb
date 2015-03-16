@@ -74,7 +74,7 @@ module Praxis
       end
       self.instance_eval(&ApiDefinition.instance.traits[trait_name])
     end
-    
+
     def params(type=Attributor::Struct, **opts, &block)
       return @params if !block && type == Attributor::Struct
 
@@ -158,7 +158,9 @@ module Praxis
         # FIXME: change to :routes along with api browser
         hash[:urls] = routes.collect(&:describe)
         hash[:headers] = headers.describe if headers
-        hash[:params] = params.describe if params
+        if params
+          hash[:params] = params_description
+        end
         hash[:payload] = payload.describe if payload
         hash[:responses] = responses.inject({}) do |memo, (response_name, response)|
           memo[response.name] = response.describe
@@ -168,6 +170,24 @@ module Praxis
           callback.call(self, hash)
         end
       end
+    end
+
+    def params_description
+      route_params = primary_route.path.
+        named_captures.
+        keys.
+        collect(&:to_sym)
+
+      desc = params.describe
+      desc[:type][:attributes].keys.each do |k|
+        source = if route_params.include? k
+          'url'
+        else
+          'query'
+        end
+        desc[:type][:attributes][k][:source] = source          
+      end
+      desc
     end
 
     def nodoc!

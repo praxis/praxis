@@ -116,7 +116,16 @@ describe Praxis::ActionDefinition do
   end
 
   context '#describe' do
-    it 'has some tests when Skeletor::RestfulRoutingConfig disappears'
+    subject(:describe) { action.describe }
+
+    context 'params' do
+      subject(:param_description) { describe[:params] }
+      it 'includes attribute sources' do
+        attributes = param_description[:type][:attributes]
+        expect(attributes[:inherited][:source]).to eq('query')
+        expect(attributes[:one][:source]).to eq('url')
+      end
+    end
   end
 
   context 'href generation' do

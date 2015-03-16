@@ -1,7 +1,6 @@
 # praxis changelog
 
 ## next
-*Fixed praxis:routes rake task to support actions that do not have routes defined
 
 * Adds features for customizing and exporting the Doc browser, namely the following changes:
   1. All doc browser stuff is now centralised under the `praxis:docs` namespace.
@@ -51,6 +50,8 @@
 * Doc Browser: Added support for Markdown rendering of descriptions (for resources, media_types, attributes, etc...)
 * Added test framework for the doc browser. Run the tests with `grunt test` from lib/api_browser.
 * Enhanced the `praxis:docs:preview` rake task with an optional port parameter
+* Fixed praxis:routes rake task to support actions that do not have routes defined
+* Added `:source` to `ActionDefinition` parameter descriptions with the value of either 'url' or 'query' to denote where the parameter is (typically) extracted from. Note: not currently shown in doc browser.
 
 ## 0.13.0
 * Added `nodoc!` method to `ActionDefinition`, `ResourceDefinition` to hide actions and resources from the generated documentation.

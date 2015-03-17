@@ -14,7 +14,7 @@ describe 'Functional specs' do
       it 'is successful' do
         get '/clouds/1/instances?api_version=1.0', nil, 'global_session' => session
         expect(last_response.headers['Content-Type']).to(
-          eq("application/vnd.acme.instance;type=collection"))
+        eq("application/vnd.acme.instance;type=collection"))
       end
     end
 
@@ -60,15 +60,25 @@ describe 'Functional specs' do
   it 'works' do
     get '/clouds/1/instances/2?junk=foo&api_version=1.0', nil, 'global_session' => session
     expect(last_response.status).to eq(200)
-    expect(JSON.parse(last_response.body)).to eq({"cloud_id" => 1, "id"=>2, "junk"=>"foo",
-                                                  "other_params"=>{
-                                                    "some_date"=>"2012-12-21T00:00:00+00:00",
-                                                  "fail_filter"=>false},
-                                                  "payload"=>{"something"=>nil, "optional"=>"not given"}})
-    expect(last_response.headers).
-      to eq({"Content-Type"=>"application/vnd.acme.instance",
-             "Content-Length"=>"214", 'Spec-Middleware' => 'used'})
-      end
+    expected = {
+      "cloud_id" => 1,
+      "id"=>2,
+      "junk"=>"foo",
+      "other_params"=>{
+        "some_date"=>"2012-12-21T00:00:00+00:00",
+        "fail_filter"=>false
+      },
+      "payload"=>{
+      "optional"=>"not given"}
+    }
+
+    expect(JSON.parse(last_response.body)).to eq(expected)
+
+    headers = last_response.headers
+    expect(headers['Content-Type']).to eq('application/vnd.acme.instance')
+    expect(headers['Spec-Middleware']).to eq('used')
+    expect(headers['Content-Length']).to eq(last_response.body.size.to_s)
+  end
 
   it 'returns early when making the before filter break' do
     get '/clouds/1/instances/2?junk=foo&api_version=1.0&fail_filter=true', nil, 'global_session' => session
@@ -301,6 +311,40 @@ describe 'Functional specs' do
       expect(body['name']).to eq('ValidationError')
       expect(body['message']).to match("For request Content-Type: 'application/x-www-form-urlencoded'")
     end
+  end
+
+  context 'update' do
+    
+
+    let(:body) { JSON.pretty_generate(request_payload) }
+    let(:content_type) { 'application/json' }
+
+    before do
+      patch '/clouds/1/instances/3?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
+    end
+  
+    subject(:response_body) { JSON.parse(last_response.body) }
+
+    context 'with an empty payload' do
+      let(:request_payload) { {} }
+      it { should be_empty }
+      it { should_not have_key('name') }
+      it { should_not have_key('root_volume') }
+    end
+
+    context 'with a provided name' do
+      let(:request_payload) { {name: 'My Instance'} }
+      its(['name']) { should eq('My Instance') }
+      it { should_not have_key('root_volume') }
+    end
+
+    context 'with an explicitly-nil root_volme' do
+      let(:request_payload) { {name: 'My Instance', root_volume: nil} }
+      its(['name']) { should eq('My Instance') }
+      its(['root_volume']) { should be(nil) }
+    end
+
+
   end
 
 end

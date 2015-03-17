@@ -1,9 +1,12 @@
 language: ruby
 cache: bundler
 rvm:
-  - "2.1.2"
+  - "2.1.5"
 node_js:
   - "0.10"
+branches:
+  only:
+    - master
 before_install:
   - cd lib/api_browser
   - npm install

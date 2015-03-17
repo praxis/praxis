@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Praxis::Bootloader do
   let(:application) do
-    instance_double("Praxis::Application", config: "config", root: "root", plugins: {})
+    instance_double("Praxis::Application", config: "config", root: "root", plugins: {}, file_layout: {} )
   end
 
   subject(:bootloader) {Praxis::Bootloader.new(application)}
@@ -17,6 +17,15 @@ describe Praxis::Bootloader do
     its(:root) {should be(application.root)}
   end
 
+  context ".run" do
+    it "should call setup and run for all the stages" do
+      bootloader.stages.each do |s|
+        expect(s).to receive(:setup!).once
+        expect(s).to receive(:run).once
+      end
+      bootloader.run
+    end
+  end
   context ".delete_stage" do
     it "delete valid stage" do
       bootloader.delete_stage(:app)

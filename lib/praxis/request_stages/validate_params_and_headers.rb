@@ -11,7 +11,7 @@ module Praxis
 
 
       def path
-        @parent.path + [name]
+        @_path ||= ( @parent.path + [name] )
       end
 
       def execute

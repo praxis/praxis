@@ -2,7 +2,17 @@ language: ruby
 cache: bundler
 rvm:
   - "2.1.5"
-script: bundle exec rspec spec
+node_js:
+  - "0.10"
 branches:
   only:
     - master
+before_install:
+  - cd lib/api_browser
+  - npm install
+  - cd ../..
+script:
+  - bundle exec rspec spec
+  - cd lib/api_browser
+  - npm test
+  - cd ../..

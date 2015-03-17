@@ -13,8 +13,6 @@ describe Praxis::Stage do
 
   context ".run" do
     it "sets up and execute callbacks" do
-      expect(stage).to receive('setup!')
-      expect(stage).to receive('setup_deferred_callbacks!')
       expect(stage).to receive('execute')
       expect(stage).to receive('execute_callbacks').twice
       stage.run
@@ -22,7 +20,10 @@ describe Praxis::Stage do
   end
 
   context ".setup!" do
-    it "should do something"
+    it 'should call setup_deferred_callbacks' do
+      expect(stage).to receive('setup_deferred_callbacks!')
+      stage.setup!
+    end
   end
 
   context ".setup_deferred_callbacks!" do
@@ -40,11 +41,6 @@ describe Praxis::Stage do
   end
 
   context ".execute" do
-    it "raises error when @stages is empty" do
-      error_msg = 'Subclass must implement Stage#execute'
-      expect{stage.execute}.to raise_error(NotImplementedError, error_msg)
-    end
-
     it "runs all the stages" do
       double_stage = double("stage")
       expect(double_stage).to receive('run')

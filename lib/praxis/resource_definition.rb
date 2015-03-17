@@ -42,10 +42,10 @@ module Praxis
         @media_type = media_type
       end
 
-      def version(version=nil, options= { using: [:header,:params] }.freeze )
+      def version(version=nil, options=nil)
         return @version unless version
         @version = version
-        @version_options = options
+        @version_options = options || {using: [:header,:params]}
       end
 
       def canonical_path( action_name=nil )

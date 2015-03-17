@@ -21,7 +21,7 @@ module Praxis
     attr_reader :metadata
 
     class << self
-      attr_accessor :doc_decorations      
+      attr_accessor :doc_decorations
     end
 
     @doc_decorations = []
@@ -35,6 +35,7 @@ module Praxis
       @resource_definition = resource_definition
       @responses = Hash.new
       @metadata = Hash.new
+      @routes = []
 
       if (media_type = resource_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::Types::MediaTypeCommon
@@ -73,7 +74,7 @@ module Praxis
       end
       self.instance_eval(&ApiDefinition.instance.traits[trait_name])
     end
-    
+
     def params(type=Attributor::Struct, **opts, &block)
       return @params if !block && type == Attributor::Struct
 
@@ -104,13 +105,14 @@ module Praxis
       end
     end
 
-    def headers(type=Attributor::Hash.of(key:String), **opts, &block)
+    def headers(type=nil, **opts, &block)
       return @headers unless block
       if @headers
         update_attribute(@headers, opts, block)
       else
+        type = Attributor::Hash.of(key:String) unless type
         @headers = create_attribute(type,
-          dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true, 
+          dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true,
           **opts, &block)
       end
       @precomputed_header_keys_for_rack = nil #clear memoized data
@@ -128,7 +130,7 @@ module Praxis
         end
       end
     end
-    
+
 
     def routing(&block)
       routing_config = Skeletor::RestfulRoutingConfig.new(name, resource_definition, &block)
@@ -156,7 +158,9 @@ module Praxis
         # FIXME: change to :routes along with api browser
         hash[:urls] = routes.collect(&:describe)
         hash[:headers] = headers.describe if headers
-        hash[:params] = params.describe if params
+        if params
+          hash[:params] = params_description
+        end
         hash[:payload] = payload.describe if payload
         hash[:responses] = responses.inject({}) do |memo, (response_name, response)|
           memo[response.name] = response.describe
@@ -166,6 +170,24 @@ module Praxis
           callback.call(self, hash)
         end
       end
+    end
+
+    def params_description
+      route_params = primary_route.path.
+        named_captures.
+        keys.
+        collect(&:to_sym)
+
+      desc = params.describe
+      desc[:type][:attributes].keys.each do |k|
+        source = if route_params.include? k
+          'url'
+        else
+          'query'
+        end
+        desc[:type][:attributes][k][:source] = source          
+      end
+      desc
     end
 
     def nodoc!

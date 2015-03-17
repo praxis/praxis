@@ -1,5 +1,8 @@
 language: ruby
 cache: bundler
 rvm:
-  - "2.1.2"
+  - "2.1.5"
 script: bundle exec rspec spec
+branches:
+  only:
+    - master

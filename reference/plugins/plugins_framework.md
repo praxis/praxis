@@ -149,6 +149,14 @@ The two main components of a plugin in Praxis are:
 * `Plugin`: The class that is instantiated for each use of the plugin (unless it includes `Singleton`, in which case its `instance` is used).
 * `PluginConcern`: An `ActiveSupport::Concern` module that encloses extensions to core Praxis classes.
 
+In addition, plugins that use the `PluginConcern` module may provide modules that should be included in the core Praxis classes. The modules must be named after the class they are to be included in to, at present the following classes are supported:
+
+  * `Request`
+  * `Controller`
+  * `ResourceDefinition`
+  * `ActionDefinition`
+  * `Response`
+
 A plugin in Praxis *must* consist of a subclass of `Plugin`, and that subclass *may* be enclosed in a module that has included `PluginConcern`
 
 ## Plugin Bootstrapping and Configuration

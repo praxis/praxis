@@ -15,23 +15,25 @@ ApiDefinition.define do
     description 'An ok response refers to a successful outcome'
     status 200
     media_type 'application/json'
-    headers {'X-Header1' => 'foo', 'X-Header2' => /bar/ }
+    headers 'X-Header1' => 'foo', 'X-Header2' => /bar/
   end
 end
 {% endhighlight %}
 
-This response definition is named `ok`, it has a human-readable description,
+This response definition is named `ok`, it has a human-readable description (that will be be rendered as markdown and html by the doc browser),
 and Praxis expects it to always:
 
 * have a status code of 200
 * return an "application/json" media type (the value of the Content-Type header)
 * contain, at least, the following two headers:
-  * ```X-Header1``` which must always match a literal value "foo"
-  * ```X-Header2``` which must always match the regular expression `/bar/`
+  * `X-Header1` which must always match a literal value "foo"
+  * `X-Header2` which must always match the regular expression `/bar/`
 
 Any action may refer to a response by name when declaring its list of expected
 responses. For example, here is a snippet of an action definition describing
 that it can return the `ok` response defined above.
+
+Description text is copied as is in the generated JSON files. However, the Doc browser will appropriately render any markdown or HTML tags that it contains.
 
 {% highlight ruby %}
 # somewhere in a resource definition...
@@ -59,7 +61,7 @@ ApiDefinition.define do
     description 'An ok response refers to a successful outcome'
     status 200
     media_type media_type
-    headers {'X-Header1' => 'foo', 'X-Header2' => /bar/ }
+    headers 'X-Header1' => 'foo', 'X-Header2' => /bar/
   end
 end
 {% endhighlight %}
@@ -165,7 +167,7 @@ ApiDefinition.define do
   # header field set with a Hash
   response_template :found do
     status 200
-    headers {'X-Header1' => 'foo', 'X-Header2' => /bar/ }
+    headers 'X-Header1' => 'foo', 'X-Header2' => /bar/
   end
 end
 {% endhighlight %}

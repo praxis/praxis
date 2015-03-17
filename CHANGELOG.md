@@ -2,6 +2,8 @@
 
 ## next
 
+## 0.14.0 
+
 * Adds features for customizing and exporting the Doc browser, namely the following changes:
   1. All doc browser stuff is now centralised under the `praxis:docs` namespace.
   2. The doc browser requires node.js. (TODO: add this to the docs PR)

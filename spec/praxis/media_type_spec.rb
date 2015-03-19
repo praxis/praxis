@@ -3,9 +3,10 @@ require 'spec_helper'
 describe Praxis::MediaType do
   let(:owner_resource) { instance_double(Person, id: 100, name: /[:name:]/.gen, href: '/', links: ['one','two']) }
   let(:manager_resource) { instance_double(Person, id: 101, name: /[:name:]/.gen, href: '/', links: []) }
+  let(:custodian_resource) { instance_double(Person, id: 102, name: /[:name:]/.gen, href: '/', links: []) }
 
   let(:resource) do
-    double('address', id: 1, name: 'Home',owner: owner_resource, manager: manager_resource)
+    double('address', id: 1, name: 'Home',owner: owner_resource, manager: manager_resource, custodian: custodian_resource)
   end
 
   subject(:address) { Address.new(resource) }
@@ -20,7 +21,9 @@ describe Praxis::MediaType do
       it 'respects using' do
         expect(address.links.super).to be_kind_of(Person)
         expect(address.links.super.object).to be(resource.manager)
+        expect(address.links.caretaker.object).to be(resource.custodian)
       end
+
     end
   end
 
@@ -43,6 +46,13 @@ describe Praxis::MediaType do
       context 'using the links DSL' do
         subject(:address) { Address.new(resource) }
         its(:links)  { should be_kind_of(Address::Links) }
+
+        it 'inherits types appropriately' do
+          links_attribute = Address::Links.attributes
+          expect(links_attribute[:owner].type).to be(Person)
+          expect(links_attribute[:super].type).to be(Person)
+          expect(links_attribute[:caretaker].type).to be(Person)
+        end
       end
       
     end

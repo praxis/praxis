@@ -13,6 +13,9 @@ module Praxis
 
       def link(name, type=nil, using: name, **opts, &block)
         links[name] = using
+        if type.nil? && (name != using)
+          type = options[:reference].attributes[using].type
+        end
         attribute(name, type, **opts, &block)
       end
     end

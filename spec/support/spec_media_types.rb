@@ -30,10 +30,12 @@ class Address < Praxis::MediaType
     attribute :name, String
 
     attribute :owner, Person
-
+    attribute :custodian, Person
+    
     links do
       link :owner
       link :super, Person, using: :manager
+      link :caretaker, using: :custodian
     end
 
   end

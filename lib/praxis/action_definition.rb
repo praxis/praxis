@@ -173,10 +173,15 @@ module Praxis
     end
 
     def params_description
-      route_params = primary_route.path.
-        named_captures.
-        keys.
-        collect(&:to_sym)
+      route_params = []
+      if primary_route.nil?
+        warn "Warning: No routes defined for #{resource_definition.name}##{name}."
+      else
+        route_params = primary_route.path.
+          named_captures.
+          keys.
+          collect(&:to_sym)
+      end
 
       desc = params.describe
       desc[:type][:attributes].keys.each do |k|
@@ -185,7 +190,7 @@ module Praxis
         else
           'query'
         end
-        desc[:type][:attributes][k][:source] = source          
+        desc[:type][:attributes][k][:source] = source
       end
       desc
     end

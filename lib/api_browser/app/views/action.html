@@ -77,5 +77,10 @@
         </table>
       </div>
     </div>
+
+    <div ng-if="example_response" class="col-lg-12">
+      <h3>Example response</h3>
+      <pre>{{example_response | friendlyJson}}</pre>
+    </div>
   </div>
 </div>

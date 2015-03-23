@@ -2,10 +2,11 @@
 
 ## next
 
+* Fixed handling of no app or design file groups defined in application layout.
 * Handled and added warning message for doc generation task when no routing block is defined for an action.  
 * Improved `link` method in `MediaType` attribute definition to support inheriting the type from the `:using` option if if that specifies an attribute. For example: `link :posts, using: :posts_summary` would use the type of the `:posts_summary` attribute.
 
-## 0.14.0 
+## 0.14.0
 
 * Adds features for customizing and exporting the Doc browser, namely the following changes:
   1. All doc browser stuff is now centralised under the `praxis:docs` namespace.

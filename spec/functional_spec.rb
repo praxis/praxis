@@ -58,7 +58,8 @@ describe 'Functional specs' do
   end
 
   it 'works' do
-    get '/clouds/1/instances/2?junk=foo&api_version=1.0', nil, 'global_session' => session
+    the_body = StringIO.new("{}") # This is a funny, GET request expecting a body
+    get '/clouds/1/instances/2?junk=foo&api_version=1.0', nil,'rack.input' => the_body,'CONTENT_TYPE' => "application/json", 'global_session' => session
     expect(last_response.status).to eq(200)
     expected = {
       "cloud_id" => 1,
@@ -101,6 +102,7 @@ describe 'Functional specs' do
     let(:body) { form.body.to_s }
 
     it 'works' do
+
       post '/clouds/1/instances?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
 
       _reponse_preamble, response = Praxis::MultipartParser.parse(last_response.headers, last_response.body)

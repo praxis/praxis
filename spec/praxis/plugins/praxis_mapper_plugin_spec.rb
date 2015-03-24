@@ -55,8 +55,8 @@ describe Praxis::Plugins::PraxisMapperPlugin do
       expect(Praxis::Plugins::PraxisMapperPlugin::Statistics).to receive(:log).
         with(kind_of(Praxis::Request),kind_of(Praxis::Mapper::IdentityMap), 'detailed').
         and_call_original
-
-      get '/clouds/1/instances/2?junk=foo&api_version=1.0', nil, 'global_session' => session
+      the_body = StringIO.new("{}") # This is a funny, GET request expecting a body
+      get '/clouds/1/instances/2?junk=foo&api_version=1.0', nil, 'rack.input' => the_body,'CONTENT_TYPE' => "application/json", 'global_session' => session
 
       expect(last_response.status).to eq(200)
     end

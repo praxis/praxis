@@ -91,6 +91,12 @@ module Praxis
   require 'praxis/responses/internal_server_error'
   require 'praxis/responses/validation_error'
 
+  module Handlers
+    autoload :JSON, 'praxis/handlers/json'
+    autoload :WWWForm, 'praxis/handlers/www_form'
+    autoload :XML, 'praxis/handlers/xml'
+  end
+
   module BootloaderStages
     autoload :FileLoader, 'praxis/bootloader_stages/file_loader'
     autoload :Environment, 'praxis/bootloader_stages/environment'

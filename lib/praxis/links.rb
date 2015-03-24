@@ -72,7 +72,7 @@ module Praxis
       define_method(name) do
         value = @object.__send__(using)
         return value if value.nil? || value.kind_of?(attribute.type)
-        attribute.type.new(value)
+        attribute.load(value)
       end
 
       # do whatever crazy aliasing we need to here....

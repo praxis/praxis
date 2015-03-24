@@ -4,9 +4,19 @@ describe Praxis::MediaType do
   let(:owner_resource) { instance_double(Person, id: 100, name: /[:name:]/.gen, href: '/', links: ['one','two']) }
   let(:manager_resource) { instance_double(Person, id: 101, name: /[:name:]/.gen, href: '/', links: []) }
   let(:custodian_resource) { instance_double(Person, id: 102, name: /[:name:]/.gen, href: '/', links: []) }
+  let(:residents_summary_resource) do
+    instance_double(Person::CollectionSummary, href: "/people", size: 2)
+  end
 
   let(:resource) do
-    double('address', id: 1, name: 'Home',owner: owner_resource, manager: manager_resource, custodian: custodian_resource)
+    double('address', 
+      id: 1, 
+      name: 'Home',
+      owner: owner_resource,
+      manager: manager_resource,
+      custodian: custodian_resource,
+      residents_summary: residents_summary_resource
+    )
   end
 
   subject(:address) { Address.new(resource) }
@@ -53,8 +63,17 @@ describe Praxis::MediaType do
           expect(links_attribute[:super].type).to be(Person)
           expect(links_attribute[:caretaker].type).to be(Person)
         end
+
+        context 'loading returned values' do
+          subject(:residents) { address.links.residents }
+          let(:residents_summary_resource) do
+            {href: "/people", size: 2}
+          end
+
+          its(:href) { should eq('/people') }
+          its(:size) { should eq(2) }
+        end
       end
-      
     end
   end
 

@@ -17,6 +17,19 @@ class Person < Praxis::MediaType
     attribute :name
     attribute :href
   end
+
+  class CollectionSummary < Praxis::MediaType
+    attributes do
+      attribute :href, String
+      attribute :size, Integer
+    end
+
+    view :link do
+      attribute :href
+      attribute :size
+    end
+
+  end
 end
 
 
@@ -31,11 +44,15 @@ class Address < Praxis::MediaType
 
     attribute :owner, Person
     attribute :custodian, Person
-    
+  
+    attribute :residents, Praxis::Collection.of(Person)    
+    attribute :residents_summary, Person::CollectionSummary
+
     links do
       link :owner
       link :super, Person, using: :manager
       link :caretaker, using: :custodian
+      link :residents, using: :residents_summary
     end
 
   end

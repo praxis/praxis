@@ -20,8 +20,7 @@ module Praxis
 
         def identifier(identifier=nil)
           return @identifier unless identifier
-          # TODO: parse the string and extract things like collection , and format type?...
-          @identifier = identifier
+          @identifier = MediaTypeIdentifier.load(identifier)
         end
       end
 

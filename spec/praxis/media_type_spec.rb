@@ -32,7 +32,7 @@ describe Praxis::MediaType do
   context 'accessor methods' do
     subject(:address_klass) { address.class }
 
-    its(:identifier)  { should be_kind_of(String) }
+    its(:identifier)  { should be_kind_of(Praxis::MediaTypeIdentifier) }
     its(:description) { should be_kind_of(String) }
     
     context 'links' do

@@ -50,7 +50,6 @@ module Praxis
   autoload :Router, 'praxis/router'
   autoload :SimpleMediaType, 'praxis/simple_media_type'
   autoload :Stage, 'praxis/stage'
-  autoload :ContentTypeParser, 'praxis/content_type_parser'
 
   autoload :Stats, 'praxis/stats'
   autoload :Notifications, 'praxis/notifications'
@@ -65,6 +64,7 @@ module Praxis
   autoload :Links, 'praxis/links'
   autoload :MediaType, 'praxis/media_type'
   autoload :MediaTypeCollection, 'praxis/media_type_collection'
+  autoload :MediaTypeIdentifier, 'praxis/media_type_identifier'
   autoload :Multipart, 'praxis/types/multipart'
   autoload :Collection, 'praxis/collection'
 

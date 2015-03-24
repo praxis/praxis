@@ -1,7 +1,5 @@
 module Praxis
   class Response
-
-
     attr_reader :name
     attr_reader :parts
 
@@ -29,6 +27,25 @@ module Praxis
       @parts = Hash.new
     end
 
+    # Determine the content type of this response.
+    # @todo DRY this out (also used in Multipart::Part)
+    #
+    # @return [MediaTypeIdentifier]
+    def content_type
+      MediaTypeIdentifier.load(headers['Content-Type'])
+    rescue ArgumentError
+      MediaTypeIdentifier.load(type: headers['Content-Type'])
+    end
+
+    # Set the content type for this response.
+    # @todo DRY this out (also used in Multipart::Part)
+    #
+    # @return [String]
+    # @param [String,MediaTypeIdentifier] identifier
+    def content_type=(identifier)
+      headers['Content-Type'] = MediaTypeIdentifier.load(identifier).to_s
+    end
+
     def handle
     end
 
@@ -54,7 +71,12 @@ module Praxis
     def encode!
       case @body
       when Hash, Array
-        @body = JSON.pretty_generate(@body)
+        # response payload is structured data; transform it into an entity using the handler
+        # implied by the response's media type. If no handler is registered for this
+        # name, assume JSON as a default handler.
+        handlers = Praxis::Application.instance.handlers
+        handler = handlers[content_type.handler_name] || handlers['json']
+        @body = handler.generate(@body)
       end
     end
 

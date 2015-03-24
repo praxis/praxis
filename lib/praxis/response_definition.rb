@@ -210,19 +210,15 @@ module Praxis
         case value
         when String
           if response.headers[name] != value
-            unless valid
-              raise Exceptions::Validation.new(
-                "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name]}."
-              )
-            end
+            raise Exceptions::Validation.new(
+              "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name]}."
+            )
           end
         when Regexp
           if response.headers[name] !~ value
-            unless valid
-              raise Exceptions::Validation.new(
-                "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name].inspect}."
-              )
-            end
+            raise Exceptions::Validation.new(
+              "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name].inspect}."
+            )
           end
         end
       end
@@ -238,35 +234,14 @@ module Praxis
     def validate_content_type!(response)
       return unless media_type
 
-      response_content_type = {}
-      if response.headers['Content-Type']
-        response_content_type = Praxis::ContentTypeParser.parse(response.headers['Content-Type'])
-      end
+      response_content_type = response.content_type
+      expected_content_type = Praxis::MediaTypeIdentifier.load(media_type.identifier)
 
-      expected_content_type = Praxis::ContentTypeParser.parse(media_type.identifier)
-
-      unless response_content_type[:type] == expected_content_type[:type]
+      unless expected_content_type.match(response_content_type)
         raise Exceptions::Validation.new(
-          "Bad Content-Type header. #{response.headers['Content-Type']}" +
-          " does not match type #{expected_content_type[:type]} as described in response: #{self.name}"
+          "Bad Content-Type header. #{response_content_type}" +
+          " is incompatible with #{expected_content_type} as described in response: #{self.name}"
         )
-      end
-
-      if (expected_params = expected_content_type[:params])
-        expected_params.each do |param_name,expected_param|
-          response_param = response_content_type[:params].fetch(param_name) do
-            raise Exceptions::Validation.new(
-              "Bad Content-Type header: #{response.headers['Content-Type']}" +
-              " does not contain expected param '#{param_name}' as described in response: #{self.name}"
-            )
-          end
-          unless response_param == expected_param
-            raise Exceptions::Validation.new(
-              "Bad Content-Type header: #{response.headers['Content-Type']}" +
-              " param: #{param_name} does not match expected value #{expected_param} as described in response: #{self.name}"
-            )
-          end
-        end
       end
     end
 

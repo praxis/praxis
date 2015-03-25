@@ -18,7 +18,6 @@ module Praxis
         return unless self.class.enabled
 
         if application.file_layout[:app] == []
-          puts "No application folder specified."
           return
         end
 

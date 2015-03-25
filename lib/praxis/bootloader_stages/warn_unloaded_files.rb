@@ -16,6 +16,11 @@ module Praxis
 
       def execute
         return unless self.class.enabled
+
+        if application.file_layout[:app] == []
+          return
+        end
+
         base = application.file_layout[:app].base
         return unless base.exist?
         file_enum = base.find.to_a
@@ -26,12 +31,12 @@ module Praxis
 
         missing = Set.new(files) - application.loaded_files
         if missing.any?
-          msg = "The following files application files under #{base} were not loaded:\n"
+          msg = "The following application files under #{base} were not loaded:\n"
           missing.each do |file|
             path = file.relative_path_from(base)
             msg << " * #{path}\n"
           end
-          puts msg
+          warn msg
         end
       end
 

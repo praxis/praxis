@@ -36,7 +36,7 @@ module Praxis
             path = file.relative_path_from(base)
             msg << " * #{path}\n"
           end
-          puts msg
+          warn msg
         end
       end
 

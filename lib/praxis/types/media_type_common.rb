@@ -1,6 +1,7 @@
 module Praxis
   module Types
 
+    # Traits that are shared by MediaType and SimpleMediaType.
     module MediaTypeCommon
       extend ::ActiveSupport::Concern
 

@@ -10,7 +10,7 @@ Response Definitions
 : Reusable response templates (see [Response Definitions](../response-definitions/))
 
 API Information
-: Global, or versioned, metadata about the api (see [API Information](../api-general-information/)).
+: Global, or versioned, metadata about the api (see [API Information](../global-api-information/)).
 
 Traits
 : A convenient way to share common DSL elements across resource definitions and

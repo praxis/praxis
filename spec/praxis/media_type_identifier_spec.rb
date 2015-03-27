@@ -168,6 +168,8 @@ describe Praxis::MediaTypeIdentifier do
     it 'adds a suffix' do
       expect(simple_subject + 'xml').to \
         eq(described_class.new('application/vnd.icecream+xml'))
+      expect(simple_subject + '+xml').to \
+        eq(described_class.new('application/vnd.icecream+xml'))
     end
 
     it 'adds parameters' do

@@ -26,9 +26,9 @@ module Praxis
     # @return [nil,MediaTypeIdentifier] nil if the header is missing, else a media-type identifier
     def content_type
       header = @env[CONTENT_TYPE_NAME]
-      @content_type ||= (header && MediaTypeIdentifier.load(header))
+      @content_type ||= (header && MediaTypeIdentifier.load(header)).freeze
     rescue ArgumentError
-      MediaTypeIdentifier.load(type: @env[CONTENT_TYPE_NAME])
+      MediaTypeIdentifier.load(type: @env[CONTENT_TYPE_NAME]).freeze
     end
 
     # The media type (type/subtype+suffix) portion of the Content-Type

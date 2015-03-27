@@ -32,9 +32,9 @@ module Praxis
     #
     # @return [MediaTypeIdentifier]
     def content_type
-      MediaTypeIdentifier.load(headers['Content-Type'])
+      MediaTypeIdentifier.load(headers['Content-Type']).freeze
     rescue ArgumentError
-      MediaTypeIdentifier.load(type: headers['Content-Type'])
+      MediaTypeIdentifier.load(type: headers['Content-Type']).freeze
     end
 
     # Set the content type for this response.

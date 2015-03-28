@@ -37,13 +37,16 @@ describe Praxis::MediaTypeIdentifier do
     end
 
     context 'given a malformed type' do
-      let(:bad_examples) { ['monkey', 'man/bear/pig', 'c/c++', 'application/ice-cream+cone+dipped'] }
+      it 'tolerates extra slash or plus' do
+        ['man/bear/pig', 'c/c++', 'application/ice-cream+cone+dipped'].each do |eg|
+          expect(described_class.new(eg).to_s).to eq(eg)
+        end
+      end
 
-      it 'raises ArgumentError' do
-        bad_examples.each do |eg|
-          expect {
-            described_class.new(eg)
-          }.to raise_error(ArgumentError)
+      it 'assumes application/XYZ' do
+        ['nachos', 'tacos with extra cheese!'].each do |eg|
+          prefix = eg.split(/\s+/).first
+          expect(described_class.new(eg).to_s).to eq("application/#{prefix}")
         end
       end
     end

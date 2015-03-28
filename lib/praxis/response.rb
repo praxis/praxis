@@ -28,13 +28,10 @@ module Praxis
     end
 
     # Determine the content type of this response.
-    # @todo DRY this out (also used in Multipart::Part)
     #
     # @return [MediaTypeIdentifier]
     def content_type
       MediaTypeIdentifier.load(headers['Content-Type']).freeze
-    rescue ArgumentError
-      MediaTypeIdentifier.load(type: headers['Content-Type']).freeze
     end
 
     # Set the content type for this response.

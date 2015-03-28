@@ -9,7 +9,7 @@ module Praxis
     # the syntax for type identifiers is substantially narrower than what we accept there.
     #
     # Note that this ONLY matches type, subtype and suffix; we handle options differently.
-    VALID_TYPE = /^\s*(?<type>[^\/]+)\/(?<subtype>[^\+\/]+)(\+(?<suffix>[^+]+))?\s*$/x
+    VALID_TYPE = /^\s*(?<type>[^\/]+)\/(?<subtype>[^\+]+)(\+(?<suffix>[^; ]+))?\s*$/x
 
     # Pattern that separates parameters of a media type from each other, and from the base identifier.
     PARAMETER_SEPARATOR = /\s*;\s*/x
@@ -24,28 +24,40 @@ module Praxis
     Parameters = Attributor::Hash.of(key: String)
 
     attributes do
-      attribute :type, Attributor::String, description: 'RFC2046 media type', example: 'application'
-      attribute :subtype, Attributor::String, description: 'RFC2046 media subtype', example: 'vnd.widget'
+      attribute :type, Attributor::String, default: 'application', description: 'RFC2046 media type'
+      attribute :subtype, Attributor::String, default: '*', description: 'RFC2046 media subtype', example: 'vnd.widget'
       attribute :suffix, Attributor::String, default: '', description: 'RFC6838 structured-syntax suffix', example: 'json'
       attribute :parameters, Parameters, default: {}, description: "Type-specific parameters", example: "{'type' => 'collection'}"
     end
 
+    # Parse a media type identifier from a String, or load it from a Hash or Model. Assume malformed
+    # types represent a subtype, e.g. "nachos" => application/nachos"
+    #
+    # @param [String,Hash,Attributor::Model] value
+    # @return [MediaTypeIdentifier]
+    # @see Attributor::Model#load
     def self.load(value, context=Attributor::DEFAULT_ROOT_CONTEXT, recurse: false, **options)
       if value.is_a?(String)
         base, *parameters = value.split(PARAMETER_SEPARATOR)
         match = VALID_TYPE.match(base)
-        raise ArgumentError, 'Malformed MIME type' unless match
-
-        parameters = parameters.inject({}) do |h, e|
-          k, v = e.split('=', 2)
-          v = v[1...-1] if v =~ QUOTED_STRING
-          h[k] = v
-          h
-        end
 
         obj = new
-        obj.type, obj.subtype, obj.suffix, obj.parameters =
-            match[:type], match[:subtype], match[:suffix], parameters
+        if match
+          parameters = parameters.inject({}) do |h, e|
+            k, v = e.split('=', 2)
+            v = v[1...-1] if v =~ QUOTED_STRING
+            h[k] = v
+            h
+          end
+
+          obj.type, obj.subtype, obj.suffix, obj.parameters =
+              match[:type], match[:subtype], match[:suffix], parameters
+        else
+          obj.type = 'application'
+          obj.subtype = base.split(/[^A-Za-z0-9-]/, 2).first
+          obj.suffix = ''
+          obj.parameters = {}
+        end
         obj
       else
         super

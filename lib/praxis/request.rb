@@ -27,8 +27,6 @@ module Praxis
     def content_type
       header = @env[CONTENT_TYPE_NAME]
       @content_type ||= (header && MediaTypeIdentifier.load(header)).freeze
-    rescue ArgumentError
-      MediaTypeIdentifier.load(type: @env[CONTENT_TYPE_NAME]).freeze
     end
 
     # The media type (type/subtype+suffix) portion of the Content-Type

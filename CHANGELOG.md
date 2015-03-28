@@ -4,6 +4,8 @@
 
 * Handled and added warning message for doc generation task when no routing block is defined for an action.  
 * Improved `link` method in `MediaType` attribute definition to support inheriting the type from the `:using` option if if that specifies an attribute. For example: `link :posts, using: :posts_summary` would use the type of the `:posts_summary` attribute.
+* Added `MediaTypeIdentifier` class to parse and manipulate type identifiers.
+* Created a registry for media type handlers that parse and generate document bodies.
 
 ## 0.14.0 
 

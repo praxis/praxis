@@ -9,13 +9,17 @@ module Praxis
     # the syntax for type identifiers is substantially narrower than what we accept there.
     #
     # Note that this ONLY matches type, subtype and suffix; we handle options differently.
-    VALID_TYPE = /^\s*(?<type>[^\/]+)\/(?<subtype>[^\+]+)(\+(?<suffix>[^; ]+))?\s*$/x
+    VALID_TYPE = /^\s*(?<type>[^\/]+)\/(?<subtype>[^\+]+)(\+(?<suffix>[^; ]+))?\s*$/x.freeze
 
     # Pattern that separates parameters of a media type from each other, and from the base identifier.
-    PARAMETER_SEPARATOR = /\s*;\s*/x
+    PARAMETER_SEPARATOR = /\s*;\s*/x.freeze
+
+    # Pattern used to identify the first "word" when we encounter a malformed type identifier, so
+    # we can apply a heuristic and assume the user meant "application/XYZ".
+    WORD_SEPARATOR = /[^a-z0-9-]/i.freeze
 
     # Pattern that lets us strip quotes from parameter values.
-    QUOTED_STRING = /^".*"$/
+    QUOTED_STRING = /^".*"$/.freeze
 
     # Token that indicates a media-type component that matches anything.
     WILDCARD = '*'.freeze
@@ -43,18 +47,17 @@ module Praxis
 
         obj = new
         if match
-          parameters = parameters.inject({}) do |h, e|
+          parameters = parameters.each_with_object({}) do |e, h|
             k, v = e.split('=', 2)
             v = v[1...-1] if v =~ QUOTED_STRING
             h[k] = v
-            h
           end
 
           obj.type, obj.subtype, obj.suffix, obj.parameters =
               match[:type], match[:subtype], match[:suffix], parameters
         else
           obj.type = 'application'
-          obj.subtype = base.split(/[^A-Za-z0-9-]/, 2).first
+          obj.subtype = base.split(WORD_SEPARATOR, 2).first
           obj.suffix = ''
           obj.parameters = {}
         end

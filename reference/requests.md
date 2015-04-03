@@ -70,6 +70,16 @@ an "Authorization" key in your `request.headers` hash.
 Please see [Resource Definitions and Actions](../resource-definitions/), for
 more information on defining request headers in your action.
 
+## Content Type
+
+The `Content-Type` header is ubiquitous and has a well-known format (it's an Internet media type),
+so requests have a special reader method for accessing their `content_type`. The reader method
+returns a `MediaTypeIdentifier` object so you don't need to parse the header's value.
+
+Refer to [Media Types](../media_types/) for more information about media type identifiers, and
+[Handlers](../handlers/) to learn how Praxis uses the content type to parse a request's body
+into structured data.
+
 ## Payload
 
 `request.payload` will return any parameters that were passed through the

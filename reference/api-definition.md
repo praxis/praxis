@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Designing Global Api Constructs
+title: API Definition
 ---
 The ApiDefinition class is a singleton where you can define API-wide
 constructs. Praxis allows you to define the following constructs in your

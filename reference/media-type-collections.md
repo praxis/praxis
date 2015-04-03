@@ -3,7 +3,8 @@ layout: page
 title: MediaCollection
 ---
 
-*NOTE*: This class is deprecated and will be removed in a future version of Praxis! You should <insert stuff about what to do instead>.
+*NOTE*: This class is deprecated and will be removed in a future version of Praxis!
+You should <insert stuff about what to do instead>.
 
 Praxis::MediaTypeCollection is a special media type for collections of objects
 rather than single objects. Just like a regular Praxis::MediaType, you can

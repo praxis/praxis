@@ -24,18 +24,43 @@ Praxis::Application.configure do |app|
 end
 {% endhighlight %}
 
-Praxis contains built-in handlers for JSON, form-encoding and XML, but only JSON and form-encoding
-are registered automatically because XML adds some additional gem dependencies to the app. In
-the example above, you would need to add `builder` and `nokogiri` to your Gemfile.
+### Built-in Handlers
+
+The Praxis core contains handlers for JSON, form-encoding and XML, but only JSON and form-encoding
+are registered automatically because XML has external dependencies.
+
+To enable the XML handler, register it as shown in the example above, then add two gems to
+your application's Gemfile.
+
+{% highlight ruby %}
+gem 'builder', '~> 3.2'
+gem 'nokogiri', '~> 1.6'
+{% endhighlight %}
+
+#### XML Data Representation
+
+Praxis' XML handler parses and generates documents that are compatible with Ruby On Rails'
+`#to_xml` serialization mechanism. In brief:
+
+* attributes and their values are represented as named tags with inner CDATA
+* the `type` attribute indicates the data type of each value
+* a special `type` value indicates an array of objects
+
+This representation scheme does not have an XML DTD or schema because its tag names are open-ended,
+but its predictable naming scheme allows you to define a schema that covers your application's
+media types.
+
+For more information, please refer to [ActiveSupport documentation](http://api.rubyonrails.org/classes/ActiveModel/Serializers/Xml.html#method-i-to_xml).
 
 ## Handler Selection
 
 Praxis looks at the `content_type` of a request or response in order to determine the appropriate
 handler. Specifically, it asks for the `handler_name` of the content type; this is a method of
 `MediaTypeIdentifier` that applies a simple heuristic:
-  - If the content type's suffix (e.g. `+json`, `+xml`) matches a handler name, use that handler
-  - If the content's subtype (e.g. `json` in `application/json`) matches a handler name, use _that_ handler
-  - Otherwise, assume `www-form-urlencoded` handler for requests and `json` for responses
+
+*  If the content type's suffix (e.g. `+json`, `+xml`) matches a handler name, use that handler
+*  If the content's subtype (e.g. `json` in `application/json`) matches a handler name, use _that_ handler
+*  Otherwise, assume `www-form-urlencoded` handler for requests and `json` for responses
 
 This heuristic works because all of the structured-syntax suffixes defined in RFC6839 happen
 to coincide exactly with the subtype of the corresponding Internet media type: `+json`,
@@ -46,11 +71,15 @@ they have different implications about the _meaning_ of the data.
 
 Write your own handler by creating a Class that responds to three methods:
 
-`initialize`
-: check that your handler's dependencies are all satisfied and raise a helpful exception if not
-`parse`
-: given a `String`, decode into structured data and return structured data (`Hash` or `Array`)
-`generate`
-: given structured data, encode to String and return that string
+`#initialize`
+: Check that your handler's dependencies are all satisfied and raise a helpful exception if not.
 
-Register your handler at app startup and handle with impunity!
+`#parse`
+: Given a `String`, decode into structured data and return structured data (`Hash` or `Array`).
+
+`#generate`
+: Given structured data, encode to String and return that string.
+
+Use the [XML handler](https://github.com/rightscale/praxis/blob/master/lib/praxis/handlers/xml.rb)
+as an implementation guide. When you're finished implementing, register your handler at app startup
+and handle with impunity!

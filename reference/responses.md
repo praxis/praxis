@@ -19,7 +19,7 @@ Provide a body by calling the `body=` writer of your response. If your response 
 a body, then you should also set its `content_type=` so the user agent will know how
 to handle your data.
 
-If you provide a String response body, Praxis will respond verbatim the body and
+If you provide a String response body, Praxis will respond verbatim with the body and
 content-type header you have provided. If you provide structured data -- a Hash
 or an Array -- Praxis will analyze your response's `content_type` and encode your
 data using a suitable handler (or JSON if no specific handler seems appropriate).

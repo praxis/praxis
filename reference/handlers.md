@@ -16,7 +16,7 @@ Praxis uses a heuristic to decide which handler is appropriate for a given HTTP 
 
 Register new handlers at application startup time by invoking the `handler` DSL method inside
 your app's config block. Each handler is identified by a short string name and implemented
-using a Module or Class that responds to a few handler-interface methods.
+using a Class that responds to a few handler-interface methods.
 
 {% highlight ruby %}
 Praxis::Application.configure do |app|

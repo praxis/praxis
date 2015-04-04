@@ -63,35 +63,39 @@ describe Praxis::Application do
 
     describe '#handler' do
       let(:new_handler_name) { 'awesomesauce' }
-      let(:new_handler) { double('awesomesauce encoder', generate: '', parse: {}) }
-      let(:bad_handler) { double('bad handler', wokka: true, meep: false) }
+      let(:new_handler_instance) { double('awesomesauce instance', generate: '', parse: {}) }
+      let(:new_handler_class) { double('awesomesauce', new: new_handler_instance) }
+      let(:bad_handler_instance) { double('bad handler instance', wokka: true, meep: false) }
+      let(:bad_handler_class) { double('bad handler', new: bad_handler_instance) }
 
       context 'given a Class' do
-        let(:new_handler_class) { double('encoder with dependencies', new: new_handler) }
-
         it 'instantiates and registers an instance' do
           expect(new_handler_class).to receive(:new)
           subject.handler new_handler_name, new_handler_class
         end
       end
 
-      context 'given a Module' do
-        it 'registers the module' do
-          subject.handler new_handler_name, new_handler
+      context 'given a non-Class' do
+        it 'raises' do
+          expect {
+            subject.handler('awesomesauce', 'hi') # no instances allowed
+          }.to raise_error(NoMethodError)
 
-          expect(subject.handlers[new_handler_name]).to eq(new_handler)
+          expect {
+            subject.handler('awesomesauce', ::Kernel) # no modules allowed
+          }.to raise_error(NoMethodError)
         end
       end
 
       it 'overrides default handlers' do
-        subject.handler 'json', new_handler
+        subject.handler 'json', new_handler_class
         subject.setup
-        expect(subject.handlers['json']).to eq(new_handler)
+        expect(subject.handlers['json']).to eq(new_handler_instance)
       end
 
       it 'ensures that handlers will work' do
         expect {
-          subject.handler new_handler_name, bad_handler
+          subject.handler new_handler_name, bad_handler_class
         }.to raise_error(ArgumentError)
       end
     end

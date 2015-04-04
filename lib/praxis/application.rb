@@ -84,10 +84,10 @@ module Praxis
     # and to parse request bodies into structured data.
     #
     # @param [String] name
-    # @param [#parse,#generate] handler
+    # @param [Class] a class that responds to .new, #parse and #generate
     def handler(name, handler)
       # Construct an instance, if the handler is a class and needs to be initialized.
-      handler = handler.new if handler.respond_to?(:new)
+      handler = handler.new
 
       # Make sure it quacks like a handler.
       unless handler.respond_to?(:generate) && handler.respond_to?(:parse)

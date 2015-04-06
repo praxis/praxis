@@ -50,12 +50,6 @@ describe Praxis::Response do
 
   subject(:response) { Praxis::Responses::Ok.new(status: response_status, headers: response_headers) }
 
-  # before :each do
-  #   allow(response.class).to receive(:response_name).and_return(:spec)
-  #   #allow(response).to       receive(:headers).and_return(response_headers)
-  #   #allow(response).to       receive(:status).and_return(response_status)
-  # end
-
   describe '#validate' do
     before do
       allow(action).to receive(:responses).and_return({response_spec.name => response_spec })
@@ -84,6 +78,28 @@ describe Praxis::Response do
 
   end
 
+  describe '#encode!' do
+    let(:response_body_structured_data) { [{"moo" => "bah"}] }
+    let(:response_body_entity) { '[{"moo": "bah"}]' }
+
+    context 'given a String body' do
+      before { response.body = response_body_entity }
+
+      it 'leaves well enough alone' do
+        response.encode!
+        expect(response.body).to eq(response_body_entity)
+      end
+    end
+
+    context 'given a structured body' do
+      before { response.body = response_body_structured_data }
+
+      it 'encodes using a suitable handler' do
+        response.encode!
+        expect(JSON.load(response.body)).to eq(response_body_structured_data)
+      end
+    end
+  end
 
   context 'multipart responses' do
     let(:part) { Praxis::MultipartPart.new('not so ok', {'Status' => 400, "Location" => "somewhere"}) }

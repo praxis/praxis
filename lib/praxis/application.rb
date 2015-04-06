@@ -17,6 +17,7 @@ module Praxis
     attr_accessor :loaded_files
     attr_accessor :logger
     attr_accessor :plugins
+    attr_accessor :handlers
     attr_accessor :root
     attr_accessor :error_handler
 
@@ -39,6 +40,7 @@ module Praxis
       @bootloader = Bootloader.new(self)
       @file_layout = nil
       @plugins = Hash.new
+      @handlers = Hash.new
       @loaded_files = Set.new
       @config = Config.new
       @root = nil
@@ -47,6 +49,15 @@ module Praxis
     
     def setup(root: '.')
       @root = Pathname.new(root).expand_path
+
+      builtin_handlers = {
+          'json'                  => Praxis::Handlers::JSON,
+          'x-www-form-urlencoded' => Praxis::Handlers::WWWForm
+      }
+      # Register built-in handlers unless the app already provided its own
+      builtin_handlers.each_pair do |name, handler|
+        self.handler(name, handler) unless handlers.key?(name)
+      end
 
       @bootloader.setup!
 
@@ -66,6 +77,25 @@ module Praxis
 
     def middleware(middleware, *args, &block)
       @builder.use(middleware, *args, &block)
+    end
+
+    # Register a media type handler used to transform medias' structured data
+    # to HTTP response entitites with a specific encoding (JSON, XML, etc)
+    # and to parse request bodies into structured data.
+    #
+    # @param [String] name
+    # @param [Class] a class that responds to .new, #parse and #generate
+    def handler(name, handler)
+      # Construct an instance, if the handler is a class and needs to be initialized.
+      handler = handler.new
+
+      # Make sure it quacks like a handler.
+      unless handler.respond_to?(:generate) && handler.respond_to?(:parse)
+        raise ArgumentError, "Media type handlers must respond to #generate and #parse"
+      end
+
+      # Register that thing!
+      @handlers[name.to_s] = handler
     end
 
     def call(env)

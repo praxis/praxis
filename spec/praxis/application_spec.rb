@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Praxis::Application do
-  describe 'configuration' do
+  context 'configuration' do
     subject(:app) do
       app = Class.new(Praxis::Application).instance
 
@@ -40,6 +40,63 @@ describe Praxis::Application do
       it 'sets config' do
         ret = (app.config = 'someconfig')
         expect(ret).to eq 'someconfig'
+      end
+    end
+  end
+
+  context 'media type handlers' do
+    subject { Class.new(Praxis::Application).instance }
+
+    before do
+      bootloader = double('bootloader')
+      allow(bootloader).to receive(:setup!).and_return(true)
+
+      app = double('built Rack app')
+
+      builder = double('Rack builder')
+      allow(builder).to receive(:run)
+      allow(builder).to receive(:to_app).and_return(app)
+
+      subject.instance_variable_set(:@bootloader, bootloader)
+      subject.instance_variable_set(:@builder, builder)
+    end
+
+    describe '#handler' do
+      let(:new_handler_name) { 'awesomesauce' }
+      let(:new_handler_instance) { double('awesomesauce instance', generate: '', parse: {}) }
+      let(:new_handler_class) { double('awesomesauce', new: new_handler_instance) }
+      let(:bad_handler_instance) { double('bad handler instance', wokka: true, meep: false) }
+      let(:bad_handler_class) { double('bad handler', new: bad_handler_instance) }
+
+      context 'given a Class' do
+        it 'instantiates and registers an instance' do
+          expect(new_handler_class).to receive(:new)
+          subject.handler new_handler_name, new_handler_class
+        end
+      end
+
+      context 'given a non-Class' do
+        it 'raises' do
+          expect {
+            subject.handler('awesomesauce', 'hi') # no instances allowed
+          }.to raise_error(NoMethodError)
+
+          expect {
+            subject.handler('awesomesauce', ::Kernel) # no modules allowed
+          }.to raise_error(NoMethodError)
+        end
+      end
+
+      it 'overrides default handlers' do
+        subject.handler 'json', new_handler_class
+        subject.setup
+        expect(subject.handlers['json']).to eq(new_handler_instance)
+      end
+
+      it 'ensures that handlers will work' do
+        expect {
+          subject.handler new_handler_name, bad_handler_class
+        }.to raise_error(ArgumentError)
       end
     end
   end

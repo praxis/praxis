@@ -6,6 +6,10 @@
 * Handled and added warning message for doc generation task when no routing block is defined for an action.  
 * Improved `link` method in `MediaType` attribute definition to support inheriting the type from the `:using` option if if that specifies an attribute. For example: `link :posts, using: :posts_summary` would use the type of the `:posts_summary` attribute.
 * Fixed generated `Links` accessors to properly load the returned value.
+* Added `MediaTypeIdentifier` class to parse and manipulate Content-Type headers and Praxis::MediaType identifiers.
+* Created a registry for media type handlers that parse and generate document bodies with formats other than JSON.
+  * Given a structured-data response, Praxis will convert it to JSON, XML or other formats based on the handler indicated by its Content-Type.
+  * Given a request, Praxis will use the handler indicated by its Content-Type header to parse the body into structured data.
 
 ## 0.14.0
 

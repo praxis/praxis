@@ -8,7 +8,7 @@ describe Praxis::ResponseDefinition do
     Proc.new do
       status 200
       description 'test description'
-      headers({ "X-Header" => "value", "Content-Type" => "some_type" })
+      headers({ "X-Header" => "value", "Content-Type" => "application/some-type" })
     end
   end
 
@@ -16,9 +16,10 @@ describe Praxis::ResponseDefinition do
   its(:description) { should == 'test description' }
   its(:parts) { should be(nil) }
   let(:response_status) { 200 }
-  let(:response_headers) { { "X-Header" => "value", "Content-Type" => "some_type"} }
+  let(:response_content_type) { "application/some-type" }
+  let(:response_headers) { { "X-Header" => "value", "Content-Type" => response_content_type} }
 
-  let(:response) { instance_double("Praxis::Response", status: response_status , headers: response_headers ) }
+  let(:response) { instance_double("Praxis::Response", status: response_status , headers: response_headers, content_type: response_content_type ) }
 
 
   context '#media_type' do
@@ -66,14 +67,14 @@ describe Praxis::ResponseDefinition do
 
   context '#headers' do
     it 'accepts a Hash' do
-      response_definition.headers Hash["X-Header" => "value", "Content-Type" => "some_type"]
+      response_definition.headers Hash["X-Header" => "value", "Content-Type" => "application/some-type"]
       expect(response_definition.headers).to be_a(Hash)
     end
 
     it 'accepts an Array' do
-      response_definition.headers ["X-Header: value", "Content-Type: some_type"]
+      response_definition.headers ["X-Header: value", "Content-Type: application/some-type"]
       expect(response_definition.headers).to be_a(Hash)
-      expect(response_definition.headers.keys).to include("X-Header: value", "Content-Type: some_type")
+      expect(response_definition.headers.keys).to include("X-Header: value", "Content-Type: application/some-type")
     end
 
     it 'accepts a String' do
@@ -364,7 +365,8 @@ describe Praxis::ResponseDefinition do
           before { response_definition.media_type(media_type) }
 
           context 'when content type matches the mediatype of the spec' do
-            let(:response_headers) { {'Content-Type' => content_type } }
+            let(:response_content_type) { content_type }
+
             it 'validates successfully' do
               expect {
                 response_definition.validate_content_type!(response)
@@ -373,7 +375,7 @@ describe Praxis::ResponseDefinition do
           end
 
           context 'when content type includes a parameter' do
-            let(:response_headers) { {'Content-Type' => "#{content_type};collection=true" } }
+            let(:response_content_type) { "#{content_type}; collection=true" }
             it 'validates successfully' do
               expect {
                 response_definition.validate_content_type!(response)
@@ -382,7 +384,8 @@ describe Praxis::ResponseDefinition do
           end
 
           context 'when content type does not match' do
-            let(:response_headers) { {'Content-Type' => "will_never_match" } }
+            let(:response_content_type) { "application/will_never_match" }
+
             it 'should raise error telling you so' do
               expect {
                 response_definition.validate_content_type!(response)

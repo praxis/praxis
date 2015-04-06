@@ -12,8 +12,8 @@ module Praxis
     API_VERSION_HEADER_NAME = "HTTP_X_API_VERSION".freeze
     API_VERSION_PARAM_NAME = 'api_version'.freeze
     API_NO_VERSION_NAME = 'n/a'.freeze
-    VERSION_USING_DEFAULTS = [:header,:params].freeze
-    
+    VERSION_USING_DEFAULTS = [:header, :params].freeze
+
     def initialize(env)
       @env = env
       @query = Rack::Utils.parse_nested_query(env[QUERY_STRING_NAME])
@@ -21,18 +21,25 @@ module Praxis
       @path_version_matcher = path_version_matcher
     end
 
+    # Determine the content type of this request as indicated by the Content-Type header.
+    #
+    # @return [nil,MediaTypeIdentifier] nil if the header is missing, else a media-type identifier
     def content_type
-      @env[CONTENT_TYPE_NAME]
+      header = @env[CONTENT_TYPE_NAME]
+      @content_type ||= (header && MediaTypeIdentifier.load(header)).freeze
     end
 
-    # The media type (type/subtype) portion of the CONTENT_TYPE header
-    # without any media type parameters. e.g., when CONTENT_TYPE is
-    # "text/plain;charset=utf-8", the media-type is "text/plain".
+    # The media type (type/subtype+suffix) portion of the Content-Type
+    # header without any media type parameters. e.g., when Content-Type
+    # is "text/plain;charset=utf-8", the media-type is "text/plain".
     #
     # For more information on the use of media types in HTTP, see:
     # http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
+    #
+    # @return [String]
+    # @see MediaTypeIdentifier#without_parameters
     def media_type
-      content_type && content_type.split(/\s*[;,]\s*/, 2).first.downcase
+      content_type.without_parameters.to_s
     end
 
     def path
@@ -71,27 +78,27 @@ module Praxis
       self.raw_params
       self.raw_payload
     end
-    
+
     def self.path_version_prefix
       PATH_VERSION_PREFIX
     end
 
     PATH_VERSION_MATCHER = %r{^#{self.path_version_prefix}(?<version>[^\/]+)\/}.freeze
-    
+
     def path_version_matcher
       PATH_VERSION_MATCHER
     end
-    
-    def version(using: VERSION_USING_DEFAULTS )
+
+    def version(using: VERSION_USING_DEFAULTS)
       result = nil
       Array(using).find do |mode|
         case mode
-        when :header ;
+        when :header;
           result = env[API_VERSION_HEADER_NAME]
-        when :params ;
+        when :params;
           result = @query[API_VERSION_PARAM_NAME]
-        when :path ;
-          m = self.path.match(@path_version_matcher) 
+        when :path;
+          m = self.path.match(@path_version_matcher)
           result = m[:version] unless m.nil?
         else
           raise "Unknown method for retrieving the API version: #{mode}"
@@ -102,7 +109,7 @@ module Praxis
 
     def load_headers(context)
       return unless action.headers
-      defined_headers = action.precomputed_header_keys_for_rack.each_with_object(Hash.new) do |(upper,original), hash|
+      defined_headers = action.precomputed_header_keys_for_rack.each_with_object(Hash.new) do |(upper, original), hash|
         hash[original] = self.env[upper] if self.env.has_key? upper
       end
       self.headers = action.headers.load(defined_headers, context)
@@ -115,16 +122,18 @@ module Praxis
 
     def load_payload(context)
       return unless action.payload
-      raw = case content_type
-        when %r|^application/x-www-form-urlencoded|i
-          Rack::Utils.parse_nested_query(self.raw_payload)
-        when nil
-          {}
-        else
-          self.raw_payload
-        end
+      return if content_type.nil?
 
-      self.payload = action.payload.load(raw, context, content_type: content_type)
+      handler = Praxis::Application.instance.handlers[content_type.handler_name]
+
+      if handler
+        raw = handler.parse(self.raw_payload)
+      else
+        # TODO is this a good default?
+        raw = self.raw_payload
+      end
+
+      self.payload = action.payload.load(raw, context, content_type: content_type.to_s)
     end
 
     def validate_headers(context)

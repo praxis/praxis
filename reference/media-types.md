@@ -74,15 +74,15 @@ Blog.render(blog_object, view: :link)
 In this example, your `blog_object` must return:
 
 {% highlight bash %}
-+-----------+---------------------------------------------+
-| Method    | Return value                                |
-|-----------+---------------------------------------------|
-| `id`      | integer                                     |
-| `owner`   | object compatible with a Person media type  |
-| `subject` | String                                      |
-| `locale`  | object compatible with the locale structure |
-| `href`    | String                                      |
-+-----------+---------------------------------------------+
++---------+---------------------------------------------+
+| Method  | Return value                                |
+|---------+---------------------------------------------|
+| id      | integer                                     |
+| owner   | object compatible with a Person media type  |
+| subject | String                                      |
+| locale  | object compatible with the locale structure |
+| href    | String                                      |
++---------+---------------------------------------------+
 {% endhighlight %}
 
 Praxis provides a lot of help in managing resource objects and linking them to
@@ -122,6 +122,26 @@ class Blog < Praxis::MediaType
   identifier 'application/vnd.acme.blog'
 end
 {% endhighlight %}
+
+Identifiers have an optional suffix that indicates the encoding format used to represent the media;
+for instance, a blog could be represented as an `application/vnd.acme.blog+json` or a `+xml`
+without changing its essential blog-ness. Identifiers can also have semicolon-delimited options
+such as `text/html; charset=utf-8`..
+
+In Praxis, media type identifiers are represented by the `MediaTypeIdentifier` class which parses
+the identifier's components and makes them available as instance accessors: `type`, `subtype`,
+`suffix` and `parameters`. Identifier objects can be compared, modified, fuzzy-matched against
+broader or narrower types, and transformed back into strings.
+
+{% highlight ruby %}
+MediaTypeIdentifier.load('text/plain; charset=utf-8').parameters['charset'] # => "utf-8"
+MediaTypeIdentifier.load('image/*').match('image/jpeg') # => true
+{% endhighlight %}
+
+*NOTE*: In Praxis 1.0, the `MediaType#identifier` DSL method will return a `MediaTypeIdentifier`
+object and not a String, but it will continue to accept either type of object as a parameter. To
+future-proof your Praxis application, simply call `to_s` on the return value whenever you call
+`MediaType#identifier`.
 
 ## Attributes
 

@@ -12,6 +12,32 @@ responses by extending Praxis::Response.
 See [Returning a Response](../controllers/) from the Controllers section to
 read about other ways to handle responses from controllers.
 
+## Response Body
+
+Many responses have a body: some useful content that is sent back to the user agent.
+Provide a body by calling the `body=` writer of your response. If your response has
+a body, then you should also set its `content_type=` so the user agent will know how
+to handle your data.
+
+If you provide a String response body, Praxis will respond verbatim with the body and
+content-type header you have provided. If you provide structured data -- a Hash
+or an Array -- Praxis will analyze your response's `content_type` and encode your
+data using a suitable handler (or JSON if no specific handler seems appropriate).
+See [Handlers](../handlers/) to learn how to customize encoding.
+
+{% highlight ruby %}
+response.content_type = 'application/vnd.acme.greeting'
+response.body = {hi: 'mom'}
+
+# The user agent will receive a response like so:
+#   Content-Type: application/vnd.acme.greeting+json
+#
+#   {"hi":"mom"}
+{% endhighlight %}
+
+Response encoding is performed by the `encode!` method of the Response base class;
+custom responses may alter or supplant this behavior.
+
 ## Creating Custom Response Classes
 
 To create a custom response class:
@@ -36,13 +62,14 @@ before sending the request to the client:
 
 `encode!`
 : encodes the formatted contents of the request. For example, it could
-  transform it to a JSON-encoded string. The default `encode!` behavior is to
-  call JSON.dump on the body.
+  look at some aspect of the request to figure out how to encode the
+  response.
 
 Here is an example of a response class:
 
 {% highlight ruby %}
-class MyTeaPotIsSteaming < Praxis::Response
+# As specified in RFC 2324 (seriously; look it up!)
+class ImATeapot < Praxis::Response
   self.response_name = :tea_pot
   self.status = 418
 

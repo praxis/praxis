@@ -99,6 +99,21 @@ describe Praxis::Response do
         expect(JSON.load(response.body)).to eq(response_body_structured_data)
       end
     end
+
+    context 'when no Content-Type is defined' do
+      before { response.body = response_body_structured_data }
+
+      let(:response_headers) {
+        { 'X-Header'     => 'Foobar',
+          'Location'     => '/api/resources/123' }
+      }
+      it 'still defaults to the default handler' do
+        response.encode!
+        expect(JSON.load(response.body)).to eq(response_body_structured_data)
+      end
+    end
+
+
   end
 
   context 'multipart responses' do

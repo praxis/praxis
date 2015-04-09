@@ -72,7 +72,7 @@ module Praxis
         # implied by the response's media type. If no handler is registered for this
         # name, assume JSON as a default handler.
         handlers = Praxis::Application.instance.handlers
-        handler = handlers[content_type.handler_name] || handlers['json']
+        handler = (content_type && handlers[content_type.handler_name]) || handlers['json']
         @body = handler.generate(@body)
       end
     end

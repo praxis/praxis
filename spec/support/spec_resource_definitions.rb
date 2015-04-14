@@ -1,5 +1,11 @@
 require_relative 'spec_media_types'
 
+Praxis::ApiDefinition.define do
+  trait :test do
+    description 'testing trait'
+  end
+end
+
 class PeopleResource
   include Praxis::ResourceDefinition
 
@@ -11,9 +17,9 @@ class PeopleResource
 
   canonical_path :show
 
-  routing do
-    prefix "/people"
-  end
+  trait :test
+
+  prefix '/people'
 
   action :index do
     description 'index description'
@@ -34,6 +40,7 @@ class PeopleResource
 
 end
 
+
 class AddressResource
   include Praxis::ResourceDefinition
 
@@ -43,9 +50,7 @@ class AddressResource
 
   version '1.0'
 
-  routing do
-    prefix "/addresses"
-  end
+  prefix '/addresses'
 
   action :index do
     description 'index description'

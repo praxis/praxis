@@ -5,23 +5,34 @@ module Praxis
   module ResourceDefinition
     extend ActiveSupport::Concern
     DEFAULT_RESOURCE_HREF_ACTION = :show
-    
+
     included do
       @version = 'n/a'.freeze
       @actions = Hash.new
       @responses = Hash.new
-      @action_defaults = []
+      @action_defaults = Trait.new
       @version_options = {}
       @metadata = {}
+      @traits = []
+
+      if self.name
+        @routing_prefix = '/' + self.name.split("::").last.underscore
+      else
+        @routing_prefix = '/'
+      end
+
+      @version_prefix = ''
+
       Application.instance.resource_definitions << self
     end
 
     module ClassMethods
       attr_reader :actions
-      attr_reader :routing_config
       attr_reader :responses
       attr_reader :version_options
-
+      attr_reader :traits
+      attr_reader :routing_prefix
+      attr_reader :version_prefix
       # opaque hash of user-defined medata, used to decorate the definition,
       # and also available in the generated JSON documents
       attr_reader :metadata
@@ -30,7 +41,17 @@ module Praxis
 
       # FIXME: this is inconsistent with the rest of the magic DSL convention.
       def routing(&block)
-        @routing_config = block
+        warn "DEPRECATED: ResourceDefinition.routing is deprecated use prefix directly instead."
+
+        # eval this assuming it will only call #prefix
+        self.instance_eval(&block)
+      end
+
+      def prefix(prefix=nil)
+        unless prefix.nil?
+          @routing_prefix = prefix
+        end
+        @routing_prefix
       end
 
       def media_type(media_type=nil)
@@ -46,6 +67,13 @@ module Praxis
         return @version unless version
         @version = version
         @version_options = options || {using: [:header,:params]}
+
+        if @version_options
+          version_using = Array(@version_options[:using])
+          if version_using.include?(:path)
+            @version_prefix = "#{Praxis::Request::path_version_prefix}#{self.version}"
+          end
+        end
       end
 
       def canonical_path( action_name=nil )
@@ -64,7 +92,7 @@ module Praxis
           return @canonical_action
         end
       end
-      
+
       def to_href( params )
         canonical_path.primary_route.path.expand(params)
       end
@@ -78,11 +106,22 @@ module Praxis
       rescue => e
         raise Praxis::Exception.new("Error parsing or coercing parameters from href: #{path}\n"+e.message)
       end
-      
-      def action_defaults(&block)
-        return @action_defaults unless block_given?
 
-        @action_defaults << block
+      def trait(trait_name)
+        unless ApiDefinition.instance.traits.has_key? trait_name
+          raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found in the system")
+        end
+        trait = ApiDefinition.instance.traits.fetch(trait_name)
+        @traits << trait_name
+      end
+      alias_method :use, :trait
+
+      def action_defaults(&block)
+        if block_given?
+          @action_defaults.instance_eval(&block)
+        end
+
+        @action_defaults
       end
 
       def params(type=Attributor::Struct, **opts, &block)
@@ -133,16 +172,10 @@ module Praxis
           hash[:description] = description
           hash[:media_type] = media_type.id if media_type
           hash[:actions] = actions.values.map(&:describe)
-          hash[:name] = self.name 
+          hash[:name] = self.name
           hash[:metadata] = metadata
+          hash[:traits] = self.traits
         end
-      end
-
-      def use(trait_name)
-        unless ApiDefinition.instance.traits.has_key? trait_name
-          raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found")
-        end
-        self.instance_eval(&ApiDefinition.instance.traits[trait_name])
       end
 
       def nodoc!

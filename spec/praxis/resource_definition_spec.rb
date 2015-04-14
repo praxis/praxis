@@ -9,7 +9,7 @@ describe Praxis::ResourceDefinition do
   its(:version) { should eq('1.0') }
   its(:version_options) { should eq({using: [:header,:params]}) }
 
-  its(:routing_config) { should be_kind_of(Proc) }
+  its(:prefix) { should eq('/people') }
 
   its(:actions) { should have(2).items }
   its(:metadata) { should_not have_key(:doc_visibility) }
@@ -22,6 +22,7 @@ describe Praxis::ResourceDefinition do
 
     its([:actions]) { should have(2).items }
     its([:metadata]) { should be_kind_of(Hash) }
+    its([:traits]) { should eq [:test] }
   end
 
   context '.action' do
@@ -34,7 +35,7 @@ describe Praxis::ResourceDefinition do
       expect(index).to be_kind_of(Praxis::ActionDefinition)
       expect(index.description).to eq("index description")
     end
-    
+
     it 'complains if action names are not symbols' do
       expect do
         Class.new do
@@ -46,7 +47,43 @@ describe Praxis::ResourceDefinition do
     end
   end
 
+  context 'action_defaults' do
+    let(:resource_definition) do
+      Class.new do
+        include Praxis::ResourceDefinition
+        media_type Person
 
+        def self.name
+          'FooBar'
+        end
+
+        action_defaults do
+          routing do
+            prefix '/people/:id'
+          end
+
+          params do
+            attribute :id
+          end
+        end
+
+        action :show do
+          routing do
+            get ''
+          end
+        end
+
+      end
+    end
+
+    it 'are applied to actions' do
+      action = resource_definition.actions[:show]
+      expect(action.params.attributes).to have_key(:id)
+      expect(action.routes.first.path.to_s).to eq '/people/:id'
+    end
+
+  end
+  
   context 'setting other values' do
     subject(:resource_definition) { Class.new {include Praxis::ResourceDefinition } }
 
@@ -64,7 +101,7 @@ describe Praxis::ResourceDefinition do
   end
 
 
-  context '.use' do
+  context '.trait' do
     subject(:resource_definition) { Class.new {include Praxis::ResourceDefinition } }
     it 'raises an error for missing traits' do
       expect { resource_definition.use(:stuff) }.to raise_error(Praxis::Exceptions::InvalidTrait)
@@ -81,9 +118,10 @@ describe Praxis::ResourceDefinition do
         def self.name
           'FooBar'
         end
+        
         silence_warnings do
           payload { attribute :inherited_payload, String }
-          headers { header "Inherited-Header", String }
+          headers { key "Inherited-Header", String }
           params  { attribute :inherited_params, String }
           response :not_found
         end
@@ -95,11 +133,7 @@ describe Praxis::ResourceDefinition do
 
     let(:action) { resource_definition.actions[:index] }
 
-    it 'defers the values to procs in action_defaults' do
-      expect(resource_definition.action_defaults).to have(4).items
-    end
-
-    it 'delegates defaults to the action' do
+    it 'are applied to the action' do
       expect(action.payload.attributes).to have_key(:inherited_payload)
       expect(action.headers.attributes).to have_key("Inherited-Header")
       expect(action.params.attributes).to have_key(:inherited_params)
@@ -110,7 +144,7 @@ describe Praxis::ResourceDefinition do
 
   context 'with nodoc! called' do
     before do
-      resource_definition.nodoc!      
+      resource_definition.nodoc!
     end
 
     it 'has the :doc_visibility option set' do
@@ -133,7 +167,7 @@ describe Praxis::ResourceDefinition do
           resource_definition.canonical_path :reset
         }.to raise_error(/'canonical_path' can only be defined once./)
       end
-    end  
+    end
     context 'if none specified' do
       subject(:resource_definition) do
         Class.new do
@@ -143,7 +177,7 @@ describe Praxis::ResourceDefinition do
         end
       end
       it 'defaults to the :show action' do
-        expect(subject.canonical_path).to eq(subject.actions[:show])        
+        expect(subject.canonical_path).to eq(subject.actions[:show])
       end
     end
     context 'with an undefined action' do

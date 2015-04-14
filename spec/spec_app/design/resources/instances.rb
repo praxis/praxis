@@ -9,13 +9,11 @@ module ApiResources
     # Note that the following is redundant, since :show is the default canonical path if none is defined.
     canonical_path :show
     
-    routing do
-      prefix '/clouds/:cloud_id/instances'
-    end
+    prefix '/clouds/:cloud_id/instances'
 
+    trait :authenticated
+    
     action_defaults do
-      use :authenticated
-
       requires_ability :read
 
       params do
@@ -175,6 +173,13 @@ module ApiResources
       response :ok
     end
 
+
+    action :absolute do
+      routing do 
+        prefix '/'
+        get '/absolutely'
+      end
+    end
     # OTHER USAGES:
     #   note: these are all hypothetical, pending, brainstorming usages.
 

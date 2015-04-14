@@ -10,6 +10,7 @@ module Praxis
     attr_reader :traits
     attr_reader :responses
     attr_reader :infos
+    attr_reader :global_info
 
     def self.define(&block)
       if block.arity == 0
@@ -22,8 +23,12 @@ module Praxis
     def initialize
       @responses = Hash.new
       @traits = Hash.new
+      @base_path = ''
+
+      @global_info = ApiGeneralInfo.new
+
       @infos = Hash.new do |hash, version|
-          hash[version] = ApiGeneralInfo.new
+        hash[version] = ApiGeneralInfo.new(@global_info)
       end
     end
 
@@ -41,35 +46,49 @@ module Praxis
       if self.traits.has_key? name
         raise Exceptions::InvalidTrait.new("Overwriting a previous trait with the same name (#{name})")
       end
-      self.traits[name] = block
+      self.traits[name] = Trait.new(&block)
     end
 
-    # Setting info to the nil version, means setting it for all versions (if they don't  override them)
-    def info( version=nil, &block)
-      i = @infos[version]
-      i.instance_eval(&block)
-      i
+    # Setting info to the nil version, means setting it for all versions (if they don't override them)
+    def info(version=nil, &block)
+      if version.nil?
+        if block_given?
+          @global_info.instance_eval(&block)
+        else
+          @global_info
+        end
+      else
+        i = @infos[version]
+        if block_given?
+          i.instance_eval(&block)
+        end
+        i
+      end
     end
-    
+
     def describe
-      global_info = @infos[nil].describe
       data = Hash.new do |hash, version|
         hash[version] = Hash.new
       end
+
+      data[:global][:info] = @global_info.describe
+
       # Fill in the "info" portion
       @infos.each do |version,info|
-        next unless version
-        info_hash = global_info.merge(info.describe)
-        [:name, :title].each do |attr|
-          raise "Error: API Global information for version '#{version}' does not have '#{attr}' defined. " unless info_hash.key? attr
-        end
-        data[version][:info] = info_hash
+        data[version][:info] = info.describe
       end
-      
-      # Maybe report the traits?...or somehow the registered response_templates ...
+
+
+      if traits.any?
+        data[:traits] = {}
+        traits.each do |name, trait|
+          data[:traits][name] = trait.describe
+        end
+      end
+
       data
     end
-    
+
     define do |api|
       api.response_template :ok do |media_type: |
         media_type media_type

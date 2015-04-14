@@ -11,7 +11,7 @@ describe Praxis::ActionDefinition do
 
       media_type 'application/json'
       version '1.0'
-      routing { prefix '/api/hello_world' }
+      prefix '/api/hello_world'
       action_defaults do
         payload { attribute :inherited, String }
         headers { header "Inherited", String }
@@ -61,6 +61,44 @@ describe Praxis::ActionDefinition do
     it 'has some tests after we stop using ApiDefinition.instance'
   end
 
+  describe 'when a trait is used' do
+    subject(:action) do
+      Praxis::ActionDefinition.new(:bar, resource_definition) do
+        trait :test
+        routing { get '/:one' }
+        params  { attribute :one, String }
+      end
+    end
+
+    let(:trait) do
+      Praxis::Trait.new do
+        routing do
+          prefix '/test_trait/:app_name'
+        end
+
+        params do
+          attribute :app_name, String
+          attribute :name, String
+        end
+
+      end
+    end
+    let(:traits) { {test: trait} }
+
+    before do
+      allow(Praxis::ApiDefinition.instance).to receive(:traits).and_return(traits)
+    end
+
+    its('params.attributes.keys') { should eq [:inherited, :app_name, :name, :one]}
+    its('routes.first.path.to_s') { should eq '/api/hello_world/test_trait/:app_name/:one' }
+    its(:traits) { should eq [:test] }
+
+    it 'is reflected in the describe output' do
+      expect(action.describe[:traits]).to eq [:test]
+    end
+
+  end
+
   describe '#params' do
     it 'merges in more params' do
       subject.params do
@@ -98,9 +136,8 @@ describe Praxis::ActionDefinition do
         header "more"
       end
 
-      expect(subject.headers.attributes.keys).to match_array([
-                                                               "X_REQUESTED_WITH", "Inherited", "more"
-      ])
+      expected_array = ["X_REQUESTED_WITH", "Inherited", "more"]
+      expect(subject.headers.attributes.keys).to match_array(expected_array)
     end
   end
 
@@ -153,7 +190,7 @@ describe Praxis::ActionDefinition do
 
   context 'with nodoc!' do
     before do
-      action.nodoc!      
+      action.nodoc!
     end
 
     it 'has :doc_visibility set in metadata' do
@@ -162,6 +199,71 @@ describe Praxis::ActionDefinition do
 
     it 'is exposed by describe' do
       expect(action.describe[:metadata][:doc_visibility]).to be(:none)
+    end
+
+  end
+
+  context 'with a base_path and base_params on ApiDefinition' do
+    # Without getting a fresh new ApiDefinition it is very difficult to test stuff using the Singleton
+    # So for some tests we're gonna create a new instance and work with it to avoid the singleton issues
+    let(:non_singleton_api) do
+      api_def=Praxis::ApiDefinition.__send__(:new)
+      api_def.instance_eval do |api|
+
+        api.info do
+          base_path '/apps/:app_name'
+        end
+
+        api.info '1.0' do
+          base_params do
+            attribute :app_name, String
+          end
+        end
+
+      end
+      api_def
+    end
+
+    before do
+      allow(Praxis::ApiDefinition).to receive(:instance).and_return(non_singleton_api)
+    end
+
+    its('routes.first.path.to_s') { should eq '/apps/:app_name/api/hello_world/:one' }
+    its('params.attributes.keys') { should eq [:inherited, :app_name, :one]}
+
+    context 'where the action overrides a base_param' do
+
+      let(:resource_definition) do
+        Class.new do
+          include Praxis::ResourceDefinition
+
+          def self.name
+            'FooBar'
+          end
+          version '1.0'
+          prefix '/api/hello_world'
+          action_defaults do
+            payload { attribute :inherited, String }
+            headers { header "Inherited", String }
+          end
+        end
+      end
+
+      let(:action) do
+        Praxis::ActionDefinition.new(:foo, resource_definition) do
+          routing { get '' }
+          params  { attribute :app_name, Integer }
+        end
+      end
+
+      subject(:attributes) { action.params.attributes }
+
+      its(:keys)  { should eq [:app_name]}
+
+      it 'overrides the base param' do
+        expect(attributes[:app_name].type).to eq(Attributor::Integer)
+      end
+
     end
 
   end

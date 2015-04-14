@@ -2,9 +2,12 @@
 
 require 'bundler'
 
-Bundler.setup :default, :test
-Bundler.require :default, :test
-
+begin
+  Bundler.setup :default, :test
+  Bundler.require :default, :test
+rescue Bundler::GemfileNotFound
+  # no-op: we might be installed as a system gem
+end
 
 if ["routes","docs","console"].include? ARGV[0]
   require 'rake'

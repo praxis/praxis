@@ -226,7 +226,7 @@ module Praxis
             type_output[:example] = if example_data.respond_to? :render
               example_data.render(:master)
             else
-              example_data.dump
+              type.dump(example_data)
             end
           end
 

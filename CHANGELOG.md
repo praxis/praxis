@@ -11,6 +11,8 @@
   * Given a structured-data response, Praxis will convert it to JSON, XML or other formats based on the handler indicated by its Content-Type.
   * Given a request, Praxis will use the handler indicated by its Content-Type header to parse the body into structured data.
 * Fixed bug allowing "praxis new" to work when Praxis is installed as a system (non-bundled) gem. 
+* Fixed doc generation code for custom types
+* Hardened Multipart type loading
 
 ## 0.14.0
 

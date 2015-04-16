@@ -78,4 +78,21 @@ describe Praxis::Multipart do
 
   end
 
+  context '.load' do
+    it 'returns nil when loading nil' do
+      expect(type.load(nil)).to be nil
+    end
+    it 'returns the same value when loading an instance of a Multipart class' do
+      instance = Praxis::Multipart.example
+      expect(type.load(instance)).to be instance
+    end
+
+    it 'complains when the value is not a String (besides a Multipart instance or nil)' do
+       expect{
+        type.load( {a: "hash"} )
+        }.to raise_error(Attributor::CoercionError)
+    end
+
+    pending 'complete the load tests'
+  end
 end

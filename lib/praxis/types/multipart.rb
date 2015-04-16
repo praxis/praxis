@@ -4,11 +4,14 @@ module Praxis
 
     @key_type = Attributor::String
 
-    def self.load(value, context=Attributor::DEFAULT_ROOT_CONTEXT, content_type:)
-      #return super if content_type.nil?
+    def self.load(value, context=Attributor::DEFAULT_ROOT_CONTEXT, content_type:nil)
+      return value if value.kind_of?(self) || value.nil?
 
+      unless (value.kind_of?(::String) && ! content_type.nil?)
+        raise Attributor::CoercionError, context: context, from: value.class, to: self.name, value: value
+      end 
+      
       headers = {'Content-Type' => content_type}
-
       parser = MultipartParser.new(headers, value)
       preamble, parts = parser.parse
 
@@ -59,9 +62,6 @@ module Praxis
     def validate(context=Attributor::DEFAULT_ROOT_CONTEXT)
       super
     end
-
-    #def []=(k, v)
-    #end
 
   end
 

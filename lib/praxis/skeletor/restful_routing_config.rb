@@ -44,7 +44,8 @@ module Praxis
         
 
       def add_route(verb, path, options={})
-        path = Mustermann.new(prefix + path)
+        mustermann_options = options.delete(:mustermann_options)
+        path = Mustermann.new(prefix + path, mustermann_options || {})
 
         @routes << Route.new(verb, path, resource_definition.version, **options)
       end

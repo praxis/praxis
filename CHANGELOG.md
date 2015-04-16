@@ -2,6 +2,8 @@
 
 ## next
 
+## 0.15.0
+
 * Fixed handling of no app or design file groups defined in application layout.
 * Handled and added warning message for doc generation task when no routing block is defined for an action.  
 * Improved `link` method in `MediaType` attribute definition to support inheriting the type from the `:using` option if if that specifies an attribute. For example: `link :posts, using: :posts_summary` would use the type of the `:posts_summary` attribute.

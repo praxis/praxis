@@ -39,7 +39,7 @@ module Praxis
       def trace(path, opts={})   add_route 'TRACE',   path, opts end
       def connect(path, opts={}) add_route 'CONNECT', path, opts end
       def patch(path, opts={})   add_route 'PATCH',   path, opts end
-      def any(path, opts={})     add_route 'ANY',       path, opts end
+      def any(path, opts={})     add_route 'ANY',     path, opts end
 
         
 

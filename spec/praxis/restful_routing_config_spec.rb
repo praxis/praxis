@@ -48,8 +48,9 @@ describe Praxis::Skeletor::RestfulRoutingConfig do
 
   context "#add_route" do
     let(:route_verb){ 'GET' }
-    let(:route_path){ '/path' }
+    let(:route_path){ '/*' }
     let(:route_opts){ {option: 1} }
+    let(:route) { subject.routes.first }
 
     before(:each) do
       routing_config.add_route(route_verb, route_path, route_opts)
@@ -59,17 +60,34 @@ describe Praxis::Skeletor::RestfulRoutingConfig do
       expect(subject.routes.length).to eq(1)
     end
 
-    it "saves the verb and options into the route" do
-      route = subject.routes.first
+    context "without a :mustermann_options key" do
+      it "passes no options to Mustermann" do
+        expect(route.path).to match("#{subject.prefix}/allowed")
+        expect(route.path).to match("#{subject.prefix}/forbidden")
+      end
 
-      expect(route.verb).to eq(route_verb)
-      expect(route.options).to eq(route_opts)
+      it "saves the verb and options into the route" do
+        expect(route.verb).to eq(route_verb)
+        expect(route.options).to eq(route_opts)
+      end
+    end
+
+    context "with a :mustermann_options key" do
+      let(:route_opts) { {option: 1, mustermann_options: {except: '*/forbidden'}} }
+
+      it "passes the options to Mustermann" do
+        expect(route.path).to match("#{subject.prefix}/allowed")
+        expect(route.path).not_to match("#{subject.prefix}/forbidden")
+      end
+
+      it "does not save the Mustermann options in the route" do
+        expect(route.options).to eq(route_opts.reject { |k, v| k == :mustermann_options })
+      end
     end
 
     context "with a resource definition that does not have a route prefix" do
       it 'saves the path with the default path prefix' do
-        path = subject.routes.first.path.to_s
-        expect(path).to eq(default_route_prefix + route_path)
+        expect(route.path.to_s).to eq(default_route_prefix + route_path)
       end
     end
 
@@ -77,8 +95,7 @@ describe Praxis::Skeletor::RestfulRoutingConfig do
       let(:routing_block) { Proc.new{ prefix "/my_custom_route" } }
       subject(:routing_config){ Praxis::Skeletor::RestfulRoutingConfig.new(action_name, resource_definition, &routing_block) }
       it 'appends the prefix to the path' do
-        path = subject.routes.first.path.to_s
-        expect(path).to eq("/my_custom_route" + route_path)
+        expect(route.path.to_s).to eq("/my_custom_route" + route_path)
       end
 
     end

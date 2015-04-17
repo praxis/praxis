@@ -39,12 +39,13 @@ module Praxis
       def trace(path, opts={})   add_route 'TRACE',   path, opts end
       def connect(path, opts={}) add_route 'CONNECT', path, opts end
       def patch(path, opts={})   add_route 'PATCH',   path, opts end
-      def any(path, opts={})     add_route 'ANY',       path, opts end
+      def any(path, opts={})     add_route 'ANY',     path, opts end
 
         
 
       def add_route(verb, path, options={})
-        path = Mustermann.new(prefix + path)
+        mustermann_options = options.delete(:mustermann_options)
+        path = Mustermann.new(prefix + path, mustermann_options || {})
 
         @routes << Route.new(verb, path, resource_definition.version, **options)
       end

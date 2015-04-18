@@ -25,10 +25,8 @@ class Blogs
 
     And there's much more I could say about this resource...
   EOS
-
-  routing do
-    prefix '/blogs'
-  end
+  
+  prefix '/blogs'
 
   action :index do
     routing { get '' }
@@ -67,22 +65,20 @@ class Blogs
 end
 {% endhighlight %}
 
+
 ## Routing Prefix
 
 Each resource definition has a routing prefix (partial path) which Praxis will
 automatically prepend to all your resource's defined routes. By default, this
 prefix is the class name of the resource definition converted to snake-case.
 For our `Blogs` resource definition above, the default routing prefix is
-`blogs`. To override the default routing prefix, simply include a routing block
-in the resource definition and provide a value using the `prefix` method:
+`blogs`. To override the default routing prefix, simply provide a value using the `prefix` method:
 
 {% highlight ruby %}
 class Blogs
   include Praxis::ResourceDefinition
 
-  routing do
-    prefix '/blogs'
-  end
+  prefix '/my-blogs'
 end
 {% endhighlight %}
 
@@ -114,6 +110,7 @@ The value you pass to the media_type method must be a:
 
 For more information on Praxis media types, please see [Media
 Types](../media-types/).
+
 
 ## Version
 
@@ -208,6 +205,7 @@ class Blogs
 end
 {% endhighlight %}
 
+
 ### Routing
 
 The routing block defines the way Praxis will map requests to your actions.
@@ -217,9 +215,8 @@ encoded capture variables), and options. For example:
 {% highlight ruby %}
 action :index do
   routing do
-    prefix '/'
     get 'blogs'
-    get 'orgs/:org_id/blogs'
+    get '//orgs/:org_id/blogs'
   end
 end
 {% endhighlight %}
@@ -261,8 +258,9 @@ server supports it).
 
 Remember that Praxis prefixes all your resource's routes with a string based
 on the name of your enclosing resource definition class, in this case
-'/blogs'. You can override the prefix for a single action if the
-resource-wide prefix doesn't apply (like in the example above).
+'/blogs'. You can override the prefix for a single route by prepending '//' to the path (like in the example above) if you don't want the resource-wide prefix to apply. Alternately, you can provide a special prefix of either `''` or `'//'` in the routing block to clear the prefix for any other paths given. 
+
+*Note*: The above applies *only* to any Resource-level route prefixes that may be defined. It does *not* exclude an API-wide `base_path` if one is defined.
 
 You can inspect the Praxis routing table using `rake praxis:routes`:
 
@@ -275,6 +273,7 @@ $ rake praxis:routes
 | n/a     | /orgs/:org_id/blogs | GET  | Blogs    | index  | -n/a-          |
 +---------------------------------------------------------------------------+
 {% endhighlight %}
+
 
 ### Query string params, embedded URL params, and payload
 
@@ -451,12 +450,12 @@ class Blogs
       attribute :dry_tun, Attributor::Boolean, default: false
     end
     response :bad_request
-    use :authenticated
   end
 
   action :index do
     routing { get '' }
   end
+
   action :show do
     routing { get '/:id' }
     params do
@@ -469,21 +468,20 @@ end
 
 The example above will cause the the `:dry_run` parameter to be propagated and
 defined in all available actions of the `Blogs` resource definition (i.e., both 
-`:index` and `:show` actions will have such a parameter). The same exact
-propagation will happen for the `:bad_request` response and the use of the 
-`:authenticated` trait.
+`:index` and `:show` actions will have such a parameter). 
 
-With `action_defaults` you can use `params`, `payload`, `headers`, 
-`response` and `use` stanzas to propagate definitions to all existing actions.
+With `action_defaults` you can use `params`, `payload`, `headers`, and 
+`response` stanzas to propagate definitions to all existing actions.
 If any of those stanzas are defined within an action itself Praxis will
 appropriately merge them. Therefore, in this example, the `:show` action will 
-end up with both the `:dry_run` and  the `:id` parameters.
+end up with both the `:dry_run` and `:id` parameters.
 
 In case of conflict while merging, Praxis will always give overriding preference 
 to definitions found within the action block itself.
 
 NOTE: Currently `action_defaults` does not support sharing `routing` blocks. It 
 is probable, however, that this will be supported soon if the use case arises.
+
 
 ## Canonical Paths
 

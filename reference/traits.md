@@ -2,14 +2,15 @@
 layout: page
 title: Traits
 ---
-Traits are a way to register common DSL functionality across your entire API,
-and share them across different resource and action definitions.
+
+Traits are a way to register common functionality across your entire API,
+and apply them across different resource and action definitions.
 
 ## Declaring a Trait
 
-Define traits through the ApiDefinition singleton. A trait definition requires
-a name and a block of DSL elements. The block is not interpreted by the trait.
-It will only be interpreted when resources or actions `use` it.
+Traits are defined and registered through the ApiDefinition singleton. A trait definition requires a name and a block of DSL elements. The block is used to
+instantiate an instance of the `Trait` class that is registered on the 
+ApiDefinition singleton with the given name.
 
 {% highlight ruby %}
 Praxis::ApiDefinition.define do
@@ -22,7 +23,7 @@ Praxis::ApiDefinition.define do
 
   trait :authenticated do
     headers do
-      header "Auth-Token"
+      key "Auth-Token", String, required: true
     end
   end
 end
@@ -36,29 +37,27 @@ action.
 The second example creates a trait named `authenticated`. All it does is define
 a header named `Auth-Token` for you to use in your actions.
 
+
 ## Using a Trait
 
-To use a trait, call the use method from within your action or resource
+To use a trait, call the `trait` method from within your action or resource
 definition, and pass the name of the trait you want to use.
 
 {% highlight ruby %}
 class Blogs
   include Praxis::ResourceDefinition
-  # the 'authenticated' trait will be inherited by all actions
-  use :authenticated
 
-  routing do
-    prefix '/my_blogs'
-  end
+  # the 'authenticated' trait will be applied to all actions.
+  trait :authenticated
 
   action :index
     # the 'data_range' trait will only be used by the index action
-    use :data_range
+    trait :data_range
   end
 end
 {% endhighlight %}
 
-In this case, all actions in `Blogs` resource definition will have the
-`authenticated` header defined. The `index` action will have `start_at` and
-`end_at` params defined. You can think of `use :trait_name` as a cut-and-paste
+In this case, all actions in the `Blogs` resource definition will have the
+`Auth-Token` header defined. The `index` action will have `:start_at` and
+`:end_at` params defined. You can think of `trait :trait_name` as a cut-and-paste
 mechanism which allows you to reuse common snippets of design-time code.

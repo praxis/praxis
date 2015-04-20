@@ -85,7 +85,7 @@ module Controller
     before :action do |controller|
       action = controller.request.action
       if action.authentication_required
-        unless Plugin.authenticate(controller.request)
+        unless Plugin.instance.authenticate(controller.request)
           Praxis::Responses::Unauthorized.new(body: 'unauthorized')
         end
       end

@@ -375,7 +375,7 @@ action :create do
 end
 {% endhighlight %}
 
-In addition to defining a header `key` in the standard `Attributor::Hash` manner, Praxis
+In addition to defining a header `key` in the standard `Hash` manner, Praxis
 also enhances the DSL with a `header` method that can shortcut the syntax for 
 certain common cases. The `header` DSL takes a String name and an optional expected value: 
 

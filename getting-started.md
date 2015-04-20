@@ -187,7 +187,7 @@ module V1
         end
 
         params do
-          attribute :id, Attributor::Integer,
+          attribute :id, Integer,
             required: true,
             min: 0
           attribute :allow_deleted, Attributor::Boolean,
@@ -204,10 +204,10 @@ module V1
         end
 
         payload do
-          attribute :title, Attributor::String,
+          attribute :title, String,
             required: true,
             description: "Title for the Post"
-          attribute :content, Attributor::String,
+          attribute :content, String,
             description: "Post body contents"
         end
 
@@ -222,7 +222,7 @@ In the :show action definition, use the ```routing``` DSL block to specify that
 you want to respond to the ```GET``` HTTP method for requests to the ```/posts/:id```
 URL path. For example, requests such as ```GET /posts/1``` will be routed to
 our ```show``` action. Furthermore, the ```:id``` attribute in the URL is
-of type ```Attributor::Integer``` and is marked as required. The action also accepts an
+of type ```Integer``` and is marked as required. The action also accepts an
 optional ```:allow_deleted``` parameter, which could allow clients to indicate that
 they wish to retrieve posts even if they have been deleted. By making
 ```:allow_deleted``` an ```Attributor::Boolean``` and setting its default value
@@ -233,7 +233,7 @@ Use the ```routing``` DSL block again to mount the ```create``` action to the
 ```POST``` HTTP verb ```/``` path. This action has no required or optional URL
 parameters, but it does accept a payload with a required ```title``` attribute,
 and an optional ```content``` attribute. Both attributes are of type
-```Attributor::String```.
+```String```.
 
 Note: You might have noticed that the ```show``` action's routing block uses
 `get '/:id'` rather than ```get '/posts/:id'```. Very observant! This is
@@ -427,10 +427,10 @@ action :create do
   end
 
   payload do
-    attribute :title, Attributor::String,
+    attribute :title, String,
       required: true,
       description: "Title for the Post"
-    attribute :content, Attributor::String,
+    attribute :content, String,
       description: "Post body contents"
   end
 end

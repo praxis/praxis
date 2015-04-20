@@ -6,6 +6,7 @@
 #
 # Plugins may be used to extend this Config DSL.
 #
+
 module Praxis
   class ActionDefinition
 
@@ -15,6 +16,7 @@ module Praxis
     attr_reader :primary_route
     attr_reader :named_routes
     attr_reader :responses
+    attr_reader :traits
 
     # opaque hash of user-defined medata, used to decorate the definition,
     # and also available in the generated JSON documents
@@ -36,6 +38,7 @@ module Praxis
       @responses = Hash.new
       @metadata = Hash.new
       @routes = []
+      @traits = []
 
       if (media_type = resource_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::Types::MediaTypeCommon
@@ -43,19 +46,40 @@ module Praxis
         end
       end
 
-      resource_definition.action_defaults.each do |defaults|
-        self.instance_eval(&defaults)
+      version = resource_definition.version
+      api_info = ApiDefinition.instance.info(resource_definition.version)
+
+      version_prefix = "#{api_info.base_path}#{resource_definition.version_prefix}"
+      prefix = Array(resource_definition.prefix)
+
+      @routing_config = RoutingConfig.new(version: version, base: version_prefix, prefix: prefix)
+
+      resource_definition.traits.each do |trait|
+        self.trait(trait)
       end
+
+      resource_definition.action_defaults.apply!(self)
 
       self.instance_eval(&block) if block_given?
     end
+
+    def trait(trait_name)
+      unless ApiDefinition.instance.traits.has_key? trait_name
+        raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found in the system")
+      end
+      
+      trait = ApiDefinition.instance.traits.fetch(trait_name)
+      trait.apply!(self)
+      traits << trait_name
+    end
+    alias_method :use, :trait
 
     def update_attribute(attribute, options, block)
       attribute.options.merge!(options)
       attribute.type.attributes(options, &block)
     end
 
-    def response( name, **args )
+    def response(name, **args)
       template = ApiDefinition.instance.response(name)
       @responses[name] = template.compile(self, **args)
     end
@@ -66,13 +90,6 @@ module Praxis
       end
 
       return Attributor::Attribute.new(type, opts, &block)
-    end
-
-    def use(trait_name)
-      unless ApiDefinition.instance.traits.has_key? trait_name
-        raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found in the system")
-      end
-      self.instance_eval(&ApiDefinition.instance.traits[trait_name])
     end
 
     def params(type=Attributor::Struct, **opts, &block)
@@ -87,7 +104,17 @@ module Praxis
         update_attribute(@params, opts, block)
       else
         @params = create_attribute(type, **opts, &block)
+        if (api_info = ApiDefinition.instance.info(resource_definition.version))
+          if api_info.base_params
+            base_attrs = api_info.base_params.attributes
+            @params.attributes.merge!(base_attrs) do |key, oldval, newval|
+              oldval
+            end
+          end
+        end
       end
+
+      @params
     end
 
     def payload(type=Attributor::Struct, **opts, &block)
@@ -112,8 +139,8 @@ module Praxis
       else
         type = Attributor::Hash.of(key:String) unless type
         @headers = create_attribute(type,
-          dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true,
-          **opts, &block)
+                                    dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true,
+                                    **opts, &block)
       end
       @precomputed_header_keys_for_rack = nil #clear memoized data
     end
@@ -133,11 +160,11 @@ module Praxis
 
 
     def routing(&block)
-      routing_config = Skeletor::RestfulRoutingConfig.new(name, resource_definition, &block)
+      @routing_config.instance_eval &block
 
-      @routes = routing_config.routes
-      @primary_route = routing_config.routes.first
-      @named_routes = routing_config.routes.each_with_object({}) do |route, hash|
+      @routes = @routing_config.routes
+      @primary_route = @routing_config.routes.first
+      @named_routes = @routing_config.routes.each_with_object({}) do |route, hash|
         next if route.name.nil?
         hash[route.name] = route
       end
@@ -166,6 +193,8 @@ module Praxis
           memo[response.name] = response.describe
           memo
         end
+        hash[:traits] = traits if traits.any?
+
         self.class.doc_decorations.each do |callback|
           callback.call(self, hash)
         end

@@ -7,17 +7,6 @@ require 'active_support/concern'
 
 $:.unshift File.dirname(__FILE__)
 
-module Attributor
-  class DSLCompiler
-    def use(name)
-      unless Praxis::ApiDefinition.instance.traits.has_key? name
-        raise Exceptions::InvalidTrait.new("Trait #{name} not found in the system")
-      end
-      self.instance_eval(&Praxis::ApiDefinition.instance.traits[name])
-    end
-  end
-end
-
 require 'mime'
 module MIME
   class Header
@@ -48,8 +37,10 @@ module Praxis
   autoload :ResponseTemplate, 'praxis/response_template'
   autoload :Route, 'praxis/route'
   autoload :Router, 'praxis/router'
+  autoload :RoutingConfig, 'praxis/routing_config'
   autoload :SimpleMediaType, 'praxis/simple_media_type'
   autoload :Stage, 'praxis/stage'
+  autoload :Trait, 'praxis/trait'
 
   autoload :Stats, 'praxis/stats'
   autoload :Notifications, 'praxis/notifications'
@@ -121,7 +112,4 @@ module Praxis
     autoload :Response, 'praxis/request_stages/response'
   end
 
-  module Skeletor
-    autoload :RestfulRoutingConfig, 'praxis/skeletor/restful_routing_config'
-  end
 end

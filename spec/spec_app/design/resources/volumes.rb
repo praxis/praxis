@@ -5,10 +5,10 @@ module ApiResources
     media_type Volume
     version '1.0', using: :path
 
-    action_defaults do
-      use :authenticated
-    end
+    prefix '/volumes'
 
+    trait :authenticated
+    
     action :index do
       routing do
         get ''

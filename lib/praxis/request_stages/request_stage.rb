@@ -5,7 +5,6 @@ module Praxis
     # 1- Run specific controller callbacks (in addition to any normal callbacks)
     # 2- Shortcut the controller callback chain if any returns a Response object
     class RequestStage < Stage
-      extend Forwardable
 
       alias :dispatcher :application # it's technically application in the base Stage
 
@@ -34,22 +33,19 @@ module Praxis
         setup_deferred_callbacks!
       end
 
-      # Avoid using delegators, and create the explicit functions:
-      # def_delegators :@context, :controller, :action, :request
-      # they allocate all kinds of things and we don't need the generality here
       def controller
         @context.controller
       end
+
       def action
         @context.action
       end
+      
       def request
         @context.request
       end
 
-      
       def run
-
         # stage-level callbacks (typically empty) will never shortcut
         execute_callbacks(self.before_callbacks)
 

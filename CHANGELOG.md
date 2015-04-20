@@ -2,6 +2,25 @@
 
 ## next
 
+* Overhauled traits: they're now represented by a `Trait` class, which are created from `ApiDefinition#trait`.
+  * `ApiDefinition#describe` will also include details of the defined traits.
+  * `ResourceDefinition#describe` and `ActionDefinition#describe` will also include the names of the used traits.
+  * *Note*: this may break some existing trait use cases, as they are now more-defined in their behavior, rather than simply stored blocks that are `instance_eval`-ed on the target.
+* Deprecated `ResourceDefinition.routing`. Use `ResourceDefinition.prefix` to define resource-level route prefixes instead.
+* Significantly refactored route generation.
+  * The `base_path` property defined in `ApiDefinition#info` will now appear in the routing paths 'base' (instead of simply being used for documentation purposes). 
+    *Note*: unlike other info at that level, a global (unversioned) `base_path` is *not* overriden by specific version, rather the specific version's path is appended to the global path.
+  * Any prefixes set on a `ResourceDefinition` or inside a `routing` block of an ActionDefinition are now additive. For example:
+    * Setting a "/myresource" prefix in a "MyResource" definition, and setting a "/myaction" prefix within an action of that resource definition will result in a route containing the following segments ".../myresource/myaction...".
+    * Prefixes can be equally set by including `Traits`, which will follow exactly the same additive rules.
+  * To break the additive nature of the prefixes one can use a couple of different options:
+    * Define the action route path with "//" to make it absolute, i.e. a path like "//people" would not include any defined prefix.
+    * Explicitly clear the prefix by setting the prefix to `''` or `'//'`.
+* Added `base_params` to `ApiDefinition#info` as a way to share common action params
+  * `base_params` may be defined for a specific Api version, which will make sharing params across all Resource definitions of that version)
+  * or `base_params` may be defined in the Global Api section, which will make the parameters shared across all actions of all defined Api versions.
+
+
 ## 0.15.0
 
 * Fixed handling of no app or design file groups defined in application layout.

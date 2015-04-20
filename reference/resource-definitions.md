@@ -69,7 +69,7 @@ end
 ## Routing Prefix
 
 Each resource definition has a routing prefix (partial path) which Praxis will
-automatically prepend to all your resource's defined routes. By default, this
+automatically prepend to all of the routes found in all of the actions of its resource. By default, this
 prefix is the class name of the resource definition converted to snake-case.
 For our `Blogs` resource definition above, the default routing prefix is
 `blogs`. To override the default routing prefix, simply provide a value using the `prefix` method:
@@ -260,7 +260,7 @@ Remember that Praxis prefixes all your resource's routes with a string based
 on the name of your enclosing resource definition class, in this case
 '/blogs'. You can override the prefix for a single route by prepending '//' to the path (like in the example above) if you don't want the resource-wide prefix to apply. Alternately, you can provide a special prefix of either `''` or `'//'` in the routing block to clear the prefix for any other paths given. 
 
-*Note*: The above applies *only* to any Resource-level route prefixes that may be defined. It does *not* exclude an API-wide `base_path` if one is defined.
+*Note*: The above 'resetting' behavior of '//' applies *only* to any Resource-level route prefixes that may be defined. It will *not* override an API-wide `base_path` if one is defined (see [Global Api Info](../global-api-information/).
 
 You can inspect the Praxis routing table using `rake praxis:routes`:
 

@@ -3,7 +3,7 @@ layout: page
 title: Global API Information
 ---
 
-It is possible to provide some global API information in the `ApiDefinition.define` block with the `info` method. You may define this metadata for all versions of your API, or only for a specific version. All definitions at the global level (i.e. those that do not specify a version) will be inherited by all versions. Any directive defined within a version will overwrite anything inherited, with the exceptions of `base_path` and `base_params`, which are added to an inherited value.
+It is possible to provide some global API information in the `ApiDefinition.define` block with the `info` method. You may define this metadata for all versions of your API, or only for a specific version. All definitions at the global level (i.e. those that do not specify a version) will be inherited by all versions. Any directive defined within a version will overwrite anything inherited, with the exceptions of `base_path` and `base_params`, which will always be enforced when defined globally.
 
 The following directives are supported:
 

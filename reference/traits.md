@@ -8,7 +8,7 @@ and apply them across different resource and action definitions.
 
 ## Declaring a Trait
 
-Traits are defined and registered through the ApiDefinition singleton. A trait definition requires a name and a block of DSL elements. The block is used to
+Traits are defined and registered through the ApiDefinition singleton. A trait definition requires a globally unique name and a block of DSL elements. The block is used to
 instantiate an instance of the `Trait` class that is registered on the 
 ApiDefinition singleton with the given name.
 

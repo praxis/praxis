@@ -53,11 +53,10 @@ module Praxis
       end
 
       path = (base + path).gsub('//','/')
-      mustermann_options = {ignore_unknown_options: true}
       # Reject our own options
-      possible_mustermann_options = options.reject{|(k,_)| [:name].include?(k) }
-      pattern = Mustermann.new(path, mustermann_options.merge( possible_mustermann_options ))
-      route = Route.new(verb, pattern, version, **options)
+      route_name = options.delete(:name);
+      pattern = Mustermann.new(path, {ignore_unknown_options: true}.merge( options ))
+      route = Route.new(verb, pattern, version, name: route_name, **options)
       @routes << route
       route
     end

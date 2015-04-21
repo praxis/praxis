@@ -179,7 +179,7 @@ RUBY
 #     media_type media_type
 #   end
 Praxis::ApiDefinition.define do
-  # Trait that when included will require a Beared authorization header to be passed in.
+  # Trait that when included will require a Bearer authorization header to be passed in.
   trait :authorized do
     headers do
       key "Authorization", String, regexp: /^.*Bearer\s/, required: true
@@ -202,8 +202,10 @@ module V1
       prefix '/api/hello'
 
       # Will apply to all actions of this resource
+      trait :authorized
+
       action_defaults do
-        trait :authorized
+        response :ok
       end
 
       action :index do
@@ -211,7 +213,6 @@ module V1
         routing do
           get ''
         end
-        response :ok
       end
 
       action :show do
@@ -222,7 +223,6 @@ module V1
         params do
           attribute :id, Integer, required: true, min: 0
         end
-        response :ok
         response :not_found
       end
     end

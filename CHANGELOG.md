@@ -8,7 +8,7 @@
   * *Note*: this may break some existing trait use cases, as they are now more-defined in their behavior, rather than simply stored blocks that are `instance_eval`-ed on the target.
 * Deprecated `ResourceDefinition.routing`. Use `ResourceDefinition.prefix` to define resource-level route prefixes instead.
 * Significantly refactored route generation.
-  * The `base_path` property defined in `ApiDefinition#info` will now appear in the routing paths 'base' (instead of simply being used for documentation purposes). 
+  * The `base_path` property defined in `ApiDefinition#info` will now appear in the routing paths 'base' (instead of simply being used for documentation purposes).
     *Note*: unlike other info at that level, a global (unversioned) `base_path` is *not* overriden by specific version, rather the specific version's path is appended to the global path.
   * Any prefixes set on a `ResourceDefinition` or inside a `routing` block of an ActionDefinition are now additive. For example:
     * Setting a "/myresource" prefix in a "MyResource" definition, and setting a "/myaction" prefix within an action of that resource definition will result in a route containing the following segments ".../myresource/myaction...".
@@ -19,19 +19,19 @@
 * Added `base_params` to `ApiDefinition#info` as a way to share common action params
   * `base_params` may be defined for a specific Api version, which will make sharing params across all Resource definitions of that version)
   * or `base_params` may be defined in the Global Api section, which will make the parameters shared across all actions of all defined Api versions.
-
+* Fixed `MediaType#describe` to include the correct string representation of its identifier.
 
 ## 0.15.0
 
 * Fixed handling of no app or design file groups defined in application layout.
-* Handled and added warning message for doc generation task when no routing block is defined for an action.  
+* Handled and added warning message for doc generation task when no routing block is defined for an action.
 * Improved `link` method in `MediaType` attribute definition to support inheriting the type from the `:using` option if if that specifies an attribute. For example: `link :posts, using: :posts_summary` would use the type of the `:posts_summary` attribute.
 * Fixed generated `Links` accessors to properly load the returned value.
 * Added `MediaTypeIdentifier` class to parse and manipulate Content-Type headers and Praxis::MediaType identifiers.
 * Created a registry for media type handlers that parse and generate document bodies with formats other than JSON.
   * Given a structured-data response, Praxis will convert it to JSON, XML or other formats based on the handler indicated by its Content-Type.
   * Given a request, Praxis will use the handler indicated by its Content-Type header to parse the body into structured data.
-* Fixed bug allowing "praxis new" to work when Praxis is installed as a system (non-bundled) gem. 
+* Fixed bug allowing "praxis new" to work when Praxis is installed as a system (non-bundled) gem.
 * Fixed doc generation code for custom types
 * Hardened Multipart type loading
 

@@ -7,7 +7,7 @@ namespace :praxis do
     table = Terminal::Table.new title: "Routes",
     headings:  [
       "Version", "Path", "Verb",
-      "Resource", "Action", "Implementation", "Name", "Primary"
+      "Resource", "Action", "Implementation", "Name", "Primary", "Options"
     ]
 
     rows = []
@@ -37,7 +37,8 @@ namespace :praxis do
               verb: route.verb,
               path: route.path,
               name: route.name,
-              primary: (action.primary_route == route ? 'yes' : '')
+              primary: (action.primary_route == route ? 'yes' : ''),
+              options: route.options
             })
         end
       end
@@ -49,8 +50,11 @@ namespace :praxis do
       puts JSON.pretty_generate(rows)
     when "table"
       rows.each do |row|
-        table.add_row(row.values_at(:version, :path, :verb, :resource,
-                                    :action, :implementation, :name, :primary))
+        formatted_options = row[:options].map{|(k,v)| "#{k}:#{v.to_s}"}.join("\n")
+        row_data = row.values_at(:version, :path, :verb, :resource,
+                                    :action, :implementation, :name, :primary)
+        row_data << formatted_options
+        table.add_row(row_data)
       end
       puts table
     else

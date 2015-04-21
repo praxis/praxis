@@ -3,7 +3,7 @@ class Instances < BaseClass
 
   implements ApiResources::Instances
   include Concerns::BasicApi
-  
+
   before :validate, actions: [:index]  do |controller|
     #p [:before, :validate, :params_and_headers, controller.request.action.name]
   end
@@ -32,7 +32,7 @@ class Instances < BaseClass
     blk.call
     #puts "Decorator two end"
   end
-  
+
   around :action, actions: [:index] do |controller, blk|
     #puts "Decorator three (index action) start"
     blk.call
@@ -104,4 +104,8 @@ class Instances < BaseClass
     response
   end
 
+  def exceptional(cloud_id:, splat:)
+    response.headers['Content-Type'] = 'application/vnd.acme.instance'
+    response
+  end
 end

@@ -9,7 +9,7 @@ module Praxis
         def describe(shallow = false)
           hash = super
           unless shallow
-            hash.merge!(identifier: @identifier, description: @description)
+            hash.merge!(identifier: @identifier.to_s, description: @description)
           end
           hash
         end

@@ -9,8 +9,8 @@ describe Praxis::MediaType do
   end
 
   let(:resource) do
-    double('address', 
-      id: 1, 
+    double('address',
+      id: 1,
       name: 'Home',
       owner: owner_resource,
       manager: manager_resource,
@@ -38,7 +38,7 @@ describe Praxis::MediaType do
   end
 
 
-  
+
   context 'accessor methods' do
     subject(:address_klass) { address.class }
 
@@ -62,7 +62,7 @@ describe Praxis::MediaType do
     end
 
     its(:description) { should be_kind_of(String) }
-    
+
     context 'links' do
       context 'with a custom links attribute' do
         subject(:person) { Person.new(owner_resource) }
@@ -70,7 +70,7 @@ describe Praxis::MediaType do
         its(:links)  { should be_kind_of(Array) }
         its(:links)  { should eq(owner_resource.links) }
       end
-  
+
       context 'using the links DSL' do
         subject(:address) { Address.new(resource) }
         its(:links)  { should be_kind_of(Address::Links) }
@@ -114,7 +114,7 @@ describe Praxis::MediaType do
         let(:snapshots_summary) { volume.snapshots_summary }
         let(:output) { volume.render(:default) }
         subject { links[:snapshots] }
-             
+
         its([:name]) { should eq(snapshots_summary.name) }
         its([:size]) { should eq(snapshots_summary.size) }
         its([:href]) { should eq(snapshots_summary.href) }
@@ -139,6 +139,33 @@ describe Praxis::MediaType do
     end
   end
 
+
+  context 'describing' do
+
+    subject(:described){ Address.describe }
+
+    its(:keys) { should match_array( [:attributes, :description, :family, :id, :identifier, :key, :name, :views] ) }
+    its([:attributes]) { should be_kind_of(::Hash) }
+    its([:description]) { should be_kind_of(::String) }
+    its([:family]) { should be_kind_of(::String) }
+    its([:id]) { should be_kind_of(::String) }
+    its([:name]) { should be_kind_of(::String) }
+    its([:identifier]) { should be_kind_of(::String) }
+    its([:key]) { should be_kind_of(::Hash) }
+    its([:views]) { should be_kind_of(::Hash) }
+
+    its([:description]) { should eq(Address.description) }
+    its([:family]) { should eq(Address.family) }
+    its([:id]) { should eq(Address.id) }
+    its([:name]) { should eq(Address.name) }
+    its([:identifier]) { should eq(Address.identifier.to_s) }
+    it 'should include the defined views' do
+      expect( subject[:views].keys ).to match( [:default, :master] )
+    end
+    it 'should include the defined attributes' do
+      expect( subject[:attributes].keys ).to match( [:id, :name, :owner, :custodian, :residents, :residents_summary, :links] )
+    end
+  end
 
   context 'using blueprint caching' do
     it 'has specs'

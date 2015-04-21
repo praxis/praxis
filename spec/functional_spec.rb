@@ -276,7 +276,7 @@ describe 'Functional specs' do
     end
   end
 
-  context 'wildcard routing' do
+  context 'wildcard verb routing' do
     it 'can terminate instances with POST' do
       post '/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session
       expect(last_response.status).to eq(200)
@@ -285,6 +285,19 @@ describe 'Functional specs' do
       post '/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session
       expect(last_response.status).to eq(200)
     end
+
+  end
+
+  context 'route options' do
+    it 'reach the endpoint that does not match the except clause' do
+      get '/clouds/23/otherinstances/_action/test?api_version=1.0', nil, 'global_session' => session
+      expect(last_response.status).to eq(200)
+    end
+    it 'does NOT reach the endpoint that matches the except clause' do
+      get '/clouds/23/otherinstances/_action/exceptional?api_version=1.0', nil, 'global_session' => session
+      expect(last_response.status).to eq(404)
+    end
+
 
   end
 
@@ -316,7 +329,7 @@ describe 'Functional specs' do
   end
 
   context 'update' do
-    
+
 
     let(:body) { JSON.pretty_generate(request_payload) }
     let(:content_type) { 'application/json' }
@@ -324,7 +337,7 @@ describe 'Functional specs' do
     before do
       patch '/clouds/1/instances/3?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
     end
-  
+
     subject(:response_body) { JSON.parse(last_response.body) }
 
     context 'with an empty payload' do

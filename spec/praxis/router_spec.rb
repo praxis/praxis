@@ -75,9 +75,6 @@ describe Praxis::Router do
   end
 
   context ".add_route" do
-    before do
-      expect(router).to receive(:warn).with("other conditions not supported yet")
-    end
 
     let(:route){ double('route', options: [1], version: 1, verb: 'verb', path: 'path')}
     let(:target){ double('target') }
@@ -93,9 +90,6 @@ describe Praxis::Router do
       router.add_route(target ,route)
     end
 
-    it "raises warning when options are specified in route" do
-      expect(router.add_route(proc {'target'},route)).to eq(['path'])
-    end
   end
 
   context ".call" do
@@ -116,34 +110,34 @@ describe Praxis::Router do
       router.add_route(double("P"),double("route1", verb: 'POST', path: '/', options: {} , version: request_version))
       # Hijack the callable block in the routes (since there's no way to point back to the registered route object)
       router.instance_variable_get( :@routes )['POST'] = post_target_router
-        
+
     end
 
     context 'for routes without wildcards (a single POST route)' do
-      
+
       context 'and an incoming POST request' do
         it "finds a match and invokes it the route" do
           expect(router.call(request)).to eq(router_response_for_post)
         end
       end
       context 'and an incoming PUT request' do
-        let(:request_verb) { 'PUT' }      
+        let(:request_verb) { 'PUT' }
         it "does not find a route" do
           response_code, _ , _ = router.call(request)
           expect(response_code).to be(404)
         end
       end
     end
-    
+
     context 'for routes with wildcards (a POST and a * route)' do
       before do
         router.add_route(double("*"),double("route2", verb: 'ANY', path: '/*', options: {} , version: request_version))
         # Hijack the callable block in the routes (since there's no way to point back to the registered route object)
-        router.instance_variable_get( :@routes )['ANY'] = any_target_router        
+        router.instance_variable_get( :@routes )['ANY'] = any_target_router
       end
-      
+
       context 'and an incoming PUT request' do
-        let(:request_verb) { 'PUT' }      
+        let(:request_verb) { 'PUT' }
         it "it can successfully find a match using the wildcard target" do
           expect(router.call(request)).to eq(router_response_for_wildcard)
         end
@@ -164,7 +158,7 @@ describe Praxis::Router do
     end
 
     context "when not_found is returned" do
-      let(:request_verb) { 'DELETE' }      
+      let(:request_verb) { 'DELETE' }
       let(:router_response){ :not_found }
 
 
@@ -175,7 +169,7 @@ describe Praxis::Router do
       end
 
       context 'with X-Cascade disabled' do
-        let(:config) { Praxis::Application.instance.config.praxis } 
+        let(:config) { Praxis::Application.instance.config.praxis }
         before do
           expect(config).to receive(:x_cascade).and_return(false)
         end

@@ -39,7 +39,8 @@ describe Praxis::RoutingConfig do
 
   context '#add_route' do
     let(:path) { '/people' }
-    let(:route) { routing_config.add_route 'GET', path }
+    let(:options) { {} }
+    let(:route) { routing_config.add_route 'GET', path, **options}
 
     it 'returns a corresponding Praxis::Route' do
       expect(route).to be_kind_of(Praxis::Route)
@@ -47,6 +48,24 @@ describe Praxis::RoutingConfig do
 
     it 'appends the Route to the set of routes' do
       expect(routing_config.routes).to include(route)
+    end
+
+    context 'passing  options' do
+      let(:options){ {name: 'alternative', except: '/special' } }
+
+      it 'uses :name to name the route' do
+        expect(route.name).to eq('alternative')
+      end
+
+      it 'does NOT pass the name option down to mustermann' do
+        expect(Mustermann).to receive(:new).with(path, hash_excluding({name: 'alternative'}))
+        expect(route.name).to eq('alternative')
+      end
+
+      it 'passes them through the underlying mustermann object (telling it to ignore unknown ones)' do
+        expect(Mustermann).to receive(:new).with(path, hash_including(ignore_unknown_options: true, except: '/special'))
+        expect(route.options).to eq( { except: '/special' })
+      end
     end
 
     context 'with prefix defined' do

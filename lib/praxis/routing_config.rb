@@ -9,7 +9,7 @@ module Praxis
       @version = version
       @base = base
       @prefix_segments = Array(prefix)
-      
+
       @routes = []
 
       if block_given?
@@ -49,11 +49,14 @@ module Praxis
 
     def add_route(verb, path, options={})
       unless path =~ ABSOLUTE_PATH_REGEX
-        path = prefix + path        
+        path = prefix + path
       end
 
       path = (base + path).gsub('//','/')
-      pattern = Mustermann.new(path)
+      mustermann_options = {ignore_unknown_options: true}
+      # Reject our own options
+      possible_mustermann_options = options.reject{|(k,_)| [:name].include?(k) }
+      pattern = Mustermann.new(path, mustermann_options.merge( possible_mustermann_options ))
       route = Route.new(verb, pattern, version, **options)
       @routes << route
       route

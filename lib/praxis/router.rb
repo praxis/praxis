@@ -11,7 +11,7 @@ module Praxis
         @version = version
       end
       def call(request)
-        if request.version(@target.action.resource_definition.version_options) == @version          
+        if request.version(@target.action.resource_definition.version_options) == @version
           @target.call(request)
         else
           # Version doesn't match, pass and continue
@@ -20,8 +20,8 @@ module Praxis
         end
       end
     end
-    
-    class RequestRouter < Mustermann::Router::Simple      
+
+    class RequestRouter < Mustermann::Router::Simple
       def initialize(default: nil, **options, &block)
         options[:default] = :not_found
 
@@ -48,8 +48,7 @@ module Praxis
     end
 
     def add_route(target, route)
-      warn 'other conditions not supported yet' if route.options.any?
-      version_wrapper = VersionMatcher.new(target, version: route.version)    
+      version_wrapper = VersionMatcher.new(target, version: route.version)
       @routes[route.verb].on(route.path, call: version_wrapper)
     end
 
@@ -75,17 +74,17 @@ module Praxis
            :not_found
          end
       end
-      
+
       if result == :not_found
         # no need to try :path as we cannot really know if you've attempted to pass a version through it here
         # plus we wouldn't have tracked it as unmatched
-        version = request.version(using: [:header,:params]) 
+        version = request.version(using: [:header,:params])
         attempted_versions = request.unmatched_versions
         body = "NotFound"
         unless attempted_versions.empty? || (attempted_versions.size == 1 && attempted_versions.first == 'n/a')
-          body += if version == 'n/a' 
-                    ". Your request did not specify an API version.".freeze 
-                  else 
+          body += if version == 'n/a'
+                    ". Your request did not specify an API version.".freeze
+                  else
                     ". Your request speficied API version = \"#{version}\"."
                   end
           pretty_versions = attempted_versions.collect(&:inspect).join(', ')
@@ -95,7 +94,7 @@ module Praxis
         if Praxis::Application.instance.config.praxis.x_cascade
           headers['X-Cascade'] = 'pass'
         end
-        result = [404, headers, [body]] 
+        result = [404, headers, [body]]
       end
       result
     end

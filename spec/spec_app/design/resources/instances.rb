@@ -4,15 +4,15 @@ module ApiResources
 
     media_type Instance
     version '1.0'
-    
+
     # :show action is the canonical path for this resource.
     # Note that the following is redundant, since :show is the default canonical path if none is defined.
     canonical_path :show
-    
+
     prefix '/clouds/:cloud_id/instances'
 
     trait :authenticated
-    
+
     action_defaults do
       requires_ability :read
 
@@ -29,7 +29,7 @@ module ApiResources
       params do
         attribute :response_content_type, String, default: 'application/vnd.acme.instance;type=collection'
       end
-      
+
       headers do
         # BOTH ARE EQUIVALENT
         #key "FOO", String, required: true
@@ -128,14 +128,14 @@ module ApiResources
       routing do
         any '/:id/terminate'
       end
-      
+
       requires_ability :terminate
 
       params do
         attribute :id
       end
 
-      payload do 
+      payload do
         attribute :when, DateTime
       end
 
@@ -174,11 +174,15 @@ module ApiResources
     end
 
 
-    action :absolute do
-      routing do 
-        prefix '/'
-        get '/absolutely'
+    action :exceptional do
+      routing do
+        prefix '//clouds/:cloud_id/otherinstances'
+        get '/_action/*', except: '*/_action/exceptional'
       end
+      params do
+        attribute :splat, Attributor::Collection.of(String), required: true
+      end
+      response :ok
     end
     # OTHER USAGES:
     #   note: these are all hypothetical, pending, brainstorming usages.

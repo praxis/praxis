@@ -24,6 +24,7 @@
   * routes defined in the `routing` blocks can now take any extra options which will be passed down to the Mustermann routing engine. Unknown options will be ignored!
   * Displaying routes (`praxis routes` or `rake praxis:routes`) will now include any options defined in a route.
   * Added an example on the instances resource of the embedded spec_app to show how to use the advanced `*` pattern and the `:except` Mustermann options (along with the required `:splat` attribute).
+* Spruced up the example app (generator) to use the latest `prefix` and `trait` changes
 
 
 

@@ -4,10 +4,10 @@ module PraxisGen
         include Thor::Actions
 
         namespace "praxis:example"
-        
+
         argument :app_name, required: true
         desc "new", "Generates a new 'hello world' example application under an <app_name> directory"
-  
+
         def new
           puts "GENERATION COMMENCED!! (for #{app_name})"
           # Fix weird symbols in the app name (if they are)
@@ -33,12 +33,18 @@ module PraxisGen
           puts "  bundle exec rackup"
           puts
           puts "  # terminal 2:"
-          puts "  curl -i http://localhost:8888/api/hello   -H 'X-Api-Version: 1.0' -X GET  # Index"
-          puts "  curl -i http://localhost:8888/api/hello/2 -H 'X-Api-Version: 1.0' -X GET  # Show"
-          puts "  curl -i http://localhost:8888/api/hello/2 -H 'X-Api-Version: 2.0' -X GET  # NotFound Error"
+          puts "  # Index: list the hello words (especifying api version through the query string) "
+          puts "  curl -i 'http://localhost:8888/api/hello?api_version=1.0' -H 'Authorization: Bearer XYZ' "
+          puts ""
+          puts "  # Show: list one of the hello words (especifying api version through a header) "
+          puts "  curl -i 'http://localhost:8888/api/hello/1' -H 'X-Api-Version: 1.0' -H 'Authorization: Bearer XYZ'"
+          puts ""
+          puts "  # NotFound: Hello word will not be found under API 2.0"
+          puts "  curl -i 'http://localhost:8888/api/hello/1' -H 'X-Api-Version: 2.0' -H 'Authorization: Bearer XYZ'"
+          puts "  #Note: The Authorization header is made required in the application to emulate OAuth2 (but not used)"
           nil
         end
-private      
+private
     # Returns relative path for the new application
     #
     # @return [String]
@@ -51,8 +57,8 @@ private
     def app_dir_pathname
       @app_dir_pathname ||= Pathname.new(app_name)
     end
-  
-  
+
+
     # Returns path string built from the set of the given strings
     #
     # @param [String,Array] strings
@@ -65,8 +71,8 @@ private
     def path(*strings)
       app_dir_pathname.join(*strings).to_s
     end
-  
-  
+
+
     # Creates './config/environment.rb' file
     #
     # @return [void]
@@ -100,8 +106,8 @@ RUBY
       end
       nil
     end
-  
-  
+
+
     # Creates './Gemfile' file
     #
     # @return [void]
@@ -122,8 +128,8 @@ RUBY
       end
       nil
     end
-  
-  
+
+
     # Creates './Rakefile' file
     #
     # @return [void]
@@ -137,8 +143,8 @@ RUBY
       end
       nil
     end
-  
-  
+
+
     # Creates './config.ru' file
     #
     # @return [void]
@@ -160,8 +166,8 @@ RUBY
       end
       nil
     end
-  
-  
+
+
     def generate_app_definitions_hello_world
       create_file path('design/api.rb') do
   <<-RUBY
@@ -173,15 +179,16 @@ RUBY
 #     media_type media_type
 #   end
 Praxis::ApiDefinition.define do
-  trait :versionable do
+  # Trait that when included will require a Beared authorization header to be passed in.
+  trait :authorized do
     headers do
-      key "X-Api-Version", String, values: ['1.0'], required: true
+      key "Authorization", String, regexp: /^.*Bearer\s/, required: true
     end
   end
 end
 RUBY
       end
-  
+
       create_file path('design/resources/hello.rb') do
   <<-RUBY
 module V1
@@ -192,12 +199,14 @@ module V1
       media_type V1::MediaTypes::Hello
       version '1.0'
 
-      routing do
-        prefix '/api/hello'
+      prefix '/api/hello'
+
+      # Will apply to all actions of this resource
+      action_defaults do
+        trait :authorized
       end
 
       action :index do
-        use :versionable
 
         routing do
           get ''
@@ -206,7 +215,6 @@ module V1
       end
 
       action :show do
-        use :versionable
 
         routing do
           get '/:id'
@@ -222,19 +230,19 @@ module V1
 end
 RUBY
       end
-  
+
       create_file path('design/media_types/hello.rb') do
   <<-RUBY
   module V1
     module MediaTypes
       class Hello < Praxis::MediaType
-  
+
         identifier 'application/json'
-  
+
         attributes do
           attribute :string, String
         end
-  
+
         view :default do
           attribute :string
         end
@@ -244,8 +252,8 @@ RUBY
   RUBY
       end
     end
-  
-  
+
+
     def generate_app_controllers_hello_world
         create_file path('app/controllers/hello.rb') do
   <<-RUBY
@@ -268,7 +276,7 @@ module V1
       if hello
         response.body = { id: id, data: hello }
       else
-        self.response = Praxis::Responses::NotFound.new
+        self.response = Praxis::Responses::NotFound.new(body: "Hello word with index \#{id} not found in our DB")
       end
       response.headers['Content-Type'] = 'application/json'
       response
@@ -278,6 +286,6 @@ end
 RUBY
       end
     end
-  
+
   end
 end

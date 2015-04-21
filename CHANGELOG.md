@@ -20,6 +20,12 @@
   * `base_params` may be defined for a specific Api version, which will make sharing params across all Resource definitions of that version)
   * or `base_params` may be defined in the Global Api section, which will make the parameters shared across all actions of all defined Api versions.
 * Fixed `MediaType#describe` to include the correct string representation of its identifier.
+* Allow route options to be passed to the underlying router (i.e. Mustermann at the moment)
+  * routes defined in the `routing` blocks can now take any extra options which will be passed down to the Mustermann routing engine. Unknown options will be ignored!
+  * Displaying routes (`praxis routes` or `rake praxis:routes`) will now include any options defined in a route.
+  * Added an example on the instances resource of the embedded spec_app to show how to use the advanced `*` pattern and the `:except` Mustermann options (along with the required `:splat` attribute).
+
+
 
 ## 0.15.0
 

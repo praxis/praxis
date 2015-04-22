@@ -280,10 +280,10 @@ of the tabular example above.
 #### Route parameters
 
 Routes can also take optional parameters. One of these parameters is `:name` taking a String, which will allow us to refer to such particular route
-by name. The current way to access those routes is currently cumbersome, and we'll see about what could be done to
+by name. The current way to access those routes is cumbersome, and we'll see about what could be done to
 simplify it, but it becomes very useful to both generate and parse urls referring to it.
 
-For example, I can get the path generator/parser from the above `list_one` route in by Blogs controller above by:
+For example, you can get the path generator/parser from the above `list_one` route in by Blogs controller above by:
 
 {% highlight ruby %}
 # Get the path object corresponding to the route
@@ -312,10 +312,8 @@ action :wildcards do
 end
 {% endhighlight %}
 
-Notice in the example above that if we use one or more wilcard operators for our routes, we will need to declare the
-`:splat` parameter. This parameter is a collection of strings that will contain the matched url segments from the path
-(one for each wildcard used in the path). See the [Mustermann site](https://github.com/rkh/mustermann) for more
-information about pattern types and other supported options.
+Notice in the example above that if we use wilcard operators for our routes, we will also need to declare the
+`:splat` parameter in our action definition. This parameter will contain a collection of strings matching every wildcard in our route (and yes, you can have a route with multiple wildcards). If only one wildcard is used, `:splat` will still be an array, and will contain a single string element in it. See the [Mustermann site](https://github.com/rkh/mustermann) for more information about pattern types and other supported options.
 
 
 ### Query string params, embedded URL params, and payload

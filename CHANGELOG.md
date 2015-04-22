@@ -2,6 +2,10 @@
 
 ## next
 
+## 0.16.1
+
+* Fixed a bug where documentation generation would fail if an application had headers in a Trait using the simplified `header` DSL.
+
 ## 0.16.0
 
 * Overhauled traits: they're now represented by a `Trait` class, which are created from `ApiDefinition#trait`.

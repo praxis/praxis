@@ -69,7 +69,18 @@ module Praxis
       end
 
       @attribute_groups.each_with_object(desc) do |(name, block), hash|
-        hash[name] = Attributor::Hash.construct(block).describe[:keys]
+        type_class = if name == :headers
+          # Headers are special:
+          # Keys are strings, they have a special DSL, and are case insensitive
+          hash_opts = {
+            dsl_compiler: ActionDefinition::HeadersDSLCompiler,
+            case_insensitive_load: true
+          }
+          Attributor::Hash.of(key: String).construct(block, hash_opts)
+        else
+          Attributor::Hash.construct(block)
+        end
+        hash[name] = type_class.describe[:keys]
       end
 
       desc
@@ -80,11 +91,11 @@ module Praxis
       @attribute_groups.each do |name, block|
         target.send(name, &block)
       end
-      
+
       if @routing
         target.routing(&@routing)
       end
-      
+
       @responses.each do |name, args|
         target.response(name, **args)
       end

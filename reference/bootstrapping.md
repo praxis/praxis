@@ -179,13 +179,13 @@ multiple times if you need to define configuration in multiple places.
 {% highlight ruby %}
 Praxis::Application.instance.config do
   attribute :db do
-    attribute :hostname, Attributor::String, regexp: /^host-/
-    attribute :port, Attributor::Integer, default: 80, values: [80,8080,443]
-    attribute :username, Attributor::String
-    attribute :password, Attributor::String
+    attribute :hostname, String, regexp: /^host-/
+    attribute :port, Integer, default: 80, values: [80,8080,443]
+    attribute :username, String
+    attribute :password, String
   end
 
-  attribute :log_level, Attributor::String, required: true
+  attribute :log_level, String, required: true
 end
 {% endhighlight %}
 
@@ -220,7 +220,7 @@ missing attributes marked as required.
 Accessing the configuration data is done through the ```config``` method in the
 Application singleton. The object retrieved will have the characteristics and
 types as you defined it. Structs like the one above will expose parameters as
-method accessors. Other types as Attributor::Hash or Attributor::Collection
+method accessors. Other types as Hash or Attributor::Collection
 will expose values as underlying hashes or arrays.
 
 For example, retrieving the config data for the example above can be done by:

@@ -39,7 +39,7 @@ Praxis::ApiDefinition.define
 
   trait :authenticated do
     headers do
-      header "Auth-Token"
+      key "Auth-Token", String, required: true
     end
   end
 end

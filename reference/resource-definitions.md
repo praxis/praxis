@@ -8,7 +8,7 @@ application.
 A resource definition is a class that contains configuration settings for a
 resource. This may include routing information, definitions for actions you can
 perform, its default media type, and more. To create a resource definition,
-create a class which includes the `Praxis::ResourceDefinition` module. 
+create a class which includes the `Praxis::ResourceDefinition` module.
 
 Here's an example of a `Blogs` resource definition for the `BlogMediaType` media type. It specifies that it's version "1.0", provides a description, uses a routing prefix of "/blogs", exposes simple `:index` and `:show` actions, and defines the `:show` action as its canonical representation.
 
@@ -26,9 +26,7 @@ class Blogs
     And there's much more I could say about this resource...
   EOS
 
-  routing do
-    prefix '/blogs'
-  end
+  prefix '/blogs'
 
   action :index do
     routing { get '' }
@@ -67,22 +65,20 @@ class Blogs
 end
 {% endhighlight %}
 
+
 ## Routing Prefix
 
 Each resource definition has a routing prefix (partial path) which Praxis will
-automatically prepend to all your resource's defined routes. By default, this
+automatically prepend to all of the routes found in all of the actions of its resource. By default, this
 prefix is the class name of the resource definition converted to snake-case.
 For our `Blogs` resource definition above, the default routing prefix is
-`blogs`. To override the default routing prefix, simply include a routing block
-in the resource definition and provide a value using the `prefix` method:
+`blogs`. To override the default routing prefix, simply provide a value using the `prefix` method:
 
 {% highlight ruby %}
 class Blogs
   include Praxis::ResourceDefinition
 
-  routing do
-    prefix '/blogs'
-  end
+  prefix '/my-blogs'
 end
 {% endhighlight %}
 
@@ -102,7 +98,7 @@ end
 
 A MediaType in Praxis is often more than just an Internet media-type string.
 It commonly refers to the structure or schema with which a given resource type
-will be displayed. This structure is also often associated with an Internet media-type string (i.e. 
+will be displayed. This structure is also often associated with an Internet media-type string (i.e.
 the string is the `name` for the structure schema).
 
 The value you pass to the media_type method must be a:
@@ -114,6 +110,7 @@ The value you pass to the media_type method must be a:
 
 For more information on Praxis media types, please see [Media
 Types](../media-types/).
+
 
 ## Version
 
@@ -208,6 +205,7 @@ class Blogs
 end
 {% endhighlight %}
 
+
 ### Routing
 
 The routing block defines the way Praxis will map requests to your actions.
@@ -217,9 +215,8 @@ encoded capture variables), and options. For example:
 {% highlight ruby %}
 action :index do
   routing do
-    prefix '/'
     get 'blogs'
-    get 'orgs/:org_id/blogs'
+    get '//orgs/:org_id/blogs'
   end
 end
 {% endhighlight %}
@@ -231,40 +228,41 @@ HEAD, POST, PUT, DELETE, TRACE and CONNECT) plus
 
 Praxis also accepts the 'ANY' verb keyword to indicate that the given route should
 match for any incoming verb string. Routes with concrete HTTP verbs will always
-take precendence against 'ANY' verb routes. For instance, take a look at the following 
+take precendence against 'ANY' verb routes. For instance, take a look at the following
 simplistic and contrived example:
 
 {% highlight ruby %}
 class Blogs
   include Praxis::ResourceDefinition
 
-  action :index do
-    routing { get '/' }
-    description 'Fetch all blog entries'
+  action :show do
+    routing { get '/:id' , name: 'list_one' }
+    description 'Fetch one blog entry'
   end
   action :other do
-    routing { any '/' }
+    routing { any '/:id' }
     description 'Do other stuff with non GET verbs'
   end
 end
 {% endhighlight %}
 
-In this case an incoming `"GET /"` request will always invoke the `:index` action, 
-while others like `"POST /"` or `"PATCH /"` will always map the the `:other` action. 
-Using the 'ANY' verb is mostly a convenience to avoid repeating several routes with 
-the same exact path for an action that needs to respond to all those verbs in the 
+In this case an incoming `"GET /"` request will always invoke the `:show` action,
+while others like `"POST /"` or `"PATCH /"` will always map the the `:other` action.
+Using the 'ANY' verb is mostly a convenience to avoid repeating several routes with
+the same exact path for an action that needs to respond to all those verbs in the
 same manner. There is a subtle difference, however, and that is that using 'ANY'
 will truly accept any incoming HTTP verb string, while listing them in several routes
 will need to match the specific supported names. For example, an 'ANY' route like the
-above will be able to match incoming requests like `"LINK /"` or `"UNLINK /"` (assuming the Web 
+above will be able to match incoming requests like `"LINK /"` or `"UNLINK /"` (assuming the Web
 server supports it).
 
-Remember that Praxis prefixes all your resource's routes with a string based
+Remember that Praxis prefixes all your resources' routes with a string based
 on the name of your enclosing resource definition class, in this case
-'/blogs'. You can override the prefix for a single action if the
-resource-wide prefix doesn't apply (like in the example above).
+'/blogs'. You can override the prefix for a single route by prepending '//' to the path (like in the example above) if you don't want the resource-wide prefix to apply. Alternately, you can provide a special prefix of either `''` or `'//'` in the routing block to clear the prefix for any other paths given.
 
-You can inspect the Praxis routing table using `rake praxis:routes`:
+*Note*: The above 'resetting' behavior of '//' applies *only* to any Resource-level route prefixes that may be defined. It will *not* override an API-wide `base_path` if one is defined (see [Global Api Info](../global-api-information/)).
+
+You can inspect the Praxis routing table using `praxis routes` or `rake praxis:routes`:
 
 {% highlight bash %}
 $ rake praxis:routes
@@ -275,6 +273,48 @@ $ rake praxis:routes
 | n/a     | /orgs/:org_id/blogs | GET  | Blogs    | index  | -n/a-          |
 +---------------------------------------------------------------------------+
 {% endhighlight %}
+
+The route command supports the `json` format parameter to retrieve the complete routing table in JSON format instead
+of the tabular example above.
+
+#### Route parameters
+
+Routes can also take optional parameters. One of these parameters is `:name` taking a String, which will allow us to refer to such particular route
+by name. The current way to access those routes is cumbersome, and we'll see about what could be done to
+simplify it, but it becomes very useful to both generate and parse urls referring to it.
+
+For example, you can get the path generator/parser from the above `list_one` route in by Blogs controller above by:
+
+{% highlight ruby %}
+# Get the path object corresponding to the route
+generator = Blogs.actions[:index].named_routes['list_all'].path
+
+# Then use it to generate routes (including parameters)
+generator.expand(id: 123) # => '/blogs/123'
+# Or use it to parse the parameters of an existing url sting
+generator.params('/blogs/123') # => {'id' => 123}
+{% endhighlight %}
+
+Any other options passed to the route will be sent to the underlying routing engine (Mustermann). This makes it
+possible to use advanced features like wildcards, and extra type matching restrictions. For example, the following
+route will match any url ending with `/do_stuff` except if it starts with `/special`:
+
+{% highlight ruby %}
+action :wildcards do
+  routing do
+    get '/*/do_stuff' , except: '/special*'
+  end
+  description "Will match '/foo/bar/do_stuff' but not '/special/do_stuff"
+  params do
+    # :splat will contain the mathing pieces of the wildcards
+    attribute :splat, Attributor::Collection.of(String)
+  end
+end
+{% endhighlight %}
+
+Notice in the example above that if we use wilcard operators for our routes, we will also need to declare the
+`:splat` parameter in our action definition. This parameter will contain a collection of strings matching every wildcard in our route (and yes, you can have a route with multiple wildcards). If only one wildcard is used, `:splat` will still be an array, and will contain a single string element in it. See the [Mustermann site](https://github.com/rkh/mustermann) for more information about pattern types and other supported options.
+
 
 ### Query string params, embedded URL params, and payload
 
@@ -287,8 +327,8 @@ component of the Praxis documentation generator.
 #### Params
 
 In Praxis actions, the `params` stanza is used to describe incoming parameters that can
-be found in both the action path (route) or the query string. In case of name 
-conflicts, parameters in the path always take precedence over parameters in 
+be found in both the action path (route) or the query string. In case of name
+conflicts, parameters in the path always take precedence over parameters in
 the query string.
 
 You can define the expected structure of URL and query string parameters by
@@ -376,9 +416,9 @@ action :create do
 end
 {% endhighlight %}
 
-In addition to defining a header `key` in the standard `Attributor::Hash` manner, Praxis
-also enhances the DSL with a `header` method that can shortcut the syntax for 
-certain common cases. The `header` DSL takes a String name and an optional expected value: 
+In addition to defining a header `key` in the standard `Hash` manner, Praxis
+also enhances the DSL with a `header` method that can shortcut the syntax for
+certain common cases. The `header` DSL takes a String name and an optional expected value:
 
 * if no value is passed, the only expectation is that a header with that name is received.
 * if a Regexp value is passed, the expectation is that the header value (if exists) matches it
@@ -388,17 +428,17 @@ Any hash-like options provided as the last argument are passed along to the
 underlying `Attributor` types. Here are some examples of how to define header expectations:
 
 {% highlight ruby %}
-headers do	
+headers do
   # Defining a required header
   header "Authorization"
   # Which is equivalent to
   key "Authorization", String, required: true
-  
+
   # Defining a non-required header that must match a given regexp
   header "Authorization", /Secret/
   # Which is equivalent to
   key "Authorization", String, regexp: /Secret/
-  
+
   # Defining a required header that must be equal to "hello"
   header "Authorization", "hello", required: true
   # Which is equivalent to
@@ -406,7 +446,7 @@ headers do
 end
 {% endhighlight %}
 
-Using the simplified `headers` syntax can cover most of your typical definitions, while the native 
+Using the simplified `headers` syntax can cover most of your typical definitions, while the native
 Hash syntax allows you to mix and match many more options. Which one to use is up to you. They
 both can perfectly coexist at the same time.
 
@@ -436,10 +476,10 @@ For more information, please see [Responses](../responses/).
 
 There are often situations where many actions within a resource definition will
 require a common subset of definitions. For example, a common set of URL parameters,
-a common set of headers, traits or even a common set of allowed responses. 
+a common set of headers, traits or even a common set of allowed responses.
 
-Praxis allows you to easily define and share common pieces of code across all actions 
-by placing their definitions inside an `action_defaults` block at the resource definition level. 
+Praxis allows you to easily define and share common pieces of code across all actions
+by placing their definitions inside an `action_defaults` block at the resource definition level.
 Here is an example:
 
 {% highlight ruby %}
@@ -451,12 +491,12 @@ class Blogs
       attribute :dry_tun, Attributor::Boolean, default: false
     end
     response :bad_request
-    use :authenticated
   end
 
   action :index do
     routing { get '' }
   end
+
   action :show do
     routing { get '/:id' }
     params do
@@ -468,22 +508,21 @@ end
 {% endhighlight %}
 
 The example above will cause the the `:dry_run` parameter to be propagated and
-defined in all available actions of the `Blogs` resource definition (i.e., both 
-`:index` and `:show` actions will have such a parameter). The same exact
-propagation will happen for the `:bad_request` response and the use of the 
-`:authenticated` trait.
+defined in all available actions of the `Blogs` resource definition (i.e., both
+`:index` and `:show` actions will have such a parameter).
 
-With `action_defaults` you can use `params`, `payload`, `headers`, 
-`response` and `use` stanzas to propagate definitions to all existing actions.
+With `action_defaults` you can use `params`, `payload`, `headers`, and
+`response` stanzas to propagate definitions to all existing actions.
 If any of those stanzas are defined within an action itself Praxis will
-appropriately merge them. Therefore, in this example, the `:show` action will 
-end up with both the `:dry_run` and  the `:id` parameters.
+appropriately merge them. Therefore, in this example, the `:show` action will
+end up with both the `:dry_run` and `:id` parameters.
 
-In case of conflict while merging, Praxis will always give overriding preference 
+In case of conflict while merging, Praxis will always give overriding preference
 to definitions found within the action block itself.
 
-NOTE: Currently `action_defaults` does not support sharing `routing` blocks. It 
+NOTE: Currently `action_defaults` does not support sharing `routing` blocks. It
 is probable, however, that this will be supported soon if the use case arises.
+
 
 ## Canonical Paths
 

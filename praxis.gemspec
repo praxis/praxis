@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'mustermann', '~> 0'
   spec.add_dependency 'activesupport', '>= 3'
   spec.add_dependency 'mime', '~> 0'
-  spec.add_dependency 'praxis-mapper', '~> 3.3'
+  spec.add_dependency 'praxis-mapper', '~> 3.4'
   spec.add_dependency 'praxis-blueprints', '~> 1.3'
   spec.add_dependency 'attributor', '~> 2.6'
   spec.add_dependency 'thor', '~> 0.18'

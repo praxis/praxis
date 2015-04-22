@@ -2,6 +2,8 @@
 
 ## next
 
+## 0.16.0
+
 * Overhauled traits: they're now represented by a `Trait` class, which are created from `ApiDefinition#trait`.
   * `ApiDefinition#describe` will also include details of the defined traits.
   * `ResourceDefinition#describe` and `ActionDefinition#describe` will also include the names of the used traits.
@@ -25,8 +27,6 @@
   * Displaying routes (`praxis routes` or `rake praxis:routes`) will now include any options defined in a route.
   * Added an example on the instances resource of the embedded spec_app to show how to use the advanced `*` pattern and the `:except` Mustermann options (along with the required `:splat` attribute).
 * Spruced up the example app (generator) to use the latest `prefix` and `trait` changes
-
-
 
 ## 0.15.0
 

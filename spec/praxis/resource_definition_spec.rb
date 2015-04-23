@@ -7,7 +7,6 @@ describe Praxis::ResourceDefinition do
   its(:media_type) { should eq(Person) }
 
   its(:version) { should eq('1.0') }
-  its(:version_options) { should eq({using: [:header,:params]}) }
 
   its(:prefix) { should eq('/people') }
 

@@ -206,9 +206,6 @@ describe 'Functional specs' do
       its(['options']){ should eq({"extra_thing"=>"I am extra"})}
     end
 
-
-
-
   end
 
 

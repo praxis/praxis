@@ -2,6 +2,12 @@
 
 ## next
 
+* Refined path-based versioning:
+  * Added `ApiGeneralInfo#version_with`, which defaults to `[:header, :params`] and may be set to `:path` to use path-based versioning. 
+  * Added support for specifying an `:api_version` placeholder to the global version's `ApiGeneralInfo#base_path`. 
+  * Deprecated `ResourceDefinition.version using: :path` option, use `ApiGeneralInfo#version_with` instead.
+
+
 ## 0.16.1
 
 * Fixed a bug where documentation generation would fail if an application had headers in a Trait using the simplified `header` DSL.

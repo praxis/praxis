@@ -19,14 +19,14 @@ describe Praxis::Router do
       let(:env){ {"HTTP_X_API_VERSION" => request_version } }
       let(:request) {Praxis::Request.new(env)}
 
-      #let(:request){ double("request", version: request_version, env: env ) }
       context 'with matching versions' do
         let(:request_version) { "1.0" }
         it 'calls the target' do
-          expect( target ).to receive(:call).with(request)
+          expect(target).to receive(:call).with(request)
           matcher.call(request)
         end
       end
+
       context 'with non-matching versions' do
         let(:request_version) { "4.0" }
         before do
@@ -80,14 +80,21 @@ describe Praxis::Router do
     let(:target){ double('target') }
     let(:verb_router){ double('verb_router') }
 
-    it 'wraps the target with a VersionMatcher' do
-      router.instance_variable_set( :@routes, {'verb'=>verb_router} ) # Ugly, but no need to have a reader
-      expect(verb_router).to receive(:on) do|path, args|# .with(route.path, call: "foo")
-        expect(path).to eq(route.path)
-        expect(args).to be_kind_of(Hash)
-        expect(args[:call]).to be_kind_of(Praxis::Router::VersionMatcher)
+    let(:resource_definition) { double('resource_definition', version_options: {using: [:header, :params]} ) }
+    let(:action) { double('action', resource_definition: resource_definition) }
+    let(:target) { double('target', action: action) }
+
+
+    context 'with params or header versioning' do
+      it 'wraps the target with a VersionMatcher' do
+        router.instance_variable_set( :@routes, {'verb'=>verb_router} ) # Ugly, but no need to have a reader
+        expect(verb_router).to receive(:on) do|path, args|# .with(route.path, call: "foo")
+          expect(path).to eq(route.path)
+          expect(args).to be_kind_of(Hash)
+          expect(args[:call]).to be_kind_of(Praxis::Router::VersionMatcher)
+        end
+        router.add_route(target, route)
       end
-      router.add_route(target ,route)
     end
 
   end
@@ -103,13 +110,18 @@ describe Praxis::Router do
     let(:router_response_for_wildcard){ "* result" }
     let(:post_target_router){ double("POST target", call: router_response_for_post) }
     let(:any_target_router){ double("ANY target", call: router_response_for_wildcard) }
+
+    let(:resource_definition) { double('resource_definition', version_options: {using: [:header, :params]} ) }
+    let(:action) { double('action', resource_definition: resource_definition) }
+    let(:target) { double('target', action: action) }
+
     before do
       env['HTTP_X_API_VERSION'] = request_version if request_version
       allow_any_instance_of(Praxis::Router::RequestRouter).
         to receive(:call).with(request).and_return(router_response)
-      router.add_route(double("P"),double("route1", verb: 'POST', path: '/', options: {} , version: request_version))
+      router.add_route(target,double("route1", verb: 'POST', path: '/', options: {} , version: request_version))
       # Hijack the callable block in the routes (since there's no way to point back to the registered route object)
-      router.instance_variable_get( :@routes )['POST'] = post_target_router
+      router.instance_variable_get(:@routes)['POST'] = post_target_router
 
     end
 
@@ -130,8 +142,12 @@ describe Praxis::Router do
     end
 
     context 'for routes with wildcards (a POST and a * route)' do
+      let(:resource_definition) { double('resource_definition', version_options: {using: [:header, :params]} ) }
+      let(:action) { double('action', resource_definition: resource_definition) }
+      let(:target) { double('target', action: action) }
+
       before do
-        router.add_route(double("*"),double("route2", verb: 'ANY', path: '/*', options: {} , version: request_version))
+        router.add_route(target,double("route2", verb: 'ANY', path: '/*', options: {} , version: request_version))
         # Hijack the callable block in the routes (since there's no way to point back to the registered route object)
         router.instance_variable_get( :@routes )['ANY'] = any_target_router
       end

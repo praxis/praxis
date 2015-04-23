@@ -77,10 +77,6 @@ module Praxis
     autoload :Validation, 'praxis/exceptions/validation'
   end
 
-  # Avoid loading responses (and templates) lazily as they need to be registered in time
-  require 'praxis/responses/http'
-  require 'praxis/responses/internal_server_error'
-  require 'praxis/responses/validation_error'
 
   module Handlers
     autoload :JSON, 'praxis/handlers/json'
@@ -111,5 +107,10 @@ module Praxis
     autoload :Action, 'praxis/request_stages/action'
     autoload :Response, 'praxis/request_stages/response'
   end
+
+  # Avoid loading responses (and templates) lazily as they need to be registered in time
+  require 'praxis/responses/http'
+  require 'praxis/responses/internal_server_error'
+  require 'praxis/responses/validation_error'
 
 end

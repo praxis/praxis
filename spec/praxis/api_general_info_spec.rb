@@ -4,6 +4,11 @@ describe Praxis::ApiGeneralInfo do
 
   subject(:info){ Praxis::ApiGeneralInfo.new }
 
+  before do
+    allow(Praxis::Application.instance).to receive(:versioning_scheme=).with([:header, :params])
+  end
+
+
   let(:info_block) do
     Proc.new do
       name "Name"
@@ -45,6 +50,24 @@ describe Praxis::ApiGeneralInfo do
     its([:base_path]) {should eq '/base' }
     its([:base_params]) { should have_key :name }
     its([:base_params, :name, :type, :name]) { should eq 'String' }
-
+    its([:version_with]) { should eq([:header, :params]) }
   end
+
+  context 'base_path with versioning' do
+    let(:global_info){ Praxis::ApiGeneralInfo.new }
+    subject(:info){ Praxis::ApiGeneralInfo.new(global_info, version: '1.0') }
+
+    before do
+      global_info
+
+      expect(Praxis::Application.instance).to receive(:versioning_scheme=).with(:path)
+
+      global_info.version_with :path
+      global_info.base_path '/api/v:api_version'
+    end
+    
+
+    its(:base_path) { should eq '/api/v1.0'}
+  end
+
 end

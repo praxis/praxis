@@ -1,9 +1,17 @@
 module Praxis
   class ApiGeneralInfo
 
-    def initialize(global_info=nil)
-      @global_info = global_info
+    attr_reader :version
+
+    def initialize(global_info=nil, version: nil)
       @data = Hash.new
+      @global_info = global_info
+      @version = version
+
+      if @global_info.nil? # this *is* the global info
+        version_with [:header, :params]
+      end
+
     end
 
     def get(k)
@@ -40,14 +48,34 @@ module Praxis
       end
     end
 
+    def version_with(val=nil)
+      if val.nil?
+        get(:version_with)
+      else
+        if @global_info.nil? # this *is* the global info
+          Application.instance.versioning_scheme = val
+          set(:version_with, val)
+        else
+          raise "Use of version_with is only allowed in the global part of " \
+            "the API definition (but you are attempting to use it in the API " \
+            "definition of version #{self.version}"
+        end
+      end
+    end
+
     def base_path(val=nil)
       if val
         return set(:base_path, val)
       end
 
-      if @global_info
+      if @global_info # this is for a specific version
+        global_path = @global_info.base_path
+        if version_with == :path
+          global_pattern = Mustermann.new(global_path)
+          global_path = global_pattern.expand(Request::API_VERSION_PARAM_NAME => self.version)
+        end
+
         version_path = @data.fetch(:base_path,'')
-        global_path = @global_info.get(:base_path)
         "#{global_path}#{version_path}"
       else
         @data.fetch(:base_path,'')
@@ -64,7 +92,7 @@ module Praxis
 
     def describe
       hash = { schema_version: "1.0".freeze }
-      [:name, :title, :description, :base_path].each do |attr|
+      [:name, :title, :description, :base_path, :version_with].each do |attr|
         val = self.__send__(attr)
         hash[attr] = val unless val.nil?
       end

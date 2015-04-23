@@ -8,6 +8,8 @@ Bundler.setup :default, :test
 require 'simplecov'
 SimpleCov.start 'praxis'
 
+require 'pry'
+
 require 'praxis'
 
 require 'rack/test'
@@ -15,7 +17,7 @@ require 'rack/test'
 require 'rspec/its'
 require 'rspec/collection_matchers'
 
-require 'pry'
+
 
 Dir["#{File.dirname(__FILE__)}/../lib/praxis/plugins/*.rb"].each do |file|
   require file

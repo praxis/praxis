@@ -7,6 +7,14 @@
   * Added support for specifying an `:api_version` placeholder to the global version's `ApiGeneralInfo#base_path`.
   * Deprecated `ResourceDefinition.version using: :path` option, use `ApiGeneralInfo#version_with` instead.
 * Fix bug where before/after hooks set on sub-stages of `:app` would not be triggered
+* Added `display_name` DSL to `ResourceDefinition`
+  * It is a purely informational field, mostly to be used by consumers of the generated docs
+  * It defaults to the class name (stripping any of the prefix modules)
+* Revamped document generation to output a more compact format:
+    * 1 file per api version: including info, resources, schemas and traits.
+    * 1 single index file with global info plus just a list of version names
+    * new task currently usable through `bundle exec rake praxis:docs:experiments`
+      * NOTE: leaves the current doc generation tasks and code intact (until the doc browser is switched to use this)
 
 
 ## 0.16.1

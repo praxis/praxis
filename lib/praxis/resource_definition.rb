@@ -39,6 +39,13 @@ module Praxis
 
       attr_accessor :controller
 
+      def display_name( string=nil )
+        unless string
+          return  @display_name || self.name.split("::").last  # Best guess at a display name?
+        end
+        @display_name = string
+      end
+
       # FIXME: this is inconsistent with the rest of the magic DSL convention.
       def routing(&block)
         warn "DEPRECATED: ResourceDefinition.routing is deprecated use prefix directly instead."
@@ -173,9 +180,10 @@ module Praxis
       def describe
         {}.tap do |hash|
           hash[:description] = description
-          hash[:media_type] = media_type.id if media_type
+          hash[:media_type] = media_type.describe(true) if media_type
           hash[:actions] = actions.values.map(&:describe)
           hash[:name] = self.name
+          hash[:display_name] = self.display_name
           hash[:metadata] = metadata
           hash[:traits] = self.traits
         end

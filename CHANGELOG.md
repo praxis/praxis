@@ -2,6 +2,16 @@
 
 ## next
 
+* Added `display_name` DSL to `ResourceDefinition`
+  * It is a purely informational field, mostly to be used by consumers of the generated docs
+  * It defaults to the class name (stripping any of the prefix modules)
+* Revamped document generation to output a more compact format:
+    * 1 file per api version: including info, resources, schemas and traits.
+    * 1 single index file with global info plus just a list of version names
+    * new task currently usable through `bundle exec rake praxis:docs:experiments`
+      * NOTE: leaves the current doc generation tasks and code intact (until the doc browser is switched to use this)
+
+
 ## 0.17.1
 
 * Fixes an issue that would make exported documentation broken.

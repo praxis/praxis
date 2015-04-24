@@ -47,6 +47,9 @@ module Praxis
   autoload :Notifications, 'praxis/notifications'
 
   autoload :RestfulDocGenerator, 'praxis/restful_doc_generator'
+  module Docs
+    autoload :Generator, 'praxis/docs/generator'
+  end
 
   # types
   module Types

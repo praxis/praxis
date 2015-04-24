@@ -17,7 +17,7 @@ describe Praxis::ResourceDefinition do
     subject(:describe) { resource_definition.describe }
 
     its([:description]) { should eq(resource_definition.description) }
-    its([:media_type]) { should eq(resource_definition.media_type.name) }
+    its([:media_type]) { should eq(resource_definition.media_type.describe(true)) }
 
     its([:actions]) { should have(2).items }
     its([:metadata]) { should be_kind_of(Hash) }

@@ -138,17 +138,6 @@ An incoming request can specify a version in three different ways:
 * By providing an `:api_version` parameter in the query containing the defined version string. Example: `/blogs?api_version`
 * By using an appropriate URL prefix. Example: `/v1.0/blogs`
 
-The `version` method can take a `:using` option which allows you to restrict which of the three modes clients can use to specify versions.
-The possible values corresponding to the three cases above are: `:header`,`:params` and `:path`. By default the allowed methods are `:headers` and `:params`. This means that the above definition of ```version 1.0``` is equivalent to ```version 1.0, using: [:header,:params]```.
-
-Including the `:path` method has an effect to the routing prefixes, and will be reflected if you do `rake praxis:routes`.
-
-By default the prefix matching for path versions is `"/v(version_string)/"`, but it can be easily changed by either:
-
-* overriding `Praxis::Request.path_version_prefix` to return the appropriate string prefix ( by default this returns `"/v"` )
-* or overriding `Praxis::Request.path_version_matcher` and providing the fully-custom matching regexp. This regexp must have a capture (named `version`) that would return matched version value. The system default is: `/^#{Request.path_version_prefix}(?<version>[^\/]+)\//`
-
-Overriding these settings whould be rare but there are situations that might be required. For example, to conform to an already published version path, to add additional prefix segments or to allow case insensitive version strings.
 
 ## nodoc!
 

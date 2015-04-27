@@ -16,15 +16,19 @@ as validated headers, params and payload structures.
 
 `request.version` will return the requested API version associated with the
 request. The value will always be a string, and if the request doesn't carry
-any API version information, the string `n/a` will be returned. Underneath,
-Praxis will retrieve this value directly come from either the
-`HTTP_X_API_VERSION` header if present or from the `api_version` parameter.
+any API version information, the string `n/a` will be returned. 
+
+Underneath, Praxis will use the versioning scheme specified for the application,
+and retrieve this value from the `X-Api-Version`, `api_version` parameter, or 
+approriate capture from the path, as appropriate.
+
 
 ## Path
 
 `request.path` will return the path component of the incoming request. For the
 example `/blogs`. This method currently returns the value of the PATH_INFO key
 in rack request environment.
+
 
 ## Params
 

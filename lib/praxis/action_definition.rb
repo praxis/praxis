@@ -49,10 +49,10 @@ module Praxis
       version = resource_definition.version
       api_info = ApiDefinition.instance.info(resource_definition.version)
 
-      version_prefix = "#{api_info.base_path}#{resource_definition.version_prefix}"
+      route_base = "#{api_info.base_path}#{resource_definition.version_prefix}"
       prefix = Array(resource_definition.prefix)
 
-      @routing_config = RoutingConfig.new(version: version, base: version_prefix, prefix: prefix)
+      @routing_config = RoutingConfig.new(version: version, base: route_base, prefix: prefix)
 
       resource_definition.traits.each do |trait|
         self.trait(trait)

@@ -14,7 +14,7 @@ module Praxis
         
         def call(request)
           request.action = @action
-          dispatcher = Dispatcher.current( application: @application)
+          dispatcher = Dispatcher.current(application: @application)
 
           dispatcher.dispatch(@controller, @action, request)
         end

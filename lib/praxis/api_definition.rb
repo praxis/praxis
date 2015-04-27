@@ -12,6 +12,8 @@ module Praxis
     attr_reader :infos
     attr_reader :global_info
 
+    attr_accessor :versioning_scheme
+
     def self.define(&block)
       if block.arity == 0
         self.instance.instance_eval(&block)
@@ -28,7 +30,7 @@ module Praxis
       @global_info = ApiGeneralInfo.new
 
       @infos = Hash.new do |hash, version|
-        hash[version] = ApiGeneralInfo.new(@global_info)
+        hash[version] = ApiGeneralInfo.new(@global_info, version: version)
       end
     end
 

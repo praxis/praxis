@@ -28,11 +28,14 @@ Praxis::ApiDefinition.define do
     name "Spec App"
     title "A simple App to do some simple integration testing"
     description "This example API should really be replaced by a set of more full-fledged example apps in the future"
+
+    #version_with :path
+    #base_path "/v:api_version"
   end
   
-  info("1.0") do # Applies to 1.0 version (and inherits everything else form the global one)
+  info '1.0' do # Applies to 1.0 version (and inherits everything else form the global one)
     description "A simple 1.0 App"
     base_path "/"
   end
-  
+
 end

@@ -21,6 +21,8 @@ module Praxis
     attr_accessor :root
     attr_accessor :error_handler
 
+    attr_accessor :versioning_scheme
+   
 
     def self.configure
       yield(self.instance)
@@ -47,6 +49,7 @@ module Praxis
       @logger = Logger.new(STDOUT)
     end
     
+
     def setup(root: '.')
       @root = Pathname.new(root).expand_path
 

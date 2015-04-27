@@ -65,10 +65,13 @@ module Praxis
 
       def version(version=nil, options=nil)
         return @version unless version
-        @version = version
-        @version_options = options || {using: [:header,:params]}
 
-        if @version_options
+        @version = version
+
+        unless options.nil?
+          warn 'DEPRECATED: ResourceDefinition.version with options is no longer supported. Define in api global info instead.'
+          
+          @version_options = options
           version_using = Array(@version_options[:using])
           if version_using.include?(:path)
             @version_prefix = "#{Praxis::Request::path_version_prefix}#{self.version}"
@@ -125,28 +128,28 @@ module Praxis
       end
 
       def params(type=Attributor::Struct, **opts, &block)
-        warn 'DEPRECATION: ResourceDefinition.params is deprecated. Use it in action_defaults instead.'
+        warn 'DEPRECATED: ResourceDefinition.params is deprecated. Use it in action_defaults instead.'
         action_defaults do
           params type, **opts, &block
         end
       end
 
       def payload(type=Attributor::Struct, **opts, &block)
-        warn 'DEPRECATION: ResourceDefinition.payload is deprecated. Use action_defaults instead.'
+        warn 'DEPRECATED: ResourceDefinition.payload is deprecated. Use action_defaults instead.'
         action_defaults do
           payload type, **opts, &block
         end
       end
 
       def headers(**opts, &block)
-        warn 'DEPRECATION: ResourceDefinition.headers is deprecated. Use action_defaults instead.'
+        warn 'DEPRECATED: ResourceDefinition.headers is deprecated. Use action_defaults instead.'
         action_defaults do
           headers **opts, &block
         end
       end
 
       def response(name, **args)
-        warn 'DEPRECATION: ResourceDefinition.response is deprecated. Use action_defaults instead.'
+        warn 'DEPRECATED: ResourceDefinition.response is deprecated. Use action_defaults instead.'
         action_defaults do
           response name, **args
         end

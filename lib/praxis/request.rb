@@ -18,7 +18,6 @@ module Praxis
       @env = env
       @query = Rack::Utils.parse_nested_query(env[QUERY_STRING_NAME])
       @route_params = {}
-      @path_version_matcher = path_version_matcher
     end
 
     # Determine the content type of this request as indicated by the Content-Type header.
@@ -83,23 +82,29 @@ module Praxis
       PATH_VERSION_PREFIX
     end
 
+    # DEPRECATED: remove with ResourceDefinition.version using: :path
     PATH_VERSION_MATCHER = %r{^#{self.path_version_prefix}(?<version>[^\/]+)\/}.freeze
 
     def path_version_matcher
-      PATH_VERSION_MATCHER
+      if Application.instance.versioning_scheme == :path
+        matcher = Mustermann.new(ApiDefinition.instance.info.base_path + '*')
+        matcher.params(self.path)[API_VERSION_PARAM_NAME]
+      else
+        PATH_VERSION_MATCHER.match(self.path)[:version]
+      end
     end
 
-    def version(using: VERSION_USING_DEFAULTS)
+    def version
       result = nil
-      Array(using).find do |mode|
+      
+      Array(Application.instance.versioning_scheme).find do |mode|
         case mode
         when :header;
           result = env[API_VERSION_HEADER_NAME]
         when :params;
           result = @query[API_VERSION_PARAM_NAME]
         when :path;
-          m = self.path.match(@path_version_matcher)
-          result = m[:version] unless m.nil?
+          result = self.path_version_matcher
         else
           raise "Unknown method for retrieving the API version: #{mode}"
         end

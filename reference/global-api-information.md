@@ -13,7 +13,7 @@ The following directives are supported:
  * `base_path`
  * `base_params`
 
-In addition to the above which may be specified globally or on a version, there is a `version_with` directive that is only applicable on the global version to define what versioning "scheme" your application will use. By default it's set to `[:header, :params]`, meaning Praxis will look for either an  `X-Api-Version` request header *or* an `api_version` query parameter to determine the version of your API to use for processing the request. To narrow it to one or the other scheme, you can set it to just that specific option (i.e. set it to `:header` to just use the `X-Api-Version` header and ignore any `api_version` param). There is an additional scheme, `:path`, described later.
+In addition to the above which may be specified globally or on a version, there is a `version_with` directive that is only applicable on the global version to define what versioning "scheme" your application will use. By default it's set to `[:header, :params]`, meaning Praxis will look for either an  `X-Api-Version` request header *or* an `api_version` query parameter to determine the version of your API to use for processing the request. It is also possible to use a path-based versioning scheme by using `version_with :path`. See section below for details.
 
 Below is a basic ApiDefinition that defines global info, as well info for a specific version:
 
@@ -46,7 +46,7 @@ You can use the `base_path` and `base_param` directives to define the base route
 
 ## Path-Based Versioning
 
-If you want to version your API using request paths, you can set the `version_using` directive to `:path`, and specify a `base_path` that includes a special `:api_version` placeholder that Praxis will fill in as applicable when configuring the routing for your resources.
+If you want to version your API based on request paths, set the `version_using` directive to `:path`, and specify an appropriate `base_path` matcher. This `base_path` matcher must include an `:api_version` variable in it (like any other action route) which Praxis will use to extract the exact version string when routing to your resources.
 
 Below is a basic ApiDefinition that uses path-based versioning, and specifies a `base_path` with the `:api_version` placeholder:
 

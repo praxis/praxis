@@ -2,9 +2,9 @@
   <div class="col-lg-12">
     <h2>Media Type</h2>
     <p ng-if="type.identifier"><b>Identifier: {{ type.identifier }}</b></p>
-    <p ng-if="type.description" ng-bind-html="type.description | markdown"></p>
-    
-    <rs-attribute-table attributes="type.attributes"></rs-attribute-table>
+    <div ng-if="type.description" ng-bind-html="type.description | markdown"></div>
+
+    <attribute-table attributes="type.attributes"></attribute-table>
   </div>
 </div>
 <div class="row" ng-if="views.length">

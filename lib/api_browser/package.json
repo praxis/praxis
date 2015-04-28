@@ -22,7 +22,7 @@
     "grunt-contrib-watch": "~0.5.3",
     "grunt-file-blocks": "^0.3.0",
     "grunt-filerev": "^0.2.1",
-    "grunt-ngmin": "0.0.3",
+    "grunt-ng-annotate": "^0.10.0",
     "grunt-sass": "^0.18.0",
     "grunt-usemin": "^2.1.1",
     "grunt-wiredep": "^1.7.0",

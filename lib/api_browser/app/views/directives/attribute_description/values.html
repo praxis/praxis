@@ -2,13 +2,13 @@
 <dt ng-if="row.value.length < 5 && row.value.length > 1">Possible values</dt>
 <dt ng-if="row.value.length >= 5">
   Possible values (<a ng-init="row.isCollapsed = true" ng-click="row.isCollapsed = !row.isCollapsed">{{row.isCollapsed? 'show' : 'hide'}}</a>)
-	</dt>
+  </dt>
 </dt>
 
 <dd ng-if="row.value.length == 1"><code>{{row.value[0]}}</code> (this field will always hold this value)</dd>
 <dd ng-if="row.value.length > 1">
   <div ng-class="{hide: !row.isCollapsed || row.value.length < 5}">{{row.value.slice(0, 4).join(', ')}}, <a ng-init="row.isCollapsed = true" ng-click="row.isCollapsed = !row.isCollapsed">and {{row.value.length - 4}} more</a>.</div>
-	<ul ng-class="{hide: row.isCollapsed && row.value.length >= 5}">
+  <ul ng-class="{hide: row.isCollapsed && row.value.length >= 5}">
     <li ng-repeat="v in row.value"><code>{{v}}</code></li>
   </ul>
 </dd>

@@ -20,6 +20,7 @@ module Praxis
         order.each do |group|
           @stages << FileLoader.new(group, application, path: [name, group])
         end
+        setup_deferred_callbacks!
       end
     end
 

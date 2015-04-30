@@ -29,6 +29,16 @@ Praxis::Application.configure do |application|
   application.config.praxis.validate_responses = true
   application.config.praxis.show_exceptions = true
 
+  # FIXME: until we have a better way to unit test such a feature...
+  # Silly callback code pieces to test that the deferred callbacks work even for sub-stages
+  application.bootloader.after :app, :models do
+    PersonModel.identity(:other_id)
+  end
+  application.bootloader.after :app do
+    raise "After sub-stage hooks not working!" unless PersonModel.identities.include? :other_id
+  end
+
+
   application.layout do
     layout do
       map :initializers, 'config/initializers/**/*'

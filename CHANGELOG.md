@@ -7,7 +7,9 @@
   * Added support for specifying an `:api_version` placeholder to the global version's `ApiGeneralInfo#base_path`.
   * Deprecated `ResourceDefinition.version using: :path` option, use `ApiGeneralInfo#version_with` instead.
 * Fix bug where before/after hooks set on sub-stages of `:app` would not be triggered
-
+* Refactors the api browser to allow registering custom type templates.
+  * This also removes an undocumented feature that did something similar.
+  * Fixes an issue where Struct properties wouldn't be displayed.
 
 ## 0.16.1
 

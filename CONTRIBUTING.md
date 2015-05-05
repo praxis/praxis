@@ -45,6 +45,9 @@ everything for everybody. This means that we might decide against incorporating
 a new feature. However, there might be a way to implement that feature *on top
 of* Praxis.
 
+If you want to work on something that we have already reviewed and prepared, 
+checkout the *Ready* column on our [Waffle board](https://waffle.io/rightscale/praxis).
+
 ### Discuss your design on the mailing list
 
 We recommend discussing your plans on the

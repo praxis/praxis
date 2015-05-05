@@ -11,7 +11,7 @@
       <tr ng-if="g.name && g.attributes.length">
         <th colspan="3">{{g.name}}</th>
       </tr>
-      <tr rs-attribute-table-row ng-repeat="item in g.attributes" name="item.name" attribute="item" ></tr>
+      <tr type-placeholder ng-repeat="item in g.attributes" type="item.type" template="embedded" name="item.name" details="item"></tr>
     </tbody>
   </table>
 </div>

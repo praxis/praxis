@@ -15,6 +15,8 @@ The following directives are supported:
 
 In addition to the above which may be specified globally or on a version, there is a `version_with` directive that is only applicable on the global version to define what versioning "scheme" your application will use. By default it's set to `[:header, :params]`, meaning Praxis will look for either an  `X-Api-Version` request header *or* an `api_version` query parameter to determine the version of your API to use for processing the request. It is also possible to use a path-based versioning scheme by using `version_with :path`. See section below for details.
 
+There is also an  `endpoint` directive to define your API's endpoint. It's used purely for documentation purposes and will not be used in any routing or route-generation.
+
 Below is a basic ApiDefinition that defines global info, as well info for a specific version:
 
 {% highlight ruby %}
@@ -24,6 +26,7 @@ Praxis::ApiDefinition.define
     name 'Some App'
     title 'An example Praxis application'
     description 'This is an example application API.'
+    endpoint 'api.example.com'
     base_path '/:app_name'
     base_params do
       attribute :app_name, String, required: true

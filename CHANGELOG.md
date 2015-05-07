@@ -10,6 +10,8 @@
 * Refactors the api browser to allow registering custom type templates.
   * This also removes an undocumented feature that did something similar.
   * Fixes an issue where Struct properties wouldn't be displayed.
+* Added `endpoint` directive to global API info, only used for documentation purposes.
+
 
 ## 0.16.1
 

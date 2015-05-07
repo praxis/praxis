@@ -14,6 +14,7 @@ describe Praxis::ApiGeneralInfo do
       name "Name"
       title "Title"
       description "Description"
+      endpoint 'api.example.com'
       base_path "/base"
       base_params do
         attribute :name, String
@@ -51,6 +52,7 @@ describe Praxis::ApiGeneralInfo do
     its([:base_params]) { should have_key :name }
     its([:base_params, :name, :type, :name]) { should eq 'String' }
     its([:version_with]) { should eq([:header, :params]) }
+    its([:endpoint]) { should eq 'api.example.com' }
   end
 
   context 'base_path with versioning' do

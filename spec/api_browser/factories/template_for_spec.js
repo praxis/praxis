@@ -28,8 +28,8 @@ describe('templateFor service', function() {
     }));
     _.each(['standalone', 'embedded'], function(templateType) {
       _.each([
-        {name: 'Struct', family: 'Struct'},
-        {name: 'Links', family: 'Struct'},
+        {name: 'Struct', family: 'hash'},
+        {name: 'Links', family: 'hash'},
         {name: 'Default', family: 'Numeric'}
       ], function(type) {
         it('resolve ' + templateType + ' ' + type.name, function() {
@@ -38,7 +38,7 @@ describe('templateFor service', function() {
             result = template($scope);
           });
           $scope.$apply();
-          var name = templateType === 'standalone' && type.name === 'Links' ? type.family : type.name;
+          var name = templateType === 'standalone' && type.name === 'Links' ? 'Struct' : type.name;
           expect(result.text().split(' -> ')).toEqual([templateType, name]);
         });
       });

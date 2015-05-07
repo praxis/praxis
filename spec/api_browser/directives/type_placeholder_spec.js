@@ -51,6 +51,7 @@ describe('typePlaceholder', function() {
         $scope = $rootScope.$new();
         $scope.type = { // TODO figure out how to exercise the entire app
           name: 'Struct',
+          family: 'hash',
           attributes: {
             view: {
               options: {
@@ -96,6 +97,7 @@ describe('typePlaceholder', function() {
           $scope.item = { // TODO figure out how to exercise the entire app
             type: {
               name: 'Struct',
+              family: 'hash',
               attributes: {
                 view: {
                   options: {

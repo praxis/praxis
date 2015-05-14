@@ -240,12 +240,17 @@ describe 'Functional specs' do
   end
 
   context 'volumes' do
+    before do
+      header 'X-Api-Version', '1.0'
+    end
+
     context 'when no authorization header is passed' do
       it 'works as expected' do
-        get '/v1.0/volumes/123?junk=stuff', nil, 'global_session' => session
+        get '/clouds/1/volumes/123?junk=stuff', nil, 'global_session' => session
         expect(last_response.status).to eq(200)
         expect(JSON.parse(last_response.body)).to eq({"id"=>123,
                                                       "other_params"=>{
+                                                        "cloud_id" => 1,
                                                         "junk"=>"stuff",
                                                       "some_date"=>"2012-12-21T00:00:00+00:00"}
                                                       })
@@ -254,12 +259,12 @@ describe 'Functional specs' do
     end
     context 'when an authorization header is passed' do
       it 'returns 401 when it does not match "secret" ' do
-        get '/v1.0/volumes/123?junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'foobar', 'global_session' => session
+        get '/clouds/1/volumes/123?junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'foobar', 'global_session' => session
         expect(last_response.status).to eq(401)
         expect(last_response.body).to match(/Authentication info is invalid/)
       end
       it 'succeeds as expected when it matches "secret" ' do
-        get '/v1.0/volumes/123?junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'the secret', 'global_session' => session
+        get '/clouds/1/volumes/123?junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'the secret', 'global_session' => session
         expect(last_response.status).to eq(200)
       end
 
@@ -267,7 +272,7 @@ describe 'Functional specs' do
 
     context 'index action with no args defined' do
       it 'dispatches successfully' do
-        get '/v1.0/volumes', nil, 'HTTP_AUTHORIZATION' => 'the secret', 'global_session' => session
+        get '/clouds/1/volumes', nil, 'HTTP_AUTHORIZATION' => 'the secret', 'global_session' => session
         expect(last_response.status).to eq(200)
       end
     end

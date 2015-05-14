@@ -22,7 +22,24 @@ describe Praxis::ResourceDefinition do
     its([:actions]) { should have(2).items }
     its([:metadata]) { should be_kind_of(Hash) }
     its([:traits]) { should eq [:test] }
+    it { should_not have_key(:parent)}
+
+    context 'for a resource with a parent' do
+      let(:resource_definition) { ApiResources::VolumeSnapshots}
+      
+      its([:parent]) { should eq ApiResources::Volumes.id }
+    end
+
   end
+
+
+  context '.routing_prefix' do
+    subject(:resource_definition) { ApiResources::VolumeSnapshots }
+    it do
+      expect(resource_definition.routing_prefix).to eq('/clouds/:cloud_id/volumes/:volume_id/snapshots')
+    end
+  end
+
 
   context '.action' do
     it 'requires a block' do
@@ -208,4 +225,5 @@ describe Praxis::ResourceDefinition do
       expect(parsed[:id]).to be_kind_of(Integer)
     end
   end
+
 end

@@ -49,6 +49,7 @@ module Praxis
       after(:app) do
         Praxis::Mapper.finalize!
         Praxis::Blueprint.finalize!
+        Praxis::ResourceDefinition.finalize!
       end
 
     end

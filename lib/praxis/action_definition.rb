@@ -50,7 +50,7 @@ module Praxis
       api_info = ApiDefinition.instance.info(resource_definition.version)
 
       route_base = "#{api_info.base_path}#{resource_definition.version_prefix}"
-      prefix = Array(resource_definition.prefix)
+      prefix = Array(resource_definition.routing_prefix)
 
       @routing_config = RoutingConfig.new(version: version, base: route_base, prefix: prefix)
 

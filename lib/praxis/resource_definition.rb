@@ -4,6 +4,7 @@ require 'active_support/inflector'
 module Praxis
   module ResourceDefinition
     extend ActiveSupport::Concern
+
     DEFAULT_RESOURCE_HREF_ACTION = :show
 
     included do
@@ -11,33 +12,61 @@ module Praxis
       @actions = Hash.new
       @responses = Hash.new
       @action_defaults = Trait.new
+
       @version_options = {}
       @metadata = {}
       @traits = []
 
       if self.name
-        @routing_prefix = '/' + self.name.split("::").last.underscore
+        @prefix = '/' + self.name.split("::").last.underscore
       else
-        @routing_prefix = '/'
+        @prefix = '/'
       end
 
       @version_prefix = ''
 
+      @parent = nil
+      @parent_prefix = ''
+
+      @routing_prefix = nil
+
+      @on_finalize = Array.new
+
       Application.instance.resource_definitions << self
     end
+
+    def self.finalize!
+      Application.instance.resource_definitions.each do |resource_definition|
+
+        while (block = resource_definition.on_finalize.shift)
+          block.call
+        end
+      end
+    end
+
+
 
     module ClassMethods
       attr_reader :actions
       attr_reader :responses
       attr_reader :version_options
       attr_reader :traits
-      attr_reader :routing_prefix
       attr_reader :version_prefix
+      attr_reader :parent_prefix
+
       # opaque hash of user-defined medata, used to decorate the definition,
       # and also available in the generated JSON documents
       attr_reader :metadata
 
       attr_accessor :controller
+
+      def on_finalize
+        if block_given?
+          @on_finalize << Proc.new
+        end
+
+        @on_finalize
+      end
 
       # FIXME: this is inconsistent with the rest of the magic DSL convention.
       def routing(&block)
@@ -48,20 +77,84 @@ module Praxis
       end
 
       def prefix(prefix=nil)
-        unless prefix.nil?
-          @routing_prefix = prefix
-        end
-        @routing_prefix
+        return @prefix if prefix.nil?
+        @routing_prefix = nil # reset routing_prefix
+        @prefix = prefix
       end
 
       def media_type(media_type=nil)
-        return @media_type unless media_type
+        return @media_type if media_type.nil?
 
         if media_type.kind_of?(String)
           media_type = SimpleMediaType.new(media_type)
         end
         @media_type = media_type
       end
+
+
+      def parent(parent=nil, **mapping)
+        return @parent if parent.nil?
+
+        @routing_prefix = nil # reset routing_prefix
+
+        parent_action = parent.canonical_path
+        parent_route = parent_action.primary_route.path
+
+        # if a mapping is passed, it *must* resolve any param name conflicts
+        unless mapping.any?
+          # assume last capture is the relevant one to replace
+          # if not... then I quit.
+          parent_param_name = parent_route.names.last
+
+          # more assumptions about names
+          parent_name = parent.name.demodulize.underscore.singularize
+
+          # put it together to find what we should call this new param
+          param = "#{parent_name}_#{parent_param_name}".to_sym
+          mapping[parent_param_name.to_sym] = param
+        end
+
+        # complete the mapping and massage the route 
+        parent_route.names.collect(&:to_sym).each do |name|
+          if mapping.key?(name)
+            param = mapping[name]
+            # FIXME: this won't handle URI Template type paths, ie '/{parent_id}'
+            @parent_prefix = parent_route.to_s.gsub(/(:)(#{name})([\W]*)/, "\\1#{param.to_s}\\3")
+          else
+            mapping[name] = name
+          end
+        end
+    
+        self.on_finalize do
+          self.inherit_params_from_parent(parent_action, **mapping)
+        end
+
+        @parent = parent
+      end
+
+      def inherit_params_from_parent(parent_action, **mapping)
+        actions.each do |name, action|
+          action.params do
+            mapping.each do |parent_name, name|
+              next if action.params && action.params.attributes.key?(name)
+
+              parent_attribute = parent_action.params.attributes[parent_name]
+
+              attribute name, parent_attribute.type, parent_attribute.options
+            end
+          end
+        end
+
+      end
+
+      attr_writer :routing_prefix
+
+      def routing_prefix
+        return @routing_prefix if @routing_prefix
+
+        @routing_prefix = parent_prefix + prefix
+      end
+
 
       def version(version=nil, options=nil)
         return @version unless version
@@ -70,7 +163,7 @@ module Praxis
 
         unless options.nil?
           warn 'DEPRECATED: ResourceDefinition.version with options is no longer supported. Define in api global info instead.'
-          
+
           @version_options = options
           version_using = Array(@version_options[:using])
           if version_using.include?(:path)
@@ -79,7 +172,8 @@ module Praxis
         end
       end
 
-      def canonical_path( action_name=nil )
+
+      def canonical_path(action_name=nil)
         if action_name
           raise "Canonical path for #{self.name} is already defined as: '#{@canonical_action_name}'. 'canonical_path' can only be defined once." if @canonical_action_name
           @canonical_action_name = action_name
@@ -176,6 +270,7 @@ module Praxis
           hash[:media_type] = media_type.id if media_type
           hash[:actions] = actions.values.map(&:describe)
           hash[:name] = self.name
+          hash[:parent] = self.parent.id if self.parent
           hash[:metadata] = metadata
           hash[:traits] = self.traits
         end

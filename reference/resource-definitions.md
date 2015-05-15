@@ -81,9 +81,17 @@ class Posts
   include Praxis::ResourceDefinition
   
   parent Blogs
+
+  action :show do
+    routing { get '/:id' }
+  end
+
 end
 {% endhighlight %}
 
+This would result in the `:show` action responding to the following path `/blogs/:blog_id/posts/:id`, due to the canonical path of the `Blogs` resource being `/blogs/:id`.
+
+To achieve a custom parent parameter we could have used: `parent Blogs, :id => :parent_id` instead, which would have resulted in the following path: `/blogs/:parent_id/posts/:id`.
 
 ## Routing Prefix
 

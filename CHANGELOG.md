@@ -11,6 +11,10 @@
   * This also removes an undocumented feature that did something similar.
   * Fixes an issue where Struct properties wouldn't be displayed.
 * Added `endpoint` directive to global API info, only used for documentation purposes.
+* Added `ResourceDefinition.parent` directive to define a parent resource. 
+  * The parent's `canonical_path` is used as the base of the child's routes.
+  * Any parameters in the parent's route will also be applied as defaults in the child. The last route parameter is assumed to be an 'id'-type parameter, and is prefixed with the parent's snake-cased singular name. I.e., `id` from a `Volume` parent will be renamed to `volume_id`. Any other parameters are copied unchanged.
+    * This behavior can be overridden by providing a mapping hash of the form `{parent_name => child_name}` to the `parent` directive. See [VolumeSnapshots](spec/spec_app/design/resources/volume_snapshots.rb) for an example.
 
 
 ## 0.16.1

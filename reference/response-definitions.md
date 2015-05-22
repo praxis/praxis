@@ -251,7 +251,7 @@ sub-requests. This can be done in either of the following ways:
 
 * pass a block with a full response definition. This allows you to define a
   part inline, as if it were a new and complete sub-request.
-* pass a ```like` parameter which names an existing response definition
+* pass a ```like``` parameter which names an existing response definition
 
 Since a multipart part does not have a status code, Praxis will enforce the
 expectation by looking at the value of a special 'Status' header. The rest of
@@ -281,7 +281,7 @@ ApiDefinition.define do
   response_template :bulk_create do
     status 200
     media_type 'multipart/form-data'
-    parts :like, :create
+    parts like: :create
   end
 end
 {% endhighlight %}

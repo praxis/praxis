@@ -763,3 +763,12 @@ $hr-border:                                   $gray-lighter !default;
 
 // horizontal offset for forms and lists.
 $component-offset-horizontal:                 180px !default;
+
+// Praxis Specific Variables
+
+// HTTP verbs
+$get-color:                                   #85c630 !default;
+$post-color:                                  #8640b5 !default;
+$put-color:                                   #e88a3c !default;
+$delete-color:                                #b8321e !default;
+$patch-color:                                 #58b587 !default;

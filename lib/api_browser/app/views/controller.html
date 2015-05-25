@@ -10,13 +10,11 @@
        <p ng-bind-html="controller.description | markdown"></p>
     </div>
   </div>
-  <div class="row" ng-if="controller.actions.length">
-    <div class="col-lg-12">
-      <h2>Actions</h2>
-      <ng-include src="'views/resource/actions.html'" />
-    </div>
-  </div>
   <div ng-if="controller.media_type" ng-controller="TypeCtrl">
     <ng-include src="'views/type/details.html'" />
+  </div>
+  <h1>Actions</h1>
+  <div ng-controller="ActionCtrl" ng-repeat="action in controller.actions">
+    <div ng-include="'views/action.html'"></div>
   </div>
 </div>

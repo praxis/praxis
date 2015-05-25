@@ -2,6 +2,7 @@
 
 ## next
 
+* Merges action details pages into one long page in doc browser
 * Refined path-based versioning:
   * Added `ApiGeneralInfo#version_with`, which defaults to `[:header, :params`] and may be set to `:path` to use path-based versioning.
   * Added support for specifying an `:api_version` placeholder to the global version's `ApiGeneralInfo#base_path`.

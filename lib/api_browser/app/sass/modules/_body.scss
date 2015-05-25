@@ -16,3 +16,19 @@ body {
 		margin-bottom: 0;
 	}
 }
+
+.verb.get {
+  background: $get-color;
+}
+.verb.post {
+  background: $post-color;
+}
+.verb.delete {
+  background: $delete-color;
+}
+.verb.put {
+  background: $put-color;
+}
+.verb.patch {
+  background: $patch-color;
+}

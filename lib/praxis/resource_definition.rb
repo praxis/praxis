@@ -62,7 +62,7 @@ module Praxis
 
       def display_name( string=nil )
         unless string
-          return  @display_name || self.name.split("::").last  # Best guess at a display name?
+          return  @display_name ||= self.name.split("::").last  # Best guess at a display name?
         end
         @display_name = string
       end

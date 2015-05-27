@@ -63,6 +63,21 @@ module Praxis
       end
     end
 
+    def endpoint(val=nil)
+      if val.nil?
+        get(:endpoint)
+      else
+        if @global_info.nil? # this *is* the global info
+          set(:endpoint, val)
+        else
+          raise "Use of endpoint is only allowed in the global part of " \
+            "the API definition (but you are attempting to use it in the API " \
+            "definition of version #{self.version}"
+        end
+      end
+    end
+
+
     def base_path(val=nil)
       if val
         return set(:base_path, val)
@@ -90,9 +105,10 @@ module Praxis
       end
     end
 
+
     def describe
       hash = { schema_version: "1.0".freeze }
-      [:name, :title, :description, :base_path, :version_with].each do |attr|
+      [:name, :title, :description, :base_path, :version_with, :endpoint].each do |attr|
         val = self.__send__(attr)
         hash[attr] = val unless val.nil?
       end

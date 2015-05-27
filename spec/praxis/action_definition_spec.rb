@@ -141,8 +141,32 @@ describe Praxis::ActionDefinition do
     end
   end
 
-  describe '#routing' do
-    it 'has some tests when Skeletor::RestfulRoutingConfig disappears'
+  context '#routing' do
+    context 'with a parent specified' do
+      let(:resource) { ApiResources::VolumeSnapshots }
+      subject(:action) { resource.actions[:show] }
+
+      let(:parent_param) { ApiResources::Volumes.actions[:show].params.attributes[:id] }
+
+      it 'has the right path' do
+        expect(action.primary_route.path.to_s).to eq '/clouds/:cloud_id/volumes/:volume_id/snapshots/:id'
+      end
+
+      its('params.attributes'){ should have_key(:cloud_id) }
+
+      context 'with pre-existing parent param' do
+        let(:action) { resource.actions[:index] }
+        subject(:param) { action.params.attributes[:volume_id] }
+        its(:options) { should_not eq parent_param.options }
+      end
+
+      context 'with auto-generated param' do
+        subject(:param) { action.params.attributes[:volume_id] }
+        it { should_not be nil }
+        its(:options) { should eq parent_param.options }
+      end
+
+    end
   end
 
   context '#description' do

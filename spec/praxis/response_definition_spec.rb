@@ -49,6 +49,45 @@ describe Praxis::ResponseDefinition do
     end
   end
 
+  context '#example' do
+    let(:media_type) { nil }
+
+    before do
+      response_definition.media_type media_type
+    end
+
+    context 'with media_type unset' do
+      its(:example) { should be nil }
+      it 'is not in the describe output' do
+        expect(response_definition.describe).to_not have_key(:example)
+      end
+    end
+
+    context 'with media_type set to a string' do
+      let(:media_type) { 'application/json' }
+      its(:example) { should be nil }
+      it 'is not in the describe output' do
+        expect(response_definition.describe).to_not have_key(:example)
+      end
+    end
+
+    context 'with media_type set to a MediaType' do
+      let(:media_type) { Person }
+
+      let(:expected_context) { "Person-#{name}" }
+      let!(:example) { Person.example(expected_context) }
+
+      before do
+        expect(Person).to receive(:example).with(expected_context).and_call_original
+      end
+
+      its(:example) { should be_kind_of(Person) }
+      it 'is rendered in the describe output' do
+        expect(response_definition.describe[:example]).to eq(example.render)
+      end
+    end
+  end
+
   context '#location' do
     it 'accepts a String' do
       response_definition.location "string_location"

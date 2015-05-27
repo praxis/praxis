@@ -3,13 +3,17 @@ module ApiResources
     include Praxis::ResourceDefinition
 
     media_type Volume
-
-    version '1.0', using: :path
-
-    prefix '/volumes'
+    version '1.0'
+    prefix '/clouds/:cloud_id/volumes'
 
     trait :authenticated
-    
+  
+    action_defaults do
+      params do
+        attribute :cloud_id, Integer, description: "id of the cloud"
+      end
+    end
+
     action :index do
       routing do
         get ''
@@ -27,7 +31,7 @@ module ApiResources
       response :unauthorized
 
       params do
-        attribute :id
+        attribute :id, description: 'ID to find'
         attribute :junk, String, default: ''
         attribute :some_date, DateTime, default: DateTime.parse('2012-12-21')
       end

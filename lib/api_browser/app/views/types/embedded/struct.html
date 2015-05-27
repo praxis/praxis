@@ -1,0 +1,2 @@
+<tr ng-include="'views/types/embedded/default.html'" no-container></tr>
+<tr type-placeholder ng-repeat="(k,v) in type.attributes" type="v.type" template="embedded" name="name + '.' + k" details="v"></tr>

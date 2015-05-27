@@ -1,7 +1,8 @@
 language: ruby
 cache: bundler
 rvm:
-  - "2.1.5"
+  - 2.1.5
+  - 2.2.2
 node_js:
   - "0.10"
 branches:

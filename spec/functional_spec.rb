@@ -34,8 +34,8 @@ describe 'Functional specs' do
         response = JSON.parse(last_response.body)
 
         expect(response['name']).to eq('ValidationError')
-
-        expect(response["message"]).to match(/Bad Content-Type/)
+        expect(response['summary']).to eq("Error validating response")
+        expect(response['errors'].first).to match(/Bad Content-Type/)
       end
 
       context 'with response validation disabled' do
@@ -326,12 +326,12 @@ describe 'Functional specs' do
     it 'returns a useful error message' do
       body = JSON.parse(last_response.body)
       expect(body['name']).to eq('ValidationError')
-      expect(body['message']).to match("For request Content-Type: 'application/x-www-form-urlencoded'")
+      expect(body['summary']).to match("Error loading payload. Used Content-Type: 'application/x-www-form-urlencoded'")
+      expect(body['errors']).to_not be_empty
     end
   end
 
   context 'update' do
-
 
     let(:body) { JSON.pretty_generate(request_payload) }
     let(:content_type) { 'application/json' }

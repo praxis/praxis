@@ -3,20 +3,20 @@ module Praxis
   module Responses
 
     class ValidationError < BadRequest
-      def initialize(errors: nil, exception: nil, message: nil, **opts)
+      def initialize(summary: , errors: nil, exception: nil, **opts)
         super(**opts)
         @headers['Content-Type'] = 'application/json' #TODO: might want an error mediatype
         @errors = errors
+        unless @errors # The exception message will the the only error if no errors are passed in
+           @errors = [exception.message] if exception && exception.message
+         end
         @exception = exception
-        @message = message || (exception && exception.message)
+        @summary = summary
       end
 
       def format!
-        if @errors
-          @body = {name: 'ValidationError', errors: @errors}
-        elsif @message
-          @body = {name: 'ValidationError', message: @message}
-        end
+        @body = {name: 'ValidationError', summary: @summary }
+        @body[:errors] = @errors if @errors
 
         if @exception && @exception.cause
           @body[:cause] = {name: @exception.cause.class.name, message: @exception.cause.message}

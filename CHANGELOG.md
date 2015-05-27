@@ -2,7 +2,7 @@
 
 ## next
 
-* Added `display_name` DSL to `ResourceDefinition`
+* Added `display_name` DSL to `ResourceDefinition` and `MediaType`
   * It is a purely informational field, mostly to be used by consumers of the generated docs
   * It defaults to the class name (stripping any of the prefix modules)
 * Revamped document generation to output a more compact format:
@@ -10,7 +10,7 @@
     * 1 single index file with global info plus just a list of version names
     * new task currently usable through `bundle exec rake praxis:docs:experiments`
       * NOTE: leaves the current doc generation tasks and code intact (until the doc browser is switched to use this)
-
+* Specialized `Multipart`’s family in its description to be ‘multipart’ instead of ‘hash’.
 
 ## 0.17.1
 
@@ -56,6 +56,7 @@ config option, and uses the `media_type` defined for the response definition.
 * Fixed `Praxis::Handlers::XML ` handler to transform dashes to underscores and treat empty hashes like ActiveSupport does.
 * Adds hierarchival navigation to the doc browser.
 * Adds a ConfigurationProvider allowing for easy doc customization.
+
 
 ## 0.16.1
 

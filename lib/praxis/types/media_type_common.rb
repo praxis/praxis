@@ -9,7 +9,7 @@ module Praxis
         def describe(shallow = false, **opts)
           hash = super
           unless shallow
-            hash.merge!(identifier: @identifier.to_s, description: @description)
+            hash.merge!(identifier: @identifier.to_s, description: @description, display_name: @display_name)
           end
           hash
         end
@@ -17,6 +17,13 @@ module Praxis
         def description(text=nil)
           @description = text if text
           @description
+        end
+
+        def display_name( string=nil )
+          unless string
+            return  @display_name ||= self.name.split("::").last  # Best guess at a display name?
+          end
+          @display_name = string
         end
 
         # Get or set the identifier of this media type.

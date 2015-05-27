@@ -60,6 +60,12 @@ module Praxis
 
       attr_accessor :controller
 
+      def display_name( string=nil )
+        unless string
+          return  @display_name ||= self.name.split("::").last  # Best guess at a display name?
+        end
+        @display_name = string
+      end
 
       def on_finalize
         if block_given?
@@ -67,13 +73,6 @@ module Praxis
         end
 
         @on_finalize
-      end
-
-      def display_name( string=nil )
-        unless string
-          return  @display_name || self.name.split("::").last  # Best guess at a display name?
-        end
-        @display_name = string
       end
 
       # FIXME: this is inconsistent with the rest of the magic DSL convention.

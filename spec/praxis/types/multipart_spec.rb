@@ -104,4 +104,9 @@ describe Praxis::Multipart do
 
     pending 'complete the load tests'
   end
+
+  context '#describe' do
+    subject(:described) { type.describe }
+    its([:family]){ should eq('multipart')}
+  end
 end

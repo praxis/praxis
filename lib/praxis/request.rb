@@ -96,7 +96,7 @@ module Praxis
 
     def version
       result = nil
-      
+
       Array(Application.instance.versioning_scheme).find do |mode|
         case mode
         when :header;

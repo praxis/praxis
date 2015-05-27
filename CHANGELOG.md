@@ -11,11 +11,14 @@
   * This also removes an undocumented feature that did something similar.
   * Fixes an issue where Struct properties wouldn't be displayed.
 * Added `endpoint` directive to global API info, only used for documentation purposes.
-* Added `ResourceDefinition.parent` directive to define a parent resource. 
+* Added `ResourceDefinition.parent` directive to define a parent resource.
   * The parent's `canonical_path` is used as the base of the child's routes.
   * Any parameters in the parent's route will also be applied as defaults in the child. The last route parameter is assumed to be an 'id'-type parameter, and is prefixed with the parent's snake-cased singular name. I.e., `id` from a `Volume` parent will be renamed to `volume_id`. Any other parameters are copied unchanged.
     * This behavior can be overridden by providing a mapping hash of the form `{parent_name => child_name}` to the `parent` directive. See [VolumeSnapshots](spec/spec_app/design/resources/volume_snapshots.rb) for an example.
-
+* Backwards incompatible Change: Refactored `ValidationError` to be more consistent with the reported fields
+  * Changed `message` for `summary`. Always present, and should provide a quick description of the type of error encountered. For example: "Error loading payload data"
+  * Semantically changed `errors` to always have the details of one or many errors that have occurred. For example: "Unknown key received: :foobar while loading $.payload.user"
+  * Note: if you are an application that used and tested against the previous `message` field you will need to adjust your tests to check for the values in the `summary` field and or the `errors` contents. But it will now be a much more consistent experience that will allow API clients to notify of the exact errors and details to their clients.
 
 ## 0.16.1
 

@@ -28,7 +28,7 @@ module Praxis
         errors += request.validate_params(CONTEXT_FOR[:params])
 
         if errors.any?
-          return Responses::ValidationError.new(errors: errors)
+          return Responses::ValidationError.new(summary: "Error validating request data", errors: errors)
         end
       end
 

@@ -174,6 +174,10 @@ module Praxis
         reportable_types = types - EXCLUDED_TYPES_FROM_OUTPUT
         reportable_types.each_with_object({}) do |type, array|
           type_output = type.describe
+          unless type_output[:display_name]
+            # For non MediaTypes or pure types or anonymous types fallback to their name, and worst case to their id
+            type_output[:display_name] = type_output[:name] || type_output[:id]
+          end
           example_data = type.example(type.to_s)
           if type_output[:views]
             type_output[:views].delete(:master)

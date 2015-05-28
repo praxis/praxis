@@ -9,7 +9,7 @@ module Praxis
     def name
       self.class.name
     end
-    
+
     def id
       self.class.name.gsub("::",'-')
     end
@@ -17,6 +17,7 @@ module Praxis
     def describe(shallow=true)
       {identifier: identifier}
     end
+
   end
 
 end

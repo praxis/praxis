@@ -60,6 +60,13 @@ module Praxis
 
       attr_accessor :controller
 
+      def display_name( string=nil )
+        unless string
+          return  @display_name ||= self.name.split("::").last  # Best guess at a display name?
+        end
+        @display_name = string
+      end
+
       def on_finalize
         if block_given?
           @on_finalize << Proc.new
@@ -114,7 +121,7 @@ module Praxis
           mapping[parent_param_name.to_sym] = param
         end
 
-        # complete the mapping and massage the route 
+        # complete the mapping and massage the route
         parent_route.names.collect(&:to_sym).each do |name|
           if mapping.key?(name)
             param = mapping[name]
@@ -124,7 +131,7 @@ module Praxis
             mapping[name] = name
           end
         end
-    
+
         self.on_finalize do
           self.inherit_params_from_parent(parent_action, **mapping)
         end
@@ -267,9 +274,10 @@ module Praxis
       def describe
         {}.tap do |hash|
           hash[:description] = description
-          hash[:media_type] = media_type.id if media_type
+          hash[:media_type] = media_type.describe(true) if media_type
           hash[:actions] = actions.values.map(&:describe)
           hash[:name] = self.name
+          hash[:display_name] = self.display_name
           hash[:parent] = self.parent.id if self.parent
           hash[:metadata] = metadata
           hash[:traits] = self.traits

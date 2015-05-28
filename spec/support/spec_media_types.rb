@@ -1,9 +1,9 @@
 class Person < Praxis::MediaType
-  attributes do 
+  attributes do
     attribute :id, Integer
     attribute :name, String, example: /[:name:]/
     attribute :href, String, example: proc { |person| "/people/#{person.id}" }
-    attribute :links, silence_warnings { Praxis::Collection.of(String) } 
+    attribute :links, silence_warnings { Praxis::Collection.of(String) }
   end
 
   view :default do
@@ -37,6 +37,7 @@ class Address < Praxis::MediaType
   identifier 'application/json'
 
   description 'Address MediaType'
+  display_name 'The Address'
 
   attributes do
     attribute :id, Integer
@@ -44,8 +45,8 @@ class Address < Praxis::MediaType
 
     attribute :owner, Person
     attribute :custodian, Person
-  
-    attribute :residents, Praxis::Collection.of(Person)    
+
+    attribute :residents, Praxis::Collection.of(Person)
     attribute :residents_summary, Person::CollectionSummary
 
     links do

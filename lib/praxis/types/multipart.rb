@@ -9,8 +9,8 @@ module Praxis
 
       unless (value.kind_of?(::String) && ! content_type.nil?)
         raise Attributor::CoercionError, context: context, from: value.class, to: self.name, value: value
-      end 
-      
+      end
+
       headers = {'Content-Type' => content_type}
       parser = MultipartParser.new(headers, value)
       preamble, parts = parser.parse
@@ -63,6 +63,11 @@ module Praxis
       super
     end
 
+    def self.describe(shallow = false)
+      hash = super
+      hash.merge!(family: 'multipart')
+      hash
+    end
   end
 
 

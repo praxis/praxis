@@ -17,7 +17,7 @@ describe Praxis::ResourceDefinition do
     subject(:describe) { resource_definition.describe }
 
     its([:description]) { should eq(resource_definition.description) }
-    its([:media_type]) { should eq(resource_definition.media_type.name) }
+    its([:media_type]) { should eq(resource_definition.media_type.describe(true)) }
 
     its([:actions]) { should have(2).items }
     its([:metadata]) { should be_kind_of(Hash) }
@@ -99,7 +99,7 @@ describe Praxis::ResourceDefinition do
     end
 
   end
-  
+
   context 'setting other values' do
     subject(:resource_definition) { Class.new {include Praxis::ResourceDefinition } }
 
@@ -134,7 +134,7 @@ describe Praxis::ResourceDefinition do
         def self.name
           'FooBar'
         end
-        
+
         silence_warnings do
           payload { attribute :inherited_payload, String }
           headers { key "Inherited-Header", String }

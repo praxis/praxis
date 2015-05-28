@@ -160,7 +160,7 @@ module Praxis
     def dump_example_for(context_name, object)
       example = object.example(Array(context_name))
       if object.is_a? Praxis::Blueprint
-        example.render(:master)
+        example.render(view: :master)
       elsif object.is_a? Attributor::Attribute
         object.dump(example)
       else
@@ -216,7 +216,7 @@ module Praxis
             type_output[:views].each do |view_name, view_info|
               # Add and example for each view
               unless( type < Praxis::Links ) #TODO: why do we need to skip an example for links?
-                view_info[:example] = example_data.render(view_name)
+                view_info[:example] = example_data.render(view: view_name)
               end
             end
           end
@@ -224,7 +224,7 @@ module Praxis
           # ...but not for links or link classes (there's no object container context if done alone!!)
           unless( type < Praxis::Links ) #TODO: again, why is this special?
             type_output[:example] = if example_data.respond_to? :render
-              example_data.render(:master)
+              example_data.render(view: :master)
             else
               type.dump(example_data)
             end

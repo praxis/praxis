@@ -56,11 +56,28 @@ module Praxis
   #   end
   class MediaType < Praxis::Blueprint
     include Types::MediaTypeCommon
+    @struct = nil
 
     class DSLCompiler < Attributor::DSLCompiler
       def links(&block)
         attribute :links, Praxis::Links.for(options[:reference]), dsl_compiler: Links::DSLCompiler, &block
       end
+    end
+
+    def self.new(object, decorators=nil)
+      if object.is_a?(Hash)
+        object = self.to_struct.new(*object.with_indifferent_access.values_at(*self.get_all_attributes_and_links))
+      end
+      super(object, decorators)
+    end
+
+    def self.get_all_attributes_and_links
+      self.attributes.keys + self::Links.links.values
+    end
+
+    def self.to_struct
+      return @struct if @struct
+      @struct = Struct.new(*self.get_all_attributes_and_links)
     end
 
     def self.attributes(opts={}, &block)
@@ -80,7 +97,7 @@ module Praxis
         RUBY
       end
     end
-    
+
   end
 
 end

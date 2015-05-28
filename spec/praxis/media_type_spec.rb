@@ -96,32 +96,53 @@ describe Praxis::MediaType do
   end
 
   context "rendering" do
-    subject(:output) { address.render(:default) }
+    context "passing an object" do
+      subject(:output) { address.render(:default) }
 
-    its([:id])    { should eq(address.id) }
-    its([:name])  { should eq(address.name) }
-    its([:owner]) { should eq(Person.dump(owner_resource, view: :default)) }
+      its([:id])    { should eq(address.id) }
+      its([:name])  { should eq(address.name) }
+      its([:owner]) { should eq(Person.dump(owner_resource, view: :default)) }
 
 
-    context 'links' do
-      subject(:links) { output[:links] }
+      context 'links' do
+        subject(:links) { output[:links] }
 
-      its([:owner]) { should eq(Person.dump(owner_resource, view: :link)) }
-      its([:super]) { should eq(Person.dump(manager_resource, view: :link)) }
+        its([:owner]) { should eq(Person.dump(owner_resource, view: :link)) }
+        its([:super]) { should eq(Person.dump(manager_resource, view: :link)) }
 
-      context 'for a collection summary' do
-        let(:volume) { Volume.example }
-        let(:snapshots_summary) { volume.snapshots_summary }
-        let(:output) { volume.render(:default) }
-        subject { links[:snapshots] }
+        context 'for a collection summary' do
+          let(:volume) { Volume.example }
+          let(:snapshots_summary) { volume.snapshots_summary }
+          let(:output) { volume.render(:default) }
+          subject { links[:snapshots] }
 
-        its([:name]) { should eq(snapshots_summary.name) }
-        its([:size]) { should eq(snapshots_summary.size) }
-        its([:href]) { should eq(snapshots_summary.href) }
+          its([:name]) { should eq(snapshots_summary.name) }
+          its([:size]) { should eq(snapshots_summary.size) }
+          its([:href]) { should eq(snapshots_summary.href) }
+        end
       end
     end
 
+    context "passing a hash" do
+      let(:resource) do
+        {
+          id: 1,
+          name: 'Home',
+          owner: owner_resource,
+          manager: manager_resource
+        }
+      end
 
+      subject(:output) { address.render(:default) }
+
+      its([:id])    { should eq(address.id) }
+      its([:name])  { should eq(address.name) }
+      its([:owner]) { should eq(Person.dump(owner_resource, view: :default)) }
+
+      it "converts resource to a struct" do
+        expect(address.object.is_a?(Struct)).to be(true)
+      end
+    end
   end
 
   context '.example' do

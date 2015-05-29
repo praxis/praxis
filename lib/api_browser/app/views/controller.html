@@ -10,11 +10,43 @@
        <p ng-bind-html="controller.description | markdown"></p>
     </div>
   </div>
+  <div class="row" ng-if="controller.actions.length">
+    <div class="col-lg-12">
+      <h2>Actions</h2>
+      <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Route</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="action in controller.actions">
+            <td>
+              <a ng-click="goToAction(action.name)">{{ action.name }}</a>
+            </td>
+            <td>
+              <div ng-repeat="url in action.urls">
+                <div class="label label-default verb" ng-class="url.verb | lowercase">{{ url.verb }}</div>
+                <strong>{{ url.path }}</strong>
+              </div>
+            </td>
+            <td style="font-size: 110%;">
+              <p ng-bind-html="action.description | markdown"></p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    </div>
+  </div>
   <div ng-if="controller.media_type" ng-controller="TypeCtrl">
     <ng-include src="'views/type/details.html'" />
   </div>
   <h1>Actions</h1>
   <div ng-controller="ActionCtrl" ng-repeat="action in controller.actions">
-    <div ng-include="'views/action.html'"></div>
+    <div id="action-{{action.name}}" ng-include="'views/action.html'"></div>
   </div>
 </div>

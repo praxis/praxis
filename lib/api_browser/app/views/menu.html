@@ -17,24 +17,28 @@
   </div>
   <div class="row">
     <div class="col-sm-12">
-      <h3>Resources</h3>
-      <div class="list-group">
-        <a ng-repeat="link in availableResources()"
-           href="{{link.stateRef}}"
-           class="list-group-item"
-           ng-class="{active: link.typeName == currentType}">
-          {{ link.name }}
-        </a>
-      </div>
-      <h3>Miscellaneous</h3>
-      <div class="list-group">
-        <a ng-repeat="link in availableOthers()"
-           href="{{link.stateRef}}"
-           class="list-group-item"
-           ng-class="{active: link.typeName == currentType}">
-          {{ link.name }}
-        </a>
-      </div>
+      <tabset justified="true">
+        <tab heading="Resources">
+          <div class="list-group">
+            <a ng-repeat="link in availableResources()"
+               href="{{link.stateRef}}"
+               class="list-group-item"
+               ng-class="{active: link.typeName == currentType}">
+              {{ link.name }}
+            </a>
+          </div>
+        </tab>
+        <tab heading="Schemas">
+          <div class="list-group">
+            <a ng-repeat="link in availableOthers()"
+               href="{{link.stateRef}}"
+               class="list-group-item"
+               ng-class="{active: link.typeName == currentType}">
+              {{ link.name }}
+            </a>
+          </div>
+        </tab>
+      </tabset>
     </div>
   </div>
 </div>

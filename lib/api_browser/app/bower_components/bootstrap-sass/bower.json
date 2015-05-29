@@ -1,11 +1,22 @@
 {
-  "name": "sass-bootstrap",
-  "version": "3.0.2",
-  "main": ["./dist/js/bootstrap.js", "./dist/css/bootstrap.css", "./dist/fonts/*"],
-  "ignore": [
-      "**/.*"
+  "name": "bootstrap-sass",
+  "version": "3.0.3-0",
+  "homepage": "https://github.com/twbs/bootstrap-sass",
+  "authors": [
+    "Thomas McDonald",
+    "Tristan Harward",
+    "Peter Gumeson",
+    "Gleb Mazovetskiy"
   ],
-  "dependencies": {
-    "jquery": ">= 1.9.0"
-  }
+  "description": "bootstrap-sass is a Sass-powered version of Bootstrap, ready to drop right into your Sass powered applications.",
+  "main": ["vendor/assets/stylesheets/bootstrap.scss", "vendor/assets/javascripts/bootstrap.js"],
+  "keywords": [
+    "twbs",
+    "bootstrap",
+    "sass"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*", "lib", "tasks", "templates", "test", "*.gemspec", "Rakefile", "Gemfile"
+  ]
 }

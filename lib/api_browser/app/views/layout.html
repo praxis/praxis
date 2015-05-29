@@ -27,7 +27,7 @@
               <a ng-repeat="link in availableLinks()"
                  href="{{link.stateRef}}"
                  class="list-group-item"
-                 ng-class="{active: link.typeName == currentType}">
+                 ng-class="{active: link.typeId == currentType}">
                 {{ link.name }}
               </a>
             </div>

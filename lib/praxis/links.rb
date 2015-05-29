@@ -52,11 +52,13 @@ module Praxis
     def self.describe(shallow=false)
       super(false) # Links must always describe attributes
     end
-    
+
     def self._finalize!
       super
       if @attribute
+        # Master and default views must be set for all attributes, always using their :link view
         self.define_default_view
+        self.define_master_view
         self.fixup_reference_struct_methods
       end
     end
@@ -92,6 +94,14 @@ module Praxis
       view(:default) {}
       self.attributes.each do |name, attribute|
         view(:default).attribute(name, view: :link)
+      end
+    end
+
+    def self.define_master_view
+
+      view(:master) {}
+      self.attributes.each do |name, attribute|
+        view(:master).attribute(name, view: :link)
       end
     end
 

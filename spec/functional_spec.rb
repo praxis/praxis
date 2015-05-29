@@ -89,7 +89,7 @@ describe 'Functional specs' do
   context 'bulk_create multipart' do
 
     let(:instance) { Instance.example }
-    let(:instance_json) { JSON.pretty_generate(instance.render(:create)) }
+    let(:instance_json) { JSON.pretty_generate(instance.render(view: :create)) }
 
     let(:form) do
       form_data = MIME::Multipart::FormData.new
@@ -117,7 +117,7 @@ describe 'Functional specs' do
 
       response_instance = JSON.parse(instance_part.body)
       expect(response_instance["key"]).to eq(instance.id)
-      expect(response_instance["value"].values).to eq(instance.render(:create).values)
+      expect(response_instance["value"].values).to eq(instance.render(view: :create).values)
     end
   end
 

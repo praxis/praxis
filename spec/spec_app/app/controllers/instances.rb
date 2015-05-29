@@ -56,7 +56,7 @@ class Instances < BaseClass
 
 
     request.payload.each do |instance_id,instance|
-      part_body = JSON.pretty_generate(key: instance_id, value: instance.render(:create))
+      part_body = JSON.pretty_generate(key: instance_id, value: instance.render(view: :create))
       headers = {
         'Status' => '201',
         'Content-Type' => Instance.identifier,

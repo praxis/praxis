@@ -1,4 +1,4 @@
-<div class="sidebar">
+<div class="sidebar fixed-if-fits">
   <div class="row">
     <div class="col-sm-12">
       <p>
@@ -18,7 +18,7 @@
   <div class="row">
     <div class="col-sm-12">
       <tabset justified="true">
-        <tab heading="Resources">
+        <tab heading="Resources" active="active.resources">
           <div class="list-group">
             <a ng-repeat="link in availableResources()"
                href="{{link.stateRef}}"
@@ -28,7 +28,7 @@
             </a>
           </div>
         </tab>
-        <tab heading="Schemas">
+        <tab heading="Schemas" active="active.schemas">
           <div class="list-group">
             <a ng-repeat="link in availableOthers()"
                href="{{link.stateRef}}"

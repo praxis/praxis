@@ -25,7 +25,7 @@
         <tbody>
           <tr ng-repeat="action in controller.actions">
             <td>
-              <a ng-click="goToAction(action.name)">{{ action.name }}</a>
+              <a ui-sref="root.controller.action({action: action.name, controller: controllerName, version: apiVersion})">{{ action.name }}</a>
             </td>
             <td>
               <div ng-repeat="url in action.urls">

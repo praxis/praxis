@@ -21,7 +21,7 @@
     "lodash": "^3.7.0",
     "bootstrap-sass": "~3.0.2",
     "angular-ui-router": "~0.2.10",
-    "angular-ui-bootstrap-bower": "~0.11.0",
+    "angular-ui-bootstrap-bower": "~0.13.0",
     "angular-sanitize": "~1.4",
     "showdown": "~0.4.0"
   },

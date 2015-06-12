@@ -49,8 +49,8 @@ module Praxis
       self
     end
 
-    def self.describe(shallow=false)
-      super(false) # Links must always describe attributes
+    def self.describe(shallow=false,**opts)
+      super(false,**opts) # Links must always describe attributes
     end
 
     def self._finalize!

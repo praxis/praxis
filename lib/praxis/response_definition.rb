@@ -130,9 +130,12 @@ module Praxis
         end
       end
 
-      if (media_type_example = self.example)
-        content[:example] = media_type_example.render
-      end
+      # Generate an appropriate response example.
+      # A rendered response will need to contain not just the body of the associated media_type...
+      # but also headers, url...etc...
+      #if (media_type_example = self.example)
+      #  content[:example] = self.media_type.dump( media_type_example )
+      #end
 
       unless headers == nil
         headers.each do |name, value|

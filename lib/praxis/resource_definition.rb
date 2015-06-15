@@ -195,6 +195,9 @@ module Praxis
       end
 
       def parse_href(path)
+        if path.kind_of?(::URI::Generic)
+          path = path.path
+        end
         param_values = canonical_path.primary_route.path.params(path)
         attrs = canonical_path.params.attributes
         param_values.each_with_object({}) do |(key,value),hash|

@@ -21,6 +21,7 @@
   * Note: if you are an application that used and tested against the previous `message` field you will need to adjust your tests to check for the values in the `summary` field and or the `errors` contents. But it will now be a much more consistent experience that will allow API clients to notify of the exact errors and details to their clients.
 * Added `location:` option to `Responses::Created.new`.
 * `ResourceDefinition.parse_href` now accepts any instance of `URI::Generic` in addition to a string.
+* Fixed path generation for nested ResourceDefinitions
 
 ## 0.16.1
 

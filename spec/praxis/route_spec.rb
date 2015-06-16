@@ -3,17 +3,19 @@ require 'spec_helper'
 describe Praxis::Route do
 
   let(:verb) { 'GET' }
-  let(:path) { '/stuff' }
+  let(:path) { '/base/stuff' }
+  let(:prefixed_path) { '/stuff' }
   let(:name) { nil }
   let(:version) { '1.0' }
   let(:options) { {} }
 
-  subject(:route) { Praxis::Route.new(verb, path, version, name: name, **options) }
+  subject(:route) { Praxis::Route.new(verb, path, version, name: name, prefixed_path: prefixed_path, **options) }
 
   its(:verb) { should be(verb) }
   its(:path) { should be(path) }
   its(:name) { should be(name) }
   its(:version) { should be(version) }
+  its(:prefixed_path) { should eq(prefixed_path) }
   its(:options) { should eq(options) }
 
   it 'defaults version to "n/a"' do

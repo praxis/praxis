@@ -15,7 +15,12 @@ module Praxis
       def execute
         super
       rescue Attributor::AttributorException => e
-        validation_handler.handle!(summary: "Error validating request", exception: e)
+        validation_handler.handle!(
+          summary: "Error validating request", 
+          exception: e,
+          request: request,
+          stage: name
+        )
       end
 
     end

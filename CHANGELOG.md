@@ -19,6 +19,8 @@
   * Changed `message` for `summary`. Always present, and should provide a quick description of the type of error encountered. For example: "Error loading payload data"
   * Semantically changed `errors` to always have the details of one or many errors that have occurred. For example: "Unknown key received: :foobar while loading $.payload.user"
   * Note: if you are an application that used and tested against the previous `message` field you will need to adjust your tests to check for the values in the `summary` field and or the `errors` contents. But it will now be a much more consistent experience that will allow API clients to notify of the exact errors and details to their clients.
+* Added `Application.validation_handler` to customize response generation for validation errors. See [validation_handler.rb](lib/praxis/validation_handler.rb) for default version.
+
 
 ## 0.16.1
 

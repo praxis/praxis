@@ -45,7 +45,7 @@ module ApiResources
         get '/something/:id', name: :alternate
       end
 
-      response :ok
+      response :ok, media_type: 'application/json'
       response :unauthorized
 
       params do
@@ -182,8 +182,9 @@ module ApiResources
       params do
         attribute :splat, Attributor::Collection.of(String), required: true
       end
-      response :ok
+      response :ok, media_type: 'application/json'
     end
+
     # OTHER USAGES:
     #   note: these are all hypothetical, pending, brainstorming usages.
 

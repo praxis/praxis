@@ -18,7 +18,7 @@ module ApiResources
       routing do
         get ''
       end
-      response :ok
+      response :ok, media_type: Praxis::Collection.of(Volume)
       response :unauthorized
     end
 

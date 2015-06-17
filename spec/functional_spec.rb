@@ -76,7 +76,7 @@ describe 'Functional specs' do
     expect(JSON.parse(last_response.body)).to eq(expected)
 
     headers = last_response.headers
-    expect(headers['Content-Type']).to eq('application/vnd.acme.instance')
+    expect(headers['Content-Type']).to eq('application/json')
     expect(headers['Spec-Middleware']).to eq('used')
     expect(headers['Content-Length']).to eq(last_response.body.size.to_s)
   end
@@ -248,12 +248,7 @@ describe 'Functional specs' do
       it 'works as expected' do
         get '/clouds/1/volumes/123?junk=stuff', nil, 'global_session' => session
         expect(last_response.status).to eq(200)
-        expect(JSON.parse(last_response.body)).to eq({"id"=>123,
-                                                      "other_params"=>{
-                                                        "cloud_id" => 1,
-                                                        "junk"=>"stuff",
-                                                      "some_date"=>"2012-12-21T00:00:00+00:00"}
-                                                      })
+        expect(Volume.load(last_response.body).validate).to be_empty
         expect(last_response.headers["Content-Type"]).to eq("application/vnd.acme.volume")
       end
     end

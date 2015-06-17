@@ -107,12 +107,18 @@ describe Praxis::Application do
     before do
       # don't actually bootload; we're merely running specs
       allow(subject.bootloader).to receive(:setup!).and_return(true)
+      allow(subject.builder).to receive(:to_app).and_return(double('Rack app'))
     end
 
     it 'is idempotent' do
-      expect(subject.builder).to receive(:to_app).once.and_return(double('Rack app'))
+      expect(subject.builder).to receive(:to_app).once
       subject.setup
       subject.setup
+    end
+
+    it 'returns itself' do
+      expect(subject.setup).to eq(subject)
+      expect(subject.setup).to eq(subject)
     end
   end
 end

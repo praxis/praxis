@@ -51,7 +51,7 @@ module Praxis
     
 
     def setup(root: '.')
-      return unless @app.nil?
+      return self unless @app.nil?
 
       @root = Pathname.new(root).expand_path
 

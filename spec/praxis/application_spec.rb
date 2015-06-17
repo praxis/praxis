@@ -100,4 +100,19 @@ describe Praxis::Application do
       end
     end
   end
+
+  describe '#setup' do
+    subject { Class.new(Praxis::Application).instance }
+
+    before do
+      # don't actually bootload; we're merely running specs
+      allow(subject.bootloader).to receive(:setup!).and_return(true)
+    end
+
+    it 'is idempotent' do
+      expect(subject.builder).to receive(:to_app).once.and_return(double('Rack app'))
+      subject.setup
+      subject.setup
+    end
+  end
 end

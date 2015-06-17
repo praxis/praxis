@@ -48,17 +48,9 @@ describe Praxis::Application do
     subject { Class.new(Praxis::Application).instance }
 
     before do
-      bootloader = double('bootloader')
-      allow(bootloader).to receive(:setup!).and_return(true)
-
-      app = double('built Rack app')
-
-      builder = double('Rack builder')
-      allow(builder).to receive(:run)
-      allow(builder).to receive(:to_app).and_return(app)
-
-      subject.instance_variable_set(:@bootloader, bootloader)
-      subject.instance_variable_set(:@builder, builder)
+      # don't actually bootload; we're merely running specs
+      allow(subject.bootloader).to receive(:setup!).and_return(true)
+      allow(subject.builder).to receive(:to_app).and_return(double('Rack app'))
     end
 
     describe '#handler' do

@@ -20,6 +20,7 @@
   * Semantically changed `errors` to always have the details of one or many errors that have occurred. For example: "Unknown key received: :foobar while loading $.payload.user"
   * Note: if you are an application that used and tested against the previous `message` field you will need to adjust your tests to check for the values in the `summary` field and or the `errors` contents. But it will now be a much more consistent experience that will allow API clients to notify of the exact errors and details to their clients.
 * Added `Application.validation_handler` to customize response generation for validation errors. See [validation_handler.rb](lib/praxis/validation_handler.rb) for default version.
+* Copied mustermann's routers to praxis repo in anticipation of their removal from mustermann itself.
 * Added `location:` option to `Responses::Created.new`.
 * `ResourceDefinition.parse_href` now accepts any instance of `URI::Generic` in addition to a string.
 * Fixed path generation for nested ResourceDefinitions

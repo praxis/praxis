@@ -166,7 +166,7 @@ module ApiResources
       end
 
       payload do
-        attribute :name
+        attribute :name, regexp: /.*/
         attribute :root_volume
       end
 

@@ -17,7 +17,8 @@ module Praxis
           summary: "Error validating response", 
           exception: e,
           request: request,
-          stage: name
+          stage: name, 
+          errors: e.errors
         )
         retry
       end

@@ -273,6 +273,11 @@ module Praxis
       return if media_type.kind_of? SimpleMediaType
       
       errors = self.media_type.validate(self.media_type.load(response.body))
+      if errors.any?
+        message = "Invalid response body for #{media_type.identifier}." +
+          "Errors: #{errors.inspect}"
+        raise Exceptions::Validation.new(message, errors: errors)
+      end
 
     end
 

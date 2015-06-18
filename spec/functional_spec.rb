@@ -81,6 +81,7 @@ describe 'Functional specs' do
     expect(headers['Content-Length']).to eq(last_response.body.size.to_s)
   end
 
+
   it 'returns early when making the before filter break' do
     get '/clouds/1/instances/2?junk=foo&api_version=1.0&fail_filter=true', nil, 'global_session' => session
     expect(last_response.status).to eq(401)
@@ -345,17 +346,28 @@ describe 'Functional specs' do
     end
 
     context 'with a provided name' do
-      let(:request_payload) { {name: 'My Instance'} }
-      its(['name']) { should eq('My Instance') }
+      let(:request_payload) { {name: 'MyInstance'} }
+      its(['name']) { should eq('MyInstance') }
       it { should_not have_key('root_volume') }
     end
 
     context 'with an explicitly-nil root_volme' do
-      let(:request_payload) { {name: 'My Instance', root_volume: nil} }
-      its(['name']) { should eq('My Instance') }
+      let(:request_payload) { {name: 'MyInstance', root_volume: nil} }
+      its(['name']) { should eq('MyInstance') }
       its(['root_volume']) { should be(nil) }
     end
 
+    context 'with an invalid name' do
+      let(:request_payload) { {name: 'Invalid Name'} }
+
+      its(['name']) { should eq 'ValidationError' }
+      its(['summary']) { should eq 'Error validating response' }
+      its(['errors']) { should match_array [/\$\.name value \(Invalid Name\) does not match regexp/] }
+
+      it 'returns a validation error' do
+        expect(last_response.status).to eq(400)
+      end
+    end
 
   end
 

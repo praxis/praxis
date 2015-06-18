@@ -51,6 +51,8 @@ module Praxis
     
 
     def setup(root: '.')
+      return self unless @app.nil?
+
       @root = Pathname.new(root).expand_path
 
       builtin_handlers = {

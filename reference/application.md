@@ -34,7 +34,10 @@ The validation handler must implement a `handle!(summary:, request:, stage:, err
 
 * `summary` is a string containing a short description of the validation error
 * `request` is the current `Request` instance being processed. One can get to the `action` and other interesting values from it.
-* `stage` is a string denoting where in the request flow the validation error occurred: 'request', 'response' ...
+* `stage` is a symbol denoting where in the request flow the validation error occurred. The possible received values are:
+  * `:params_and_headers`: if it occurred validating the parameters or headers.
+  * `:payload`: if it occurred validating the payload.
+  * `:response`: if it occurred validating the response. This can only occur if the `validate_responses` configuration is enabled.
 * `errors` is an array of the errors as returned by the underlying type validations performed. The default types for headers, params and payload will return individual error message containing a string with the details of the encountered error. If you are using custom payload types, however, they could return different data in each of the individual error messages.
 * `exception` is the exception in question.
 

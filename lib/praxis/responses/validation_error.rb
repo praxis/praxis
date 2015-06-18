@@ -3,7 +3,7 @@ module Praxis
   module Responses
 
     class ValidationError < BadRequest
-      def initialize(summary: , errors: nil, exception: nil, **opts)
+      def initialize(summary:, errors: nil, exception: nil, **opts)
         super(**opts)
         @headers['Content-Type'] = 'application/json' #TODO: might want an error mediatype
         @errors = errors

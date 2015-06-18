@@ -1,4 +1,4 @@
-require 'mustermann/router/rack'
+require 'praxis/router/rack'
 
 module Praxis
 

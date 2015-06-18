@@ -26,6 +26,7 @@ module Praxis
   autoload :Callbacks, 'praxis/callbacks'
   autoload :Dispatcher, 'praxis/dispatcher'
   autoload :ErrorHandler, 'praxis/error_handler'
+  autoload :ValidationHandler, 'praxis/validation_handler'
   autoload :Exception, 'praxis/exception'
   autoload :FileGroup,'praxis/file_group'
   autoload :Plugin, 'praxis/plugin'

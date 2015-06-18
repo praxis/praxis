@@ -20,6 +20,7 @@ module Praxis
     attr_accessor :handlers
     attr_accessor :root
     attr_accessor :error_handler
+    attr_accessor :validation_handler
 
     attr_accessor :versioning_scheme
    
@@ -33,6 +34,7 @@ module Praxis
       @resource_definitions = Set.new
 
       @error_handler = ErrorHandler.new
+      @validation_handler = ValidationHandler.new
 
       @router = Router.new(self)
 
@@ -51,6 +53,8 @@ module Praxis
     
 
     def setup(root: '.')
+      return self unless @app.nil?
+
       @root = Pathname.new(root).expand_path
 
       builtin_handlers = {

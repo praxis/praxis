@@ -152,7 +152,7 @@ describe Praxis::Request do
 
     it 'is done preserving the original case' do
       request.load_headers(context[:headers])
-      expect(request.headers).to match({"Authorization" => "Secret"})
+      expect(request.headers).to eq({"Authorization" => "Secret"})
     end
 
     it 'performs it using the memoized rack keys from the action (Hacky but...performance is important)' do

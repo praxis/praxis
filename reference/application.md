@@ -6,7 +6,7 @@ title: Application
 
 ### Uncaught Exceptions
 
-Handling of uncaught exceptions is done by the error handler registered with `Appication#error_handler`. All applications are pre-configured to use a simple handler that wraps any exception in an `InternalServerError` response.
+Handling of uncaught exceptions is done by the error handler registered with `Application#error_handler`. All applications are pre-configured to use a simple handler that wraps any exception in an `InternalServerError` response.
 
 This behavior may be customized by registering an error handler with the application like this:
 
@@ -17,6 +17,28 @@ end
 {% endhighlight %}
 
 The error handler must implement a `handle!(request, error)` method, where `request` is the current `Request` instance being processed, and `error` is the exception in question. The return value is sent back to the client.
+
+### Formatting Validation Responses
+
+Any validation errors encountered in the flow of the request will be processed by the registered `validation_handler` in the Application. All applications are pre-configured to use a handler that generates validation responses using the `Responses::ValidationError` class.
+
+This default behavior, however, may be customized by registering your own validation handler like this:
+
+{% highlight ruby %}
+Praxis::Application.configure do |application|
+  application.validation_handler = MyValidationHandler.new
+end
+{% endhighlight %}
+
+The validation handler must implement a `handle!(summary:, request:, stage:, errors: nil, exception: nil, **opts)` method where:
+
+* `summary` is a string containing a short description of the validation error
+* `request` is the current `Request` instance being processed. One can get to the `action` and other interesting values from it.
+* `stage` is a string denoting where in the request flow the validation error occurred: 'request', 'response' ...
+* `errors` is an array of the errors as returned by the underlying type validations performed. The default types for headers, params and payload will return individual error message containing a string with the details of the encountered error. If you are using custom payload types, however, they could return different data in each of the individual error messages.
+* `exception` is the exception in question.
+
+The return valid from the `handle!` must be a Praxis response, which will be directly returned to the client.
 
 ### Rack Middleware
 

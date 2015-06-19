@@ -112,14 +112,15 @@ module Praxis
     #
     # @param [Object] action
     #
-    def validate(action)
+    def validate(action, validate_body: false)
       return if response_name == :validation_error
-      unless ( response_definition = action.responses[response_name] )
-        raise ArgumentError, "Attempting to return a response with name #{response_name} " \
+
+      unless (response_definition = action.responses[response_name])
+        raise Exceptions::Validation, "Attempting to return a response with name #{response_name} " \
           "but no response definition with that name can be found"
       end
 
-      response_definition.validate(self)
+      response_definition.validate(self, validate_body: validate_body)
     end
 
 

@@ -20,22 +20,21 @@ describe 'Functional specs' do
 
     context 'with a path param that can not load' do
       it 'returns a useful error' do
-        get '/clouds/invalid/instances?api_version=1.0', nil, 'global_session' => session
+        get '/api/clouds/invalid/instances?api_version=1.0', nil, 'global_session' => session
 
         expect(last_response.status).to eq 400
 
         response = JSON.parse(last_response.body)
-
         expect(response['name']).to eq 'ValidationError'
         expect(response['summary']).to eq 'Error loading params.'
-        expect(response['errors']).to match_array([/Error loading attribute \$\.cloud_id/])
+        expect(response['errors']).to match_array([/Error loading attribute \$\.params\.cloud_id/])
         expect(response['cause']['name']).to eq 'ArgumentError'
       end
     end
 
     context 'with a header that can not load' do
       it 'returns a useful error' do
-        get '/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => 'invalid'
+        get '/api/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => 'invalid'
 
         expect(last_response.status).to eq 400
 
@@ -50,7 +49,7 @@ describe 'Functional specs' do
 
     context 'with a param that is invalid' do
       it 'returns a useful error' do
-        get '/clouds/-1/instances?api_version=1.0', nil, 'global_session' => session
+        get '/api/clouds/-1/instances?api_version=1.0', nil, 'global_session' => session
 
         expect(last_response.status).to eq 400
 
@@ -65,7 +64,7 @@ describe 'Functional specs' do
 
     context 'with a header that is invalid' do
       it 'returns a useful error' do
-        get '/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => '-1'
+        get '/api/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => '-1'
 
         expect(last_response.status).to eq 400
 

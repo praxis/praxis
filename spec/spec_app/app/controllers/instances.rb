@@ -39,9 +39,8 @@ class Instances < BaseClass
     #puts "Decorator three end"
   end
 
-  def index(response_content_type: 'application/vnd.acme.instance;type=collection', **params)
+  def index(cloud_id:, response_content_type: 'application/vnd.acme.instance;type=collection', **params)
     instances = Instance::Collection.example
-    
     response.body = JSON.pretty_generate(instances.collect { |i| i.render })
     response.headers['Content-Type'] = response_content_type #'application/vnd.acme.instance;type=collection'
     response

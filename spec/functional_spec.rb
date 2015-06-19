@@ -18,6 +18,65 @@ describe 'Functional specs' do
       end
     end
 
+    context 'with a path param that can not load' do
+      it 'returns a useful error' do
+        get '/clouds/invalid/instances?api_version=1.0', nil, 'global_session' => session
+
+        expect(last_response.status).to eq 400
+
+        response = JSON.parse(last_response.body)
+
+        expect(response['name']).to eq 'ValidationError'
+        expect(response['summary']).to eq 'Error loading params.'
+        expect(response['errors']).to match_array([/Error loading attribute \$\.cloud_id/])
+        expect(response['cause']['name']).to eq 'ArgumentError'
+      end
+    end
+
+    context 'with a header that can not load' do
+      it 'returns a useful error' do
+        get '/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => 'invalid'
+
+        expect(last_response.status).to eq 400
+
+        response = JSON.parse(last_response.body)
+
+        expect(response['name']).to eq 'ValidationError'
+        expect(response['summary']).to eq 'Error loading headers.'
+        expect(response['errors']).to match_array([/Error loading attribute .*Account-Id"/])
+        expect(response['cause']['name']).to eq 'ArgumentError'
+      end
+    end
+
+    context 'with a param that is invalid' do
+      it 'returns a useful error' do
+        get '/clouds/-1/instances?api_version=1.0', nil, 'global_session' => session
+
+        expect(last_response.status).to eq 400
+
+        response = JSON.parse(last_response.body)
+
+        expect(response['name']).to eq 'ValidationError'
+        expect(response['summary']).to eq 'Error validating request data.'
+        expect(response['errors']).to match_array([/.*cloud_id.*is smaller than the allowed min/])
+      end
+
+    end
+
+    context 'with a header that is invalid' do
+      it 'returns a useful error' do
+        get '/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => '-1'
+
+        expect(last_response.status).to eq 400
+
+        response = JSON.parse(last_response.body)
+
+        expect(response['name']).to eq 'ValidationError'
+        expect(response['summary']).to eq 'Error validating request data.'
+        expect(response['errors']).to match_array([/.*headers.*Account-Id.*is smaller than the allowed min/])
+      end
+    end
+
     context 'with an incorrect response_content_type param' do
       around do |example|
         logger = app.logger
@@ -80,7 +139,6 @@ describe 'Functional specs' do
     expect(headers['Spec-Middleware']).to eq('used')
     expect(headers['Content-Length']).to eq(last_response.body.size.to_s)
   end
-
 
   it 'returns early when making the before filter break' do
     get '/clouds/1/instances/2?junk=foo&api_version=1.0&fail_filter=true', nil, 'global_session' => session

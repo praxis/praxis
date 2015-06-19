@@ -17,7 +17,7 @@ module ApiResources
       requires_ability :read
 
       params do
-        attribute :cloud_id, Integer, required: true
+        attribute :cloud_id, Integer, required: true, min: 0
       end
     end
 
@@ -26,15 +26,17 @@ module ApiResources
         get ''
       end
 
-      params do
-        attribute :response_content_type, String, default: 'application/vnd.acme.instance;type=collection'
-      end
-
       headers do
         # BOTH ARE EQUIVALENT
         #key "FOO", String, required: true
         header "FOO", /bar/
+        key 'Account-Id', Integer, required: false, min: 0
       end
+
+      params do
+        attribute :response_content_type, String, default: 'application/vnd.acme.instance;type=collection'
+      end
+
 
       response :ok, media_type: Praxis::Collection.of(Instance)
     end

@@ -8,15 +8,19 @@ class Volumes < BaseClass
     #puts "before action for volumes"
   end
 
+  def index
+    volumes = Volume::Collection.example
+    
+    response.body = volumes.collect { |v| v.render }
+    response.headers['Content-Type'] = 'application/vnd.acme.volumes'
+    response
+  end
+
   def show(id:, **other_params)
-    response.body = { id: id, other_params: other_params }
+    response.body = JSON.pretty_generate(Volume.example.render)
     response.headers['Content-Type'] = 'application/vnd.acme.volume'
     response
   end
 
-  def index
-    response.headers['Content-Type'] = 'application/vnd.acme.volume'
-    response
-  end
 
 end

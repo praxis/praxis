@@ -62,7 +62,7 @@ describe Praxis::Response do
       it 'should raise an error' do
         expect {
           response.validate(action)
-        }.to raise_error(ArgumentError, /response definition with that name can be found/)
+        }.to raise_error(Praxis::Exceptions::Validation, /response definition with that name can be found/)
       end
     end
 

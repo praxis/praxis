@@ -18,6 +18,65 @@ describe 'Functional specs' do
       end
     end
 
+    context 'with a path param that can not load' do
+      it 'returns a useful error' do
+        get '/clouds/invalid/instances?api_version=1.0', nil, 'global_session' => session
+
+        expect(last_response.status).to eq 400
+
+        response = JSON.parse(last_response.body)
+
+        expect(response['name']).to eq 'ValidationError'
+        expect(response['summary']).to eq 'Error loading params.'
+        expect(response['errors']).to match_array([/Error loading attribute \$\.cloud_id/])
+        expect(response['cause']['name']).to eq 'ArgumentError'
+      end
+    end
+
+    context 'with a header that can not load' do
+      it 'returns a useful error' do
+        get '/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => 'invalid'
+
+        expect(last_response.status).to eq 400
+
+        response = JSON.parse(last_response.body)
+
+        expect(response['name']).to eq 'ValidationError'
+        expect(response['summary']).to eq 'Error loading headers.'
+        expect(response['errors']).to match_array([/Error loading attribute .*Account-Id"/])
+        expect(response['cause']['name']).to eq 'ArgumentError'
+      end
+    end
+
+    context 'with a param that is invalid' do
+      it 'returns a useful error' do
+        get '/clouds/-1/instances?api_version=1.0', nil, 'global_session' => session
+
+        expect(last_response.status).to eq 400
+
+        response = JSON.parse(last_response.body)
+
+        expect(response['name']).to eq 'ValidationError'
+        expect(response['summary']).to eq 'Error validating request data.'
+        expect(response['errors']).to match_array([/.*cloud_id.*is smaller than the allowed min/])
+      end
+
+    end
+
+    context 'with a header that is invalid' do
+      it 'returns a useful error' do
+        get '/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => '-1'
+
+        expect(last_response.status).to eq 400
+
+        response = JSON.parse(last_response.body)
+
+        expect(response['name']).to eq 'ValidationError'
+        expect(response['summary']).to eq 'Error validating request data.'
+        expect(response['errors']).to match_array([/.*headers.*Account-Id.*is smaller than the allowed min/])
+      end
+    end
+
     context 'with an incorrect response_content_type param' do
       around do |example|
         logger = app.logger
@@ -76,7 +135,7 @@ describe 'Functional specs' do
     expect(JSON.parse(last_response.body)).to eq(expected)
 
     headers = last_response.headers
-    expect(headers['Content-Type']).to eq('application/vnd.acme.instance')
+    expect(headers['Content-Type']).to eq('application/json')
     expect(headers['Spec-Middleware']).to eq('used')
     expect(headers['Content-Length']).to eq(last_response.body.size.to_s)
   end
@@ -248,12 +307,7 @@ describe 'Functional specs' do
       it 'works as expected' do
         get '/api/clouds/1/volumes/123?junk=stuff', nil, 'global_session' => session
         expect(last_response.status).to eq(200)
-        expect(JSON.parse(last_response.body)).to eq({"id"=>123,
-                                                      "other_params"=>{
-                                                        "cloud_id" => 1,
-                                                        "junk"=>"stuff",
-                                                      "some_date"=>"2012-12-21T00:00:00+00:00"}
-                                                      })
+        expect(Volume.load(last_response.body).validate).to be_empty
         expect(last_response.headers["Content-Type"]).to eq("application/vnd.acme.volume")
       end
     end
@@ -350,17 +404,28 @@ describe 'Functional specs' do
     end
 
     context 'with a provided name' do
-      let(:request_payload) { {name: 'My Instance'} }
-      its(['name']) { should eq('My Instance') }
+      let(:request_payload) { {name: 'MyInstance'} }
+      its(['name']) { should eq('MyInstance') }
       it { should_not have_key('root_volume') }
     end
 
     context 'with an explicitly-nil root_volme' do
-      let(:request_payload) { {name: 'My Instance', root_volume: nil} }
-      its(['name']) { should eq('My Instance') }
+      let(:request_payload) { {name: 'MyInstance', root_volume: nil} }
+      its(['name']) { should eq('MyInstance') }
       its(['root_volume']) { should be(nil) }
     end
 
+    context 'with an invalid name' do
+      let(:request_payload) { {name: 'Invalid Name'} }
+
+      its(['name']) { should eq 'ValidationError' }
+      its(['summary']) { should eq 'Error validating response' }
+      its(['errors']) { should match_array [/\$\.name value \(Invalid Name\) does not match regexp/] }
+
+      it 'returns a validation error' do
+        expect(last_response.status).to eq(400)
+      end
+    end
 
   end
 

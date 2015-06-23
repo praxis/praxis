@@ -183,7 +183,7 @@ describe Praxis::Response do
         expect(preamble).to eq("a preamble")
         expect(parts).to have(1).item
 
-        _part_name, part_response = parts.first
+        part_response = parts.first
         expect(part_response.headers['Status']).to eq(part.headers['Status'].to_s)
         expect(part_response.headers['Location']).to eq(part.headers['Location'])
         expect(part_response.body).to eq('not so ok')

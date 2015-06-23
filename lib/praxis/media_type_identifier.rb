@@ -130,6 +130,9 @@ module Praxis
       s
     end
 
+    alias_method :to_str, :to_s
+
+
     # If parameters are empty, return self; otherwise return a new object consisting of this type
     # minus parameters.
     #

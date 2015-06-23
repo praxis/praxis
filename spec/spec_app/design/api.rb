@@ -10,13 +10,7 @@ Praxis::ApiDefinition.define do
     media_type 'multipart/form-data'
   end
 
-  response_template :bulk_response do |media_type: nil, parts: |
-    status 200
-    media_type 'multipart/form-data'
 
-    parts[:media_type] ||= media_type if ( media_type && parts.kind_of?(Hash) )
-    parts(parts)
-  end
 
   trait :authenticated do
     headers do

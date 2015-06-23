@@ -54,7 +54,7 @@ module Praxis
       end
 
       name ||= "part-#{part.object_id}"
-
+      part.name = name
       @parts[name.to_s] = part
     end
 

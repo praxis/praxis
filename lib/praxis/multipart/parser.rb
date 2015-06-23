@@ -4,18 +4,23 @@ require 'rack/utils'
 
 module Praxis
   class MultipartParser
-    EOL = "\r\n"
-    MULTIPART_BOUNDARY = "AaB03x"
-    MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|n
-    TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
-    CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i
-    DISPPARM = /;\s*(#{TOKEN})=("(?:\\"|[^"])*"|#{TOKEN})/
-    RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i
-    BROKEN_QUOTED = /^#{CONDISP}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*#{TOKEN}=)/i
-    BROKEN_UNQUOTED = /^#{CONDISP}.*;\sfilename=(#{TOKEN})/i
-    MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
-    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*\s+name="?([^\";]*)"?/ni
-    MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
+    EOL = "\r\n".freeze
+    MULTIPART_BOUNDARY = "AaB03x".freeze
+    MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|n.freeze
+    TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/.freeze
+    CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i.freeze
+    DISPPARM = /;\s*(#{TOKEN})=("(?:\\"|[^"])*"|#{TOKEN})/.freeze
+    RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i.freeze
+    BROKEN_QUOTED = /^#{CONDISP}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*#{TOKEN}=)/i.freeze
+    BROKEN_UNQUOTED = /^#{CONDISP}.*;\sfilename=(#{TOKEN})/i.freeze
+    MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni.freeze
+    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*\s+name="?([^\";]*)"?/ni.freeze
+    MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni.freeze
+
+    HEADER_KV = /(?<k>[^:]+): (?<v>.*)/.freeze
+    UNTIL_NEWLINE = /\A([^\n]*\n)/.freeze
+    TERMINAL_CRLF = /\r\n$/.freeze
+
 
     BUFSIZE = 16384
 
@@ -30,7 +35,7 @@ module Praxis
         @io << chunk
       end
       @io.rewind
-      @parts = Hash.new
+      @parts = Array.new
     end
 
     def parse
@@ -53,13 +58,15 @@ module Praxis
         filename, data = get_data(filename, body, content_type, name, head)
 
         parsed_headers = head.split(EOL).each_with_object(Hash.new) do |line, hash|
-          match = /(?<k>[^:]+): (?<v>.*)/.match(line)
+          match = HEADER_KV.match(line)
           k = match[:k]
           v = match[:v]
           hash[k] = v
         end
 
-        @parts[name] = MultipartPart.new(data, parsed_headers, filename: filename)
+        part = MultipartPart.new(data, parsed_headers, name: name, filename: filename)
+
+        @parts << part
 
         # break if we're at the end of a buffer, but not if it is the end of a field
         break if (@buf.empty? && $1 != EOL) || @content_length == -1
@@ -72,16 +79,15 @@ module Praxis
 
     private
     def setup_parse
-      return false unless @headers['Content-Type'] =~ MULTIPART
+      unless (match = MULTIPART.match @headers['Content-Type'])
+        return false
+      end
 
-      @boundary = "--#{$1}"
+      @boundary = "--#{match[1]}"
 
       @buf = ""
 
       @params = Rack::Utils::KeySpaceConstrainedParams.new
-
-      #@io = @env['rack.input']
-      #@io.rewind
 
       @boundary_size = Rack::Utils.bytesize(@boundary) + EOL.size
 
@@ -107,10 +113,10 @@ module Praxis
         raise EOFError, "bad content body" unless content
         @buf << content
 
-        while @buf.gsub!(/\A([^\n]*\n)/, '')
+        while @buf.gsub!(UNTIL_NEWLINE, '')
           read_buffer = $1
           if read_buffer == full_boundary
-            return preamble.gsub!(/\r\n$/,'')
+            return preamble.gsub!(TERMINAL_CRLF,'')
           else
             preamble << read_buffer
           end
@@ -140,7 +146,7 @@ module Praxis
 
           if filename
             body = Tempfile.new("RackMultipart")
-            body.binmode  if body.respond_to?(:binmode)
+            body.binmode if body.respond_to?(:binmode)
           end
 
           next
@@ -182,32 +188,19 @@ module Praxis
     end
 
     def get_data(filename, body, content_type, name, head)
-      data = nil
-      if filename == ""
-        # filename is blank which means no file has been selected
-        return data
-      elsif filename
-        body.rewind
-        
-        # Take the basename of the upload's original filename.
-        # This handles the full Windows paths given by Internet Explorer
-        # (and perhaps other broken user agents) without affecting
-        # those which give the lone filename.
-        filename = filename.split(/[\/\\]/).last
+      # filename is blank which means no file has been selected
+      return nil if filename == ""
 
-        data = {:filename => filename, :type => content_type,
-                :name => name, :tempfile => body, :head => head}
-      elsif !filename && content_type && body.is_a?(IO)
-        body.rewind
+      # Take the basename of the upload's original filename.
+      # This handles the full Windows paths given by Internet Explorer
+      # (and perhaps other broken user agents) without affecting
+      # those which give the lone filename.
+      filename = filename.split(/[\/\\]/).last if filename
 
-        # Generic multipart cases, not coming from a form
-        data = {:type => content_type,
-                :name => name, :tempfile => body, :head => head}
-      else
-        data = body
-      end
+      # Rewind any IO bodies so the app can read them at its leisure
+      body.rewind if  body.is_a?(IO)
 
-      [filename, data]
+      [filename, body]
     end
   end
 end

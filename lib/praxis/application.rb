@@ -23,7 +23,7 @@ module Praxis
     attr_accessor :validation_handler
 
     attr_accessor :versioning_scheme
-   
+
 
     def self.configure
       yield(self.instance)
@@ -50,7 +50,7 @@ module Praxis
       @root = nil
       @logger = Logger.new(STDOUT)
     end
-    
+
 
     def setup(root: '.')
       return self unless @app.nil?
@@ -58,8 +58,9 @@ module Praxis
       @root = Pathname.new(root).expand_path
 
       builtin_handlers = {
-          'json'                  => Praxis::Handlers::JSON,
-          'x-www-form-urlencoded' => Praxis::Handlers::WWWForm
+        'plain' => Praxis::Handlers::Plain,
+        'json' => Praxis::Handlers::JSON,
+        'x-www-form-urlencoded' => Praxis::Handlers::WWWForm
       }
       # Register built-in handlers unless the app already provided its own
       builtin_handlers.each_pair do |name, handler|
@@ -127,6 +128,6 @@ module Praxis
     def config=(config)
       @config.set(config)
     end
-    
+
   end
 end

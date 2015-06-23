@@ -160,7 +160,7 @@ module Praxis
       validate_headers!(response)
       validate_content_type!(response)
       validate_parts!(response)
-      
+
       if validate_body
         validate_body!(response)
       end
@@ -267,19 +267,19 @@ module Praxis
     end
 
     # Validates response body
-    # 
+    #
     # @param [Object] response
     #
     # @raise [Exceptions::Validation]  When there is a missing required header..
     def validate_body!(response)
       return unless media_type
       return if media_type.kind_of? SimpleMediaType
-      
+
       errors = self.media_type.validate(self.media_type.load(response.body))
       if errors.any?
         message = "Invalid response body for #{media_type.identifier}." +
           "Errors: #{errors.inspect}"
-        raise Exceptions::Validation.new(message, errors: errors)
+          raise Exceptions::Validation.new(message, errors: errors)
       end
 
     end
@@ -287,10 +287,17 @@ module Praxis
     def validate_parts!(response)
       return unless parts
 
-      response.parts.each do |name, part|
-        parts.validate(part)
+      case response.body
+      when Praxis::Types::MultipartArray
+        response.body.each do |part|
+          parts.validate(part)
+        end
+      else
+        # TODO: remove with other Multipart deprecations.
+        response.parts.each do |name, part|
+          parts.validate(part)
+        end
       end
-
     end
 
   end

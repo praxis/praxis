@@ -1,0 +1,10 @@
+<p>This is a mulipart body, which accepts the following parts:</p>
+
+<div ng-repeat="(key, info) in details">
+  <h4><code>{{key}}</code></h4>
+  <p>{{info.required ? 'required' : 'optional'}}</p>
+  <!-- Headers would go here -->
+  <type-placeholder type="info.type" template="standalone" details="info"></type-placeholder>
+</div>
+
+<!-- Example should render here -->

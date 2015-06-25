@@ -11,10 +11,10 @@ body {
 }
 
 .content {
-	dl {
-		margin-top: 0;
-		margin-bottom: 0;
-	}
+  dl {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
 }
 
 .verb.get {
@@ -34,6 +34,7 @@ body {
 }
 
 .action-divider {
-  margin-bottom: 6rem;
-  margin-top: 6rem;
+  border-top: 2px solid darken($hr-border, 4);
+  margin-bottom: 3rem;
+  margin-top: 3rem;
 }

@@ -275,7 +275,7 @@ module Praxis
 
         reportable_types.each do |type|
           index[version] ||= Hash.new
-          display_name = type.name.split("::").last + " (*)" #somehow this is just a MT so we probably wanna mark it different
+          display_name = type.name.split("::").last
           if index[version].has_key? display_name
             raise "Display name already taken for version #{version}! #{display_name}"
           end

@@ -1,26 +1,41 @@
 {
-  "name": "sass-bootstrap",
-  "version": "3.0.2",
+  "name": "bootstrap-sass",
+  "version": "3.0.3-0",
+  "homepage": "https://github.com/twbs/bootstrap-sass",
+  "authors": [
+    "Thomas McDonald",
+    "Tristan Harward",
+    "Peter Gumeson",
+    "Gleb Mazovetskiy"
+  ],
+  "description": "bootstrap-sass is a Sass-powered version of Bootstrap, ready to drop right into your Sass powered applications.",
   "main": [
-    "./dist/js/bootstrap.js",
-    "./dist/css/bootstrap.css",
-    "./dist/fonts/*"
+    "vendor/assets/stylesheets/bootstrap.scss",
+    "vendor/assets/javascripts/bootstrap.js"
   ],
+  "keywords": [
+    "twbs",
+    "bootstrap",
+    "sass"
+  ],
+  "license": "MIT",
   "ignore": [
-    "**/.*"
+    "**/.*",
+    "lib",
+    "tasks",
+    "templates",
+    "test",
+    "*.gemspec",
+    "Rakefile",
+    "Gemfile"
   ],
-  "dependencies": {
-    "jquery": ">= 1.9.0"
-  },
-  "homepage": "https://github.com/jlong/sass-twitter-bootstrap",
-  "_release": "3.0.2",
+  "_release": "3.0.3-0",
   "_resolution": {
     "type": "version",
-    "tag": "v3.0.2",
-    "commit": "efd13cf8bf77c623cd38c927ad14a30eb1a1384b"
+    "tag": "v3.0.3-0",
+    "commit": "41b7eb606faae4eaa5ac83500252cdf456053745"
   },
-  "_source": "git://github.com/jlong/sass-twitter-bootstrap.git",
+  "_source": "git://github.com/twbs/bootstrap-sass.git",
   "_target": "~3.0.2",
-  "_originalSource": "bootstrap-sass",
-  "_direct": true
+  "_originalSource": "bootstrap-sass"
 }

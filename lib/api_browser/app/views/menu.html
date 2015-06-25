@@ -1,0 +1,44 @@
+<div class="sidebar fixed-if-fits">
+  <div class="row">
+    <div class="col-sm-12">
+      <p>
+        <div class="btn-group" dropdown is-open="status.isopen">
+          <button type="button" class="btn btn-success dropdown-toggle" ng-disabled="disabled">
+            API Version: {{selectedVersion}} <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu col-sm-12" role="menu">
+            <li ng-repeat="version in versions">
+              <a ng-click="select(version)" dropdown-toggle>{{version}}</a>
+            </li>
+          </ul>
+        </div>
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <tabset justified="true" class="tab-list-group">
+        <tab heading="Resources" active="active.resources">
+          <div class="list-group">
+            <a ng-repeat="link in availableResources()"
+               href="{{link.stateRef}}"
+               class="list-group-item"
+               ng-class="{active: link.typeName == currentType}">
+              {{ link.name }}
+            </a>
+          </div>
+        </tab>
+        <tab heading="Schemas" active="active.schemas">
+          <div class="list-group">
+            <a ng-repeat="link in availableOthers()"
+               href="{{link.stateRef}}"
+               class="list-group-item"
+               ng-class="{active: link.typeName == currentType}">
+              {{ link.name }}
+            </a>
+          </div>
+        </tab>
+      </tabset>
+    </div>
+  </div>
+</div>

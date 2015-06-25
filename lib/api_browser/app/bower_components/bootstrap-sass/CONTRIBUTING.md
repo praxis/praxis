@@ -1,61 +1,79 @@
-# Contributing to Bootstrap
+# Contributing to bootstrap-sass
 
-Looking to contribute something to Bootstrap? **Here's how you can help.**
+## Asset Changes
+
+Any changes to `bootstrap-sass` assets (scss, javascripts, fonts) should be checked against the `convert` rake task.
+For usage instructions, see the [README](https://github.com/thomas-mcdonald/bootstrap-sass/blob/3/README.md).
+
+If something is broken in the converter, it's preferable to update the converter along with the asset itself.
 
 
+## Bugs
 
-## Reporting issues
+A bug is a _demonstrable problem_ that is caused by the code in the
+repository. Good bug reports are extremely helpful - thank you!
 
-We only accept issues that are bug reports or feature requests. Bugs must be isolated and reproducible problems that we can fix within the Bootstrap core. Please read the following guidelines before opening any issue.
+Guidelines for bug reports:
 
-1. **Search for existing issues.** We get a lot of duplicate issues, and you'd help us out a lot by first checking if someone else has reported the same issue. Moreover, the issue may have already been resolved with a fix available.
-2. **Create an isolated and reproducible test case.** Be sure the problem exists in Bootstrap's code with a [reduced test case](http://css-tricks.com/reduced-test-cases/) that should be included in each bug report.
-3. **Include a live example.** Make use of jsFiddle or jsBin to share your isolated test cases.
-4. **Share as much information as possible.** Include operating system and version, browser and version, version of Bootstrap, customized or vanilla build, etc. where appropriate. Also include steps to reproduce the bug.
+1. **Does it belong here?** &mdash; is this a problem with bootstrap-sass, or
+   it an issue with [twbs/bootstrap](https://github.com/twbs/bootstrap)?
+   We only distribute a direct port and will not modify files if they're not
+   changed upstream.
 
+2. **Use the GitHub issue search** &mdash; check if the issue has already been
+   reported.
+
+3. **Isolate the problem** &mdash; ideally create a [reduced test
+   case](http://css-tricks.com/6263-reduced-test-cases/) and a live example.
+
+A good bug report shouldn't leave others needing to chase you up for more
+information. Please try to be as detailed as possible in your report. What is
+your environment? What steps will reproduce the issue? What browser(s) and OS
+experience the problem? What would you expect to be the outcome? All these
+details will help people to fix any potential bugs.
+
+Example:
+
+> Short and descriptive example bug report title
+>
+> A summary of the issue and the browser/OS environment in which it occurs. If
+> suitable, include the steps required to reproduce the bug.
+>
+> 1. This is the first step
+> 2. This is the second step
+> 3. Further steps, etc.
+>
+> `<url>` (a link to the reduced test case)
+>
+> Any other information you want to share that is relevant to the issue being
+> reported. This might include the lines of code that you have identified as
+> causing the bug, and potential solutions (and your opinions on their
+> merits).
+
+**[File a bug report](https://github.com/thomas-mcdonald/bootstrap-sass/issues/)**
 
 
 ## Pull requests
 
-- CSS changes must be done in `.less` files first, never just the compiled `.css` files
-- If modifying the `.less` files, always recompile and commit the compiled files `bootstrap.css` and `bootstrap.min.css`
-- Try not to pollute your pull request with unintended changes--keep them simple and small
-- Try to share which browsers your code has been tested in before submitting a pull request
-- Pull requests should always be against the `master` branch, never against `gh-pages`.
+**We will not accept pull requests that modify the SCSS beyond fixing bugs caused by *our* code!**
 
+Most pull requests should go to [twbs/bootstrap](https://github.com/twbs/bootstrap) or [jlong/sass-twitter-bootstrap](https://github.com/jlong/sass-twitter-bootstrap)
 
+Good pull requests - patches, improvements, new features - are a fantastic
+help. They should remain focused in scope and avoid containing unrelated
+commits. If your contribution involves a significant amount of work or substantial
+changes to any part of the project, please open an issue to discuss it first.
 
-## Coding standards
+Make sure to adhere to the coding conventions used throughout a project
+(indentation, accurate comments, etc.). Please update any documentation that is
+relevant to the change you're making.
 
-### HTML
+## Do not…
 
-- Two spaces for indentation, never tabs
-- Double quotes only, never single quotes
-- Always use proper indentation
-- Use tags and elements appropriate for an HTML5 doctype (e.g., self-closing tags)
-- Use CDNs and HTTPS for third-party JS when possible. We don't use protocol-relative URLs in this case because they break when viewing the page locally via `file://`.
+Please **do not** use the issue tracker for personal support requests (use
+[Stack Overflow](http://stackoverflow.com/)).
 
-### CSS
+Please **do not** derail or troll issues. Keep the
+discussion on topic and respect the opinions of others.
 
-- Adhere to the [RECESS CSS property order](http://markdotto.com/2011/11/29/css-property-order/)
-- Multiple-line approach (one property and value per line)
-- Always a space after a property's colon (e.g., `display: block;` and not `display:block;`)
-- End all lines with a semi-colon
-- For multiple, comma-separated selectors, place each selector on its own line
-- Attribute selectors, like `input[type="text"]` should always wrap the attribute's value in double quotes, for consistency and safety (see this [blog post on unquoted attribute values](http://mathiasbynens.be/notes/unquoted-attribute-values) that can lead to XSS attacks).
-
-### JS
-
-- No semicolons
-- Comma first
-- 2 spaces (no tabs)
-- strict mode
-- "Attractive"
-
-
-
-## License
-
-With v3.1, we're moving from the Apache 2 to the MIT license for the Bootstrap code (not the docs). We're in the process of collecting permissions from all Bootstrap contributors with code still part of the project to make this happen. For details, please see [#2054](https://github.com/twbs/bootstrap/issues/2054).
-
-By contributing your code, you agree to dual-license your contribution under the [Apache 2](https://github.com/twbs/bootstrap/blob/master/LICENSE) and [MIT](https://github.com/twbs/bootstrap/blob/master/MIT) licenses.
+*props [html5-boilerplate](https://github.com/h5bp/html5-boilerplate/blob/master/CONTRIBUTING.md)*

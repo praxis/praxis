@@ -130,9 +130,12 @@ module Praxis
         end
       end
 
-      if (media_type_example = self.example)
-        content[:example] = media_type_example.render
-      end
+      # Generate an appropriate response example.
+      # A rendered response will need to contain not just the body of the associated media_type...
+      # but also headers, url...etc...
+      #if (media_type_example = self.example)
+      #  content[:example] = self.media_type.dump( media_type_example )
+      #end
 
       unless headers == nil
         headers.each do |name, value|
@@ -151,12 +154,16 @@ module Praxis
       { :value => data_value, :type => data_type }
     end
 
-    def validate( response )
+    def validate(response, validate_body: false)
       validate_status!(response)
       validate_location!(response)
       validate_headers!(response)
       validate_content_type!(response)
       validate_parts!(response)
+      
+      if validate_body
+        validate_body!(response)
+      end
     end
 
     def parts(proc=nil, like: nil,  **args, &block)
@@ -241,7 +248,7 @@ module Praxis
 
     # Validates Content-Type header and response media type
     #
-    # @param [Object] action
+    # @param [Object] response
     #
     # @raise [Exceptions::Validation] When there is a missing required header
     #
@@ -257,6 +264,24 @@ module Praxis
           " is incompatible with #{expected_content_type} as described in response: #{self.name}"
         )
       end
+    end
+
+    # Validates response body
+    # 
+    # @param [Object] response
+    #
+    # @raise [Exceptions::Validation]  When there is a missing required header..
+    def validate_body!(response)
+      return unless media_type
+      return if media_type.kind_of? SimpleMediaType
+      
+      errors = self.media_type.validate(self.media_type.load(response.body))
+      if errors.any?
+        message = "Invalid response body for #{media_type.identifier}." +
+          "Errors: #{errors.inspect}"
+        raise Exceptions::Validation.new(message, errors: errors)
+      end
+
     end
 
     def validate_parts!(response)

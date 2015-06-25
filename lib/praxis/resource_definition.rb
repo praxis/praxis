@@ -114,17 +114,18 @@ module Praxis
           mapping[parent_param_name.to_sym] = param
         end
 
-        # complete the mapping and massage the route 
+        # complete the mapping and massage the route
         parent_route.names.collect(&:to_sym).each do |name|
           if mapping.key?(name)
             param = mapping[name]
             # FIXME: this won't handle URI Template type paths, ie '/{parent_id}'
-            @parent_prefix = parent_route.to_s.gsub(/(:)(#{name})([\W]*)/, "\\1#{param.to_s}\\3")
+            prefixed_path = parent_action.primary_route.prefixed_path
+            @parent_prefix = prefixed_path.gsub(/(:)(#{name})([\W]*)/, "\\1#{param.to_s}\\3")
           else
             mapping[name] = name
           end
         end
-    
+
         self.on_finalize do
           self.inherit_params_from_parent(parent_action, **mapping)
         end
@@ -195,6 +196,9 @@ module Praxis
       end
 
       def parse_href(path)
+        if path.kind_of?(::URI::Generic)
+          path = path.path
+        end
         param_values = canonical_path.primary_route.path.params(path)
         attrs = canonical_path.params.attributes
         param_values.each_with_object({}) do |(key,value),hash|

@@ -90,7 +90,7 @@ describe Praxis::Collection do
 
 
     context 'for members' do
-      let(:volume_output) { example.render(:default) }
+      let(:volume_output) { example.render(view: :default) }
 
       subject(:output) { volume_output[:snapshots] } 
 

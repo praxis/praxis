@@ -6,7 +6,7 @@ module Praxis
       extend ::ActiveSupport::Concern
 
       module ClassMethods
-        def describe(shallow = false)
+        def describe(shallow = false, **opts)
           hash = super
           unless shallow
             hash.merge!(identifier: @identifier.to_s, description: @description)

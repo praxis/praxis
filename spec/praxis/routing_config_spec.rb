@@ -10,9 +10,10 @@ describe Praxis::RoutingConfig do
   end
 
   let(:routing_block) { Proc.new{} }
+  let(:base_path){ '' }
   let(:default_route_prefix) { "/" + resource_definition.name.split("::").last.underscore }
 
-  subject(:routing_config){ Praxis::RoutingConfig.new(&routing_block) }
+  subject(:routing_config){ Praxis::RoutingConfig.new(base: base_path, &routing_block) }
 
   its(:version) { should eq('n/a') }
   its(:prefix ) { should eq('') }
@@ -40,6 +41,7 @@ describe Praxis::RoutingConfig do
   context '#add_route' do
     let(:path) { '/people' }
     let(:options) { {} }
+    let(:base_path){ '/api' }
     let(:route) { routing_config.add_route 'GET', path, **options}
 
     it 'returns a corresponding Praxis::Route' do
@@ -58,12 +60,12 @@ describe Praxis::RoutingConfig do
       end
 
       it 'does NOT pass the name option down to mustermann' do
-        expect(Mustermann).to receive(:new).with(path, hash_excluding({name: 'alternative'}))
+        expect(Mustermann).to receive(:new).with(base_path + path, hash_excluding({name: 'alternative'}))
         expect(route.name).to eq('alternative')
       end
 
       it 'passes them through the underlying mustermann object (telling it to ignore unknown ones)' do
-        expect(Mustermann).to receive(:new).with(path, hash_including(ignore_unknown_options: true, except: '/special'))
+        expect(Mustermann).to receive(:new).with(base_path + path, hash_including(ignore_unknown_options: true, except: '/special'))
         expect(route.options).to eq( { except: '/special' })
       end
     end
@@ -74,13 +76,17 @@ describe Praxis::RoutingConfig do
       end
 
       it 'includes the prefix in the route path' do
-        expect(route.path.to_s).to eq '/parents/:parent_id/people'
+        expect(route.path.to_s).to eq '/api/parents/:parent_id/people'
+      end
+
+      it 'has the right prefixed_path' do
+        expect(route.prefixed_path).to eq '/parents/:parent_id/people'
       end
 
       context 'for paths beginning with //' do
         let(:path) { '//people' }
         it 'does not include the prefix in the route path' do
-          expect(route.path.to_s).to eq '/people'
+          expect(route.path.to_s).to eq '/api/people'
         end
       end
     end

@@ -134,7 +134,7 @@ describe Praxis::ApiDefinition do
         its([:title]) { should eq 'A simple App to do some simple integration testing' }
         its([:description]) { should eq 'This example API should really be replaced by a set of more full-fledged example apps in the future' }
       end
-      
+
       it 'outputs data for 1.0 info' do
         expect(output.keys).to include("1.0")
         expect(output["1.0"]).to include(:info)
@@ -147,7 +147,7 @@ describe Praxis::ApiDefinition do
         expect(info[:name]).to eq("Spec App")
         expect(info[:title]).to eq("A simple App to do some simple integration testing")
         expect(info[:description]).to eq("A simple 1.0 App")
-        expect(info[:base_path]).to eq("/")
+        expect(info[:base_path]).to eq("/api")
       end
     end
 

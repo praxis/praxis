@@ -39,15 +39,17 @@ class Instances < BaseClass
     #puts "Decorator three end"
   end
 
-  def index(response_content_type:, **params)
+  def index(cloud_id:, response_content_type: 'application/vnd.acme.instance;type=collection', **params)
+    instances = Instance::Collection.example
+    response.body = JSON.pretty_generate(instances.collect { |i| i.render })
     response.headers['Content-Type'] = response_content_type #'application/vnd.acme.instance;type=collection'
-    JSON.generate(params)
+    response
   end
 
   def show(cloud_id:, id:, junk:, **other_params)
     payload = request.payload
     response.body = {cloud_id: cloud_id, id: id, junk: junk, other_params: other_params, payload: payload && payload.dump}
-    response.headers['Content-Type'] = 'application/vnd.acme.instance'
+    response.headers['Content-Type'] = 'application/json'
     response
   end
 
@@ -56,7 +58,7 @@ class Instances < BaseClass
 
 
     request.payload.each do |instance_id,instance|
-      part_body = JSON.pretty_generate(key: instance_id, value: instance.render(:create))
+      part_body = JSON.pretty_generate(key: instance_id, value: instance.render(view: :create))
       headers = {
         'Status' => '201',
         'Content-Type' => Instance.identifier,
@@ -105,7 +107,7 @@ class Instances < BaseClass
   end
 
   def exceptional(cloud_id:, splat:)
-    response.headers['Content-Type'] = 'application/vnd.acme.instance'
+    response.headers['Content-Type'] = 'application/json'
     response
   end
 end

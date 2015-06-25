@@ -48,17 +48,9 @@ describe Praxis::Application do
     subject { Class.new(Praxis::Application).instance }
 
     before do
-      bootloader = double('bootloader')
-      allow(bootloader).to receive(:setup!).and_return(true)
-
-      app = double('built Rack app')
-
-      builder = double('Rack builder')
-      allow(builder).to receive(:run)
-      allow(builder).to receive(:to_app).and_return(app)
-
-      subject.instance_variable_set(:@bootloader, bootloader)
-      subject.instance_variable_set(:@builder, builder)
+      # don't actually bootload; we're merely running specs
+      allow(subject.bootloader).to receive(:setup!).and_return(true)
+      allow(subject.builder).to receive(:to_app).and_return(double('Rack app'))
     end
 
     describe '#handler' do
@@ -98,6 +90,27 @@ describe Praxis::Application do
           subject.handler new_handler_name, bad_handler_class
         }.to raise_error(ArgumentError)
       end
+    end
+  end
+
+  describe '#setup' do
+    subject { Class.new(Praxis::Application).instance }
+
+    before do
+      # don't actually bootload; we're merely running specs
+      allow(subject.bootloader).to receive(:setup!).and_return(true)
+      allow(subject.builder).to receive(:to_app).and_return(double('Rack app'))
+    end
+
+    it 'is idempotent' do
+      expect(subject.builder).to receive(:to_app).once
+      subject.setup
+      subject.setup
+    end
+
+    it 'returns itself' do
+      expect(subject.setup).to eq(subject)
+      expect(subject.setup).to eq(subject)
     end
   end
 end

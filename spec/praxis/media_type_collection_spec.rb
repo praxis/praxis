@@ -78,7 +78,7 @@ describe Praxis::MediaTypeCollection do
     context 'for standard views' do
       let(:snapshots_data) { {name: 'snapshots',   href: '/bob/snapshots' } }
       let(:snapshots) { media_type_collection.load(snapshots_data) }
-      subject(:output) { snapshots.render(:link) }
+      subject(:output) { snapshots.render(view: :link) }
 
       its([:name]) { should eq(snapshots.name)}
       its([:size]) { should eq(snapshots.size)}

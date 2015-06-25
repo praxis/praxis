@@ -9,14 +9,34 @@ module Praxis
         @parent = parent
       end
 
-
       def path
         @_path ||= ( @parent.path + [name] )
       end
 
       def execute
-        request.load_headers(CONTEXT_FOR[:headers])
-        request.load_params(CONTEXT_FOR[:params])
+        begin
+          request.load_headers(CONTEXT_FOR[:headers])
+        rescue Attributor::AttributorException => e
+          message = "Error loading headers."
+          return validation_handler.handle!(
+            exception: e,
+            summary: message,
+            request: request,
+            stage: name
+          )
+        end
+
+        begin
+          request.load_params(CONTEXT_FOR[:params])
+        rescue Attributor::AttributorException => e
+          message = "Error loading params."
+          return validation_handler.handle!(
+            exception: e,
+            summary: message,
+            request: request,
+            stage: name
+          )
+        end
 
         attribute_resolver = Attributor::AttributeResolver.new
         Attributor::AttributeResolver.current = attribute_resolver
@@ -26,9 +46,14 @@ module Praxis
 
         errors = request.validate_headers(CONTEXT_FOR[:headers])
         errors += request.validate_params(CONTEXT_FOR[:params])
-
         if errors.any?
-          return Responses::ValidationError.new(summary: "Error validating request data", errors: errors)
+          message = "Error validating request data."
+          return validation_handler.handle!(
+            summary: message,
+            errors: errors,
+            request: request,
+            stage: name
+          )
         end
       end
 

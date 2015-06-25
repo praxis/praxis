@@ -11,7 +11,7 @@ describe Praxis::ActionDefinition do
 
       media_type 'application/json'
       version '1.0'
-      prefix '/api/hello_world'
+      prefix '/foobars/hello_world'
       action_defaults do
         payload { attribute :inherited, String }
         headers { header "Inherited", String }
@@ -90,7 +90,7 @@ describe Praxis::ActionDefinition do
     end
 
     its('params.attributes.keys') { should eq [:inherited, :app_name, :name, :one]}
-    its('routes.first.path.to_s') { should eq '/api/hello_world/test_trait/:app_name/:one' }
+    its('routes.first.path.to_s') { should eq '/api/foobars/hello_world/test_trait/:app_name/:one' }
     its(:traits) { should eq [:test] }
 
     it 'is reflected in the describe output' do
@@ -149,7 +149,7 @@ describe Praxis::ActionDefinition do
       let(:parent_param) { ApiResources::Volumes.actions[:show].params.attributes[:id] }
 
       it 'has the right path' do
-        expect(action.primary_route.path.to_s).to eq '/clouds/:cloud_id/volumes/:volume_id/snapshots/:id'
+        expect(action.primary_route.path.to_s).to eq '/api/clouds/:cloud_id/volumes/:volume_id/snapshots/:id'
       end
 
       its('params.attributes'){ should have_key(:cloud_id) }
@@ -195,7 +195,7 @@ describe Praxis::ActionDefinition do
 
     it 'works' do
       expansion = action.primary_route.path.expand(cloud_id:232, id: 2)
-      expect(expansion).to eq "/clouds/232/instances/2"
+      expect(expansion).to eq "/api/clouds/232/instances/2"
     end
 
     context '#primary_route' do
@@ -252,7 +252,7 @@ describe Praxis::ActionDefinition do
       allow(Praxis::ApiDefinition).to receive(:instance).and_return(non_singleton_api)
     end
 
-    its('routes.first.path.to_s') { should eq '/apps/:app_name/api/hello_world/:one' }
+    its('routes.first.path.to_s') { should eq '/apps/:app_name/foobars/hello_world/:one' }
     its('params.attributes.keys') { should eq [:inherited, :app_name, :one]}
 
     context 'where the action overrides a base_param' do
@@ -265,7 +265,7 @@ describe Praxis::ActionDefinition do
             'FooBar'
           end
           version '1.0'
-          prefix '/api/hello_world'
+          prefix '/foobars/hello_world'
           action_defaults do
             payload { attribute :inherited, String }
             headers { header "Inherited", String }

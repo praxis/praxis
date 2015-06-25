@@ -45,6 +45,10 @@ module Praxis
         @context.request
       end
 
+      def validation_handler
+        dispatcher.application.validation_handler
+      end
+
       def run
         # stage-level callbacks (typically empty) will never shortcut
         execute_callbacks(self.before_callbacks)

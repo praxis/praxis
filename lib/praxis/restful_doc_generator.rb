@@ -108,6 +108,10 @@ module Praxis
         end
       end
 
+      def parent
+        @controller_config.parent
+      end
+
       def friendly_name
         # FIXME: is it really about the controller? or the attached resource definition?
         segments = self.name.split("::")
@@ -259,6 +263,7 @@ module Praxis
       @resources.each do |r|
         index[r.version] ||= Hash.new
         info = {controller: r.id, name: r.name}
+        info[:parent] = r.parent.id if r.parent
         if r.media_type
           info[:media_type] = r.media_type.id
           media_types_seen_from_controllers << r.media_type

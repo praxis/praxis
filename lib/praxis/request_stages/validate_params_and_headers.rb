@@ -16,7 +16,7 @@ module Praxis
       def execute
         begin
           request.load_headers(CONTEXT_FOR[:headers])
-        rescue Attributor::AttributorException => e
+        rescue => e
           message = "Error loading headers."
           return validation_handler.handle!(
             exception: e,

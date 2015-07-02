@@ -57,3 +57,5 @@ navigation:
       href:       '/reference/traits'
     - title:      'Plugins'
       href:       '/reference/plugins'
+    - title:      'Multipart Encoding'
+      href:       '/reference/multipart'

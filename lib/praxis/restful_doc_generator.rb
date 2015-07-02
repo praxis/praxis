@@ -263,7 +263,7 @@ module Praxis
       @resources.each do |r|
         index[r.version] ||= Hash.new
         info = {controller: r.id, name: r.name}
-        info[:parent] = r.parent.id if r.parent
+        info[:parent] = r.parent.controller ? r.parent.controller.id : r.parent.id if r.parent
         if r.media_type
           info[:media_type] = r.media_type.id
           media_types_seen_from_controllers << r.media_type

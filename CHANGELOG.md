@@ -37,6 +37,8 @@ config option, and uses the `media_type` defined for the response definition.
 * The `header` directive inside `ActionDefinition#headers` now accepts an optional second `type` parameter that may be used to override the default `String` type that would be used.
 * Added `Praxis::Handlers::Plain` encoder for 'text/plain'.
 * Fixed `Praxis::Handlers::XML ` handler to transform dashes to underscores and treat empty hashes like ActiveSupport does.
+* Adds hierarchival navigation to the doc browser.
+* Adds a ConfigurationProvider allowing for easy doc customization.
 
 ## 0.16.1
 

@@ -14,6 +14,8 @@ end
 
 Praxis::Application.configure do |application|
 
+  application.handler 'xml', Praxis::Handlers::XML
+
   application.middleware SetHeader, 'Spec-Middleware', 'used'
 
   application.bootloader.use SimpleAuthenticationPlugin, config_file: 'config/authentication.yml'

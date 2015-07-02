@@ -21,7 +21,11 @@ describe Praxis::Multipart do
   end
 
   context 'with value type' do
-    let(:type) { Praxis::Multipart.of(value: Integer) }
+    let(:type) do
+      silence_warnings do
+        Praxis::Multipart.of(value: Integer)
+      end
+    end
     its(['some_name']) { should eq(1) }
   end
 
@@ -42,7 +46,7 @@ describe Praxis::Multipart do
       form.add entity,'some_date'
     end
 
-    let(:type) { Praxis::Multipart.construct(block) }
+    let(:type) { silence_warnings { Praxis::Multipart.construct(block) } }
 
     its(['some_name']) { should eq(1) }
     its(['some_date']) { should eq(date) }
@@ -61,7 +65,12 @@ describe Praxis::Multipart do
   end
 
   context '.example' do
-    let(:type) { Praxis::Multipart.of(value: Instance) }
+    let(:type) do
+      silence_warnings do
+        Praxis::Multipart.of(value: Instance)
+      end
+    end
+
     subject(:example) { type.example('example') }
 
     it 'generates an interesting example' do
@@ -88,9 +97,9 @@ describe Praxis::Multipart do
     end
 
     it 'complains when the value is not a String (besides a Multipart instance or nil)' do
-       expect{
+      expect{
         type.load( {a: "hash"} )
-        }.to raise_error(Attributor::CoercionError)
+      }.to raise_error(Attributor::CoercionError)
     end
 
     pending 'complete the load tests'

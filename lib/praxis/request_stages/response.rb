@@ -10,6 +10,7 @@ module Praxis
 
         if Application.instance.config.praxis.validate_responses == true
           validate_body = Application.instance.config.praxis.validate_response_bodies
+
           response.validate(action, validate_body: validate_body)
         end
       rescue Exceptions::Validation => e

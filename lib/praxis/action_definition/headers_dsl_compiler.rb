@@ -11,7 +11,11 @@ module Praxis
       #                     required: true             => to make it required
       #                     description: "lorem ipsum" => to describe it (like any other attribute)
 
-      def header(name, val=nil, **options )
+      def header(name, val=nil, **options)
+        if val.kind_of?(Class)
+          return key name, val, **options  
+        end
+
         case val
         when Regexp
           options[:regexp] = val
@@ -21,7 +25,6 @@ module Praxis
           # Defining the existence without any other options can only mean that it is required (otherwise it is a useless definition)
           options[:required] = true if options.empty?
         end
-        #orig_attribute name.upcase , String, options
         key name , String, options
       end
 

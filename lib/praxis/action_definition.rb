@@ -79,7 +79,17 @@ module Praxis
       attribute.type.attributes(options, &block)
     end
 
-    def response(name, **args)
+    def response(name, type=nil, **args, &block)
+      if type
+        # should verify type is a media type
+        
+        if block_given?
+          type = type.construct(block)
+        end
+
+        args[:media_type] = type
+      end
+
       template = ApiDefinition.instance.response(name)
       @responses[name] = template.compile(self, **args)
     end
@@ -141,6 +151,8 @@ module Praxis
         @headers = create_attribute(type,
                                     dsl_compiler: HeadersDSLCompiler, case_insensitive_load: true,
                                     **opts, &block)
+
+        @headers
       end
       @precomputed_header_keys_for_rack = nil #clear memoized data
     end

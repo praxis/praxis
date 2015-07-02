@@ -19,11 +19,14 @@ describe Praxis::MultipartParser do
   subject(:parts) { parser.parse[1] }
 
   context 'with simple parts' do
+    it { should be_kind_of(Array) }
     it { should have(1).item }
-    it { should have_key('destination_path') }
 
-    it 'sets the right values on the part' do
-      expect(parts['destination_path'].body).to eq('/etc/defaults')
+    context 'the parsed parts' do
+      subject(:part) { parts.first }
+
+      its(:name) { should eq 'destination_path' }
+      its(:body) { should eq '/etc/defaults' }
     end
   end
 
@@ -33,20 +36,25 @@ describe Praxis::MultipartParser do
       form.add text, 'file', 'docker'
     end
 
-    subject(:file_part_body) { parts['file'].body }
+    subject(:part) { parts.find { |p| p.name == 'file'} }
+    #subject(:part_body) { part.body }
 
-    it { should be_kind_of(Hash) }
-    its([:filename]) { should eq("docker") }
-    its([:name]) { should eq("file") }
-    its([:type]) { should eq("text/plain") }
-    its([:tempfile]) { should be_kind_of(Tempfile)}
-    its([:head]) { should match(/Content-Disposition/) } 
+
+    its(:payload) { should be_kind_of(Tempfile) }
+    its(:filename) { should eq("docker") }
+    its(:name) { should eq("file") }
+
+    context 'headers' do
+      subject(:part_headers) { part.headers }
+      its(['Content-Type']) { should eq("text/plain") }
+      its(['Content-Disposition']) { should match(/filename=docker/) }
+    end
 
     it 'saves the value to the tempfile' do
-      expect(File.exist?(file_part_body[:tempfile].path)).to be(true)
+      expect(File.exist?(part.payload.path)).to be(true)
 
-      file_part_body[:tempfile].rewind
-      expect(file_part_body[:tempfile].read).to eq('DOCKER_HOST=tcp://127.0.0.1:2375')
+      part.payload.rewind
+      expect(part.payload.read).to eq('DOCKER_HOST=tcp://127.0.0.1:2375')
     end
 
   end

@@ -160,13 +160,13 @@ describe 'Functional specs' do
     let(:body) { form.body.to_s }
 
     it 'works' do
-
       post '/api/clouds/1/instances?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
 
       _reponse_preamble, response = Praxis::MultipartParser.parse(last_response.headers, last_response.body)
       expect(response).to have(1).item
 
-      response_id, instance_part = response.first
+      instance_part = response.first
+      response_id = instance_part.name
       expect(response_id).to eq(instance.id.to_s)
 
       instance_headers = instance_part.headers
@@ -211,7 +211,7 @@ describe 'Functional specs' do
         its(['filename']) { should eq('docker') }
         its(['type']) { should eq('text/plain') }
         its(['name']) { should eq('file') }
-        its(['tempfile']) { should match(/^\//) }
+        its(['tempfile']) { should eq('DOCKER_HOST=tcp://127.0.0.1:2375') }
       end
     end
 

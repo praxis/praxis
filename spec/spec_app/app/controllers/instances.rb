@@ -54,19 +54,27 @@ class Instances < BaseClass
   end
 
   def bulk_create(cloud_id:)
-    self.response = BulkResponse.new
+    self.response = Praxis::Responses::MultipartOk.new
+    response.body = request.action.responses[:multipart_ok].media_type.new
 
+    request.payload.each do |part|
+      instance_id = part.name
+      instance = part.payload
 
-    request.payload.each do |instance_id,instance|
-      part_body = JSON.pretty_generate(key: instance_id, value: instance.render(view: :create))
+      part_body = {
+        key: instance_id,
+        value: instance.render(view: :create)
+      }
+
       headers = {
         'Status' => '201',
-        'Content-Type' => Instance.identifier,
+        'Content-Type' => Instance.identifier + '+json',
         'Location' => definition.to_href(cloud_id: cloud_id, id: instance.id)
       }
-      part = Praxis::MultipartPart.new(part_body, headers)
 
-      response.add_part(instance_id, part)
+      part = Praxis::MultipartPart.new(part_body, headers, name: instance_id)
+
+      response.body.push(part)
     end
 
     response

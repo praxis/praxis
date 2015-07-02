@@ -51,8 +51,10 @@ $ rake praxis:docs:preview
 The default generator will generate a ```docs``` folder for you. In this folder
 you can customise the docs output. The docs app that ships with Praxis is a fully
 featured documentation browser tool, but chances are that you will want to customise
-it's look and feel before shipping it to customers. There are three principal ways how
-to customise the application:
+it's look and feel before shipping it to customers. The doc browser is built with
+Angular.js, Sass and Bootstrap - each of these technologies allowing you to customise
+the resulting app. Here are a few ways you can do it, we also have a collection
+of [recipes on the project wiki](https://github.com/rightscale/praxis/wiki/Doc-Browser-Customisation-Recipees).
 
 ### Changing styles with style.scss
 
@@ -67,18 +69,6 @@ be recompiled on save and served in the doc browser.
 $link-color: red; // change all the links to red
 @import 'praxis.scss';
 {% endhighlight %}
-
-
-<!-- TODO:
-### Customising via Hooks
-
-Some of our services provide hooks for customisation via their provider. TODO: add more details and API docs.
-
-{% highlight js %}
-angular.module('DocsApp', ['praxisDocBrowser']).config(function(TemplateProvider) {
-  TemplateProvider.registerForType('image/png', '<img src="data:{{example}}" />');
-});
-{% endhighlight %} -->
 
 ### Overriding files through Dependency Injection
 
@@ -109,20 +99,48 @@ angular.module('DocsApp', ['praxisDocBrowser']).controller("ControllerCtrl", fun
 });
 {% endhighlight %}
 
-<!-- TODO:
-What is somewhat unusual is that we use DI for templates as well:
-
-{% highlight js %}
-angular.module('DocsApp', ['praxisDocBrowser'])
-  .constant('AttributeDescriptionTemplate', '{{attribute.description}}<div>HEYA THERE!</dl>');
-{% endhighlight %}
-
-It should be noted that while this approach is extremely powerful, we don't provide the same
-guarantees on API stability as we do with the other approaches.
--->
-
 Any HTML templates that you put into ```docs/views``` will override templates that
 the browser already uses.
+
+### Customising via Hooks
+
+Most of the actual documentation content is documentation of various types - the request params type, the request body type, the response headers type, etc.
+
+Each type goes through a template resolver function that decides which view will end up rendering the type. You can add your own resolver function that can return an appropriate template for your type.
+
+For this example, assume that we have defined a custom Set type. In `docs/app.js` we do:
+
+{% highlight js %}
+angular.module('DocBrowser', ['PraxisDocBrowser'])
+.config(function($templateForProvider) {
+  // this is a dependency injected function
+  $templateForProvider.register(function($type, $requestedTemplate) {
+    if ($type === 'Set') {
+      if ($requestedTemplate === 'standalone') {
+        return 'views/types/standalone/set.html';
+      }
+  });
+});
+{% endhighlight %}
+
+Here we register a new resolver function that is dependency injected. There are several special variables you can inject: `$type` is the name of the type, `$family` is the name of type family this type belongs to (type families provide a generic way to render similar types), `$typeDefinition` is an object containing everything we know about the type and finally `$requestedTemplate` is one of `standalone`, `embedded` or `label`.
+
+![template illustration](/public/images/template-illustration.png)
+
+Standalone templates exist at a standalone context and take the full width of the page. Embedded templates are for types that exist as a value of a key in a parent type and are rendered in a three column table - they should be one or more `<tr>`s. Label templates display the name of a type - which can be a link or conceivably you may add a popover explaining something about your type.
+
+The resolver function must return one of these possible values:
+
+- a string or a promise of a string: this will be considered a url of a template which will be either requested over http or loaded from the local template cache.
+- a link function or a promise of a link function: this will be linked at the appropriate place. Use this if you have a very small template or you want to make some dynamic adjustments to the template. You can get a link function like this:
+
+     {% highlight js %}
+     $templateForProvider.register(function($compile) {
+       return $compile('<div>My template</div>');
+     });
+     {% endhighlight %}
+- undefined: means that this resolver doesn't know how to handle the type/template combination. This will then invoke the next resolver in the queue. The built-in resolvers are equipped to handle any type (albeit not so well), so they will eventually pick this up.
+
 
 ## Shipping the Docs
 

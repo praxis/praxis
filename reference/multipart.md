@@ -8,24 +8,76 @@ Praxis has built-in support for handling "multipart/form-data" (link to RFC?) en
 
 ## Praxis::Types::MultipartArray
 
-The `MultipartArray` type is an `Attributor::Collection` of `Praxis::MultipartPart` members that allows you to specify the handling of each part of a multipart request or response body.
+The `MultipartArray` type is an `Attributor::Collection` of `Praxis::MultipartPart` members that allows you to specify how to handle each of the existing parts of a multipart request or response body.
+
 
 ### Definition
 
-* `part 'name'`
-* `part /name/`
-* `part 'email', multiple: true`
+Describing the body of a `MultipartArray` consists of defining shape of it parts. There are three ways to define the parts:
+  
+  * One can loosely define all the parts have the same payload and name type (which defaults to `String` and implies no restrictions or coercions should be applied).
+  * One can also define the type of a payload (and headers) for a specific part by name  
+  * Or, one can define the expected payload type (and headers) for a group of parts with names matching a regular expression.
 
-* defining parts that are files:
-  * simple: `part 'file', filename: true`
-  * simpler: `file 'file'`
-  * with filename string validation:
-    * `file 'file' { filename values: ['thumb.jpg'] }`
-    * `file 'file' { filename regex: /^img-/ }`
-  * with a filename of type other than String
-    * `file 'daily' { filename DateTime }`
 
-Example: 
+Here's an example where all of the part names are of type `String` that all have payloads of type `Hash`:
+{% highlight ruby %}
+class SimpleExample < Praxis::Types::MultipartArray
+  name_type String
+  payload_type Hash
+end
+{% endhighlight %}
+
+
+Here's one that that defines specific named parts and uses a regular expression to define a group of related parts:
+{% highlight ruby %}
+class NamedPartsExample < Praxis::Types::MultipartArray
+  # a part named "title" with default String payload
+  part 'title'
+
+  # a part named "uri" with a URI payload
+  part 'uri', URI
+
+  # a part named "contents" 
+  part 'contents' do
+    # that should have a Content-Type header of "application/json"
+    header 'Content-Type', 'application/json'
+
+    # and be loaded as a Hash
+    payload Hash
+   end
+
+  # any parts with names ending in "_at" are DateTimes
+  part /_at$/, DateTime
+end
+{% endhighlight %}
+
+Parts can also be defined to contain files (and match a filename). To do that you can pass the `filename: true` option when defining the part (or equivalently use the `file` method instead for syntactic sugar). Use the `filename` DSL inside the part definition to express any expected string or pattern for it.
+
+Also, part names are allowed to be repeated. To enable that use the `multiple: true` option in a part so that it can appear as an array of parts sharing the same name.
+
+Here are some examples for defining file parts:
+{% highlight ruby %}
+class FilePartExamples < Praxis::Types::MultipartArray
+  # a part named "thumbnail", that should have a filename
+  part 'thumbnail', filename: true
+
+  # a part named "image", that should also have a filename
+  file 'image'
+
+  # any number of parts named "files"
+  part 'files', multiple: true do
+    # with names containing "img"
+    filename /img/
+
+    # and a payload loaded as a Tempfile
+    payload Attributor::Tempfile
+  end    
+end
+{% endhighlight %}
+
+
+Here is a more complete (and complex) example of defining a multipart type that defines several parts in different ways for illustration purposes:
 
 {% highlight ruby %}
 class ImageUpload < Praxis::Types::MultipartArray
@@ -63,17 +115,18 @@ end
 {% endhighlight %}
 
 
-### Use
+### Using MulripartArray Instances
 
 
 To retrieve specific part(s) by name from an instance of a `MultipartArray`, use `part(name)`. 
-This returns a singular part (i.e., defined without `multiple: true`) part as a `MultipartPart` instances, and multiple parts (even if only one instance was provided) as an `Array` of `MultipartPart` instances.
+This returns a singular part (i.e., defined without `multiple: true`) part as a `MultipartPart` instance, and multiple parts (even if only one instance was provided) as an `Array` of `MultipartPart` instances.
 
-You may also use the `MultipartArray` as an array of all of the `MultipartPart` instances.
+You may also use the `MultipartArray` as an array of all of the `MultipartPart` instances with all of the standard Ruby `Array` and `Enumerable` methods.
 
-Use `push(part)` or `push(*parts)` to add one, or more, `MultipartPart`s to the array. This will validate the part names and coerce any headers and payload as applicable.
+To add one, or more, `MultipartPart` instances to the array, use `push(part)` or `push(*parts)`. This will validate the part names and coerce any headers and payload as applicable.
 
 Individual `MultipartPart` instances have the following methods:
+
   * `payload`: the part body data
   * `headers`: hash of headers
   * `name`: part name

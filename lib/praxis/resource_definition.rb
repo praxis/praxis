@@ -120,7 +120,7 @@ module Praxis
             param = mapping[name]
             # FIXME: this won't handle URI Template type paths, ie '/{parent_id}'
             prefixed_path = parent_action.primary_route.prefixed_path
-            @parent_prefix = prefixed_path.gsub(/(:)(#{name})([\W]*)/, "\\1#{param.to_s}\\3")
+            @parent_prefix = prefixed_path.gsub(/(:)(#{name})(\W+|$)/, "\\1#{param.to_s}\\3")
           else
             mapping[name] = name
           end

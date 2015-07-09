@@ -166,18 +166,12 @@ module Praxis
 
           if hash.key?(:attributes) || hash.key?(:pattern_attributes)
             self.describe_attributes(shallow, example: example).each do |name, sub_hash|
-              if self.multiple.include?(name)
-                #sub_hash[:options] ||= {}
-                #sub_hash[:multiple] = true
-              end
-
               case name
               when String
                 hash[:attributes][name] = sub_hash
               when Regexp
                 hash[:pattern_attributes][name.source] = sub_hash
               end
-
             end
           else
             hash[:part_payload] = {type: payload_type.describe(true)}
@@ -188,7 +182,14 @@ module Praxis
 
       def self.describe_attributes(shallow=true, example: nil)
         self.attributes.each_with_object({}) do |(part_name, part_attribute), parts|
-          sub_hash = part_attribute.describe(shallow, example: example)
+          sub_example = example.part(part_name) if example
+          if sub_example && self.multiple.include?(part_name)
+            sub_example = sub_example.first
+          end
+
+          sub_hash = part_attribute.describe(shallow, example: sub_example)
+          
+
           if (options = sub_hash.delete(:options))
             sub_hash[:options] = {}
             if self.multiple.include?(part_name)
@@ -202,8 +203,8 @@ module Praxis
             end
           end
 
-          sub_hash[:type] = MultipartPart.describe(shallow, example:example, options: part_attribute.options)
-          #sub_example = example.get(sub_name) if example
+          sub_hash[:type] = MultipartPart.describe(shallow, example: sub_example, options: part_attribute.options)
+          
 
           parts[part_name] = sub_hash
         end

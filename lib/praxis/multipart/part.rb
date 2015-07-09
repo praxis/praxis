@@ -57,13 +57,16 @@ module Praxis
       hash = super(shallow, example: example)
 
       if (payload_attribute = options[:payload_attribute])
-        hash[:payload] = payload_attribute.describe(shallow, example: example)
+        payload_example = example.payload if example
+        hash[:payload] = payload_attribute.describe(shallow, example: payload_example)
       end
       if (headers_attribute = options[:headers_attribute])
-        hash[:headers] = headers_attribute.describe(shallow, example: example)
+        headers_example = example.headers if example
+        hash[:headers] = headers_attribute.describe(shallow, example: headers_example)
       end
       if (filename_attribute = options[:filename_attribute])
-        hash[:filename] = filename_attribute.describe(shallow, example: example)
+        filename_example = example.filename if example
+        hash[:filename] = filename_attribute.describe(shallow, example: filename_example)
       end
 
       hash

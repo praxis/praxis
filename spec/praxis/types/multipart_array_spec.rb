@@ -151,9 +151,29 @@ describe Praxis::Types::MultipartArray do
 
       it { should have_key :part_name }
       it { should have_key :part_payload }
+    end
 
+    context 'with an example passed in' do
+      let(:example) { type.example }
+      subject(:description) { type.describe(false, example: example) }
 
+      it 'uses the example values' do
+        expect(
+          description[:attributes]['title'][:type][:payload][:example]
+        ).to eq example.part('title').payload
 
+        file_example = example.part('files').first.payload
+        file_example.rewind
+        expect(
+          description[:attributes]['files'][:type][:payload][:example]
+        ).to eq file_example.read
+
+        image_example = example.part('image').payload
+        image_example.rewind
+        expect(
+          description[:attributes]['image'][:type][:payload][:example]
+        ).to eq image_example.read
+      end
     end
   end
 

@@ -52,6 +52,26 @@ module Praxis
                filename_attribute: filename_attribute)
     end
 
+
+    def self.describe(shallow=true, example: nil, options:{})
+      hash = super(shallow, example: example)
+
+      if (payload_attribute = options[:payload_attribute])
+        payload_example = example.payload if example
+        hash[:payload] = payload_attribute.describe(shallow, example: payload_example)
+      end
+      if (headers_attribute = options[:headers_attribute])
+        headers_example = example.headers if example
+        hash[:headers] = headers_attribute.describe(shallow, example: headers_example)
+      end
+      if (filename_attribute = options[:filename_attribute])
+        filename_example = example.filename if example
+        hash[:filename] = filename_attribute.describe(shallow, example: filename_example)
+      end
+
+      hash
+    end
+
     def initialize(body, headers={}, name: nil, filename: nil, payload_attribute: nil, headers_attribute: nil, filename_attribute: nil)
       @name = name
       @body = body

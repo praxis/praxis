@@ -9,13 +9,11 @@ module Praxis
       @payload_type = Attributor::String
       @name_type = Attributor::String
       @attributes = FuzzyHash.new.freeze
-      @header_attributes = FuzzyHash.new.freeze
       @identifier = MediaTypeIdentifier.load('multipart/form-data').freeze
 
       def self.inherited(klass)
         klass.instance_eval do
           @attributes = FuzzyHash.new
-          @header_attributes = FuzzyHash.new
           @saved_blocks = []
           @multiple = []
           @options = {}
@@ -148,6 +146,68 @@ module Praxis
         end
 
         example
+      end
+
+
+      def self.describe(shallow=true, example: nil)
+        type_name = Attributor.type_name(self)
+        hash = {
+          name: type_name.gsub(Attributor::MODULE_PREFIX_REGEX, ''),
+          family: self.family,
+          id: self.id
+        }
+        hash[:example] = example if example
+
+        hash[:part_name] = {type: name_type.describe(true)}
+
+        unless shallow
+          hash[:attributes] = {} if self.attributes.keys.any? { |name| name.kind_of? String}
+          hash[:pattern_attributes] = {} if self.attributes.keys.any? { |name| name.kind_of? Regexp}
+
+          if hash.key?(:attributes) || hash.key?(:pattern_attributes)
+            self.describe_attributes(shallow, example: example).each do |name, sub_hash|
+              case name
+              when String
+                hash[:attributes][name] = sub_hash
+              when Regexp
+                hash[:pattern_attributes][name.source] = sub_hash
+              end
+            end
+          else
+            hash[:part_payload] = {type: payload_type.describe(true)}
+          end
+        end
+        hash
+      end
+
+      def self.describe_attributes(shallow=true, example: nil)
+        self.attributes.each_with_object({}) do |(part_name, part_attribute), parts|
+          sub_example = example.part(part_name) if example
+          if sub_example && self.multiple.include?(part_name)
+            sub_example = sub_example.first
+          end
+
+          sub_hash = part_attribute.describe(shallow, example: sub_example)
+          
+
+          if (options = sub_hash.delete(:options))
+            sub_hash[:options] = {}
+            if self.multiple.include?(part_name)
+              sub_hash[:options][:multiple] = true
+            end
+
+            if (payload_attribute = options.delete :payload_attribute)
+              if (required = payload_attribute.options[:required])
+                sub_hash[:options][:required] = true
+              end
+            end
+          end
+
+          sub_hash[:type] = MultipartPart.describe(shallow, example: sub_example, options: part_attribute.options)
+          
+
+          parts[part_name] = sub_hash
+        end
       end
 
       attr_accessor :preamble

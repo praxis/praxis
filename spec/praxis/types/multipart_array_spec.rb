@@ -86,20 +86,109 @@ describe Praxis::Types::MultipartArray do
     expect(image.filename).to eq 'image.jpg'
   end
 
+
+  context '.describe' do
+    subject(:description) { type.describe(false) }
+
+    its([:name]) { should eq 'Praxis::Types::MultipartArray' }
+
+    it { should have_key :part_name }
+    it { should have_key :attributes }
+    it { should have_key :pattern_attributes }
+
+    context 'attributes' do
+      subject(:attributes) { description[:attributes] }
+      its(:keys) { should match_array ['title', 'files', 'image']}
+
+      context 'the "title" part' do
+        subject(:title_description) { attributes['title'] }
+
+        it 'describes the options' do
+          expect(title_description[:options][:required]).to be true
+        end
+
+        it 'describes the payload' do
+          expect(title_description[:type][:payload][:type]).to eq Attributor::String.describe
+        end
+      end
+
+      context 'the "files" part' do
+        subject(:files_description) { attributes['files'] }
+
+        it 'describes the options' do
+          expect(files_description[:options][:multiple]).to be true
+        end
+
+        it 'describes the payload' do
+          expect(files_description[:type][:payload][:type]).to eq Attributor::Tempfile.describe
+        end
+
+        it 'describes the filename' do
+          filename = files_description[:type][:filename]
+          expect(filename[:options]).to eq(regexp: /file/)
+          expect(filename[:type]).to eq Attributor::String.describe
+        end
+
+      end
+    end
+
+    context 'pattern attributes' do
+      subject(:pattern_attributes) { description[:pattern_attributes] }
+      its(:keys) { should match_array ['nam', 'stuff']}
+    end
+
+    context 'with no parts defined' do
+      let(:type) do
+        Class.new(Praxis::Types::MultipartArray) do
+          name_type DateTime
+          payload_type Hash
+        end
+      end
+      its([:name]) { should eq 'Praxis::Types::MultipartArray' }
+
+      it { should_not have_key :attributes }
+      it { should_not have_key :pattern_attributes }
+
+      it { should have_key :part_name }
+      it { should have_key :part_payload }
+    end
+
+    context 'with an example passed in' do
+      let(:example) { type.example }
+      subject(:description) { type.describe(false, example: example) }
+
+      it 'uses the example values' do
+        expect(
+          description[:attributes]['title'][:type][:payload][:example]
+        ).to eq example.part('title').payload
+
+        file_example = example.part('files').first.payload
+        file_example.rewind
+        expect(
+          description[:attributes]['files'][:type][:payload][:example]
+        ).to eq file_example.read
+
+        image_example = example.part('image').payload
+        image_example.rewind
+        expect(
+          description[:attributes]['image'][:type][:payload][:example]
+        ).to eq image_example.read
+      end
+    end
+  end
+
   context 'dumping' do
     subject(:dumped) { payload.dump }
 
     it 'dumps' do
       loaded = type.load(dumped, content_type: payload.content_type)
     end
-
     context 'an example' do
       let(:payload) { type.example }
 
       it 'dumps' do
         loaded = type.load(dumped, content_type: payload.content_type)
-
-      end 
+      end
     end
   end
 

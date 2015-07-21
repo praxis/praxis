@@ -86,6 +86,24 @@ describe Praxis::Types::MultipartArray do
     expect(image.filename).to eq 'image.jpg'
   end
 
+  context 'with only payload_type defined' do
+    let(:type) do
+      Class.new(Praxis::Types::MultipartArray) do
+        name_type String
+        payload_type Hash do
+          key 'sub_hash', Hash
+        end
+      end
+    end
+
+    let(:json_payload) { {sub_hash: {key:'value'}}.to_json }
+    let(:body) { StringIO.new("--boundary\r\nContent-Disposition: form-data; name=blah\r\n\r\n#{json_payload}\r\n--boundary--") }
+    let(:content_type) { "multipart/form-data; boundary=boundary" }
+
+    it do
+      expect(payload.part('blah').payload['sub_hash']).to eq('key' => 'value')
+    end
+  end
 
   context '.describe' do
     subject(:description) { type.describe(false) }

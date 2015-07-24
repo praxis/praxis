@@ -2,6 +2,9 @@
 
 ## next
 
+
+## 0.17.0
+
 * Merges action details pages into one long page in doc browser
 * Refined path-based versioning:
   * Added `ApiGeneralInfo#version_with`, which defaults to `[:header, :params`] and may be set to `:path` to use path-based versioning.
@@ -30,10 +33,10 @@ config option, and uses the `media_type` defined for the response definition.
 * Fixed path generation for nested ResourceDefinitions
 * Substantial changes and improvements to multipart request and response handling:
   * Added `Praxis::Types::MultipartArray`, a type of `Attributor::Collection` with `Praxis::MultipartPart` members that allows the handling of duplicate named parts and unnamed ones. The new type supports defining many details about the expected structure of the parts, including headers, payloads, names and filename information. In addition, this type is able to load and validate full multipart bodies into the expected type structure, generate example objects as well as dump them into a full multipart body including boundaries and properly encoded parts following their content-types. See documentation for details and more features.
-  * Made `Praxis::MultipartPart` a proper `Attributor::Type`. 
+  * Made `Praxis::MultipartPart` a proper `Attributor::Type`.
   * Added `Praxis::Responses:MultipartOk` properly returning `MultipartArray` responses.
   * Deprecated `Praxis::Multipart`. A replacement for true hash-like behavior will be added before their removal in 1.0.
-* `ActionDefinition#response` now accepts an optional second `type` parameter, and optional block to further define that type. The `type` provided will be used to specify the `media_type` option to pass to the corresponding `ResponseDefinition`. 
+* `ActionDefinition#response` now accepts an optional second `type` parameter, and optional block to further define that type. The `type` provided will be used to specify the `media_type` option to pass to the corresponding `ResponseDefinition`.
 * The `header` directive inside `ActionDefinition#headers` now accepts an optional second `type` parameter that may be used to override the default `String` type that would be used.
 * Added `Praxis::Handlers::Plain` encoder for 'text/plain'.
 * Fixed `Praxis::Handlers::XML ` handler to transform dashes to underscores and treat empty hashes like ActiveSupport does.

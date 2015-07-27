@@ -2,6 +2,10 @@
 
 ## next
 
+## 0.17.1
+
+* Fixes an issue that would make exported documentation broken.
+* Fixes an issue that would make the version selector broken.
 
 ## 0.17.0
 

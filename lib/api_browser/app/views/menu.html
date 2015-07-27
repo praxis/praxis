@@ -2,8 +2,8 @@
   <div class="row">
     <div class="col-sm-12">
       <p>
-        <div class="btn-group" dropdown is-open="status.isopen">
-          <button type="button" class="btn btn-success dropdown-toggle" ng-disabled="disabled">
+        <div ng-if="versions.length > 1" dropdown auto-close="outsideClick">
+          <button type="button" class="btn btn-success" dropdown-toggle ng-disabled="disabled">
             {{:: versionLabel}}: {{selectedVersion}} <span class="caret"></span>
           </button>
           <ul class="dropdown-menu col-sm-12" role="menu">
@@ -11,6 +11,9 @@
               <a ng-click="select(version)" dropdown-toggle>{{version}}</a>
             </li>
           </ul>
+        </div>
+        <div ng-if="versions.length == 1" class="btn btn-success">
+          {{:: versionLabel}}: {{selectedVersion}}
         </div>
       </p>
     </div>

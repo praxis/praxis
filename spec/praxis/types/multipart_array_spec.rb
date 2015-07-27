@@ -105,6 +105,26 @@ describe Praxis::Types::MultipartArray do
     end
   end
 
+  context 'with simple payload_type block defined' do
+    let(:type) do
+      Class.new(Praxis::Types::MultipartArray) do
+        name_type String
+        payload_type do
+          attribute :attr, String
+        end
+      end
+    end
+
+    let(:json_payload) { {attr: 'value'}.to_json }
+    let(:body) { StringIO.new("--boundary\r\nContent-Disposition: form-data; name=blah\r\n\r\n#{json_payload}\r\n--boundary--") }
+    let(:content_type) { "multipart/form-data; boundary=boundary" }
+
+    it do
+      expect(payload.part('blah').payload.class.ancestors).to include(Attributor::Struct)
+      expect(payload.part('blah').payload.attr).to eq('value')
+    end
+  end
+
   context '.describe' do
     subject(:description) { type.describe(false) }
 

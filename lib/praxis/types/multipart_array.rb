@@ -51,9 +51,7 @@ module Praxis
         @name_type = Attributor.resolve_type type
       end
 
-      def self.payload_type(type=nil, **opts, &block)
-        return @payload_type if type.nil?
-
+      def self.payload_type(type=Attributor::Struct, **opts, &block)
         @payload_type = Attributor.resolve_type(type)
         @payload_attribute = Attributor::Attribute.new(@payload_type, **opts, &block)
         @part_attribute = nil
@@ -96,7 +94,7 @@ module Praxis
                                                   filename_attribute: filename_attribute
                                                   )
         else
-          payload_attribute = compiler.define(name, payload_type || self.payload_type, **opts)
+          payload_attribute = compiler.define(name, payload_type || @payload_type, **opts)
           self.attributes[name] = compiler.define(name, Praxis::MultipartPart,
                                                   payload_attribute: payload_attribute,
                                                   filename_attribute: filename_attribute
@@ -174,7 +172,7 @@ module Praxis
               end
             end
           else
-            hash[:part_payload] = {type: payload_type.describe(true)}
+            hash[:part_payload] = {type: @payload_type.describe(true)}
           end
         end
         hash
@@ -188,7 +186,7 @@ module Praxis
           end
 
           sub_hash = part_attribute.describe(shallow, example: sub_example)
-          
+
 
           if (options = sub_hash.delete(:options))
             sub_hash[:options] = {}
@@ -204,7 +202,7 @@ module Praxis
           end
 
           sub_hash[:type] = MultipartPart.describe(shallow, example: sub_example, options: part_attribute.options)
-          
+
 
           parts[part_name] = sub_hash
         end
@@ -226,7 +224,7 @@ module Praxis
       end
 
       def payload_type
-        self.class.payload_type
+        self.class.instance_variable_get :@payload_type
       end
 
       def push(*parts, context: Attributor::DEFAULT_ROOT_CONTEXT)

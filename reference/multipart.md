@@ -54,9 +54,7 @@ class NamedPartsExample < Praxis::Types::MultipartArray
 end
 {% endhighlight %}
 
-Parts can also be defined to contain files using the `filename` option.
-This option can take the value `true` or contain a string or regular expression to be matched
-against the filename.
+Parts can also be defined to contain files using the `filename` option with a value of `true`, or the `filename` directive in the `part` DSL which defines the attribute that should be used to validate the filename value.
 
 The `file` method can be used in place of `part` to define a part that contains a file.
 

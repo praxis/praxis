@@ -1,35 +1,6 @@
 module Praxis
   module Docs
 
-    class FormURLEncodedExampleGenerator
-      def self.format
-        'x-www-form-urlencoded'
-      end
-      def self.generate( payload )
-        return nil if payload.nil?
-        URI.encode_www_form( payload)
-      end
-
-      # Can augment and/or change the headers for an example response
-      def self.headers( headers )
-        (headers || {}).merge({'Content-Type' => 'application/x-www-form-urlencoded' })
-      end
-    end
-
-    class JSONExampleGenerator
-      def self.format
-        'json'
-      end
-      def self.generate( payload )
-        return nil if payload.nil?
-        JSON.pretty_generate(payload)
-      end
-      # Can augment and/or change the headers for an example response
-      def self.headers( headers )
-        (headers || {}).merge({'Content-Type' => 'application/json' })
-      end
-    end
-
     class Generator
       API_DOCS_DIRNAME = 'docs/api'
 

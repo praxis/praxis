@@ -218,12 +218,6 @@ module Praxis
 
           action_description = resource_description[:actions].find{|a| a[:name] == action_name }
 
-          #if action.params
-          #  # TODO: we should really provide one example for each route...and that example should include the url and the query string
-          #  example_per_route = url_examples(action: action, context: [r.id])
-          #  # TODO: should we stick these outside the :params? in essence it's about constructing URLs..(which yes, includes params...)
-          #  action_description[:params][:url_examples] = example_per_route
-          #end
           if action.payload
             action_description[:payload][:examples] = formatted_examples(attribute: action.payload, context: [r.id], generators: payload_generators)
           end
@@ -233,25 +227,6 @@ module Praxis
         File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(resource_description))}
       end
     end
-
-#    def url_examples(action:, context:)
-#      urls=[]
-#      example_hash = action.params.example(context).dump
-#      action.routes.each do|route|
-#        path_param_keys = route.path.named_captures.keys.collect(&:to_sym)
-#        query_param_keys = action.params.attributes.keys - path_param_keys
-##        required_query_param_keys = query_params.each_with_object([]) do |p, array|
-##          array << p if action.params.attributes[p].options[:required]
-##        end # Not used yet...but maybe it is a better idea to report them separately...
-#        path_params = example_hash.select{|k,v| path_param_keys.include? k }
-#        query_params = example_hash.select{|k,v| query_param_keys.include? k }
-#        url = {verb: route.verb}
-#        url[:path] = route.path.expand(path_params)
-#        url[:query_params_hash] = query_params
-#        urls << url
-#      end
-#      urls
-#    end
 
     def formatted_examples(attribute:, context:, generators: )
       example = attribute.example(context)

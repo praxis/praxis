@@ -187,86 +187,14 @@ module Praxis
             next if action.metadata[:doc_visibility] == :none
 
             action_description = resource_description[:actions].find {|a| a[:name] == action_name }
-            #action_description[:example_requests] = formatted_requests(action: action, context: context)
-
-            #action_description[:example_responses_by_name] = action.responses.each_with_object({}) do |(name,resp),hash|
-            #  hash[name] = formatted_responses( status: resp.status, status_name: resp.name, headers: resp.headers, payload: resp.media_type, context: context)
-            #end
           end
 
           hash[r.id] = resource_description
         end
       end
 
-      def formatted_requests(action:, context:)
-        #binding.pry if action.name == :create
-        payload_generators = [ JSONExampleGenerator , FormURLEncodedExampleGenerator]
-        # Examples
-        if action.headers
-          headers_hash = action.headers.dump(action.headers.example(context))
-        end
-        headers_example = headers_hash #FIXME: RIGHT FORMAT
-        if action.params
-          params_hash = action.params.dump(action.params.example(context))
-        end
-        route_example = ActionDefinition.url_example(route: action.primary_route, example_hash: params_hash || {}, params: action.params )
 
-        payload_hash = action.payload.dump(action.payload.example(context)) if action.payload
-        payload_generators.each_with_object({}) do |generator, hash|
-          hash[generator.format] = compose_request_example( route: route_example,
-                                                            headers: generator.headers(headers_example),
-                                                            payload: generator.generate(payload_hash))
-        end
-      end
-
-      def compose_request_example( route: , headers: , payload: )
-        string = "#{route[:verb]} #{route[:url]}"
-        if( query_params = route[:query_params] )
-          string += "?#{URI.encode_www_form(query_params)}" unless query_params.empty?
-        end
-        string += " HTTP/1.1\n"
-        if( headers && !headers.empty?)
-          string += headers.collect{|tuple| tuple.join(" : ")}.join("\n")
-        end
-        if payload
-          string += "\n"
-          string += payload
-        end
-        string
-      end
-
-      def formatted_responses(status:, status_name: , headers:, payload: , context:)
-
-        payload_generators = [ JSONExampleGenerator ]
-#        # Examples
-#        if headers
-#          headers_hash = headers.dump(headers.example(context))
-#        end
-#        headers_example = headers_hash #FIXME: RIGHT FORMAT
-# FIXME!! The response definitions objects only had hash definitions...not Attributor::Hashes!! Move that before using examples
-headers_example = {}
-
-        payload_hash = payload.dump(payload.example(context)) if payload
-        payload_generators.each_with_object({}) do |generator, hash|
-          hash[generator.format] = compose_response_example( status: status, status_name: status_name,
-                                                            headers: generator.headers(headers_example),
-                                                            payload: generator.generate(payload_hash))
-        end
-      end
-
-      def compose_response_example( status:, status_name: , headers: , payload: )
-        string = "HTTP/1.1 #{status} #{status_name}\n"
-        if( headers && !headers.empty?)
-          string += headers.collect{|tuple| tuple.join(" : ")}.join("\n")
-        end
-        if payload
-          string += "\n"
-          string += payload
-        end
-        string
-      end
-
-      def dump_schemas( types )
+      def dump_schemas(types)
         reportable_types = types - EXCLUDED_TYPES_FROM_OUTPUT
         reportable_types.each_with_object({}) do |type, array|
           context = [type.id]

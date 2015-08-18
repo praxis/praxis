@@ -11,6 +11,11 @@
     * new task currently usable through `bundle exec rake praxis:docs:experiments`
       * NOTE: leaves the current doc generation tasks and code intact (until the doc browser is switched to use this)
 * Specialized `Multipart`’s family in its description to be ‘multipart’ instead of ‘hash’.
+* Added `Praxis::Handlers::FormData` for 'multipart/form-data'. Currently returns the input unchanged in `parse` and `generate`. 
+* Added `Praxis::Handlers::WWWForm` for form-encoded data.
+* Added `Docs::Generator`, experimental new documentation generator. Use the `praxis:docs:experiments` rake task to generate. *Note*: not currently compatible with the documentation browser.
+
+
 
 ## 0.17.1
 

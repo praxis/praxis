@@ -12,6 +12,9 @@ module Praxis
             hash.merge!(identifier: @identifier.to_s, description: @description, display_name: self.display_name)
           end
           hash
+        rescue
+          binding.pry
+          retry
         end
 
         def description(text=nil)

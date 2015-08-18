@@ -55,15 +55,6 @@ module Praxis
       end
     end
 
-    def example(context=nil)
-      return nil if self.media_type.nil?
-      return nil if self.media_type.kind_of?(SimpleMediaType)
-      if context.nil?
-        context = "#{self.media_type.name}-#{self.name}"
-      end
-      self.media_type.example(context)
-    end
-
     def location(loc=nil)
       return @spec[:location] if loc.nil?
       unless ( loc.is_a?(Regexp) || loc.is_a?(String) )
@@ -112,7 +103,19 @@ module Praxis
       end
     end
 
-    def describe
+    def example(context=nil)
+      return nil if self.media_type.nil?
+      return nil if self.media_type.kind_of?(SimpleMediaType)
+
+      if context.nil?
+        context = "#{self.media_type.name}-#{self.name}"
+      end
+
+      self.media_type.example(context)
+    end
+
+
+    def describe(context: nil)
       location_type = location.is_a?(Regexp) ? :regexp : :string
       location_value = location.is_a?(Regexp) ? location.inspect : location
       content = {
@@ -121,27 +124,48 @@ module Praxis
         :headers => {}
       }
       content[:location] = _describe_header(location) unless location == nil
-      # TODO: Change the mime_type key to media_type!!
-      if media_type
-        content[:media_type] = if media_type.is_a? Symbol
-          media_type
-        else
-          media_type.describe(true) # TODO: is a shallow describe what we want? or just the name?
-        end
-      end
-
-      # Generate an appropriate response example.
-      # A rendered response will need to contain not just the body of the associated media_type...
-      # but also headers, url...etc...
-      #if (media_type_example = self.example)
-      #  content[:example] = self.media_type.dump( media_type_example )
-      #end
 
       unless headers == nil
         headers.each do |name, value|
           content[:headers][name] = _describe_header(value)
         end
       end
+
+      if self.media_type
+        payload = media_type.describe(true)
+
+        if (example_payload = self.example(context))
+          payload[:examples] = {}
+          rendered_payload = example_payload.dump
+
+          # FIXME: remove load when when MediaTypeCommon.identifier returns a MediaTypeIdentifier
+          identifier = MediaTypeIdentifier.load(self.media_type.identifier)
+
+          default_handlers = ApiDefinition.instance.info.supported_response_handlers
+
+          handlers = Praxis::Application.instance.handlers.select do |k,v|
+            default_handlers.include?(k)
+          end
+
+          if (handler = handlers[identifier.handler_name])
+            payload[:examples][identifier.handler_name] = {
+              content_type: identifier.to_s,
+              body: handler.generate(rendered_payload)
+            }
+          else
+            handlers.each do |name, handler|
+              content_type = identifier + name
+              payload[:examples][name] = {
+                content_type: content_type.to_s,
+                body: handler.generate(rendered_payload)
+              }
+            end
+          end
+        end
+
+        content[:payload] = payload
+      end
+
       unless parts == nil
         content[:parts_like] = parts.describe
       end

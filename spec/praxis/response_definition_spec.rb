@@ -509,6 +509,18 @@ describe Praxis::ResponseDefinition do
       response.headers(headers) if headers
     end
 
+    context 'for a definition with a media type' do
+      let(:media_type) { Instance }
+      before do
+        response.media_type Instance
+      end
+
+      #it do
+      #  pp output
+      #end
+    end
+
+
     context 'for a definition without parts' do
       it{ should be_kind_of(::Hash) }
       its([:description]){ should be(description) }
@@ -530,7 +542,7 @@ describe Praxis::ResponseDefinition do
         end
 
         it{ should be_kind_of(::Hash) }
-        its([:media_type]){ should == { identifier: 'foobar'} }
+        its([:payload]){ should == { identifier: 'foobar'} }
         its([:status]){ should == 200 }
       end
       context 'using a full response definition block' do
@@ -546,8 +558,8 @@ describe Praxis::ResponseDefinition do
         end
 
         it{ should be_kind_of(::Hash) }
-        its([:media_type]){ should == { identifier: 'custom_media'} }
-        its([:status]){ should == 234 }
+        its([:payload]) { should == { identifier: 'custom_media'} }
+        its([:status]) { should == 234 }
       end
     end
   end

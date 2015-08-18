@@ -1,4 +1,26 @@
 module Praxis
+
+  class URLExampleGenerator
+    def self.format
+      'url'
+    end
+    def self.generate( val )
+      val.collect do |(name, value)|
+        raise "Hey, a parameter value is not a string?!: #{value.inspect}" if (value.is_a?(Array) || value.is_a?(Hash))
+        "#{name.to_s}=#{value.to_s}"
+      end.join('&')
+    end
+  end
+
+  class JSONExampleGenerator
+    def self.format
+      'json'
+    end
+    def self.generate( val )
+      JSON.pretty_generate(val)
+    end
+  end
+
   class RestfulDocGenerator
 
     class << self
@@ -175,39 +197,80 @@ module Praxis
     end
 
     def write_resources
+      payload_generators = [ JSONExampleGenerator ]
+      params_generators = [ URLExampleGenerator ]
+
       @resources.each do |r|
 
         filename = File.join(@doc_root_dir, r.version, "resources","#{r.id}.json")
         #puts "Dumping #{r.id} to #{filename}"
         base = File.dirname(filename)
         FileUtils.mkdir_p base unless File.exists? base
+
         resource_description = r.controller_config.describe
 
         # strip actions with doc_visibility of :none
         resource_description[:actions].reject! { |a| a[:metadata][:doc_visibility] == :none }
-
         # Go through the params/payload of each action and generate an example for them (then stick it into the description hash)
         r.controller_config.actions.each do |action_name, action|
           # skip actions with doc_visibility of :none
           next if action.metadata[:doc_visibility] == :none
 
-          generated_examples = {}
-          if action.params
-            generated_examples[:params] = dump_example_for( r.id, action.params )
-          end
-          if action.payload
-            generated_examples[:payload] = dump_example_for( r.id, action.payload )
-          end
           action_description = resource_description[:actions].find{|a| a[:name] == action_name }
-          action_description[:params][:example] = generated_examples[:params] if generated_examples[:params]
-          action_description[:payload][:example] = generated_examples[:payload] if generated_examples[:payload]
+
+          #if action.params
+          #  # TODO: we should really provide one example for each route...and that example should include the url and the query string
+          #  example_per_route = url_examples(action: action, context: [r.id])
+          #  # TODO: should we stick these outside the :params? in essence it's about constructing URLs..(which yes, includes params...)
+          #  action_description[:params][:url_examples] = example_per_route
+          #end
+          if action.payload
+            action_description[:payload][:examples] = formatted_examples(attribute: action.payload, context: [r.id], generators: payload_generators)
+          end
+
         end
 
         File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(resource_description))}
       end
     end
 
+#    def url_examples(action:, context:)
+#      urls=[]
+#      example_hash = action.params.example(context).dump
+#      action.routes.each do|route|
+#        path_param_keys = route.path.named_captures.keys.collect(&:to_sym)
+#        query_param_keys = action.params.attributes.keys - path_param_keys
+##        required_query_param_keys = query_params.each_with_object([]) do |p, array|
+##          array << p if action.params.attributes[p].options[:required]
+##        end # Not used yet...but maybe it is a better idea to report them separately...
+#        path_params = example_hash.select{|k,v| path_param_keys.include? k }
+#        query_params = example_hash.select{|k,v| query_param_keys.include? k }
+#        url = {verb: route.verb}
+#        url[:path] = route.path.expand(path_params)
+#        url[:query_params_hash] = query_params
+#        urls << url
+#      end
+#      urls
+#    end
+
+    def formatted_examples(attribute:, context:, generators: )
+      example = attribute.example(context)
+      generators.each_with_object({}) do |generator, hash|
+        dumped = attribute.dump(example, generator: generator)
+
+        hash[generator.format] = case dumped
+        when Hash,Array
+          generator.generate(dumped)
+        when String
+          dumped
+        else
+          dumped.to_s
+        end
+      end
+    end
+
     def write_types( versioned_types )
+
       versioned_types.each do |version, types|
         dirname = File.join(@doc_root_dir, version, "types")
         FileUtils.mkdir_p dirname unless File.exists? dirname

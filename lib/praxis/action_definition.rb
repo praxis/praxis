@@ -67,7 +67,7 @@ module Praxis
       unless ApiDefinition.instance.traits.has_key? trait_name
         raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found in the system")
       end
-      
+
       trait = ApiDefinition.instance.traits.fetch(trait_name)
       trait.apply!(self)
       traits << trait_name
@@ -82,7 +82,7 @@ module Praxis
     def response(name, type=nil, **args, &block)
       if type
         # should verify type is a media type
-        
+
         if block_given?
           type = type.construct(block)
         end
@@ -188,32 +188,69 @@ module Praxis
       @description
     end
 
+    def self.url_description(route:, params_example:, params: )# TODO: what context to use?, context: [r.id])
+      route_description = route.describe
 
-    def describe
+      example_hash = params_example ? params_example.dump : {}
+      hash = self.url_example(route: route, example_hash: example_hash, params: params)
+
+      query_string = URI.encode_www_form(hash[:query_params])#collect {|(name, value)| "#{name.to_s}=#{value.to_s}"}.join('&')
+      url = hash[:url]
+      url = [url,query_string].join('?') unless query_string.empty?
+
+      route_description[:example] = url
+      route_description
+    end
+
+    def self.url_example(route:, example_hash:{}, params: )# TODO: what context to use?, context: [r.id])
+      path_param_keys = route.path.named_captures.keys.collect(&:to_sym)
+
+      param_attributes = params ? params.attributes : {}
+      query_param_keys = param_attributes.keys - path_param_keys
+      required_query_param_keys = query_param_keys.each_with_object([]) do |p, array|
+        array << p if params.attributes[p].options[:required]
+      end
+
+      path_params = example_hash.select{|k,v| path_param_keys.include? k }
+      # Let's generate the example only using required params, to avoid mixing incompatible parameters
+      query_params = example_hash.select{|k,v| required_query_param_keys.include? k }
+      example = { verb: route.verb, url: route.path.expand(path_params), query_params: query_params }
+    end
+
+    def describe(context: nil)
       {}.tap do |hash|
         hash[:description] = description
         hash[:name] = name
         hash[:metadata] = metadata
-        # FIXME: change to :routes along with api browser
-        hash[:urls] = routes.collect(&:describe)
-        hash[:headers] = headers.describe if headers
-        if params
-          hash[:params] = params_description
+        if headers
+          headers_example = headers.example(context)
+          hash[:headers] = headers.describe(example: headers_example)
         end
-        hash[:payload] = payload.describe if payload
+        if params
+          params_example = params.example(context)
+          hash[:params] = params_description(example: params_example)
+        end
+        if payload
+          payload_example = payload.example(context)
+
+          hash[:payload] = payload_description(example: payload_example)
+        end
+
         hash[:responses] = responses.inject({}) do |memo, (response_name, response)|
-          memo[response.name] = response.describe
+          memo[response.name] = response.describe(context: context)
           memo
         end
         hash[:traits] = traits if traits.any?
-
+        # FIXME: change to :routes along with api browser
+        hash[:urls] = routes.collect {|route| ActionDefinition.url_description(route: route, params: self.params, params_example: params_example) }.compact
         self.class.doc_decorations.each do |callback|
           callback.call(self, hash)
         end
       end
     end
 
-    def params_description
+
+    def params_description(example:)
       route_params = []
       if primary_route.nil?
         warn "Warning: No routes defined for #{resource_definition.name}##{name}."
@@ -224,7 +261,7 @@ module Praxis
           collect(&:to_sym)
       end
 
-      desc = params.describe
+      desc = params.describe(example: example)
       desc[:type][:attributes].keys.each do |k|
         source = if route_params.include? k
           'url'
@@ -235,6 +272,61 @@ module Praxis
       end
       desc
     end
+
+    def derive_content_type(example, handler_name)
+      # MultipartArrays *must* use the provided content_type
+      if example.kind_of? Praxis::Types::MultipartArray
+        return MediaTypeIdentifier.load(example.content_type)
+      end
+
+       _, content_type_attribute = self.headers && self.headers.attributes.find { |k,v| k.to_s =~ /^content[-_]{1}type$/i }
+      if content_type_attribute && content_type_attribute.options.key?(:values)
+
+        # if any defined value match the preferred handler_name, return it
+        content_type_attribute.options[:values].each do |ct|
+          mti = MediaTypeIdentifier.load(ct)
+          return mti if mti.handler_name == handler_name
+        end
+
+        # otherwise, pick the first 
+        pick = MediaTypeIdentifier.load(content_type_attribute.options[:values].first)
+
+        # and return that one if it already corresponds to a registered handler
+        # otherwise, add the encoding
+        if Praxis::Application.instance.handlers.include?(pick.handler_name)
+          return pick
+        else
+          return pick + handler_name
+        end
+      end
+
+      # generic default encoding 
+      MediaTypeIdentifier.load("application/#{handler_name}")
+    end
+
+
+    def payload_description(example:)
+      hash = payload.describe(example: example)
+
+      hash[:examples] = {}
+
+      default_handlers = ApiDefinition.instance.info.supported_request_handlers
+
+      default_handlers.each do |default_handler|
+        dumped_payload = payload.dump(example, default_format: default_handler)
+
+        content_type = derive_content_type(example, default_handler)
+        handler = Praxis::Application.instance.handlers[content_type.handler_name]
+
+        hash[:examples][default_handler] = {
+          content_type: content_type.to_s,
+          body: handler.generate(dumped_payload)
+        }
+      end
+
+      hash
+    end
+
 
     def nodoc!
       metadata[:doc_visibility] = :none

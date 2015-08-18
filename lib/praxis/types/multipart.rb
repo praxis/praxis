@@ -98,8 +98,8 @@ module Praxis
       super
     end
 
-    def self.describe(shallow = false)
-      hash = super
+    def self.describe(shallow = false, **opts)
+      hash = super(**opts)
       hash.merge!(family: 'multipart')
       hash
     end

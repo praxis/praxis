@@ -275,11 +275,11 @@ module Praxis
         self.name.gsub('::'.freeze,'-'.freeze)
       end
 
-      def describe
+      def describe(context: nil)
         {}.tap do |hash|
           hash[:description] = description
           hash[:media_type] = media_type.describe(true) if media_type
-          hash[:actions] = actions.values.map(&:describe)
+          hash[:actions] = actions.values.collect{|action| action.describe(context: context)}
           hash[:name] = self.name
           hash[:parent] = self.parent.id if self.parent
           hash[:display_name] = self.display_name

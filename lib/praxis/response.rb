@@ -18,6 +18,26 @@ module Praxis
       klass.status = self.status if self.status
     end
 
+    def self.generate_example( route: , headers: , headers_example: , payload_type: , payload_example: )
+      binding.pry
+    end
+
+    def self.url_example(route:, example_hash:{}, params: )# TODO: what context to use?, context: [r.id])
+      path_param_keys = route.path.named_captures.keys.collect(&:to_sym)
+
+      param_attributes = params ? params.attributes : {}
+      query_param_keys = param_attributes.keys - path_param_keys
+      required_query_param_keys = query_param_keys.each_with_object([]) do |p, array|
+        array << p if params.attributes[p].options[:required]
+      end
+
+      path_params = example_hash.select{|k,v| path_param_keys.include? k }
+      # Let's generate the example only using required params, to avoid mixing incompatible parameters
+      query_params = example_hash.select{|k,v| required_query_param_keys.include? k }
+      example = { verb: route.verb, url: route.path.expand(path_params), query_params: query_params }
+    end
+
+
     def initialize(status:self.class.status, headers:{}, body:'')
       @name    = response_name
       @status  = status

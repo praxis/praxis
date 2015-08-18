@@ -118,6 +118,14 @@ module Praxis
       hash
     end
 
+    def supported_request_handlers
+      ['json', 'xml', 'x-www-form-urlencoded']
+    end
+
+    def supported_response_handlers
+      ['json', 'xml']
+    end
+
   end
 
 end

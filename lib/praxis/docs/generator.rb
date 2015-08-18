@@ -1,6 +1,35 @@
 module Praxis
   module Docs
 
+    class FormURLEncodedExampleGenerator
+      def self.format
+        'x-www-form-urlencoded'
+      end
+      def self.generate( payload )
+        return nil if payload.nil?
+        URI.encode_www_form( payload)
+      end
+
+      # Can augment and/or change the headers for an example response
+      def self.headers( headers )
+        (headers || {}).merge({'Content-Type' => 'application/x-www-form-urlencoded' })
+      end
+    end
+
+    class JSONExampleGenerator
+      def self.format
+        'json'
+      end
+      def self.generate( payload )
+        return nil if payload.nil?
+        JSON.pretty_generate(payload)
+      end
+      # Can augment and/or change the headers for an example response
+      def self.headers( headers )
+        (headers || {}).merge({'Content-Type' => 'application/json' })
+      end
+    end
+
     class Generator
       API_DOCS_DIRNAME = 'docs/api'
 
@@ -22,6 +51,7 @@ module Praxis
 
 
       def initialize(root)
+        require 'yaml'
         @resources_by_version =  Hash.new do |h,k|
           h[k] = Set.new
         end
@@ -127,14 +157,16 @@ module Praxis
         full_data = {
           info: version_info[:info],
           resources: dumped_resources,
-          schemas: dumped_schemas,
+          schemas: nil,#dumped_schemas,
           traits: version_info[:traits] || []
         }
         # Write the file
         version_file = ( version == "n/a" ? "unversioned" : version )
-        filename = File.join(doc_root_dir, "#{version_file}.json")
-        puts "Generating API file: #{filename}"
-        File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(full_data))}
+        filename = File.join(doc_root_dir, version_file)
+
+        puts "Generating API file: #{filename} (in json and yaml)"
+        File.open(filename+".json", 'w') {|f| f.write(JSON.pretty_generate(full_data))}
+        File.open(filename+".yml", 'w') {|f| f.write(YAML.dump(full_data))}
       end
 
 
@@ -142,8 +174,8 @@ module Praxis
         resources.each_with_object({}) do |r, hash|
           # Do not report undocumentable resources
           next if r.metadata[:doc_visibility] == :none
-
-          resource_description = r.describe
+          context = [r.id]
+          resource_description = r.describe(context: context)
 
           # strip actions with doc_visibility of :none
           resource_description[:actions].reject! { |a| a[:metadata][:doc_visibility] == :none }
@@ -154,39 +186,104 @@ module Praxis
             # skip actions with doc_visibility of :none
             next if action.metadata[:doc_visibility] == :none
 
-            action_description = resource_description[:actions].find{|a| a[:name] == action_name }
-            if action.params
-              action_description[:params][:example] = dump_example_for( r.id, action.params )
-            end
-            if action.payload
-              action_description[:payload][:example] = dump_example_for( r.id, action.payload )
-            end
-            if action.headers
-              action_description[:headers][:example] = dump_example_for( r.id, action.headers )
-            end
+            action_description = resource_description[:actions].find {|a| a[:name] == action_name }
+            #action_description[:example_requests] = formatted_requests(action: action, context: context)
+
+            #action_description[:example_responses_by_name] = action.responses.each_with_object({}) do |(name,resp),hash|
+            #  hash[name] = formatted_responses( status: resp.status, status_name: resp.name, headers: resp.headers, payload: resp.media_type, context: context)
+            #end
           end
 
           hash[r.id] = resource_description
         end
       end
 
+      def formatted_requests(action:, context:)
+        #binding.pry if action.name == :create
+        payload_generators = [ JSONExampleGenerator , FormURLEncodedExampleGenerator]
+        # Examples
+        if action.headers
+          headers_hash = action.headers.dump(action.headers.example(context))
+        end
+        headers_example = headers_hash #FIXME: RIGHT FORMAT
+        if action.params
+          params_hash = action.params.dump(action.params.example(context))
+        end
+        route_example = ActionDefinition.url_example(route: action.primary_route, example_hash: params_hash || {}, params: action.params )
+
+        payload_hash = action.payload.dump(action.payload.example(context)) if action.payload
+        payload_generators.each_with_object({}) do |generator, hash|
+          hash[generator.format] = compose_request_example( route: route_example,
+                                                            headers: generator.headers(headers_example),
+                                                            payload: generator.generate(payload_hash))
+        end
+      end
+
+      def compose_request_example( route: , headers: , payload: )
+        string = "#{route[:verb]} #{route[:url]}"
+        if( query_params = route[:query_params] )
+          string += "?#{URI.encode_www_form(query_params)}" unless query_params.empty?
+        end
+        string += " HTTP/1.1\n"
+        if( headers && !headers.empty?)
+          string += headers.collect{|tuple| tuple.join(" : ")}.join("\n")
+        end
+        if payload
+          string += "\n"
+          string += payload
+        end
+        string
+      end
+
+      def formatted_responses(status:, status_name: , headers:, payload: , context:)
+
+        payload_generators = [ JSONExampleGenerator ]
+#        # Examples
+#        if headers
+#          headers_hash = headers.dump(headers.example(context))
+#        end
+#        headers_example = headers_hash #FIXME: RIGHT FORMAT
+# FIXME!! The response definitions objects only had hash definitions...not Attributor::Hashes!! Move that before using examples
+headers_example = {}
+
+        payload_hash = payload.dump(payload.example(context)) if payload
+        payload_generators.each_with_object({}) do |generator, hash|
+          hash[generator.format] = compose_response_example( status: status, status_name: status_name,
+                                                            headers: generator.headers(headers_example),
+                                                            payload: generator.generate(payload_hash))
+        end
+      end
+
+      def compose_response_example( status:, status_name: , headers: , payload: )
+        string = "HTTP/1.1 #{status} #{status_name}\n"
+        if( headers && !headers.empty?)
+          string += headers.collect{|tuple| tuple.join(" : ")}.join("\n")
+        end
+        if payload
+          string += "\n"
+          string += payload
+        end
+        string
+      end
+
       def dump_schemas( types )
         reportable_types = types - EXCLUDED_TYPES_FROM_OUTPUT
         reportable_types.each_with_object({}) do |type, array|
-          type_output = type.describe
+          context = [type.id]
+          example_data = type.example(context)
+          type_output = type.describe(false, example: example_data)
           unless type_output[:display_name]
             # For non MediaTypes or pure types or anonymous types fallback to their name, and worst case to their id
             type_output[:display_name] = type_output[:name] || type_output[:id]
           end
-          example_data = type.example(type.to_s)
           if type_output[:views]
             type_output[:views].delete(:master)
             type_output[:views].each do |view_name, view_info|
-              view_info[:example] = example_data.render(view_name)
+              view_info[:example] = example_data.render(view: view_name)
             end
           end
           type_output[:example] = if example_data.respond_to? :render
-            example_data.render(:master)
+            example_data.render(view: :master)
           else
             type.dump(example_data)
           end
@@ -198,7 +295,7 @@ module Praxis
       def dump_example_for(context_name, object)
         example = object.example(Array(context_name))
         if object.is_a? Praxis::Blueprint
-          example.render(:master)
+          example.render(view: :master)
         elsif object.is_a? Attributor::Attribute
           object.dump(example)
         else

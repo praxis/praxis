@@ -9,6 +9,7 @@ module Praxis
     attr_accessor :payload_attribute
     attr_accessor :headers_attribute
     attr_accessor :filename_attribute
+    attr_accessor :default_handler
 
     def self.check_option!(name, definition)
       case name
@@ -76,6 +77,7 @@ module Praxis
       @name = name
       @body = body
       @headers = headers
+      @default_handler = Praxis::Application.instance.handlers['json']
 
       if content_type.nil?
         self.content_type = 'text/plain'
@@ -211,24 +213,69 @@ module Praxis
 
     def handler
       handlers = Praxis::Application.instance.handlers
-      (content_type && handlers[content_type.handler_name]) || handlers['json']
+      (content_type && handlers[content_type.handler_name]) || @default_handler
     end
 
-    def dump(**opts)
-      header_string = self.headers.collect do |name, value|
-        "#{name}: #{value}"
-      end.join("\r\n")
+    def derive_content_type(handler_name)
+      possible_values = if self.content_type.match 'text/plain'
+        _, content_type_attribute = self.headers_attribute && self.headers_attribute.attributes.find { |k,v| k.to_s =~ /^content[-_]{1}type$/i }
+        if content_type_attribute && content_type_attribute.options.key?(:values)
+          content_type_attribute.options[:values]
+        else
+          []
+        end
+      else
+        [self.content_type]
+      end
+
+      # generic default encoding is the best we can do
+      if possible_values.empty?
+        return MediaTypeIdentifier.load("application/#{handler_name}")
+      end
+
+      # if any defined value match the preferred handler_name, return it
+      possible_values.each do |ct|
+        mti = MediaTypeIdentifier.load(ct)
+        return mti if mti.handler_name == handler_name
+      end
+
+      # otherwise, pick the first
+      pick = MediaTypeIdentifier.load(possible_values.first)
+
+      # and return that one if it already corresponds to a registered handler
+      # otherwise, add the encoding
+      if Praxis::Application.instance.handlers.include?(pick.handler_name)
+        return pick
+      else
+        return pick + handler_name
+      end
+
+    end
+
+    def dump(default_format: nil, **opts)
+      original_content_type = self.content_type
 
       body = self.payload_attribute.dump(self.payload, **opts)
 
       body_string = case body
       when Hash, Array
-        handler.generate(body)
+        if default_format
+          self.content_type = derive_content_type(default_format)
+        end
+
+        self.handler.generate(body)
       else
         body
       end
 
+      header_string = self.headers.collect do |name, value|
+        "#{name}: #{value}"
+      end.join("\r\n")
+
+
       "#{header_string}\r\n\r\n#{body_string}"
+    ensure
+      self.content_type = original_content_type
     end
 
   end

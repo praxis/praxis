@@ -302,6 +302,9 @@ module Praxis
         errors
       end
 
+      def self.dump(value, **opts)
+        value.dump(**opts)
+      end
 
       def dump(**opts)
         boundary = content_type.parameters.get 'boundary'

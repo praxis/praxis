@@ -89,6 +89,7 @@ module Praxis
     autoload :JSON, 'praxis/handlers/json'
     autoload :WWWForm, 'praxis/handlers/www_form'
     autoload :XML, 'praxis/handlers/xml'
+    autoload :FormData, 'praxis/handlers/form_data'
   end
 
   module BootloaderStages

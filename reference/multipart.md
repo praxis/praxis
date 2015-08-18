@@ -3,33 +3,35 @@ layout: page
 title: Multipart Encoding
 ---
 
-Praxis has built-in support for handling "multipart/form-data" (link to RFC?) encoded requests and responses, in the form of the `Praxis::Types::MultipartArray` type, and the `Praxis::Responses::MultipartOk` response.
-
+Praxis has built-in support for handling "multipart/form-data" (link to RFC?) encoded requests and responses.
+The support is provided with the `Praxis::Types::MultipartArray` type, and the `Praxis::Responses::MultipartOk` response.
 
 ## Praxis::Types::MultipartArray
 
-The `MultipartArray` type is an `Attributor::Collection` of `Praxis::MultipartPart` members that allows you to specify how to handle each of the existing parts of a multipart request or response body.
-
+The `MultipartArray` type is an `Attributor::Collection` of `Praxis::MultipartPart` members that
+allows you to describe each part of a multipart request or response body.
 
 ### Definition
 
-Describing the body of a `MultipartArray` consists of defining shape of it parts. There are three ways to define the parts:
+There are three different ways that the members of a `MultipartArray` can be defined:
   
-  * One can loosely define all the parts have the same payload and name type (which defaults to `String` and implies no restrictions or coercions should be applied).
-  * One can also define the type of a payload (and headers) for a specific part by name  
-  * Or, one can define the expected payload type (and headers) for a group of parts with names matching a regular expression.
+  * Using `name_type` and `payload_type` to define multipart content where all parts are identical.
+  * Using `part` to define the content of specific part by name
+  * Using `part` together with a regular expression to define the content of parts whose names match the regular expression.
 
-
-Here's an example where all of the part names are of type `String` that all have payloads of type `Hash`:
+Here's an example where all the part names are of type `String` and all the part payloads are of type `Hash`:
 {% highlight ruby %}
 class SimpleExample < Praxis::Types::MultipartArray
   name_type String
   payload_type Hash
 end
 {% endhighlight %}
+Using `String` as the type name means that Praxis will not perform any validation or coercion. Also
+both `name_type` and `payload_type `are optional and not specifying one is equivalent to using the
+`String` type.
 
-
-Here's one that that defines specific named parts and uses a regular expression to define a group of related parts:
+Here's another example that defines specific named parts and uses a regular expression to define a
+group of related parts:
 {% highlight ruby %}
 class NamedPartsExample < Praxis::Types::MultipartArray
   # a part named "title" with default String payload
@@ -52,9 +54,14 @@ class NamedPartsExample < Praxis::Types::MultipartArray
 end
 {% endhighlight %}
 
-Parts can also be defined to contain files (and match a filename). To do that you can pass the `filename: true` option when defining the part (or equivalently use the `file` method instead for syntactic sugar). Use the `filename` DSL inside the part definition to express any expected string or pattern for it.
+Parts can also be defined to contain files using the `filename` option.
+This option can take the value `true` or contain a string or regular expression to be matched
+against the filename.
 
-Also, part names are allowed to be repeated. To enable that use the `multiple: true` option in a part so that it can appear as an array of parts sharing the same name.
+The `file` method can be used in place of `part` to define a part that contains a file.
+
+Multiple parts may need to have the same name, this can be achieved by providing the `multiple: true`
+option when defining the part. When this option is set the corresponding part becomes an array.
 
 Here are some examples for defining file parts:
 {% highlight ruby %}
@@ -76,8 +83,8 @@ class FilePartExamples < Praxis::Types::MultipartArray
 end
 {% endhighlight %}
 
-
-Here is a more complete (and complex) example of defining a multipart type that defines several parts in different ways for illustration purposes:
+Here is a more complete (and complex) example of defining a multipart type that defines several
+parts in different ways for illustration purposes:
 
 {% highlight ruby %}
 class ImageUpload < Praxis::Types::MultipartArray
@@ -88,7 +95,7 @@ class ImageUpload < Praxis::Types::MultipartArray
     description: 'Authorship information'  
   
   # Set of tags, as strings. May be specified more than once.
-  part 'tags', String
+  part 'tags', String,
     multiple: true, 
     description: 'Category name. May be given multiple times'
 
@@ -100,7 +107,7 @@ class ImageUpload < Praxis::Types::MultipartArray
   # The parser will save uploaded file as a Ruby Tempfile.
   # Note: This maps to the Attributor::Tempfile type.
   part 'image', Tempfile, 
-    required: true
+    required: true,
     filename: true, 
     description: 'Image to upload'
 
@@ -114,18 +121,19 @@ class ImageUpload < Praxis::Types::MultipartArray
 end
 {% endhighlight %}
 
+### Using MultipartArray Instances
 
-### Using MulripartArray Instances
+Use `part(name)` to retrieve a specific part by name from an instance of `MultipartArray`.
+This returns a `MultipartPart` instance or an array of such instances in the case of parts defined
+with `multiple: true` (even if only one instance was provided).
 
+You may also use the `MultipartArray` as an array of all of the `MultipartPart` instances with all
+of the standard Ruby `Array` and `Enumerable` methods.
 
-To retrieve specific part(s) by name from an instance of a `MultipartArray`, use `part(name)`. 
-This returns a singular part (i.e., defined without `multiple: true`) part as a `MultipartPart` instance, and multiple parts (even if only one instance was provided) as an `Array` of `MultipartPart` instances.
+To add one, or more, `MultipartPart` instances to the array, use `push(part)` or `push(*parts)`.
+This will validate the part names and coerce any headers and payload as applicable.
 
-You may also use the `MultipartArray` as an array of all of the `MultipartPart` instances with all of the standard Ruby `Array` and `Enumerable` methods.
-
-To add one, or more, `MultipartPart` instances to the array, use `push(part)` or `push(*parts)`. This will validate the part names and coerce any headers and payload as applicable.
-
-Individual `MultipartPart` instances have the following methods:
+`MultipartPart` instances have the following methods:
 
   * `payload`: the part body data
   * `headers`: hash of headers
@@ -137,13 +145,21 @@ Individual `MultipartPart` instances have the following methods:
 
 ### Responses::MultipartOk
 
-The `MultipartOk` response is used to easily return a  `MultipartArray` body. It takes care of properly encoding the body as "multipart/form-data", with a proper "Content-Type" header specifying the boundary of each part. The response is registered as `:multipart_ok`. 
+The `MultipartOk` response is used to easily return a `MultipartArray` body.
+It takes care of properly encoding the body as "multipart/form-data", with a proper "Content-Type"
+header specifying the boundary of each part. The response is registered as `:multipart_ok`.
 
-Each part will also be dumped according to its "Content-Type" header, using any applicable handlers registered with Praxis. See [`Handlers`](../requests/) for more details on how to define and register custom handlers.
+Each part will also be dumped according to its "Content-Type" header, using any applicable handlers
+registered with Praxis. See [`Handlers`](../requests/) for more details on how to define and
+register custom handlers.
 
-You can specify the exact form of a `:multipart_ok` response, either for documentation purposes or for response body validation, by passing predefined type to `response :multipart_ok` in your action definition or by using the generic `Praxis::Types::MultipartArray` and providing a block to further define it.
+You can specify the exact form of a `:multipart_ok` response - either for documentation purposes or
+for response body validation - by passing a predefined type to `response :multipart_ok` in your
+action definition or by using the generic `Praxis::Types::MultipartArray` and providing a block to
+further define it.
 
-For example, to use declare that a response should match the `ImageUpload` type above, you would do: `response :multipart_ok, ImageUpload`. Alternately, you could do something like the following:
+For example, to declare that a response should match the `ImageUpload` type above, you would do:
+`response :multipart_ok, ImageUpload`. Alternately, you could do something like the following:
 
 {% highlight ruby %}
 response :multipart_ok, Praxis::Types::MultipartArray do
@@ -155,8 +171,3 @@ response :multipart_ok, Praxis::Types::MultipartArray do
   part 'address', Address
 end
 {% endhighlight %}
-
-
-
-
-

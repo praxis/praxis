@@ -134,6 +134,8 @@ module Praxis
       @doc_root_dir = File.join(@root_dir, API_DOCS_DIRNAME)
       @resources = []
 
+      Attributor::AttributeResolver.current = Attributor::AttributeResolver.new
+      
       remove_previous_doc_data
       load_resources
 

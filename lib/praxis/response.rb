@@ -18,11 +18,8 @@ module Praxis
       klass.status = self.status if self.status
     end
 
-    def self.generate_example( route: , headers: , headers_example: , payload_type: , payload_example: )
-      binding.pry
-    end
 
-    def self.url_example(route:, example_hash:{}, params: )# TODO: what context to use?, context: [r.id])
+    def self.url_example(route:, example_hash:{}, params: )
       path_param_keys = route.path.named_captures.keys.collect(&:to_sym)
 
       param_attributes = params ? params.attributes : {}

@@ -188,55 +188,6 @@ describe Praxis::ActionDefinition do
       end
     end
 
-    context 'for a multipart payload' do
-      let(:resource_definition) do
-        Class.new do
-          include Praxis::ResourceDefinition
-
-          def self.name
-            'FooBar'
-          end
-
-          media_type 'application/json'
-          version '1.0'
-        end
-      end
-
-      let(:action) do
-        Praxis::ActionDefinition.new(:baz, resource_definition) do
-          routing { post '' }
-
-          payload Praxis::Types::MultipartArray do
-            part 'title', String, required: true
-            part 'stuff' do
-              header 'Content-Type', 'application/json'
-              payload Hash
-            end
-            part 'instances', multiple: true do
-              header 'Content-Type', 'application/vnd.acme.instance'
-              payload Instance
-            end
-          end
-        end
-      end
-
-      it do
-        #describe[:payload][:examples].each do |name, stuff|
-        #  p name
-        #  puts stuff[:content_type]
-        #  puts stuff[:body]
-        #  puts "\n\n"
-        #end
-        #
-        #ex = action.payload.example
-        #ex.each do |part|
-        #  next if part.content_type.handler_name == 'plain'
-        #  part.defualt_handler = 'xml'
-        #end
-        #pt        
-        #puts ex.dump(handler: 'json')
-      end
-    end
   end
 
   context 'href generation' do

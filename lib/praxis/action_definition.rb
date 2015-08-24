@@ -188,13 +188,13 @@ module Praxis
       @description
     end
 
-    def self.url_description(route:, params_example:, params: )# TODO: what context to use?, context: [r.id])
+    def self.url_description(route:, params_example:, params:)
       route_description = route.describe
 
       example_hash = params_example ? params_example.dump : {}
       hash = self.url_example(route: route, example_hash: example_hash, params: params)
 
-      query_string = URI.encode_www_form(hash[:query_params])#collect {|(name, value)| "#{name.to_s}=#{value.to_s}"}.join('&')
+      query_string = URI.encode_www_form(hash[:query_params])
       url = hash[:url]
       url = [url,query_string].join('?') unless query_string.empty?
 
@@ -202,7 +202,7 @@ module Praxis
       route_description
     end
 
-    def self.url_example(route:, example_hash:{}, params: )# TODO: what context to use?, context: [r.id])
+    def self.url_example(route:, example_hash:{}, params:)
       path_param_keys = route.path.named_captures.keys.collect(&:to_sym)
 
       param_attributes = params ? params.attributes : {}
@@ -242,7 +242,9 @@ module Praxis
         end
         hash[:traits] = traits if traits.any?
         # FIXME: change to :routes along with api browser
-        hash[:urls] = routes.collect {|route| ActionDefinition.url_description(route: route, params: self.params, params_example: params_example) }.compact
+        hash[:urls] = routes.collect do |route| 
+          ActionDefinition.url_description(route: route, params: self.params, params_example: params_example)
+        end.compact
         self.class.doc_decorations.each do |callback|
           callback.call(self, hash)
         end
@@ -273,6 +275,11 @@ module Praxis
       desc
     end
 
+    # Determine the content_type to report for a given example,
+    # using handler_name if possible. 
+    # 
+    # Considers any pre-defined set of values on the content_type attributge
+    # of the headers.
     def derive_content_type(example, handler_name)
       # MultipartArrays *must* use the provided content_type
       if example.kind_of? Praxis::Types::MultipartArray

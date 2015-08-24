@@ -216,6 +216,11 @@ module Praxis
       (content_type && handlers[content_type.handler_name]) || @default_handler
     end
 
+    # Determine an appropriate default content_type for this part given
+    # the preferred handler_name, if possible.
+    # 
+    # Considers any pre-defined set of values on the content_type attributge
+    # of the headers.
     def derive_content_type(handler_name)
       possible_values = if self.content_type.match 'text/plain'
         _, content_type_attribute = self.headers_attribute && self.headers_attribute.attributes.find { |k,v| k.to_s =~ /^content[-_]{1}type$/i }

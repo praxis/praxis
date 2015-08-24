@@ -28,6 +28,7 @@ module Praxis
         end
         initialize_directories(root)
 
+        Attributor::AttributeResolver.current = Attributor::AttributeResolver.new
         collect_infos
         collect_resources
         collect_types

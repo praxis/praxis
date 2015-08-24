@@ -26,7 +26,7 @@ end
 
 ### Built-in Handlers
 
-The Praxis core contains handlers for JSON, form-encoding and XML, but only JSON and form-encoding
+The Praxis core contains handlers for plain text, JSON, form-encoding, and XML, but only plain text, JSON, and form-encoding
 are registered automatically because XML has external dependencies.
 
 To enable the XML handler, register it as shown in the example above, then add two gems to

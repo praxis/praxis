@@ -434,11 +434,14 @@ end
 
 In addition to defining a header `key` in the standard `Hash` manner, Praxis
 also enhances the DSL with a `header` method that can shortcut the syntax for
-certain common cases. The `header` DSL takes a String name and an optional expected value:
+certain common cases. The `header` DSL takes a String name, and an optional type or expected value:
 
 * if no value is passed, the only expectation is that a header with that name is received.
+* if a Class is passed, it is used as the type to coerce the header value to.
 * if a Regexp value is passed, the expectation is that the header value (if exists) matches it
 * if a String value is passed, the expectation is that the incoming header value (if exists) fully matches it.
+
+Note: specifying both header type *and* value is not supported with the `header` method. If you need to use a non-String type and validate the contents in some other way, use the standard `key` method instead.
 
 Any hash-like options provided as the last argument are passed along to the
 underlying `Attributor` types. Here are some examples of how to define header expectations:
@@ -459,11 +462,16 @@ headers do
   header "Authorization", "hello", required: true
   # Which is equivalent to
   key "Authorization", String, values: ["hello"], required: true
+
+  # Define a header that is cast as an Integer
+  header "Account-Id", Integer
+  # Which is equivalent to
+  key "Account-Id", Integer
 end
 {% endhighlight %}
 
 Using the simplified `headers` syntax can cover most of your typical definitions, while the native
-Hash syntax allows you to mix and match many more options. Which one to use is up to you. They
+`Hash` syntax allows you to mix and match many more options. Which one to use is up to you. They
 both can perfectly coexist at the same time.
 
 

@@ -10,8 +10,9 @@ module Praxis
 
       if @global_info.nil? # this *is* the global info
         version_with [:header, :params]
+        consumes 'json', 'x-www-form-urlencoded'
+        produces 'json'
       end
-
     end
 
     def get(k)
@@ -97,6 +98,24 @@ module Praxis
       end
     end
 
+    def consumes(*vals)
+      if vals.empty?
+        return get(:consumes)
+      else
+        return set(:consumes, vals)
+      end
+    end
+
+
+    def produces(*vals)
+      if vals.empty?
+        return get(:produces)
+      else
+        return set(:produces, vals)
+      end
+    end
+
+
     def base_params(type=Attributor::Struct, **opts, &block)
       if !block && type == Attributor::Struct
         get(:base_params)
@@ -105,10 +124,9 @@ module Praxis
       end
     end
 
-
     def describe
       hash = { schema_version: "1.0".freeze }
-      [:name, :title, :description, :base_path, :version_with, :endpoint].each do |attr|
+      [:name, :title, :description, :base_path, :version_with, :endpoint, :consumes, :produces].each do |attr|
         val = self.__send__(attr)
         hash[attr] = val unless val.nil?
       end
@@ -116,14 +134,6 @@ module Praxis
         hash[:base_params] = base_params.describe[:type][:attributes]
       end
       hash
-    end
-
-    def supported_request_handlers
-      ['json', 'xml', 'x-www-form-urlencoded']
-    end
-
-    def supported_response_handlers
-      ['json', 'xml']
     end
 
   end

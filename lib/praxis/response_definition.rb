@@ -141,7 +141,7 @@ module Praxis
           # FIXME: remove load when when MediaTypeCommon.identifier returns a MediaTypeIdentifier
           identifier = MediaTypeIdentifier.load(self.media_type.identifier)
 
-          default_handlers = ApiDefinition.instance.info.supported_response_handlers
+          default_handlers = ApiDefinition.instance.info.produces
 
           handlers = Praxis::Application.instance.handlers.select do |k,v|
             default_handlers.include?(k)

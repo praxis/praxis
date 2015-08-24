@@ -302,7 +302,7 @@ module Praxis
 
       hash[:examples] = {}
 
-      default_handlers = ApiDefinition.instance.info.supported_request_handlers
+      default_handlers = ApiDefinition.instance.info.consumes
 
       default_handlers.each do |default_handler|
         dumped_payload = payload.dump(example, default_format: default_handler)

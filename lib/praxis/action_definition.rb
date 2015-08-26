@@ -192,7 +192,7 @@ module Praxis
       route_description = route.describe
 
       example_hash = params_example ? params_example.dump : {}
-      hash = self.url_example(route: route, example_hash: example_hash, params: params)
+      hash = route.example(example_hash: example_hash, params: params)
 
       query_string = URI.encode_www_form(hash[:query_params])
       url = hash[:url]
@@ -200,21 +200,6 @@ module Praxis
 
       route_description[:example] = url
       route_description
-    end
-
-    def self.url_example(route:, example_hash:{}, params:)
-      path_param_keys = route.path.named_captures.keys.collect(&:to_sym)
-
-      param_attributes = params ? params.attributes : {}
-      query_param_keys = param_attributes.keys - path_param_keys
-      required_query_param_keys = query_param_keys.each_with_object([]) do |p, array|
-        array << p if params.attributes[p].options[:required]
-      end
-
-      path_params = example_hash.select{|k,v| path_param_keys.include? k }
-      # Let's generate the example only using required params, to avoid mixing incompatible parameters
-      query_params = example_hash.select{|k,v| required_query_param_keys.include? k }
-      example = { verb: route.verb, url: route.path.expand(path_params), query_params: query_params }
     end
 
     def describe(context: nil)

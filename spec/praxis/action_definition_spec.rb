@@ -44,7 +44,7 @@ describe Praxis::ActionDefinition do
   context '#responses' do
     subject(:responses) { action.responses }
     before do
-      action.response :ok, nil
+      action.response :ok
       action.response :internal_server_error
     end
 

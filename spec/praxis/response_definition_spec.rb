@@ -511,13 +511,27 @@ describe Praxis::ResponseDefinition do
 
     context 'for a definition with a media type' do
       let(:media_type) { Instance }
+      subject(:payload) { output[:payload] }
+
       before do
         response.media_type Instance
       end
 
-      #it do
-      #  pp output
-      #end
+      its([:name]) { should eq 'Instance' }
+      context 'examples' do
+        subject(:examples) { payload[:examples] }
+        its(['json', :content_type]) { 'application/vnd.acme.instance+json '}
+        its(['xml', :content_type]) { 'application/vnd.acme.instance+xml' }
+        
+        it 'properly encodes the example bodies' do
+          json = Praxis::Application.instance.handlers['json'].parse(examples['json'][:body])
+          xml = Praxis::Application.instance.handlers['xml'].parse(examples['xml'][:body])
+          expect(json).to eq xml
+        end
+
+      end
+
+
     end
 
 

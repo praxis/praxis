@@ -45,8 +45,8 @@ namespace :praxis do
       generator = Praxis::RestfulDocGenerator.new(Dir.pwd)
     end
 
-    desc "Generate EXPERIMENTAL API docs (JSON definitions) for a Praxis App"
-    task :experiments => [:environment] do |t, args|
+    desc "Generate BETA API docs (JSON definitions) for a Praxis App"
+    task :generate_beta => [:environment] do |t, args|
       require 'fileutils'
 
       Praxis::Blueprint.caching_enabled = false

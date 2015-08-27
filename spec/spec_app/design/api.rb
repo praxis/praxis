@@ -24,6 +24,7 @@ Praxis::ApiDefinition.define do
     description "This example API should really be replaced by a set of more full-fledged example apps in the future"
 
     base_path "/api"
+    produces 'json','xml'
     #version_with :path
     #base_path "/v:api_version"
   end

@@ -208,6 +208,70 @@ describe Praxis::Types::MultipartArray do
         loaded = type.load(dumped, content_type: payload.content_type)
       end
     end
+
+
+    context 'with default_format' do
+      let(:type) do
+        Class.new(Praxis::Types::MultipartArray) do
+          part 'title', String, required: true
+          part 'thing' do
+            payload do
+              attribute :name, String
+              attribute :value, String
+            end
+          end
+          part 'stuff' do
+            header 'Content-Type', 'application/json'
+            payload Hash do
+              key :foo, String
+              key :bar, DateTime
+            end
+          end
+          part 'instances', multiple: true do
+            header 'Content-Type', 'application/vnd.acme.instance'
+            payload Instance
+          end
+        end
+      end
+
+      let(:example) { type.example }
+
+      let(:default_format) { 'xml' }
+
+      let(:output) { example.dump(default_format: default_format) } 
+
+      let(:parts) { Praxis::MultipartParser.parse({'Content-Type'=>example.content_type}, output).last }
+
+      it 'dumps the parts with the proper handler' do
+        json_handler = Praxis::Application.instance.handlers['json']
+        xml_handler = Praxis::Application.instance.handlers['xml']
+
+        # title is simple string, so should keep text/plain
+        title = parts.find { |part| part.name == 'title' }
+        expect(title.content_type.to_s).to eq 'text/plain'
+        expect(title.payload).to eq example.part('title').payload
+
+        # things are structs with no content-type header defined
+        thing = parts.find { |part| part.name == 'thing' }
+        expect(thing.content_type.to_s).to eq 'application/xml'
+        expect(thing.payload).to eq xml_handler.generate(example.part('thing').payload.dump)
+
+        # stuff has hardcoded 'application/json' content-type, and should remain such
+        stuff = parts.find { |part| part.name == 'stuff' }
+        expect(stuff.content_type.to_s).to eq 'application/json'
+        expect(stuff.payload).to eq json_handler.generate(example.part('stuff').payload.dump)
+        
+        # instances just specify 'application/vnd.acme.instance', and should 
+        # have xml suffix appended
+        instances = parts.select { |part| part.name == 'instances' }
+        instances.each_with_index do |instance, i|
+          expect(instance.content_type.to_s).to eq 'application/vnd.acme.instance+xml'
+          expect(instance.payload).to eq xml_handler.generate(example.part('instances')[i].payload.dump)
+        end
+      end
+
+    end
+
   end
 
   context 'with errors' do

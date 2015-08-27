@@ -60,6 +60,13 @@ module Praxis
 
       attr_accessor :controller
 
+      def display_name( string=nil )
+        unless string
+          return  @display_name ||= self.name.split("::").last  # Best guess at a display name?
+        end
+        @display_name = string
+      end
+
       def on_finalize
         if block_given?
           @on_finalize << Proc.new
@@ -268,13 +275,14 @@ module Praxis
         self.name.gsub('::'.freeze,'-'.freeze)
       end
 
-      def describe
+      def describe(context: nil)
         {}.tap do |hash|
           hash[:description] = description
-          hash[:media_type] = media_type.id if media_type
-          hash[:actions] = actions.values.map(&:describe)
+          hash[:media_type] = media_type.describe(true) if media_type
+          hash[:actions] = actions.values.collect{|action| action.describe(context: context)}
           hash[:name] = self.name
           hash[:parent] = self.parent.id if self.parent
+          hash[:display_name] = self.display_name
           hash[:metadata] = metadata
           hash[:traits] = self.traits
         end

@@ -144,9 +144,10 @@ describe Praxis::MediaType do
 
     subject(:described){ Address.describe }
 
-    its(:keys) { should match_array( [:attributes, :description, :family, :id, :identifier, :key, :name, :views] ) }
+    its(:keys) { should match_array( [:attributes, :description, :display_name, :family, :id, :identifier, :key, :name, :views] ) }
     its([:attributes]) { should be_kind_of(::Hash) }
     its([:description]) { should be_kind_of(::String) }
+    its([:display_name]) { should be_kind_of(::String) }
     its([:family]) { should be_kind_of(::String) }
     its([:id]) { should be_kind_of(::String) }
     its([:name]) { should be_kind_of(::String) }
@@ -155,6 +156,7 @@ describe Praxis::MediaType do
     its([:views]) { should be_kind_of(::Hash) }
 
     its([:description]) { should eq(Address.description) }
+    its([:display_name]) { should eq(Address.display_name) }
     its([:family]) { should eq(Address.family) }
     its([:id]) { should eq(Address.id) }
     its([:name]) { should eq(Address.name) }

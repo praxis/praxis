@@ -187,6 +187,7 @@ describe Praxis::ActionDefinition do
         expect(attributes[:one][:source]).to eq('url')
       end
     end
+
   end
 
   context 'href generation' do

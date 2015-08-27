@@ -80,7 +80,7 @@ module Praxis
         RUBY
       end
     end
-    
+
   end
 
 end

@@ -509,6 +509,32 @@ describe Praxis::ResponseDefinition do
       response.headers(headers) if headers
     end
 
+    context 'for a definition with a media type' do
+      let(:media_type) { Instance }
+      subject(:payload) { output[:payload] }
+
+      before do
+        response.media_type Instance
+      end
+
+      its([:name]) { should eq 'Instance' }
+      context 'examples' do
+        subject(:examples) { payload[:examples] }
+        its(['json', :content_type]) { 'application/vnd.acme.instance+json '}
+        its(['xml', :content_type]) { 'application/vnd.acme.instance+xml' }
+        
+        it 'properly encodes the example bodies' do
+          json = Praxis::Application.instance.handlers['json'].parse(examples['json'][:body])
+          xml = Praxis::Application.instance.handlers['xml'].parse(examples['xml'][:body])
+          expect(json).to eq xml
+        end
+
+      end
+
+
+    end
+
+
     context 'for a definition without parts' do
       it{ should be_kind_of(::Hash) }
       its([:description]){ should be(description) }
@@ -530,7 +556,7 @@ describe Praxis::ResponseDefinition do
         end
 
         it{ should be_kind_of(::Hash) }
-        its([:media_type]){ should == { identifier: 'foobar'} }
+        its([:payload]){ should == { identifier: 'foobar'} }
         its([:status]){ should == 200 }
       end
       context 'using a full response definition block' do
@@ -546,8 +572,8 @@ describe Praxis::ResponseDefinition do
         end
 
         it{ should be_kind_of(::Hash) }
-        its([:media_type]){ should == { identifier: 'custom_media'} }
-        its([:status]){ should == 234 }
+        its([:payload]) { should == { identifier: 'custom_media'} }
+        its([:status]) { should == 234 }
       end
     end
   end

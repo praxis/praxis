@@ -6,6 +6,8 @@ describe Praxis::MediaTypeCollection do
     silence_warnings do
       klass = Class.new(Praxis::MediaTypeCollection) do
         member_type VolumeSnapshot
+        description 'A container for a collection of Volumes'
+        display_name 'Volumes Collection'
 
         attributes do
           attribute :name, String, regexp: /snapshots-(\w+)/
@@ -26,13 +28,13 @@ describe Praxis::MediaTypeCollection do
       klass
     end
   end
-   
+
   context '.member_type' do
     its(:member_type){ should be(VolumeSnapshot) }
     its(:member_attribute){ should be_kind_of(Attributor::Attribute) }
     its('member_attribute.type'){ should be(VolumeSnapshot) }
   end
-  
+
   context '.load' do
     context 'with a hash' do
       let(:snapshots_data) { {name: 'snapshots',   href: '/bob/snapshots' } }
@@ -52,7 +54,7 @@ describe Praxis::MediaTypeCollection do
         [{id: 1, name: 'snapshot-1'},
          {id: 2, name: 'snapshot-2'}]
       end
-      
+
       let(:snapshots) { media_type_collection.load(snapshots_data) }
       subject(:members) { snapshots.to_a }
 
@@ -102,7 +104,7 @@ describe Praxis::MediaTypeCollection do
   end
 
   context '#validate' do
- 
+
 
     context 'with a hash' do
       let(:snapshots_data) { {name: 'snapshots-1',   href: '/bob/snapshots' } }
@@ -148,4 +150,9 @@ describe Praxis::MediaTypeCollection do
     end
   end
 
+  context '#describe' do
+    subject(:described) { media_type_collection.describe }
+    its([:description]){ should be(media_type_collection.description)}
+    its([:display_name]){ should be(media_type_collection.display_name)}
+  end
 end

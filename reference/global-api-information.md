@@ -10,8 +10,11 @@ The following directives are supported:
  * `name`
  * `title`
  * `description`
- * `base_path`
- * `base_params`
+ * `base_path`: Root path prepended to *all* routes.
+ * `base_params`: Default parameters applied to all actions. Used to define any params specified in `base_path`.
+ * `consumes`: List of [handlers](../handlers) the API accepts from clients (defaults to `'json', 'x-www-form-urlencoded'`).
+ * `produces`: List of [handlers](../handlers) the API may use to generate responses (defaults to `'json'`).
+ 
 
 In addition to the above which may be specified globally or on a version, there is a `version_with` directive that is only applicable on the global version to define what versioning "scheme" your application will use. By default it's set to `[:header, :params]`, meaning Praxis will look for either an  `X-Api-Version` request header *or* an `api_version` query parameter to determine the version of your API to use for processing the request. It is also possible to use a path-based versioning scheme by using `version_with :path`. See section below for details.
 
@@ -27,6 +30,8 @@ Praxis::ApiDefinition.define
     title 'An example Praxis application'
     description 'This is an example application API.'
     endpoint 'api.example.com'
+    consumes 'json', ''x-www-form-urlencoded''
+    produces 'json', 'xml'
     base_path '/:app_name'
     base_params do
       attribute :app_name, String, required: true

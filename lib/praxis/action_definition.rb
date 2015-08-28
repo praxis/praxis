@@ -310,9 +310,17 @@ module Praxis
         content_type = derive_content_type(example, default_handler)
         handler = Praxis::Application.instance.handlers[content_type.handler_name]
 
+        # in case handler is nil, use dumped_payload as-is.
+        generated_payload = if handler.nil?
+          dumped_payload
+        else
+          handler.generate(dumped_payload)
+        end
+
+
         hash[:examples][default_handler] = {
           content_type: content_type.to_s,
-          body: handler.generate(dumped_payload)
+          body: generated_payload
         }
       end
 

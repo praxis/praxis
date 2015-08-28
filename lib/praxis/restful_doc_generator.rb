@@ -29,7 +29,13 @@ module Praxis
       the_type = the_type.type if the_type.is_a? Attributor::Attribute
 
       # Collection types are special since they wrap a member type, so let's reach in and grab it
-      the_type = the_type.member_attribute.type if the_type < Attributor::Collection
+      if the_type < Attributor::Collection
+        if the_type.member_attribute.nil?
+          the_type = the_type.member_type
+        else
+          the_type = the_type.member_attribute.type 
+        end
+      end
 
       if @inspected_types.include? the_type
         # We're done if we've already inspected it

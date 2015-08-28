@@ -51,7 +51,14 @@ module Praxis
         @name_type = Attributor.resolve_type type
       end
 
-      def self.payload_type(type=Attributor::Struct, **opts, &block)
+      def self.payload_type(type=nil, **opts, &block)
+        if type.nil?
+          if block_given?
+            type = Attributor::Struct
+          else
+            return @payload_type
+          end
+        end
         @payload_type = Attributor.resolve_type(type)
         @payload_attribute = Attributor::Attribute.new(@payload_type, **opts, &block)
         @part_attribute = nil

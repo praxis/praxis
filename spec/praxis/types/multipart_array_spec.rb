@@ -102,6 +102,10 @@ describe Praxis::Types::MultipartArray do
 
     it do
       expect(payload.part('blah').payload['sub_hash']).to eq('key' => 'value')
+
+      # The "reader" functions should work
+      expect(payload.payload_type).to eq Attributor::Hash
+      expect(payload.class.payload_type).to eq Attributor::Hash
     end
   end
 
@@ -122,6 +126,10 @@ describe Praxis::Types::MultipartArray do
     it do
       expect(payload.part('blah').payload.class.ancestors).to include(Attributor::Struct)
       expect(payload.part('blah').payload.attr).to eq('value')
+
+      # The "reader" functions should work
+      expect(payload.payload_type).to eq Attributor::Struct
+      expect(payload.class.payload_type).to eq Attributor::Struct
     end
   end
 

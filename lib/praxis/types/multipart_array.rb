@@ -101,7 +101,7 @@ module Praxis
                                                   filename_attribute: filename_attribute
                                                   )
         else
-          payload_attribute = compiler.define(name, payload_type || @payload_type, **opts)
+          payload_attribute = compiler.define(name, payload_type || self.payload_type, **opts)
           self.attributes[name] = compiler.define(name, Praxis::MultipartPart,
                                                   payload_attribute: payload_attribute,
                                                   filename_attribute: filename_attribute
@@ -179,7 +179,7 @@ module Praxis
               end
             end
           else
-            hash[:part_payload] = {type: @payload_type.describe(true)}
+            hash[:part_payload] = {type: payload_type.describe(true)}
           end
         end
         hash
@@ -231,7 +231,7 @@ module Praxis
       end
 
       def payload_type
-        self.class.instance_variable_get :@payload_type
+        self.class.payload_type
       end
 
       def push(*parts, context: Attributor::DEFAULT_ROOT_CONTEXT)

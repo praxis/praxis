@@ -8,12 +8,12 @@
 * Revamped document generation to output a more compact format:
     * 1 file per api version: including info, resources, schemas and traits.
     * 1 single index file with global info plus just a list of version names
-    * new task currently usable through `bundle exec rake praxis:docs:experiments`
+    * new task currently usable through `bundle exec rake praxis:docs:generate_beta`
       * NOTE: leaves the current doc generation tasks and code intact (until the doc browser is switched to use this)
 * Specialized `Multipart`’s family in its description to be ‘multipart’ instead of ‘hash’.
-* Added `Praxis::Handlers::FormData` for 'multipart/form-data'. Currently returns the input unchanged in `parse` and `generate`. 
+* Added `Praxis::Handlers::FormData` for 'multipart/form-data'. Currently returns the input unchanged in `parse` and `generate`.
 * Added `Praxis::Handlers::WWWForm` for form-encoded data.
-* Added `Docs::Generator`, experimental new documentation generator. Use the `praxis:docs:experiments` rake task to generate. *Note*: not currently compatible with the documentation browser.
+* Added `Docs::Generator`, experimental new documentation generator. Use the `praxis:docs:generate_beta` rake task to generate. *Note*: not currently compatible with the documentation browser.
 
 
 

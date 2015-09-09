@@ -52,8 +52,13 @@ module Praxis
       end
 
       def self.payload_type(type=nil, **opts, &block)
-        return @payload_type if type.nil?
-
+        if type.nil?
+          if block_given?
+            type = Attributor::Struct
+          else
+            return @payload_type
+          end
+        end
         @payload_type = Attributor.resolve_type(type)
         @payload_attribute = Attributor::Attribute.new(@payload_type, **opts, &block)
         @part_attribute = nil
@@ -188,7 +193,7 @@ module Praxis
           end
 
           sub_hash = part_attribute.describe(shallow, example: sub_example)
-          
+
 
           if (options = sub_hash.delete(:options))
             sub_hash[:options] = {}
@@ -204,7 +209,7 @@ module Praxis
           end
 
           sub_hash[:type] = MultipartPart.describe(shallow, example: sub_example, options: part_attribute.options)
-          
+
 
           parts[part_name] = sub_hash
         end

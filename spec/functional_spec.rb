@@ -268,7 +268,7 @@ describe 'Functional specs' do
 
 
   context 'not found and API versions' do
-    context 'when no version is speficied' do
+    context 'when no version is specified' do
       it 'it tells you which available api versions would match' do
         get '/api/clouds/1/instances/2?junk=foo',nil, 'global_session' => session
 
@@ -285,13 +285,13 @@ describe 'Functional specs' do
       end
     end
 
-    context 'when some version is speficied, but wrong' do
+    context 'when some version is specified, but wrong' do
       it 'it tells you which possible correcte api versions exist' do
         get '/api/clouds/1/instances/2?junk=foo&api_version=50.0', nil, 'global_session' => session
 
         expect(last_response.status).to eq(404)
         expect(last_response.headers["Content-Type"]).to eq("text/plain")
-        expect(last_response.body).to eq("NotFound. Your request speficied API version = \"50.0\". Available versions = \"1.0\".")
+        expect(last_response.body).to eq("NotFound. Your request specified API version = \"50.0\". Available versions = \"1.0\".")
       end
     end
 

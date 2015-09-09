@@ -95,7 +95,7 @@ module Praxis
           body += if version == 'n/a'
             ". Your request did not specify an API version.".freeze
           else
-            ". Your request speficied API version = \"#{version}\"."
+            ". Your request specified API version = \"#{version}\"."
           end
           pretty_versions = attempted_versions.collect(&:inspect).join(', ')
           body += " Available versions = #{pretty_versions}."

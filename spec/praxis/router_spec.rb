@@ -230,7 +230,7 @@ describe Praxis::Router do
               code, headers, body = router.call(request)
               expect(code).to eq(404)
               expect(headers['Content-Type']).to eq('text/plain')
-              expect(body.first).to eq("NotFound. Your request speficied API version = \"#{request_version}\". Available versions = \"1.0\", \"2.0\".")
+              expect(body.first).to eq("NotFound. Your request specified API version = \"#{request_version}\". Available versions = \"1.0\", \"2.0\".")
             end
           end
         end

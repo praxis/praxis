@@ -1,0 +1,55 @@
+{
+    "id": "index-schema#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "schema for a Praxis API definition",
+    "type": "object",
+    "required": [ "info", "resources", "schemas", "traits" ],
+    "properties": {
+        "info" : {
+          "$ref": "#/definitions/info"
+        },
+        "resources" : {
+          "type": "object",
+          "patternProperties": {
+            ".*": { "$ref": "resource.json#"}
+          }
+        },
+        "schemas" : {
+          "type": "object",
+          "patternProperties": {
+            ".*": { "$ref": "media_type.json#"}
+          }
+        },
+        "traits": {
+          "type": "object"
+        }
+    },
+    "additionalProperties": false,
+
+    "definitions": {
+      "info": {
+        "description": "schema for top level API info",
+        "type" : "object",
+        "properties" : {
+            "schema_version": { "type" : "string" },
+            "name": {"type" : "string" },
+            "title": {"type" : "string" },
+            "description": {"type" : "string" },
+            "base_path": { "type" : "string" },
+            "version_with": { "type" : ["string","array"] },
+            "endpoint": { "type" : "string" },
+            "consumes": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "produces": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "base_params": { "type": "object" }
+        },
+        "required": ["schema_version"],
+        "additionalProperties": false
+      }
+    }
+}

@@ -1,323 +1,825 @@
 {
-  "description": "Description text",
-  "media_type": { "name" : "V1::MediaTypes::Post", "identifier": "some post" },
-  "actions": [
-    {
-      "description": "Lists all existing Posts",
-      "name": "index",
-      "urls": [
-        {
-          "verb": "GET",
-          "path": "/posts",
-          "version": "1.0"
-        }
-      ],
-      "responses": {
-        "ok": {
-          "description": null,
-          "status": 200,
-          "headers": {
-          },
-          "media_type": {
-            "name": "V1::MediaTypes::Post",
-            "key": {
-              "type": {
-                "name": "Symbol"
-              }
-            },
-            "attributes": null
+  "info": {
+    "schema_version": "1.0",
+    "name": "bloggy",
+    "title": "A Blog API example application",
+    "description": "This is the 1.0 version of Bloggy",
+    "base_path": "/api/v1.0",
+    "version_with": "path",
+    "consumes": [
+      "json",
+      "x-www-form-urlencoded",
+      "form-data"
+    ],
+    "produces": [
+      "json",
+      "form-data"
+    ]
+  },
+  "resources": {
+    "V1-ResourceDefinitions-Blogs": {
+      "description": null,
+      "media_type": {
+        "name": "V1::MediaTypes::Blog",
+        "family": "hash",
+        "id": "V1-MediaTypes-Blog",
+        "key": {
+          "type": {
+            "name": "Symbol",
+            "family": "string",
+            "id": "Attributor-Symbol"
           }
-        }
-      }
-    },
-    {
-      "description": "Shows an existing Post by id",
-      "name": "show",
-      "urls": [
-        {
-          "verb": "GET",
-          "path": "/posts/:id",
-          "version": "1.0"
-        }
-      ],
-      "params": {
-        "options": {
-          "reference": "V1::MediaTypes::Post"
-        },
-        "type": {
-          "name": "Struct",
-          "key": {
-            "type": {
-              "name": "Symbol"
-            }
-          },
-          "attributes": {
-            "id": {
-              "required": true,
-              "options": {
-                "regexp": "(?-mix:\\d{5})"
-              },
-              "type": {
-                "name": "String"
-              }
-            }
-          }
-        },
-        "example": {
-          "id": "05837"
         }
       },
-      "responses": {
-        "ok": {
-          "description": null,
-          "status": 200,
-          "headers": {
-          },
-          "media_type": {
-            "name": "V1::MediaTypes::Post",
-            "key": {
-              "type": {
-                "name": "Symbol"
-              }
-            },
-            "attributes": null
-          }
-        },
-        "not_found": {
-          "description": null,
-          "status": 404,
-          "headers": {
-          }
-        }
-      }
-    },
-    {
-      "description": "Creates a new post for a Blog",
-      "name": "create",
-      "urls": [
+      "actions": [
         {
-          "verb": "POST",
-          "path": "/posts",
-          "version": "1.0"
-        },
-        {
-          "verb": "POST",
-          "path": "/blogs/:blog_id/posts",
-          "version": "1.0",
-          "name": "inner"
-        }
-      ],
-      "params": {
-        "options": {
-          "reference": "V1::MediaTypes::Post"
-        },
-        "type": {
-          "name": "Struct",
-          "key": {
-            "type": {
-              "name": "Symbol"
-            }
+          "description": null,
+          "name": "index",
+          "metadata": {
           },
-          "attributes": {
-            "blog_id": {
-              "required": false,
-              "type": {
-                "name": "String"
-              }
-            },
-            "the_author": {
-              "required": true,
-              "type": {
-                "name": "Struct",
-                "key": {
+          "responses": {
+            "ok": {
+              "description": "Standard response for successful HTTP requests.",
+              "status": 200,
+              "headers": {
+              },
+              "payload": {
+                "name": "V1::MediaTypes::Blog::Collection",
+                "family": "array",
+                "id": "V1-MediaTypes-Blog-Collection",
+                "options": {
+                },
+                "member_attribute": {
+                  "options": {
+                    "reference": "V1::MediaTypes::Blog"
+                  },
                   "type": {
-                    "name": "Symbol"
+                    "name": "V1::MediaTypes::Blog",
+                    "family": "hash",
+                    "id": "V1-MediaTypes-Blog",
+                    "key": {
+                      "type": {
+                        "name": "Symbol",
+                        "family": "string",
+                        "id": "Attributor-Symbol"
+                      }
+                    }
                   }
                 },
-                "attributes": {
-                  "id": {
-                    "required": true,
-                    "type": {
-                      "name": "Integer"
-                    }
+                "examples": {
+                  "json": {
+                    "content_type": "application/vnd.bloggy.blog+json; type=collection",
+                    "body": "[\n  {\n    \"id\": 452,\n    \"href\": \"/api/v1.0/blogs/452\",\n    \"name\": \"Failed to generate example for /\\\\/api\\\\/accounts\\\\/\\\\d+/ : Sorry, \\\"\\\\d+\\\" is too vague, try setting a range: \\\"\\\\d{1, 5}\\\"\",\n    \"description\": \"sulfotelluride\",\n    \"url\": \"example.com/blogs/452\",\n    \"timestamps\": {\n      \"created_at\": \"2012-11-17T00:00:00+00:00\",\n      \"updated_at\": \"2014-08-10T00:00:00+00:00\"\n    },\n    \"owner\": {\n      \"id\": 442,\n      \"href\": \"/api/v1.0/users/442\",\n      \"first\": \"Darrell\",\n      \"last\": \"O'Connell\",\n      \"links\": {\n        \"posts\": {\n          \"href\": \"/api/v1.0/users/442/posts\"\n        }\n      }\n    },\n    \"links\": {\n      \"posts\": {\n        \"href\": \"/api/v1.0/blogs/452/posts\"\n      },\n      \"owner\": {\n        \"href\": \"/api/v1.0/users/442\"\n      }\n    }\n  },\n  {\n    \"id\": 329,\n    \"href\": \"/api/v1.0/blogs/329\",\n    \"name\": \"Failed to generate example for /\\\\/api\\\\/accounts\\\\/\\\\d+/ : Sorry, \\\"\\\\d+\\\" is too vague, try setting a range: \\\"\\\\d{1, 5}\\\"\",\n    \"description\": \"sturtan\",\n    \"url\": \"example.com/blogs/329\",\n    \"timestamps\": {\n      \"created_at\": \"2014-12-13T00:00:00+00:00\",\n      \"updated_at\": \"2013-09-11T00:00:00+00:00\"\n    },\n    \"owner\": {\n      \"id\": 568,\n      \"href\": \"/api/v1.0/users/568\",\n      \"first\": \"Bill\",\n      \"last\": \"Reichert\",\n      \"links\": {\n        \"posts\": {\n          \"href\": \"/api/v1.0/users/568/posts\"\n        }\n      }\n    },\n    \"links\": {\n      \"posts\": {\n        \"href\": \"/api/v1.0/blogs/329/posts\"\n      },\n      \"owner\": {\n        \"href\": \"/api/v1.0/users/568\"\n      }\n    }\n  }\n]"
+                  }
+                }
+              }
+            }
+          },
+          "urls": [
+            {
+              "verb": "GET",
+              "path": "/api/v1.0/blogs",
+              "version": "1.0",
+              "example": "/api/v1.0/blogs"
+            }
+          ]
+        },
+        {
+          "description": null,
+          "name": "show",
+          "metadata": {
+          },
+          "params": {
+            "options": {
+              "reference": "V1::MediaTypes::Blog"
+            },
+            "type": {
+              "name": "Struct",
+              "family": "hash",
+              "id": null,
+              "key": {
+                "type": {
+                  "name": "Symbol",
+                  "family": "string",
+                  "id": "Attributor-Symbol"
+                }
+              },
+              "attributes": {
+                "id": {
+                  "description": "Unique identifier",
+                  "type": {
+                    "name": "Integer",
+                    "family": "numeric",
+                    "id": "Attributor-Integer"
                   },
-                  "nested": {
-                    "required": false,
-                    "type": {
-                      "name": "Struct",
-                      "key": {
-                        "type": {
-                          "name": "Symbol"
-                        }
+                  "example": 197,
+                  "source": "url"
+                }
+              }
+            }
+          },
+          "responses": {
+            "ok": {
+              "description": "Standard response for successful HTTP requests.",
+              "status": 200,
+              "headers": {
+              },
+              "payload": {
+                "name": "V1::MediaTypes::Blog",
+                "family": "hash",
+                "id": "V1-MediaTypes-Blog",
+                "key": {
+                  "type": {
+                    "name": "Symbol",
+                    "family": "string",
+                    "id": "Attributor-Symbol"
+                  }
+                },
+                "examples": {
+                  "json": {
+                    "content_type": "application/vnd.bloggy.blog+json",
+                    "body": "{\n  \"id\": 197,\n  \"href\": \"/api/v1.0/blogs/197\",\n  \"name\": \"Failed to generate example for /\\\\/api\\\\/accounts\\\\/\\\\d+/ : Sorry, \\\"\\\\d+\\\" is too vague, try setting a range: \\\"\\\\d{1, 5}\\\"\",\n  \"description\": \"womanism\",\n  \"url\": \"example.com/blogs/197\",\n  \"timestamps\": {\n    \"created_at\": \"2012-11-02T00:00:00+00:00\",\n    \"updated_at\": \"2012-11-22T00:00:00+00:00\"\n  },\n  \"owner\": {\n    \"id\": 92,\n    \"href\": \"/api/v1.0/users/92\",\n    \"first\": \"Tracy\",\n    \"last\": \"Hackett\",\n    \"links\": {\n      \"posts\": {\n        \"href\": \"/api/v1.0/users/92/posts\"\n      }\n    }\n  },\n  \"links\": {\n    \"posts\": {\n      \"href\": \"/api/v1.0/blogs/197/posts\"\n    },\n    \"owner\": {\n      \"href\": \"/api/v1.0/users/92\"\n    }\n  }\n}"
+                  }
+                }
+              }
+            },
+            "resource_not_found": {
+              "description": "The requested API resource could not be found for the provided :id",
+              "status": 404,
+              "headers": {
+              }
+            }
+          },
+          "urls": [
+            {
+              "verb": "GET",
+              "path": "/api/v1.0/blogs/:id",
+              "version": "1.0",
+              "example": "/api/v1.0/blogs/197"
+            }
+          ]
+        },
+        {
+          "description": null,
+          "name": "create",
+          "metadata": {
+          },
+          "payload": {
+            "options": {
+              "reference": "V1::MediaTypes::Blog"
+            },
+            "type": {
+              "name": "Struct",
+              "family": "hash",
+              "id": null,
+              "key": {
+                "type": {
+                  "name": "Symbol",
+                  "family": "string",
+                  "id": "Attributor-Symbol"
+                }
+              },
+              "attributes": {
+                "name": {
+                  "description": "Short name",
+                  "required": true,
+                  "options": {
+                    "regexp": "(?-mix:\\/api\\/accounts\\/\\d+)"
+                  },
+                  "type": {
+                    "name": "String",
+                    "family": "string",
+                    "id": "Attributor-String"
+                  },
+                  "example": "Failed to generate example for /\\/api\\/accounts\\/\\d+/ : Sorry, \"\\d+\" is too vague, try setting a range: \"\\d{1, 5}\""
+                },
+                "description": {
+                  "description": "Longer description",
+                  "type": {
+                    "name": "String",
+                    "family": "string",
+                    "id": "Attributor-String"
+                  },
+                  "example": "womanism"
+                },
+                "tags": {
+                  "description": "Array of tags",
+                  "type": {
+                    "name": "Collection",
+                    "family": "array",
+                    "id": null,
+                    "options": {
+                    },
+                    "member_attribute": {
+                      "type": {
+                        "name": "String",
+                        "family": "string",
+                        "id": "Attributor-String"
                       },
-                      "attributes": {
-                        "foo": {
-                          "type": {
-                            "name": "String"
-                          }
-                        }
+                      "example": "dividingly"
+                    }
+                  }
+                },
+                "owner": {
+                  "description": "Related User resource",
+                  "required": true,
+                  "options": {
+                    "reference": "V1::MediaTypes::User"
+                  },
+                  "type": {
+                    "name": "Struct",
+                    "family": "hash",
+                    "id": null,
+                    "key": {
+                      "type": {
+                        "name": "Symbol",
+                        "family": "string",
+                        "id": "Attributor-Symbol"
+                      }
+                    },
+                    "attributes": {
+                      "id": {
+                        "required": true,
+                        "type": {
+                          "name": "Integer",
+                          "family": "numeric",
+                          "id": "Attributor-Integer"
+                        },
+                        "example": 92
                       }
                     }
                   }
                 }
               }
             },
-            "prospect": {
-              "options": {
-                "reference": null
+            "examples": {
+              "json": {
+                "content_type": "application/json",
+                "body": "{\n  \"name\": \"Failed to generate example for /\\\\/api\\\\/accounts\\\\/\\\\d+/ : Sorry, \\\"\\\\d+\\\" is too vague, try setting a range: \\\"\\\\d{1, 5}\\\"\",\n  \"description\": \"womanism\",\n  \"tags\": [\n    \"dividingly\",\n    \"rebind\",\n    \"flannel\"\n  ],\n  \"owner\": {\n    \"id\": 92\n  }\n}"
               },
-              "type": {
-                "name": "Struct",
-                "key": {
-                  "type": {
-                    "name": "Symbol"
-                  }
-                },
-                "attributes": {
-                  "email": {
-                    "description": "Prospect's email",
-                    "required": true,
-                    "type": {
-                      "name": "String"
-                    }
-                  },
-                  "phone": {
-                    "description": "Phone Number",
-                    "type": {
-                      "name": "String"
-                    }
-                  },
-                  "name": {
-                    "description": "First and Last Names",
-                    "type": {
-                      "name": "String"
-                    }
+              "x-www-form-urlencoded": {
+                "content_type": "application/x-www-form-urlencoded",
+                "body": "name=Failed+to+generate+example+for+%2F%5C%2Fapi%5C%2Faccounts%5C%2F%5Cd%2B%2F+%3A+Sorry%2C+%22%5Cd%2B%22+is+too+vague%2C+try+setting+a+range%3A+%22%5Cd%7B1%2C+5%7D%22&description=womanism&tags=dividingly&tags=rebind&tags=flannel&owner=%7B%3Aid%3D%3E92%7D"
+              },
+              "form-data": {
+                "content_type": "application/form-data",
+                "body": {
+                  "name": "Failed to generate example for /\\/api\\/accounts\\/\\d+/ : Sorry, \"\\d+\" is too vague, try setting a range: \"\\d{1, 5}\"",
+                  "description": "womanism",
+                  "tags": [
+                    "dividingly",
+                    "rebind",
+                    "flannel"
+                  ],
+                  "owner": {
+                    "id": 92
                   }
                 }
               }
             }
-          }
-        },
-        "example": {
-          "blog_id": "pediadontic",
-          "the_author": {
-            "id": 563,
-            "nested": {
-              "foo": "prerupt"
-            }
           },
-          "prospect": {
-            "email": "unobscured",
-            "phone": "unregimented",
-            "name": "Robbin"
-          }
-        }
-      },
-      "payload": {
-        "options": {
-          "reference": "V1::MediaTypes::Post"
-        },
-        "type": {
-          "name": "V1::MediaTypes::Post",
-          "key": {
-            "type": {
-              "name": "Symbol"
-            }
-          },
-          "attributes": null
-        },
-        "example": {
-          "id": "05837",
-          "href": "/posts/05837",
-          "title": "overbold",
-          "content": "costerdom",
-          "url": "orchioncus",
-          "author": {
-            "id": "64103",
-            "href": "/users/64103",
-            "first": "Ernestina",
-            "last": "Hessel",
-            "links": {
-              "blogs": {
-                "href": "venturousness"
-              },
-              "posts": {
-                "href": "consignatory"
+          "responses": {
+            "created": {
+              "description": "The request has been fulfilled and resulted in a new resource being created.",
+              "status": 201,
+              "headers": {
+              }
+            },
+            "resource_not_found": {
+              "description": "The requested API resource could not be found for the provided :id",
+              "status": 404,
+              "headers": {
               }
             }
           },
-          "timestamps": {
-            "created_at": "2014-05-22T00:00:00+00:00",
-            "updated_at": "2013-01-23T00:00:00+00:00"
-          },
-          "links": {
-            "blog": {
-              "href": "/blogs/07974"
-            },
-            "author": {
-              "href": "/users/64103"
+          "urls": [
+            {
+              "verb": "POST",
+              "path": "/api/v1.0/blogs",
+              "version": "1.0",
+              "example": "/api/v1.0/blogs"
             }
-          }
-        }
-      },
-      "responses": {
-        "created": {
-          "description": null,
-          "status": 201,
-          "headers": {
-          },
-          "location": {
-            "value": "/^\\/posts\\/\\w/",
-            "type": "regexp"
-          }
-        }
-      }
-    },
-    {
-      "description": "Deletes a single Post, by id",
-      "name": "delete",
-      "urls": [
+          ]
+        },
         {
-          "verb": "DELETE",
-          "path": "/posts/:id",
-          "version": "1.0"
+          "description": "Delete a single Blog, by id",
+          "name": "delete",
+          "metadata": {
+          },
+          "params": {
+            "options": {
+              "reference": "V1::MediaTypes::Blog"
+            },
+            "type": {
+              "name": "Struct",
+              "family": "hash",
+              "id": null,
+              "key": {
+                "type": {
+                  "name": "Symbol",
+                  "family": "string",
+                  "id": "Attributor-Symbol"
+                }
+              },
+              "attributes": {
+                "id": {
+                  "description": "Unique identifier",
+                  "required": true,
+                  "type": {
+                    "name": "Integer",
+                    "family": "numeric",
+                    "id": "Attributor-Integer"
+                  },
+                  "example": 197,
+                  "source": "url"
+                }
+              }
+            }
+          },
+          "responses": {
+            "no_content": {
+              "description": "The server successfully processed the request, but is not returning any content.",
+              "status": 204,
+              "headers": {
+              }
+            }
+          },
+          "urls": [
+            {
+              "verb": "DELETE",
+              "path": "/api/v1.0/blogs/:id",
+              "version": "1.0",
+              "example": "/api/v1.0/blogs/197"
+            }
+          ]
         }
       ],
-      "params": {
-        "options": {
-          "reference": "V1::MediaTypes::Post"
-        },
-        "type": {
-          "name": "Struct",
-          "key": {
-            "type": {
-              "name": "Symbol"
-            }
-          },
-          "attributes": {
-            "id": {
-              "required": true,
-              "options": {
-                "regexp": "(?-mix:\\d{5})"
-              },
-              "type": {
-                "name": "String"
-              }
-            }
+      "name": "V1::ResourceDefinitions::Blogs",
+      "display_name": "Blogs",
+      "metadata": {
+      },
+      "traits": [
+
+      ]
+    },
+    "V1-ResourceDefinitions-Posts": {
+      "description": null,
+      "media_type": {
+        "name": "V1::MediaTypes::Post",
+        "family": "hash",
+        "id": "V1-MediaTypes-Post",
+        "key": {
+          "type": {
+            "name": "Symbol",
+            "family": "string",
+            "id": "Attributor-Symbol"
           }
-        },
-        "example": {
-          "id": "05837"
         }
       },
-      "responses": {
-        "no_content": {
-          "description": null,
-          "status": 204,
+      "actions": [
+        {
+          "description": "Lists all existing Posts",
+          "name": "index",
+          "metadata": {
+          },
+          "responses": {
+            "ok": {
+              "description": "Standard response for successful HTTP requests.",
+              "status": 200,
+              "headers": {
+              },
+              "payload": {
+                "name": "V1::MediaTypes::Post::Collection",
+                "family": "array",
+                "id": "V1-MediaTypes-Post-Collection",
+                "options": {
+                },
+                "member_attribute": {
+                  "options": {
+                    "reference": "V1::MediaTypes::Post"
+                  },
+                  "type": {
+                    "name": "V1::MediaTypes::Post",
+                    "family": "hash",
+                    "id": "V1-MediaTypes-Post",
+                    "key": {
+                      "type": {
+                        "name": "Symbol",
+                        "family": "string",
+                        "id": "Attributor-Symbol"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "json": {
+                    "content_type": "application/vnd.bloggy.post+json; type=collection",
+                    "body": "[\n  {\n    \"id\": 58,\n    \"href\": \"/api/v1.0/posts/58\",\n    \"title\": \"unkingdom\",\n    \"content\": \"Betalk paludian celliferous unpetitioned noncorruption\",\n    \"url\": \"example.com/posts/58\",\n    \"author\": {\n      \"id\": 716,\n      \"href\": \"/api/v1.0/users/716\",\n      \"first\": \"John\",\n      \"last\": \"Gorczany\",\n      \"links\": {\n        \"posts\": {\n          \"href\": \"/api/v1.0/users/716/posts\"\n        }\n      }\n    },\n    \"timestamps\": {\n      \"created_at\": \"2012-11-18T00:00:00+00:00\",\n      \"updated_at\": \"2014-06-08T00:00:00+00:00\"\n    },\n    \"links\": {\n      \"author\": {\n        \"href\": \"/api/v1.0/users/716\"\n      },\n      \"blog\": {\n        \"href\": \"/api/v1.0/blogs/552\"\n      }\n    }\n  },\n  {\n    \"id\": 686,\n    \"href\": \"/api/v1.0/posts/686\",\n    \"title\": \"murkily\",\n    \"content\": \"Ruttishness metrosalpingitis concernedly sexlessly entozoologically\",\n    \"url\": \"example.com/posts/686\",\n    \"author\": {\n      \"id\": 550,\n      \"href\": \"/api/v1.0/users/550\",\n      \"first\": \"Milda\",\n      \"last\": \"Mayert\",\n      \"links\": {\n        \"posts\": {\n          \"href\": \"/api/v1.0/users/550/posts\"\n        }\n      }\n    },\n    \"timestamps\": {\n      \"created_at\": \"2012-12-04T00:00:00+00:00\",\n      \"updated_at\": \"2013-11-22T00:00:00+00:00\"\n    },\n    \"links\": {\n      \"author\": {\n        \"href\": \"/api/v1.0/users/550\"\n      },\n      \"blog\": {\n        \"href\": \"/api/v1.0/blogs/236\"\n      }\n    }\n  }\n]"
+                  }
+                }
+              }
+            }
+          },
+          "urls": [
+            {
+              "verb": "GET",
+              "path": "/api/v1.0/posts",
+              "version": "1.0",
+              "example": "/api/v1.0/posts"
+            }
+          ]
+        },
+        {
+          "description": "Shows an existing Post by id",
+          "name": "show",
+          "metadata": {
+          },
+          "params": {
+            "options": {
+              "reference": "V1::MediaTypes::Post"
+            },
+            "type": {
+              "name": "Struct",
+              "family": "hash",
+              "id": null,
+              "key": {
+                "type": {
+                  "name": "Symbol",
+                  "family": "string",
+                  "id": "Attributor-Symbol"
+                }
+              },
+              "attributes": {
+                "id": {
+                  "description": "Unique identifier",
+                  "required": true,
+                  "type": {
+                    "name": "Integer",
+                    "family": "numeric",
+                    "id": "Attributor-Integer"
+                  },
+                  "example": 835,
+                  "source": "url"
+                }
+              }
+            }
+          },
+          "responses": {
+            "ok": {
+              "description": "Standard response for successful HTTP requests.",
+              "status": 200,
+              "headers": {
+              },
+              "payload": {
+                "name": "V1::MediaTypes::Post",
+                "family": "hash",
+                "id": "V1-MediaTypes-Post",
+                "key": {
+                  "type": {
+                    "name": "Symbol",
+                    "family": "string",
+                    "id": "Attributor-Symbol"
+                  }
+                },
+                "examples": {
+                  "json": {
+                    "content_type": "application/vnd.bloggy.post+json",
+                    "body": "{\n  \"id\": 835,\n  \"href\": \"/api/v1.0/posts/835\",\n  \"title\": \"unwallowed\",\n  \"content\": \"Diapause nuraghe outroyal uncollegian burnoose\",\n  \"url\": \"example.com/posts/835\",\n  \"author\": {\n    \"id\": 476,\n    \"href\": \"/api/v1.0/users/476\",\n    \"first\": \"Willia\",\n    \"last\": \"Hodkiewicz\",\n    \"links\": {\n      \"posts\": {\n        \"href\": \"/api/v1.0/users/476/posts\"\n      }\n    }\n  },\n  \"timestamps\": {\n    \"created_at\": \"2014-07-02T00:00:00+00:00\",\n    \"updated_at\": \"2012-11-09T00:00:00+00:00\"\n  },\n  \"links\": {\n    \"author\": {\n      \"href\": \"/api/v1.0/users/476\"\n    },\n    \"blog\": {\n      \"href\": \"/api/v1.0/blogs/741\"\n    }\n  }\n}"
+                  }
+                }
+              }
+            },
+            "resource_not_found": {
+              "description": "The requested API resource could not be found for the provided :id",
+              "status": 404,
+              "headers": {
+              }
+            }
+          },
+          "urls": [
+            {
+              "verb": "GET",
+              "path": "/api/v1.0/posts/:id",
+              "version": "1.0",
+              "example": "/api/v1.0/posts/835"
+            }
+          ]
+        },
+        {
+          "description": "Creates a new post for a Blog",
+          "name": "create",
+          "metadata": {
+          },
           "headers": {
+            "options": {
+              "allow_extra": false,
+              "case_insensitive_load": true,
+              "reference": "V1::MediaTypes::Post"
+            },
+            "type": {
+              "name": "Hash",
+              "family": "hash",
+              "id": null,
+              "key": {
+                "type": {
+                  "name": "String",
+                  "family": "string",
+                  "id": "Attributor-String"
+                }
+              },
+              "attributes": {
+                "Content-Type": {
+                  "values": [
+                    "application/vnd.bloggy.post"
+                  ],
+                  "type": {
+                    "name": "String",
+                    "family": "string",
+                    "id": "Attributor-String"
+                  },
+                  "example": "application/vnd.bloggy.post"
+                }
+              }
+            }
+          },
+          "params": {
+            "options": {
+              "reference": "V1::MediaTypes::Post"
+            },
+            "type": {
+              "name": "Struct",
+              "family": "hash",
+              "id": null,
+              "key": {
+                "type": {
+                  "name": "Symbol",
+                  "family": "string",
+                  "id": "Attributor-Symbol"
+                }
+              },
+              "attributes": {
+                "blog_id": {
+                  "required": true,
+                  "type": {
+                    "name": "String",
+                    "family": "string",
+                    "id": "Attributor-String"
+                  },
+                  "example": "Tunebo",
+                  "source": "query"
+                }
+              }
+            },
+            "example": {}
+          },
+          "payload": {
+            "options": {
+              "reference": "V1::MediaTypes::Post"
+            },
+            "type": {
+              "name": "Praxis::Types::MultipartArray",
+              "family": "array",
+              "id": null,
+              "part_name": {
+                "type": {
+                  "name": "String",
+                  "family": "string",
+                  "id": "Attributor-String"
+                }
+              }
+            },
+            "example": "--Boundary_puppies\r\nContent-Type: text/plain\r\nContent-Disposition: form-data; name=post\r\n\r\n{:title=>\"unconsequentially\", :content=>\"subsidize\"}\r\n--Boundary_puppies\r\nContent-Type: text/plain\r\nContent-Disposition: form-data; name=image; filename=Antilia\r\n\r\nretroinfection\r\n--Boundary_puppies--\r\n",
+            "examples": {
+              "json": {
+                "content_type": "multipart/form-data; boundary=Boundary_puppies",
+                "body": "--Boundary_puppies\r\nContent-Type: application/json\r\nContent-Disposition: form-data; name=post\r\n\r\n{\n  \"title\": \"unconsequentially\",\n  \"content\": \"subsidize\"\n}\r\n--Boundary_puppies\r\nContent-Type: text/plain\r\nContent-Disposition: form-data; name=image; filename=Antilia\r\n\r\nretroinfection\r\n--Boundary_puppies--\r\n"
+              },
+              "x-www-form-urlencoded": {
+                "content_type": "multipart/form-data; boundary=Boundary_puppies",
+                "body": "--Boundary_puppies\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Disposition: form-data; name=post\r\n\r\ntitle=unconsequentially&content=subsidize\r\n--Boundary_puppies\r\nContent-Type: text/plain\r\nContent-Disposition: form-data; name=image; filename=Antilia\r\n\r\nretroinfection\r\n--Boundary_puppies--\r\n"
+              },
+              "form-data": {
+                "content_type": "multipart/form-data; boundary=Boundary_puppies",
+                "body": "--Boundary_puppies\r\nContent-Type: application/form-data\r\nContent-Disposition: form-data; name=post\r\n\r\n{\n  \"title\": \"unconsequentially\",\n  \"content\": \"subsidize\"\n}\r\n--Boundary_puppies\r\nContent-Type: text/plain\r\nContent-Disposition: form-data; name=image; filename=Antilia\r\n\r\nretroinfection\r\n--Boundary_puppies--\r\n"
+              }
+            }
+          },
+          "responses": {
+            "created": {
+              "description": "The request has been fulfilled and resulted in a new resource being created.",
+              "status": 201,
+              "headers": {
+              },
+              "location": {
+                "value": "/^\\/api\\/v1\\.0\\/posts\\/\\w+/",
+                "type": "regexp"
+              }
+            }
+          },
+          "urls": [
+            {
+              "verb": "POST",
+              "path": "/api/v1.0/posts",
+              "version": "1.0",
+              "example": "/api/v1.0/posts?blog_id=Tunebo"
+            }
+          ]
+        },
+        {
+          "description": "Delete a single Post, by id",
+          "name": "delete",
+          "metadata": {
+          },
+          "params": {
+            "options": {
+              "reference": "V1::MediaTypes::Post"
+            },
+            "type": {
+              "name": "Struct",
+              "family": "hash",
+              "id": null,
+              "key": {
+                "type": {
+                  "name": "Symbol",
+                  "family": "string",
+                  "id": "Attributor-Symbol"
+                }
+              },
+              "attributes": {
+                "id": {
+                  "description": "Unique identifier",
+                  "required": true,
+                  "type": {
+                    "name": "Integer",
+                    "family": "numeric",
+                    "id": "Attributor-Integer"
+                  },
+                  "example": 835,
+                  "source": "url"
+                }
+              }
+            }
+          },
+          "responses": {
+            "no_content": {
+              "description": "The server successfully processed the request, but is not returning any content.",
+              "status": 204,
+              "headers": {
+              }
+            }
+          },
+          "urls": [
+            {
+              "verb": "DELETE",
+              "path": "/api/v1.0/posts/:id",
+              "version": "1.0",
+              "example": "/api/v1.0/posts/835"
+            }
+          ]
+        }
+      ],
+      "name": "V1::ResourceDefinitions::Posts",
+      "display_name": "Posts",
+      "metadata": {
+      },
+      "traits": [
+
+      ]
+    },
+    "V1-ResourceDefinitions-Users": {
+      "description": null,
+      "media_type": {
+        "name": "V1::MediaTypes::User",
+        "family": "hash",
+        "id": "V1-MediaTypes-User",
+        "key": {
+          "type": {
+            "name": "Symbol",
+            "family": "string",
+            "id": "Attributor-Symbol"
           }
         }
-      }
+      },
+      "actions": [
+        {
+          "description": null,
+          "name": "index",
+          "metadata": {
+          },
+          "responses": {
+            "ok": {
+              "description": "Standard response for successful HTTP requests.",
+              "status": 200,
+              "headers": {
+              },
+              "payload": {
+                "name": "V1::MediaTypes::User",
+                "family": "hash",
+                "id": "V1-MediaTypes-User",
+                "key": {
+                  "type": {
+                    "name": "Symbol",
+                    "family": "string",
+                    "id": "Attributor-Symbol"
+                  }
+                },
+                "examples": {
+                  "json": {
+                    "content_type": "application/vnd.bloggy.user+json",
+                    "body": "{\n  \"id\": 158,\n  \"href\": \"/api/v1.0/users/158\",\n  \"first\": \"Maggie\",\n  \"last\": \"Wyman\",\n  \"links\": {\n    \"posts\": {\n      \"href\": \"/api/v1.0/users/158/posts\"\n    }\n  }\n}"
+                  }
+                }
+              }
+            }
+          },
+          "urls": [
+            {
+              "verb": "GET",
+              "path": "/api/v1.0/users",
+              "version": "1.0",
+              "example": "/api/v1.0/users"
+            }
+          ]
+        },
+        {
+          "description": null,
+          "name": "show",
+          "metadata": {
+          },
+          "params": {
+            "options": {
+              "reference": "V1::MediaTypes::User"
+            },
+            "type": {
+              "name": "Struct",
+              "family": "hash",
+              "id": null,
+              "key": {
+                "type": {
+                  "name": "Symbol",
+                  "family": "string",
+                  "id": "Attributor-Symbol"
+                }
+              },
+              "attributes": {
+                "id": {
+                  "type": {
+                    "name": "Integer",
+                    "family": "numeric",
+                    "id": "Attributor-Integer"
+                  },
+                  "example": 158,
+                  "source": "url"
+                }
+              }
+            }
+          },
+          "responses": {
+            "ok": {
+              "description": "Standard response for successful HTTP requests.",
+              "status": 200,
+              "headers": {
+              },
+              "payload": {
+                "name": "V1::MediaTypes::User",
+                "family": "hash",
+                "id": "V1-MediaTypes-User",
+                "key": {
+                  "type": {
+                    "name": "Symbol",
+                    "family": "string",
+                    "id": "Attributor-Symbol"
+                  }
+                },
+                "examples": {
+                  "json": {
+                    "content_type": "application/vnd.bloggy.user+json",
+                    "body": "{\n  \"id\": 158,\n  \"href\": \"/api/v1.0/users/158\",\n  \"first\": \"Maggie\",\n  \"last\": \"Wyman\",\n  \"links\": {\n    \"posts\": {\n      \"href\": \"/api/v1.0/users/158/posts\"\n    }\n  }\n}"
+                  }
+                }
+              }
+            }
+          },
+          "urls": [
+            {
+              "verb": "GET",
+              "path": "/api/v1.0/users/:id",
+              "version": "1.0",
+              "example": "/api/v1.0/users/158"
+            }
+          ]
+        }
+      ],
+      "name": "V1::ResourceDefinitions::Users",
+      "display_name": "Users",
+      "metadata": {
+      },
+      "traits": [
+
+      ]
     }
-  ]
+  },
+  "schemas": {},
+  "traits": {
+  }
 }

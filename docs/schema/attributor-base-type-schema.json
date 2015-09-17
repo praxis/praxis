@@ -1,0 +1,11 @@
+{
+  "description" : "Base attributes of any Attributor Type: id, name, family and optional example",
+  "type": "object",
+  "properties": {
+      "id" : { "type": ["string","null"] },
+      "name" : { "type": "string" },
+      "family" : { "type": "string" },
+      "example" : { "type": "any" }
+  },
+  "required": ["id","name","family"]
+}

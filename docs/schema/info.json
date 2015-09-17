@@ -1,0 +1,26 @@
+{
+    "id": "info-schema#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "schema for top level API info",
+    "type" : "object",
+    "properties" : {
+        "schema_version": { "type" : "string" },
+        "name": {"type" : "string" },
+        "title": {"type" : "string" },
+        "description": {"type" : "string" },
+        "base_path": { "type" : "string" },
+        "version_with": { "type" : ["string","array"] },
+        "endpoint": { "type" : "string" },
+        "consumes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "produces": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "base_params": { "type": "object" }
+    },
+    "required": ["schema_version"],
+    "additionalProperties": false
+}

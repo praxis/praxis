@@ -4,7 +4,8 @@
       "verb": { "type" : "string", "enum": ["GET","POST","PUT","PATCH","DELETE","HEAD","OPTIONS","ANY"] },
       "path": {"type" : "string" },
       "version": {"type" : "string" },
-      "name": {"type" : "string" }
+      "name": {"type" : "string" },
+      "example": { "type" : "string" }
   },
   "required": ["verb","path","version"],
   "additionalProperties": false

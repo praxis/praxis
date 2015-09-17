@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "description": { "type": ["string","null"] },
+    "status" : { "type": "integer" },
+    "headers" : { "type" : "object", "description": "TODO! Define the headers here"},
+    "payload" :  { "$ref" : "action_payload.json#" },
+    "location" : { "type" :  "object", "description": "TODO! Define the location here. Also, we need an example here!"}
+  },
+  "definitions": {
+    "header" : {
+      "type": "object",
+      "value": X,
+      "type" : Y ...
+    }
+  }
+}

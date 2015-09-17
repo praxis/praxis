@@ -3,27 +3,42 @@
       "type": "object",
       "required": [ "name", "urls", "responses" ],
       "properties": {
-        "description" : { 
-           "type": "string"
-        },
-        "name" : { 
-           "type": "string"
-        },
+        "description" : { "type": ["string","null"] },
+        "name" : { "type": ["string","null"] },
         "urls": {
             "type": "array",
             "items": { "$ref": "route.json#" }
         },
         "headers": {
-            "type": { "$ref": "headers.json#" }
+          "type": "object",
+          "properties" : {
+            "options" : { "type" : "object" },
+            "type": {"$ref": "attributor-hash.json#"},
+            "example" : { "type" : "any" }
+          },
+          "required" : ["type"]
         },
         "params": {
-          "$ref": "attributor-attribute-schema.json#" 
+          "type": "object",
+          "properties" : {
+            "options" : { "type" : "object" },
+            "type": {"$ref": "attributor-hash.json#"},
+            "example" : { "type" : "any" }
+          },
+          "required" : ["type"]
         },
-        "payload": {
-          "$ref": "attributor-attribute-schema.json#"
+        "payload": { "$ref" : "action_payload.json#" },
+        "responses" : {
+          "type": "object",
+          "patternProperties": {
+            ".*": { "$ref": "response.json#"}
+          }
         },
-        "responses": {
-            "type": { "$ref": "#/definitions/response" }
+        "metadata": {
+          "type": "object"
+        },
+        "traits": {
+          "type": "array"
         }
       },
       "additionalProperties": true

@@ -1,28 +1,28 @@
 {
-    "id": "resource-schema#",
-    "$schema": "http://json-schema.org/draft-04/schema#",
     "description": "schema for a Praxis resource definition",
     "type": "object",
     "required": [ "actions" ],
     "properties": {
-        "description" : { 
-           "type": "string"
-        },
-        "media_type" : { 
+        "name" :         { "type": ["string"] },
+        "display_name" : { "type": ["string","null"] },
+        "description" :  { "type": ["string","null"] },
+        "media_type" : {
           "type" : "object",
           "properties": {
-            "name" : { 
-               "type": "string"
-            },
-            "identifier" : { 
-               "type": "string"
-            }
+            "name" : { "type": "string" },
+            "identifier" : { "type": "string" }
           },
           "required": [ "name" ]
         },
         "actions": {
             "type": "array",
             "items": { "$ref": "action.json#" }
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "traits": {
+          "type": "array"
         }
     },
     "additionalProperties": false

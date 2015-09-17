@@ -1,0 +1,23 @@
+{
+  "description": "It is a basic attribute structure, but ensuring it has an examples subhash, with one example per encoding which includes content-type and body",
+  "allOf" : [
+    { "type": ["null", { "$ref": "attributor-attribute-schema.json#"} ] },
+    {
+      "properties": {
+        "examples": {
+          "type": "object" ,
+          "patternProperties" : {
+            ".+" : {
+              "type" : "object",
+              "properties" : {
+                "content_type" : { "type" : "string" },
+                "body" : { "type" : "any"}
+              },
+              "required": ["content_type","body"]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

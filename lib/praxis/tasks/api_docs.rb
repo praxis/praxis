@@ -72,15 +72,16 @@ namespace :praxis do
   task :validate do
     require 'json-schema'
     # Only 1 single resource for now
-    schema_path = 'docs/schema/resource.json'
+    schema_path = 'docs/schema/index.json'
     doc_path = 'test.json'
+    require 'pry'
 
     schema_reader = JSON::Schema::Reader.new(:accept_uri => false, :accept_file => true)
 
     errors = JSON::Validator.fully_validate(schema_path, doc_path, :schema_reader => schema_reader, errors_as_objects: true)
     puts "Error count: #{errors.size}"
     errors.each do |error|
-      puts error
+      puts JSON.pretty_generate(error)
     end
   end
 

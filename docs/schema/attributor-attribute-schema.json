@@ -2,7 +2,7 @@
   "description" : "An Attribute has TYPE and possibly OPTIONS, EXAMPLE",
   "type": "object",
   "properties" : {
-    "type" : { "$ref": "attributor-type-schema.json#"},
+    "type" : { "$ref": "attributor-base-type-schema.json#"},
     "options" : {
       "type" : "object"
     },

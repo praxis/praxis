@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "allOf" : [
+    { "$ref" : "attributor-base-type-schema.json#"},
+    {
+      "properties": {
+          "family" : { "type": "string" , "enum" : "asdhash"}
+      }
+    },
+    {
+      "attributes" : {
+        "type": "object",
+        "patternProperties": {
+           ".+" : { "$ref": "attributor-attribute-schema.json#"}
+        }
+      },
+      "key": { "$ref": "attributor-base-type-schema.json#"},
+      "value": { "$ref": "attributor-base-type-schema.json#"}
+    }
+  ],
+  "required" : ["attributes"]
+}

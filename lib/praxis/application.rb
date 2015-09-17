@@ -93,6 +93,7 @@ module Praxis
     #
     # @param [String] name
     # @param [Class] a class that responds to .new, #parse and #generate
+
     def handler(name, handler)
       # Construct an instance, if the handler is a class and needs to be initialized.
       handler = handler.new

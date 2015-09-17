@@ -22,7 +22,7 @@ class Volume < Praxis::MediaType
     attribute :name
     attribute :source
     attribute :snapshots
-    
+
     attribute :links
   end
 
@@ -37,5 +37,3 @@ class Volume < Praxis::MediaType
   end
 
 end
-
-

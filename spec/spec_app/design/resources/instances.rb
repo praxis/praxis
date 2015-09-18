@@ -57,7 +57,7 @@ module ApiResources
         attribute :fail_filter, Attributor::Boolean, default: false
       end
 
-      payload do
+      payload required: false do
         attribute :something, String
         attribute :optional, String, default: "not given"
       end

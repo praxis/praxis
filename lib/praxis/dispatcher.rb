@@ -79,25 +79,27 @@ module Praxis
       payload = {request: request, response: nil}
 
       Notifications.instrument 'praxis.request.all'.freeze, payload do
-        # the response stage must be the final stage in the list
-        *stages, response_stage = @stages
-        
-        stages.each do |stage|
-          result = stage.run
-          case result
-          when Response
-            controller.response = result
-            break
+        begin
+          # the response stage must be the final stage in the list
+          *stages, response_stage = @stages
+
+          stages.each do |stage|
+            result = stage.run
+            case result
+            when Response
+              controller.response = result
+              break
+            end
           end
+
+          response_stage.run
+
+          payload[:response] = controller.response
+          controller.response.finish
+        rescue => e
+          @application.error_handler.handle!(request, e)
         end
-
-        response_stage.run
-
-        payload[:response] = controller.response
-        controller.response.finish
       end
-    rescue => e
-      @application.error_handler.handle!(request, e)
     ensure
       @controller = nil
       @action = nil
@@ -105,6 +107,7 @@ module Praxis
     end
 
 
+    # TODO: fix for multithreaded environments
     def reset_cache!
       return unless Praxis::Blueprint.caching_enabled?
 

@@ -40,7 +40,7 @@ module Praxis
       def action
         @context.action
       end
-      
+
       def request
         @context.request
       end
@@ -111,7 +111,7 @@ module Praxis
           shortcut = stage.run
           if shortcut && shortcut.kind_of?(Praxis::Response)
             controller.response = shortcut
-            return shortcut 
+            return shortcut
           end
         end
         nil

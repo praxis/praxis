@@ -7,11 +7,11 @@ describe Praxis::RequestStages::Action do
       include Praxis::Controller
     end.new(request)
   end
-  
-  let(:action) { double("action", name: "foo") }  
+
+  let(:action) { double("action", name: "foo") }
   let(:response){ Praxis::Responses::Ok.new }
   let(:app){ double("App", controller: controller, action:action, request: request)}
-  let(:action_stage){ Praxis::RequestStages::Action.new(action.name,app) }  
+  let(:action_stage){ Praxis::RequestStages::Action.new(action.name,app) }
 
   let(:request) do
     env = Rack::MockRequest.env_for('/instances/1?cloud_id=1&api_version=1.0')
@@ -29,17 +29,24 @@ describe Praxis::RequestStages::Action do
       expect(controller).to receive(action_stage.name).with(request.params_hash).and_return(controller_response)
     end
     let(:controller_response){ controller.response }
-    it 'should always call the right controller method' do
+
+    it 'always call the right controller method' do
       action_stage.execute
     end
-    it 'should save the request reference inside the response' do
+
+    it 'saves the request reference inside the response' do
       action_stage.execute
       expect(controller.response.request).to eq(request)
     end
 
+    it 'sends the right ActiveSupport::Notification' do
+      expect(ActiveSupport::Notifications).to receive(:instrument).with('praxis.request_stage.execute', {controller: an_instance_of(controller.class)}).and_call_original
+      action_stage.execute
+    end
+
     context 'if the controller method returns a string' do
       let(:controller_response){ "this is the body"}
-      it 'set the response body with it (and save the request too)' do
+      it 'sets the response body with it (and save the request too)' do
         action_stage.execute
         expect(controller.response.body).to eq("this is the body")
       end

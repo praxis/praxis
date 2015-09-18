@@ -100,6 +100,10 @@ describe Praxis::ActionDefinition do
   end
 
   describe '#params' do
+    it 'defaults to being required if omitted' do
+      expect(subject.params.options[:required]).to be(true)
+    end
+
     it 'merges in more params' do
       subject.params do
         attribute :more, Attributor::Integer
@@ -108,9 +112,22 @@ describe Praxis::ActionDefinition do
       attributes = subject.params.attributes.keys
       expect(attributes).to match_array([:one, :inherited, :more])
     end
+
+    it 'merges options (which allows overriding)' do
+      expect(subject.params.options[:required]).to be(true)
+
+      subject.params required: false
+
+      expect(subject.params.options[:required]).to be(false)
+    end
   end
 
   describe '#payload' do
+    it 'defaults to being required if omitted' do
+      expect(subject.payload.options[:required]).to be(true)
+    end
+
+
     it 'merges in more payload' do
       subject.payload do
         attribute :more, Attributor::Integer
@@ -119,6 +136,14 @@ describe Praxis::ActionDefinition do
       expect(subject.payload.attributes.keys).to match_array([
                                                                :two, :inherited, :more
       ])
+    end
+
+    it 'merges options (which allows overriding)' do
+      expect(subject.payload.options[:required]).to be(true)
+
+      subject.payload required: false
+
+      expect(subject.payload.options[:required]).to be(false)
     end
   end
 
@@ -131,6 +156,10 @@ describe Praxis::ActionDefinition do
       expect(subject.headers.type.options[:case_insensitive_load]).to be(true)
     end
 
+    it 'defaults to being required if omitted' do
+      expect(subject.headers.options[:required]).to be(true)
+    end
+
     it 'merges in more headers' do
       subject.headers do
         header "more"
@@ -138,6 +167,16 @@ describe Praxis::ActionDefinition do
 
       expected_array = ["X_REQUESTED_WITH", "Inherited", "more"]
       expect(subject.headers.attributes.keys).to match_array(expected_array)
+    end
+
+    it 'merges options (which allows overriding)' do
+      expect(subject.headers.options[:required]).to be(true)
+
+      subject.headers required: false do
+        header "even_more"
+      end
+
+      expect(subject.headers.options[:required]).to be(false)
     end
   end
 

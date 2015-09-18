@@ -15,7 +15,7 @@
 * Added `Praxis::Handlers::WWWForm` for form-encoded data.
 * Added `Docs::Generator`, experimental new documentation generator. Use the `praxis:docs:experiments` rake task to generate. *Note*: not currently compatible with the documentation browser.
 * Added 'praxis.request_stage.execute' `ActiveSupport::Notifications` instrumentation to contorller action method execution in `RequestStages::Action#execute`.
-
+* Make action headers, params and payloads be required by default as it is probably what most people expect from it. To make any of those three definitions non-required, simply add the `:required` option as used in any other attribute definition. For example: `payload required: false do ...`
 
 ## 0.17.1
 

@@ -103,7 +103,11 @@ module Praxis
     end
 
     def params(type=Attributor::Struct, **opts, &block)
-      return @params if !block && type == Attributor::Struct
+      return @params if !block && ( opts.nil? || opts.empty? ) && type == Attributor::Struct
+
+      unless( opts.key? :required )
+        opts[:required] = true # Make the payload required by default
+      end
 
       if @params
         unless type == Attributor::Struct && @params.type < Attributor::Struct
@@ -128,7 +132,11 @@ module Praxis
     end
 
     def payload(type=Attributor::Struct, **opts, &block)
-      return @payload if !block && type == Attributor::Struct
+      return @payload if !block && ( opts.nil? || opts.empty? ) && type == Attributor::Struct
+
+      unless( opts.key? :required )
+        opts[:required] = true # Make the payload required by default
+      end
 
       if @payload
         unless type == Attributor::Struct && @payload.type < Attributor::Struct
@@ -144,6 +152,11 @@ module Praxis
 
     def headers(type=nil, **opts, &block)
       return @headers unless block
+
+      unless( opts.key? :required )
+        opts[:required] = true # Make the payload required by default
+      end
+
       if @headers
         update_attribute(@headers, opts, block)
       else
@@ -227,7 +240,7 @@ module Praxis
         end
         hash[:traits] = traits if traits.any?
         # FIXME: change to :routes along with api browser
-        hash[:urls] = routes.collect do |route| 
+        hash[:urls] = routes.collect do |route|
           ActionDefinition.url_description(route: route, params: self.params, params_example: params_example)
         end.compact
         self.class.doc_decorations.each do |callback|
@@ -261,8 +274,8 @@ module Praxis
     end
 
     # Determine the content_type to report for a given example,
-    # using handler_name if possible. 
-    # 
+    # using handler_name if possible.
+    #
     # Considers any pre-defined set of values on the content_type attributge
     # of the headers.
     def derive_content_type(example, handler_name)
@@ -280,7 +293,7 @@ module Praxis
           return mti if mti.handler_name == handler_name
         end
 
-        # otherwise, pick the first 
+        # otherwise, pick the first
         pick = MediaTypeIdentifier.load(content_type_attribute.options[:values].first)
 
         # and return that one if it already corresponds to a registered handler
@@ -292,7 +305,7 @@ module Praxis
         end
       end
 
-      # generic default encoding 
+      # generic default encoding
       MediaTypeIdentifier.load("application/#{handler_name}")
     end
 

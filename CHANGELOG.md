@@ -2,6 +2,8 @@
 
 ## next
 
+## 0.18.0
+
 * Added `display_name` DSL to `ResourceDefinition` and `MediaType`
   * It is a purely informational field, mostly to be used by consumers of the generated docs
   * It defaults to the class name (stripping any of the prefix modules)

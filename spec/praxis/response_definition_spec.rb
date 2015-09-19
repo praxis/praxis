@@ -522,7 +522,7 @@ describe Praxis::ResponseDefinition do
         subject(:examples) { payload[:examples] }
         its(['json', :content_type]) { 'application/vnd.acme.instance+json '}
         its(['xml', :content_type]) { 'application/vnd.acme.instance+xml' }
-        
+
         it 'properly encodes the example bodies' do
           json = Praxis::Application.instance.handlers['json'].parse(examples['json'][:body])
           xml = Praxis::Application.instance.handlers['xml'].parse(examples['xml'][:body])
@@ -556,7 +556,7 @@ describe Praxis::ResponseDefinition do
         end
 
         it{ should be_kind_of(::Hash) }
-        its([:payload]){ should == { identifier: 'foobar'} }
+        its([:payload]){ should ==  {id: 'Praxis-SimpleMediaType', name: 'Praxis::SimpleMediaType', family: 'string', identifier: 'foobar' } }
         its([:status]){ should == 200 }
       end
       context 'using a full response definition block' do
@@ -572,7 +572,7 @@ describe Praxis::ResponseDefinition do
         end
 
         it{ should be_kind_of(::Hash) }
-        its([:payload]) { should == { identifier: 'custom_media'} }
+        its([:payload]) { should == {id: 'Praxis-SimpleMediaType', name: 'Praxis::SimpleMediaType', family: 'string', identifier: 'custom_media'} }
         its([:status]) { should == 234 }
       end
     end

@@ -42,8 +42,12 @@
     </div>
     </div>
   </div>
-  <div ng-if="controller.media_type" ng-controller="TypeCtrl">
+  <div ng-if="controller.media_type && controller.media_type.family != 'string'" ng-controller="TypeCtrl">
     <ng-include src="'views/type/details.html'" />
+  </div>
+  <div ng-if="controller.media_type && controller.media_type.family == 'string'">
+    <h2>Schema</h2>
+    <p ><b>Internet Media-type: {{ controller.media_type.identifier }}</b></p>
   </div>
   <h1>Actions</h1>
   <div ng-controller="ActionCtrl" ng-repeat="action in controller.actions">

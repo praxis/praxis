@@ -15,7 +15,7 @@ module Praxis
     end
 
     def describe(shallow=true)
-      {identifier: identifier}
+      {name: name, family: "string", id: id, identifier: identifier}
     end
 
   end

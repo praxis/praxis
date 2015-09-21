@@ -2,6 +2,10 @@
 
 ## next
 
+## 0.18.1
+
+* Fix Doc Browser regression, which would not show the schema in the Resource Definition home page.
+
 ## 0.18.0
 
 * Added `display_name` DSL to `ResourceDefinition` and `MediaType`

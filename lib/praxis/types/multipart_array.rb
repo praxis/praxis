@@ -110,7 +110,7 @@ module Praxis
       end
 
       def self.file(name, payload_type=nil, filename: nil, **opts, &block)
-        self.part(name, payload_type=nil, filename: true, **opts, &block)
+        self.part(name, payload_type, filename: true, **opts, &block)
       end
 
       def self.load(value, context=Attributor::DEFAULT_ROOT_CONTEXT, content_type:nil)

@@ -19,6 +19,8 @@ describe Praxis::Types::MultipartArray do
         payload Attributor::Tempfile
       end
 
+      file 'thumbnail', Attributor::Tempfile
+
       part 'image', Attributor::Tempfile, filename: true
 
     end
@@ -49,6 +51,9 @@ describe Praxis::Types::MultipartArray do
 
     entity = MIME::Application.new('{"first_name": "Frank"}', 'json')
     form_data.add entity,'stuff2'
+
+    entity = MIME::Application.new('SOMEBINARYDATA', 'jpg')
+    form_data.add entity,'thumbnail', 'thumb.jpg'
 
     entity = MIME::Application.new('', 'jpg')
     form_data.add entity,'image', 'image.jpg'
@@ -81,6 +86,10 @@ describe Praxis::Types::MultipartArray do
 
     stuff2 = payload.part('stuff2')
     expect(stuff2.payload['first_name']).to eq 'Frank'
+
+    thumb = payload.part('thumbnail')
+    thumb.payload.rewind
+    expect(thumb.payload.read).to eq 'SOMEBINARYDATA'
 
     image = payload.part('image')
     expect(image.filename).to eq 'image.jpg'
@@ -144,7 +153,7 @@ describe Praxis::Types::MultipartArray do
 
     context 'attributes' do
       subject(:attributes) { description[:attributes] }
-      its(:keys) { should match_array ['title', 'files', 'image']}
+      its(:keys) { should match_array ['title', 'files', 'thumbnail', 'image']}
 
       context 'the "title" part' do
         subject(:title_description) { attributes['title'] }
@@ -176,6 +185,7 @@ describe Praxis::Types::MultipartArray do
         end
 
       end
+
     end
 
     context 'pattern attributes' do
@@ -266,7 +276,7 @@ describe Praxis::Types::MultipartArray do
 
       let(:default_format) { 'xml' }
 
-      let(:output) { example.dump(default_format: default_format) } 
+      let(:output) { example.dump(default_format: default_format) }
 
       let(:parts) { Praxis::MultipartParser.parse({'Content-Type'=>example.content_type}, output).last }
 
@@ -288,8 +298,8 @@ describe Praxis::Types::MultipartArray do
         stuff = parts.find { |part| part.name == 'stuff' }
         expect(stuff.content_type.to_s).to eq 'application/json'
         expect(stuff.payload).to eq json_handler.generate(example.part('stuff').payload.dump)
-        
-        # instances just specify 'application/vnd.acme.instance', and should 
+
+        # instances just specify 'application/vnd.acme.instance', and should
         # have xml suffix appended
         instances = parts.select { |part| part.name == 'instances' }
         instances.each_with_index do |instance, i|

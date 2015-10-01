@@ -452,8 +452,21 @@ class Post < Praxis::MediaType
 end
 {% endhighlight %}
 
-Note: When defined explicitly, you use the `member_type` method to specify what type of media type class this collection is wrapping.
+Note: When defined without using the `.of` helper, you use the `member_type` method to specify what type of media type class this collection is wrapping. If you want a non-anonymous class that is a collection and also has other attributes (such as description), you have two ways to define it:
 
+{% highlight ruby %}
+# Option 1: implicit collection type; reopen class to add more information
+CommentThread = Praxis::Collection.of(Comment)
+class CommentThread
+  description 'A sequence of comments on a blog post.'
+end
+
+# Option 2: explicit collection type with member_type specified inline
+class CommentThread < Praxis::Collection
+  member_type Comment
+  description 'A sequence of comments on a blog post.'
+end
+{% endhighlight %}
 
 ### Attributor::Collection
 

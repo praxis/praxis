@@ -70,6 +70,23 @@
         </table>
       </div>
     </div>
+
+    <div class="col-lg-12" ng-repeat="response in responses | filter: hasResponseExample" id="action-{{action.name}}-{{response.name}}">
+      <h4>Response example: {{ response.name }}</h4>
+
+      <div class="row">
+        <div class="col-md-4">
+          <h5>Status</h5>
+          <p>{{ response.status }}</p>
+          <h5>Content-Type</h5>
+          <p>{{ response.jsonExample.content_type }}</p>
+        </div>
+        <div class="col-md-8">
+          <h5>Example</h5>
+          <pre>{{ response.jsonExample.body }}</pre>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 <hr class="action-divider" />

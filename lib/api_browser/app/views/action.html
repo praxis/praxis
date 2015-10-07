@@ -54,10 +54,20 @@
                 <span ng-if="response.isMultipart">
                   <em>Parts Like:</em>
                 </span>
-                <span>{{response.status}}</span>
+                <a ng-if="hasResponseExample(response)" ui-sref="root.controller.action.response({response: response.name, action: action.name, controller: controllerName, version: apiVersion})">
+                  {{response.status}}
+                </a>
+                <span ng-if="!hasResponseExample(response)">
+                  {{response.status}}
+                </span>
               </td>
               <td>
-                {{response.name}}
+                <a ng-if="hasResponseExample(response)" ui-sref="root.controller.action.response({response: response.name, action: action.name, controller: controllerName, version: apiVersion})">
+                  {{response.name}}
+                </a>
+                <span ng-if="!hasResponseExample(response)">
+                  {{response.name}}
+                </span>
               </td>
               <td>
                 {{response.media_type.id || response.media_type.identifier}}

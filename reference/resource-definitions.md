@@ -512,7 +512,7 @@ class Blogs
 
   action_defaults do
     params do
-      attribute :dry_tun, Attributor::Boolean, default: false
+      attribute :dry_run, Attributor::Boolean, default: false
     end
     response :bad_request
   end

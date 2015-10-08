@@ -10,7 +10,11 @@ resource. This may include routing information, definitions for actions you can
 perform, its default media type, and more. To create a resource definition,
 create a class which includes the `Praxis::ResourceDefinition` module.
 
-Here's an example of a `Blogs` resource definition for the `BlogMediaType` media type. It specifies that it's version "1.0", provides a description, uses a routing prefix of "/blogs", exposes simple `:index` and `:show` actions, and defines the `:show` action as its canonical representation.
+Here's an example of a `Blogs` resource definition for the `BlogMediaType` media
+type. It specifies that it's version "1.0", provides a description, uses a
+routing prefix of "/blogs", exposes simple `:index` and `:show` actions,
+indicates that the `:index` action returns a collection, and defines the `:show`
+action as its canonical representation.
 
 
 {% highlight ruby %}
@@ -31,7 +35,7 @@ class Blogs
   action :index do
     routing { get '' }
     description 'Fetch all blog entries'
-    response :ok
+    response :ok, Praxis::Collection.of(BlogMediaType)
   end
 
   action :show do

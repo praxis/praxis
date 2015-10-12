@@ -33,7 +33,7 @@ module Praxis
         if the_type.member_attribute.nil?
           the_type = the_type.member_type
         else
-          the_type = the_type.member_attribute.type 
+          the_type = the_type.member_attribute.type
         end
       end
 
@@ -74,9 +74,6 @@ module Praxis
         # Collect reachable types from the media_type if any (plus itself)
         if @media_type && ! @media_type.is_a?(Praxis::SimpleMediaType)
           add_to_reachable RestfulDocGenerator.inspect_attributes(@media_type)
-          @media_type.attributes.each do |name, attr|
-            add_to_reachable RestfulDocGenerator.inspect_attributes(attr)
-          end
           @generated_example = @media_type.example(self.id)
         end
 
@@ -141,7 +138,7 @@ module Praxis
       @resources = []
 
       Attributor::AttributeResolver.current = Attributor::AttributeResolver.new
-      
+
       remove_previous_doc_data
       load_resources
 

@@ -95,7 +95,7 @@ module Praxis
     end
 
     def create_attribute(type=Attributor::Struct, **opts, &block)
-      unless opts[:reference]
+      unless opts.key?(:reference)
         opts[:reference] = @reference_media_type if @reference_media_type && block
       end
 

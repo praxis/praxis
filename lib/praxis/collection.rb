@@ -10,10 +10,7 @@ module Praxis
       klass = super
 
       if type < Praxis::Types::MediaTypeCommon
-        unless type.identifier.nil?
-          klass.identifier(type.identifier + ';type=collection')
-        end
-
+        klass.member_type type
         type.const_set :Collection, klass
       else
         warn "DEPRECATION: Praxis::Collection.of() for non-MediaTypes will be unsupported in 1.0. Use Attributor::Collection.of() instead."
@@ -25,6 +22,7 @@ module Praxis
     def self.member_type(type=nil)
       unless type.nil?
         @member_type = type
+        self.identifier(type.identifier + ';type=collection') unless type.identifier.nil?
       end
 
       @member_type

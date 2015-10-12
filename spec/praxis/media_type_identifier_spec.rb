@@ -3,9 +3,23 @@ require "spec_helper"
 describe Praxis::MediaTypeIdentifier do
   let(:example) { 'application/ice-cream+sundae; nuts="true"; fudge="true"' }
 
-  subject { described_class.new(example) }
+  subject { described_class.load(example) }
 
   context '.load' do
+    context 'of nil values' do
+      let(:example) { nil }
+      it 'return nil' do
+        expect(subject).to be(nil)
+      end
+    end
+
+    context 'of empty string values' do
+      let(:example) { "" }
+      it 'returns nil' do
+        expect(subject).to be(nil)
+      end
+    end
+
     it 'parses type/subtype' do
       expect(subject.type).to eq('application')
       expect(subject.subtype).to eq('ice-cream')

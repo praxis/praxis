@@ -42,6 +42,8 @@ module Praxis
         application.config do
           attribute :praxis do
             attribute :validate_responses, Attributor::Boolean, default: false
+            attribute :validate_response_bodies, Attributor::Boolean, default: false
+
             attribute :show_exceptions, Attributor::Boolean, default: false
             attribute :x_cascade, Attributor::Boolean, default: true
           end

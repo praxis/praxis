@@ -39,32 +39,42 @@ class Instances < BaseClass
     #puts "Decorator three end"
   end
 
-  def index(response_content_type:, **params)
+  def index(cloud_id:, response_content_type: 'application/vnd.acme.instance;type=collection', **params)
+    instances = Instance::Collection.example
+    response.body = JSON.pretty_generate(instances.collect { |i| i.render })
     response.headers['Content-Type'] = response_content_type #'application/vnd.acme.instance;type=collection'
-    JSON.generate(params)
+    response
   end
 
   def show(cloud_id:, id:, junk:, **other_params)
     payload = request.payload
     response.body = {cloud_id: cloud_id, id: id, junk: junk, other_params: other_params, payload: payload && payload.dump}
-    response.headers['Content-Type'] = 'application/vnd.acme.instance'
+    response.headers['Content-Type'] = 'application/json'
     response
   end
 
   def bulk_create(cloud_id:)
-    self.response = BulkResponse.new
+    self.response = Praxis::Responses::MultipartOk.new
+    response.body = request.action.responses[:multipart_ok].media_type.new
 
+    request.payload.each do |part|
+      instance_id = part.name
+      instance = part.payload
 
-    request.payload.each do |instance_id,instance|
-      part_body = JSON.pretty_generate(key: instance_id, value: instance.render(:create))
+      part_body = {
+        key: instance_id,
+        value: instance.render(view: :create)
+      }
+
       headers = {
         'Status' => '201',
-        'Content-Type' => Instance.identifier,
+        'Content-Type' => Instance.identifier + '+json',
         'Location' => definition.to_href(cloud_id: cloud_id, id: instance.id)
       }
-      part = Praxis::MultipartPart.new(part_body, headers)
 
-      response.add_part(instance_id, part)
+      part = Praxis::MultipartPart.new(part_body, headers, name: instance_id)
+
+      response.body.push(part)
     end
 
     response
@@ -105,7 +115,7 @@ class Instances < BaseClass
   end
 
   def exceptional(cloud_id:, splat:)
-    response.headers['Content-Type'] = 'application/vnd.acme.instance'
+    response.headers['Content-Type'] = 'application/json'
     response
   end
 end

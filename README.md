@@ -14,7 +14,7 @@ and for all, stop worrying about re-generating server code and keeping it in syn
 gem install praxis
 
 # Generate a praxis application named my-app in ./my-app
-praxis generate my-app
+praxis example my-app
 
 # Run it!
 cd my-app

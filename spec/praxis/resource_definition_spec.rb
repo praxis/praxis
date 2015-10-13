@@ -40,6 +40,15 @@ describe Praxis::ResourceDefinition do
     end
   end
 
+  context '.parent_prefix' do
+    subject(:resource_definition) { ApiResources::VolumeSnapshots }
+    let(:base_path){ Praxis::ApiDefinition.instance.info.base_path }
+    its(:parent_prefix){ should eq('/clouds/:cloud_id/volumes/:volume_id') }
+    it do
+      expect(resource_definition.parent_prefix).to_not match(/^#{base_path}/)
+    end
+  end
+
 
   context '.action' do
     it 'requires a block' do
@@ -95,7 +104,7 @@ describe Praxis::ResourceDefinition do
     it 'are applied to actions' do
       action = resource_definition.actions[:show]
       expect(action.params.attributes).to have_key(:id)
-      expect(action.routes.first.path.to_s).to eq '/people/:id'
+      expect(action.routes.first.path.to_s).to eq '/api/people/:id'
     end
 
   end

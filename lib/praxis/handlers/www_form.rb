@@ -13,7 +13,8 @@ module Praxis
       # Generate a URL-encoded WWW form from structured data. Not implemented since this format
       # is not very useful for a response body.
       def generate(structured_data)
-        raise NotImplementedError
+        return nil if structured_data.nil?
+        URI.encode_www_form(structured_data)
       end
     end
   end

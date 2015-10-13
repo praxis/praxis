@@ -11,7 +11,7 @@ describe Praxis::ActionDefinition do
 
       media_type 'application/json'
       version '1.0'
-      prefix '/api/hello_world'
+      prefix '/foobars/hello_world'
       action_defaults do
         payload { attribute :inherited, String }
         headers { header "Inherited", String }
@@ -90,7 +90,7 @@ describe Praxis::ActionDefinition do
     end
 
     its('params.attributes.keys') { should eq [:inherited, :app_name, :name, :one]}
-    its('routes.first.path.to_s') { should eq '/api/hello_world/test_trait/:app_name/:one' }
+    its('routes.first.path.to_s') { should eq '/api/foobars/hello_world/test_trait/:app_name/:one' }
     its(:traits) { should eq [:test] }
 
     it 'is reflected in the describe output' do
@@ -100,6 +100,10 @@ describe Praxis::ActionDefinition do
   end
 
   describe '#params' do
+    it 'defaults to being required if omitted' do
+      expect(subject.params.options[:required]).to be(true)
+    end
+
     it 'merges in more params' do
       subject.params do
         attribute :more, Attributor::Integer
@@ -108,9 +112,22 @@ describe Praxis::ActionDefinition do
       attributes = subject.params.attributes.keys
       expect(attributes).to match_array([:one, :inherited, :more])
     end
+
+    it 'merges options (which allows overriding)' do
+      expect(subject.params.options[:required]).to be(true)
+
+      subject.params required: false
+
+      expect(subject.params.options[:required]).to be(false)
+    end
   end
 
   describe '#payload' do
+    it 'defaults to being required if omitted' do
+      expect(subject.payload.options[:required]).to be(true)
+    end
+
+
     it 'merges in more payload' do
       subject.payload do
         attribute :more, Attributor::Integer
@@ -119,6 +136,14 @@ describe Praxis::ActionDefinition do
       expect(subject.payload.attributes.keys).to match_array([
                                                                :two, :inherited, :more
       ])
+    end
+
+    it 'merges options (which allows overriding)' do
+      expect(subject.payload.options[:required]).to be(true)
+
+      subject.payload required: false
+
+      expect(subject.payload.options[:required]).to be(false)
     end
   end
 
@@ -131,6 +156,10 @@ describe Praxis::ActionDefinition do
       expect(subject.headers.type.options[:case_insensitive_load]).to be(true)
     end
 
+    it 'defaults to being required if omitted' do
+      expect(subject.headers.options[:required]).to be(true)
+    end
+
     it 'merges in more headers' do
       subject.headers do
         header "more"
@@ -138,6 +167,16 @@ describe Praxis::ActionDefinition do
 
       expected_array = ["X_REQUESTED_WITH", "Inherited", "more"]
       expect(subject.headers.attributes.keys).to match_array(expected_array)
+    end
+
+    it 'merges options (which allows overriding)' do
+      expect(subject.headers.options[:required]).to be(true)
+
+      subject.headers required: false do
+        header "even_more"
+      end
+
+      expect(subject.headers.options[:required]).to be(false)
     end
   end
 
@@ -149,7 +188,7 @@ describe Praxis::ActionDefinition do
       let(:parent_param) { ApiResources::Volumes.actions[:show].params.attributes[:id] }
 
       it 'has the right path' do
-        expect(action.primary_route.path.to_s).to eq '/clouds/:cloud_id/volumes/:volume_id/snapshots/:id'
+        expect(action.primary_route.path.to_s).to eq '/api/clouds/:cloud_id/volumes/:volume_id/snapshots/:id'
       end
 
       its('params.attributes'){ should have_key(:cloud_id) }
@@ -187,6 +226,7 @@ describe Praxis::ActionDefinition do
         expect(attributes[:one][:source]).to eq('url')
       end
     end
+
   end
 
   context 'href generation' do
@@ -195,7 +235,7 @@ describe Praxis::ActionDefinition do
 
     it 'works' do
       expansion = action.primary_route.path.expand(cloud_id:232, id: 2)
-      expect(expansion).to eq "/clouds/232/instances/2"
+      expect(expansion).to eq "/api/clouds/232/instances/2"
     end
 
     context '#primary_route' do
@@ -252,7 +292,7 @@ describe Praxis::ActionDefinition do
       allow(Praxis::ApiDefinition).to receive(:instance).and_return(non_singleton_api)
     end
 
-    its('routes.first.path.to_s') { should eq '/apps/:app_name/api/hello_world/:one' }
+    its('routes.first.path.to_s') { should eq '/apps/:app_name/foobars/hello_world/:one' }
     its('params.attributes.keys') { should eq [:inherited, :app_name, :one]}
 
     context 'where the action overrides a base_param' do
@@ -265,7 +305,7 @@ describe Praxis::ActionDefinition do
             'FooBar'
           end
           version '1.0'
-          prefix '/api/hello_world'
+          prefix '/foobars/hello_world'
           action_defaults do
             payload { attribute :inherited, String }
             headers { header "Inherited", String }

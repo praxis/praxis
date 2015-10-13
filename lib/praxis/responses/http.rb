@@ -18,6 +18,11 @@ module Praxis
     # being created.
     class Created < Praxis::Response
       self.status = 201
+
+      def initialize(status:self.class.status, headers:{}, body:'', location: nil)
+        super(status: status, headers: headers, body: body)
+        headers['Location'] = location if location
+      end
     end
 
 

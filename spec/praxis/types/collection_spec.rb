@@ -45,11 +45,18 @@ describe Praxis::Collection do
   end
 
   context '.member_type' do
-    its(:member_type){ should be(VolumeSnapshot) }
+    subject(:collection) do
+      class Team < Praxis::Collection
+        member_type Person
+      end
+      Team
+    end
+    its(:member_type){ should be(Person) }
     its(:member_attribute){ should be_kind_of(Attributor::Attribute) }
-    its('member_attribute.type'){ should be(VolumeSnapshot) }
+    its('member_attribute.type'){ should be(Person) }
+    its(:identifier) { should eq Person.identifier + "; type=collection" }
   end
-  
+
   context '.load' do
     let(:volume_data) do
       {
@@ -90,9 +97,9 @@ describe Praxis::Collection do
 
 
     context 'for members' do
-      let(:volume_output) { example.render(:default) }
+      let(:volume_output) { example.render(view: :default) }
 
-      subject(:output) { volume_output[:snapshots] } 
+      subject(:output) { volume_output[:snapshots] }
 
       it { should eq(snapshots.collect(&:render)) }
     end
@@ -122,7 +129,7 @@ describe Praxis::Collection do
 
       let(:volume) { Volume.load(volume_data) }
       let(:snapshots) { volume.snapshots }
-      
+
       it 'validates' do
         expect(volume.validate).to be_empty
       end

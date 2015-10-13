@@ -1,4 +1,6 @@
 class Person < Praxis::MediaType
+  identifier "application/vnd.acme.person"
+
   attributes do
     attribute :id, Integer
     attribute :name, String, example: /[:name:]/

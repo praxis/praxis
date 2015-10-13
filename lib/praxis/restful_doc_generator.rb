@@ -29,7 +29,13 @@ module Praxis
       the_type = the_type.type if the_type.is_a? Attributor::Attribute
 
       # Collection types are special since they wrap a member type, so let's reach in and grab it
-      the_type = the_type.member_attribute.type if the_type < Attributor::Collection
+      if the_type < Attributor::Collection
+        if the_type.member_attribute.nil?
+          the_type = the_type.member_type
+        else
+          the_type = the_type.member_attribute.type
+        end
+      end
 
       if @inspected_types.include? the_type
         # We're done if we've already inspected it
@@ -68,9 +74,6 @@ module Praxis
         # Collect reachable types from the media_type if any (plus itself)
         if @media_type && ! @media_type.is_a?(Praxis::SimpleMediaType)
           add_to_reachable RestfulDocGenerator.inspect_attributes(@media_type)
-          @media_type.attributes.each do |name, attr|
-            add_to_reachable RestfulDocGenerator.inspect_attributes(attr)
-          end
           @generated_example = @media_type.example(self.id)
         end
 
@@ -108,6 +111,10 @@ module Praxis
         end
       end
 
+      def parent
+        @controller_config.parent
+      end
+
       def friendly_name
         # FIXME: is it really about the controller? or the attached resource definition?
         segments = self.name.split("::")
@@ -129,6 +136,8 @@ module Praxis
       @root_dir = root_dir
       @doc_root_dir = File.join(@root_dir, API_DOCS_DIRNAME)
       @resources = []
+
+      Attributor::AttributeResolver.current = Attributor::AttributeResolver.new
 
       remove_previous_doc_data
       load_resources
@@ -160,7 +169,7 @@ module Praxis
     def dump_example_for(context_name, object)
       example = object.example(Array(context_name))
       if object.is_a? Praxis::Blueprint
-        example.render(:master)
+        example.render(view: :master)
       elsif object.is_a? Attributor::Attribute
         object.dump(example)
       else
@@ -216,7 +225,7 @@ module Praxis
             type_output[:views].each do |view_name, view_info|
               # Add and example for each view
               unless( type < Praxis::Links ) #TODO: why do we need to skip an example for links?
-                view_info[:example] = example_data.render(view_name)
+                view_info[:example] = example_data.render(view: view_name)
               end
             end
           end
@@ -224,7 +233,7 @@ module Praxis
           # ...but not for links or link classes (there's no object container context if done alone!!)
           unless( type < Praxis::Links ) #TODO: again, why is this special?
             type_output[:example] = if example_data.respond_to? :render
-              example_data.render(:master)
+              example_data.render(view: :master)
             else
               type.dump(example_data)
             end
@@ -259,6 +268,7 @@ module Praxis
       @resources.each do |r|
         index[r.version] ||= Hash.new
         info = {controller: r.id, name: r.name}
+        info[:parent] = r.parent.controller ? r.parent.controller.id : r.parent.id if r.parent
         if r.media_type
           info[:media_type] = r.media_type.id
           media_types_seen_from_controllers << r.media_type
@@ -275,7 +285,7 @@ module Praxis
 
         reportable_types.each do |type|
           index[version] ||= Hash.new
-          display_name = type.name.split("::").last + " (*)" #somehow this is just a MT so we probably wanna mark it different
+          display_name = type.name.split("::").last
           if index[version].has_key? display_name
             raise "Display name already taken for version #{version}! #{display_name}"
           end

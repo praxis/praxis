@@ -62,7 +62,7 @@ describe Praxis::Response do
       it 'should raise an error' do
         expect {
           response.validate(action)
-        }.to raise_error(ArgumentError, /response definition with that name can be found/)
+        }.to raise_error(Praxis::Exceptions::Validation, /response definition with that name can be found/)
       end
     end
 
@@ -183,7 +183,7 @@ describe Praxis::Response do
         expect(preamble).to eq("a preamble")
         expect(parts).to have(1).item
 
-        _part_name, part_response = parts.first
+        part_response = parts.first
         expect(part_response.headers['Status']).to eq(part.headers['Status'].to_s)
         expect(part_response.headers['Location']).to eq(part.headers['Location'])
         expect(part_response.body).to eq('not so ok')

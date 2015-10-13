@@ -14,6 +14,8 @@ end
 
 Praxis::Application.configure do |application|
 
+  application.handler 'xml', Praxis::Handlers::XML
+
   application.middleware SetHeader, 'Spec-Middleware', 'used'
 
   application.bootloader.use SimpleAuthenticationPlugin, config_file: 'config/authentication.yml'
@@ -27,6 +29,7 @@ Praxis::Application.configure do |application|
 
   # enable "development-mode" options
   application.config.praxis.validate_responses = true
+  application.config.praxis.validate_response_bodies = true
   application.config.praxis.show_exceptions = true
 
   # FIXME: until we have a better way to unit test such a feature...

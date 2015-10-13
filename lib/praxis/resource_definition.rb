@@ -126,7 +126,8 @@ module Praxis
           if mapping.key?(name)
             param = mapping[name]
             # FIXME: this won't handle URI Template type paths, ie '/{parent_id}'
-            @parent_prefix = parent_route.to_s.gsub(/(:)(#{name})([\W]*)/, "\\1#{param.to_s}\\3")
+            prefixed_path = parent_action.primary_route.prefixed_path
+            @parent_prefix = prefixed_path.gsub(/(:)(#{name})(\W+|$)/, "\\1#{param.to_s}\\3")
           else
             mapping[name] = name
           end
@@ -202,6 +203,9 @@ module Praxis
       end
 
       def parse_href(path)
+        if path.kind_of?(::URI::Generic)
+          path = path.path
+        end
         param_values = canonical_path.primary_route.path.params(path)
         attrs = canonical_path.params.attributes
         param_values.each_with_object({}) do |(key,value),hash|
@@ -271,14 +275,15 @@ module Praxis
         self.name.gsub('::'.freeze,'-'.freeze)
       end
 
-      def describe
+      def describe(context: nil)
         {}.tap do |hash|
           hash[:description] = description
           hash[:media_type] = media_type.describe(true) if media_type
-          hash[:actions] = actions.values.map(&:describe)
+          hash[:actions] = actions.values.collect{|action| action.describe(context: context)}
           hash[:name] = self.name
           hash[:display_name] = self.display_name
           hash[:parent] = self.parent.id if self.parent
+          hash[:display_name] = self.display_name
           hash[:metadata] = metadata
           hash[:traits] = self.traits
         end

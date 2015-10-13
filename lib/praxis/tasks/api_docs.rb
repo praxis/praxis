@@ -27,7 +27,7 @@ namespace :praxis do
     end
 
     desc "Run API Documentation Browser"
-    task :preview, [:port] => [:install, :experiments]  do |t, args|
+    task :preview, [:port] => [:install, :generate]  do |t, args|
       doc_port = args[:port] || '9090'
       exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs'), 'DOC_PORT' => doc_port}, "#{path}/node_modules/.bin/grunt serve --gruntfile '#{path}/Gruntfile.js'")
     end
@@ -45,8 +45,8 @@ namespace :praxis do
       generator = Praxis::RestfulDocGenerator.new(Dir.pwd)
     end
 
-    desc "Generate EXPERIMENTAL API docs (JSON definitions) for a Praxis App"
-    task :experiments => [:environment] do |t, args|
+    desc "Generate BETA API docs (JSON definitions) for a Praxis App"
+    task :generate_beta => [:environment] do |t, args|
       require 'fileutils'
 
       Praxis::Blueprint.caching_enabled = false

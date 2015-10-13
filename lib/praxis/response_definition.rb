@@ -55,15 +55,6 @@ module Praxis
       end
     end
 
-    def example(context=nil)
-      return nil if self.media_type.nil?
-      return nil if self.media_type.kind_of?(SimpleMediaType)
-      if context.nil?
-        context = "#{self.media_type.name}-#{self.name}"
-      end
-      self.media_type.example(context)
-    end
-
     def location(loc=nil)
       return @spec[:location] if loc.nil?
       unless ( loc.is_a?(Regexp) || loc.is_a?(String) )
@@ -112,7 +103,19 @@ module Praxis
       end
     end
 
-    def describe
+    def example(context=nil)
+      return nil if self.media_type.nil?
+      return nil if self.media_type.kind_of?(SimpleMediaType)
+
+      if context.nil?
+        context = "#{self.media_type.name}-#{self.name}"
+      end
+
+      self.media_type.example(context)
+    end
+
+
+    def describe(context: nil)
       location_type = location.is_a?(Regexp) ? :regexp : :string
       location_value = location.is_a?(Regexp) ? location.inspect : location
       content = {
@@ -121,24 +124,48 @@ module Praxis
         :headers => {}
       }
       content[:location] = _describe_header(location) unless location == nil
-      # TODO: Change the mime_type key to media_type!!
-      if media_type
-        content[:media_type] = if media_type.is_a? Symbol
-          media_type
-        else
-          media_type.describe(true) # TODO: is a shallow describe what we want? or just the name?
-        end
-      end
-
-      if (media_type_example = self.example)
-        content[:example] = media_type_example.render
-      end
 
       unless headers == nil
         headers.each do |name, value|
           content[:headers][name] = _describe_header(value)
         end
       end
+
+      if self.media_type
+        payload = media_type.describe(true)
+
+        if (example_payload = self.example(context))
+          payload[:examples] = {}
+          rendered_payload = example_payload.dump
+
+          # FIXME: remove load when when MediaTypeCommon.identifier returns a MediaTypeIdentifier
+          identifier = MediaTypeIdentifier.load(self.media_type.identifier)
+
+          default_handlers = ApiDefinition.instance.info.produces
+
+          handlers = Praxis::Application.instance.handlers.select do |k,v|
+            default_handlers.include?(k)
+          end
+
+          if (handler = handlers[identifier.handler_name])
+            payload[:examples][identifier.handler_name] = {
+              content_type: identifier.to_s,
+              body: handler.generate(rendered_payload)
+            }
+          else
+            handlers.each do |name, handler|
+              content_type = identifier + name
+              payload[:examples][name] = {
+                content_type: content_type.to_s,
+                body: handler.generate(rendered_payload)
+              }
+            end
+          end
+        end
+
+        content[:payload] = payload
+      end
+
       unless parts == nil
         content[:parts_like] = parts.describe
       end
@@ -151,12 +178,16 @@ module Praxis
       { :value => data_value, :type => data_type }
     end
 
-    def validate( response )
+    def validate(response, validate_body: false)
       validate_status!(response)
       validate_location!(response)
       validate_headers!(response)
       validate_content_type!(response)
       validate_parts!(response)
+
+      if validate_body
+        validate_body!(response)
+      end
     end
 
     def parts(proc=nil, like: nil,  **args, &block)
@@ -241,7 +272,7 @@ module Praxis
 
     # Validates Content-Type header and response media type
     #
-    # @param [Object] action
+    # @param [Object] response
     #
     # @raise [Exceptions::Validation] When there is a missing required header
     #
@@ -259,13 +290,38 @@ module Praxis
       end
     end
 
+    # Validates response body
+    #
+    # @param [Object] response
+    #
+    # @raise [Exceptions::Validation]  When there is a missing required header..
+    def validate_body!(response)
+      return unless media_type
+      return if media_type.kind_of? SimpleMediaType
+
+      errors = self.media_type.validate(self.media_type.load(response.body))
+      if errors.any?
+        message = "Invalid response body for #{media_type.identifier}." +
+          "Errors: #{errors.inspect}"
+          raise Exceptions::Validation.new(message, errors: errors)
+      end
+
+    end
+
     def validate_parts!(response)
       return unless parts
 
-      response.parts.each do |name, part|
-        parts.validate(part)
+      case response.body
+      when Praxis::Types::MultipartArray
+        response.body.each do |part|
+          parts.validate(part)
+        end
+      else
+        # TODO: remove with other Multipart deprecations.
+        response.parts.each do |name, part|
+          parts.validate(part)
+        end
       end
-
     end
 
   end

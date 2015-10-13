@@ -2,6 +2,38 @@
 
 ## next
 
+* Handle loading empty `MediaTypeIdentifier` values (to return `nil`)
+* Doc browser now displays examples for action responses.
+
+## 0.18.1
+
+* Fix Doc Browser regression, which would not show the schema in the Resource Definition home page.
+
+## 0.18.0
+
+* Added `display_name` DSL to `ResourceDefinition` and `MediaType`
+  * It is a purely informational field, mostly to be used by consumers of the generated docs
+  * It defaults to the class name (stripping any of the prefix modules)
+* Revamped document generation to output a more compact format:
+    * 1 file per api version: including info, resources, schemas and traits.
+    * 1 single index file with global info plus just a list of version names
+    * new task currently usable through `bundle exec rake praxis:docs:generate_beta`
+      * NOTE: leaves the current doc generation tasks and code intact (until the doc browser is switched to use this)
+* Specialized `Multipart`’s family in its description to be ‘multipart’ instead of ‘hash’.
+* Added `Praxis::Handlers::FormData` for 'multipart/form-data'. Currently returns the input unchanged in `parse` and `generate`.
+* Added `Praxis::Handlers::WWWForm` for form-encoded data.
+* Added `Docs::Generator`, experimental new documentation generator. Use the `praxis:docs:experiments` rake task to generate. *Note*: not currently compatible with the documentation browser.
+* Added 'praxis.request_stage.execute' `ActiveSupport::Notifications` instrumentation to contorller action method execution in `RequestStages::Action#execute`.
+* Make action headers, params and payloads be required by default as it is probably what most people expect from it. To make any of those three definitions non-required, simply add the `:required` option as used in any other attribute definition. For example: `payload required: false do ...`
+
+## 0.17.1
+
+* Fixes an issue that would make exported documentation broken.
+* Fixes an issue that would make the version selector broken.
+
+## 0.17.0
+
+* Merges action details pages into one long page in doc browser
 * Refined path-based versioning:
   * Added `ApiGeneralInfo#version_with`, which defaults to `[:header, :params`] and may be set to `:path` to use path-based versioning.
   * Added support for specifying an `:api_version` placeholder to the global version's `ApiGeneralInfo#base_path`.
@@ -15,15 +47,29 @@
   * The parent's `canonical_path` is used as the base of the child's routes.
   * Any parameters in the parent's route will also be applied as defaults in the child. The last route parameter is assumed to be an 'id'-type parameter, and is prefixed with the parent's snake-cased singular name. I.e., `id` from a `Volume` parent will be renamed to `volume_id`. Any other parameters are copied unchanged.
     * This behavior can be overridden by providing a mapping hash of the form `{parent_name => child_name}` to the `parent` directive. See [VolumeSnapshots](spec/spec_app/design/resources/volume_snapshots.rb) for an example.
-* Added `display_name` DSL to `ResourceDefinition` and `MediaType`
-  * It is a purely informational field, mostly to be used by consumers of the generated docs
-  * It defaults to the class name (stripping any of the prefix modules)
-* Revamped document generation to output a more compact format:
-    * 1 file per api version: including info, resources, schemas and traits.
-    * 1 single index file with global info plus just a list of version names
-    * new task currently usable through `bundle exec rake praxis:docs:experiments`
-      * NOTE: leaves the current doc generation tasks and code intact (until the doc browser is switched to use this)
-* Specialized `Multipart`’s family in its description to be ‘multipart’ instead of ‘hash’.
+* Backwards incompatible Change: Refactored `ValidationError` to be more consistent with the reported fields
+  * Changed `message` for `summary`. Always present, and should provide a quick description of the type of error encountered. For example: "Error loading payload data"
+  * Semantically changed `errors` to always have the details of one or many errors that have occurred. For example: "Unknown key received: :foobar while loading $.payload.user"
+  * Note: if you are an application that used and tested against the previous `message` field you will need to adjust your tests to check for the values in the `summary` field and or the `errors` contents. But it will now be a much more consistent experience that will allow API clients to notify of the exact errors and details to their clients.
+* Added `Application.validation_handler` to customize response generation for validation errors. See [validation_handler.rb](lib/praxis/validation_handler.rb) for default version.
+* Copied mustermann's routers to praxis repo in anticipation of their removal from mustermann itself.
+* Added response body validation.
+  * Validation is controlled by the `praxis.validate_response_bodies` boolean
+config option, and uses the `media_type` defined for the response definition.
+* Added `location:` option to `Responses::Created.new`.
+* `ResourceDefinition.parse_href` now accepts any instance of `URI::Generic` in addition to a string.
+* Fixed path generation for nested ResourceDefinitions
+* Substantial changes and improvements to multipart request and response handling:
+  * Added `Praxis::Types::MultipartArray`, a type of `Attributor::Collection` with `Praxis::MultipartPart` members that allows the handling of duplicate named parts and unnamed ones. The new type supports defining many details about the expected structure of the parts, including headers, payloads, names and filename information. In addition, this type is able to load and validate full multipart bodies into the expected type structure, generate example objects as well as dump them into a full multipart body including boundaries and properly encoded parts following their content-types. See documentation for details and more features.
+  * Made `Praxis::MultipartPart` a proper `Attributor::Type`.
+  * Added `Praxis::Responses:MultipartOk` properly returning `MultipartArray` responses.
+  * Deprecated `Praxis::Multipart`. A replacement for true hash-like behavior will be added before their removal in 1.0.
+* `ActionDefinition#response` now accepts an optional second `type` parameter, and optional block to further define that type. The `type` provided will be used to specify the `media_type` option to pass to the corresponding `ResponseDefinition`.
+* The `header` directive inside `ActionDefinition#headers` now accepts an optional second `type` parameter that may be used to override the default `String` type that would be used.
+* Added `Praxis::Handlers::Plain` encoder for 'text/plain'.
+* Fixed `Praxis::Handlers::XML ` handler to transform dashes to underscores and treat empty hashes like ActiveSupport does.
+* Adds hierarchival navigation to the doc browser.
+* Adds a ConfigurationProvider allowing for easy doc customization.
 
 
 ## 0.16.1

@@ -26,6 +26,7 @@ module Praxis
   autoload :Callbacks, 'praxis/callbacks'
   autoload :Dispatcher, 'praxis/dispatcher'
   autoload :ErrorHandler, 'praxis/error_handler'
+  autoload :ValidationHandler, 'praxis/validation_handler'
   autoload :Exception, 'praxis/exception'
   autoload :FileGroup,'praxis/file_group'
   autoload :Plugin, 'praxis/plugin'
@@ -52,7 +53,9 @@ module Praxis
 
   # types
   module Types
+    autoload :FuzzyHash, 'praxis/types/fuzzy_hash'
     autoload :MediaTypeCommon, 'praxis/types/media_type_common'
+    autoload :MultipartArray, 'praxis/types/multipart_array'
   end
 
   autoload :Links, 'praxis/links'
@@ -82,6 +85,7 @@ module Praxis
 
 
   module Handlers
+    autoload :Plain, 'praxis/handlers/plain'
     autoload :JSON, 'praxis/handlers/json'
     autoload :WWWForm, 'praxis/handlers/www_form'
     autoload :XML, 'praxis/handlers/xml'
@@ -115,5 +119,6 @@ module Praxis
   require 'praxis/responses/http'
   require 'praxis/responses/internal_server_error'
   require 'praxis/responses/validation_error'
+  require 'praxis/responses/multipart_ok'
 
 end

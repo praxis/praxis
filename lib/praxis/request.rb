@@ -96,7 +96,7 @@ module Praxis
 
     def version
       result = nil
-      
+
       Array(Application.instance.versioning_scheme).find do |mode|
         case mode
         when :header;
@@ -129,13 +129,11 @@ module Praxis
       return unless action.payload
       return if content_type.nil?
 
-      handler = Praxis::Application.instance.handlers[content_type.handler_name]
-
-      if handler
-        raw = handler.parse(self.raw_payload)
+      raw = if (handler = Praxis::Application.instance.handlers[content_type.handler_name])
+        handler.parse(self.raw_payload)
       else
         # TODO is this a good default?
-        raw = self.raw_payload
+        self.raw_payload
       end
 
       self.payload = action.payload.load(raw, context, content_type: content_type.to_s)

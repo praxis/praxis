@@ -80,7 +80,7 @@ module Praxis
         else
           Attributor::Hash.construct(block)
         end
-        hash[name] = type_class.describe[:keys]
+        hash[name] = type_class.describe[:attributes]
       end
 
       desc

@@ -22,11 +22,13 @@ module Praxis
 
 
       def initialize(root)
+        require 'yaml'
         @resources_by_version =  Hash.new do |h,k|
           h[k] = Set.new
         end
         initialize_directories(root)
 
+        Attributor::AttributeResolver.current = Attributor::AttributeResolver.new
         collect_infos
         collect_resources
         collect_types
@@ -127,14 +129,16 @@ module Praxis
         full_data = {
           info: version_info[:info],
           resources: dumped_resources,
-          schemas: dumped_schemas,
+          schemas: nil,#dumped_schemas,
           traits: version_info[:traits] || []
         }
         # Write the file
         version_file = ( version == "n/a" ? "unversioned" : version )
-        filename = File.join(doc_root_dir, "#{version_file}.json")
-        puts "Generating API file: #{filename}"
-        File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(full_data))}
+        filename = File.join(doc_root_dir, version_file)
+
+        puts "Generating API file: #{filename} (in json and yaml)"
+        File.open(filename+".json", 'w') {|f| f.write(JSON.pretty_generate(full_data))}
+        File.open(filename+".yml", 'w') {|f| f.write(YAML.dump(full_data))}
       end
 
 
@@ -142,8 +146,8 @@ module Praxis
         resources.each_with_object({}) do |r, hash|
           # Do not report undocumentable resources
           next if r.metadata[:doc_visibility] == :none
-
-          resource_description = r.describe
+          context = [r.id]
+          resource_description = r.describe(context: context)
 
           # strip actions with doc_visibility of :none
           resource_description[:actions].reject! { |a| a[:metadata][:doc_visibility] == :none }
@@ -154,39 +158,32 @@ module Praxis
             # skip actions with doc_visibility of :none
             next if action.metadata[:doc_visibility] == :none
 
-            action_description = resource_description[:actions].find{|a| a[:name] == action_name }
-            if action.params
-              action_description[:params][:example] = dump_example_for( r.id, action.params )
-            end
-            if action.payload
-              action_description[:payload][:example] = dump_example_for( r.id, action.payload )
-            end
-            if action.headers
-              action_description[:headers][:example] = dump_example_for( r.id, action.headers )
-            end
+            action_description = resource_description[:actions].find {|a| a[:name] == action_name }
           end
 
           hash[r.id] = resource_description
         end
       end
 
-      def dump_schemas( types )
+
+      def dump_schemas(types)
         reportable_types = types - EXCLUDED_TYPES_FROM_OUTPUT
         reportable_types.each_with_object({}) do |type, array|
-          type_output = type.describe
+          context = [type.id]
+          example_data = type.example(context)
+          type_output = type.describe(false, example: example_data)
           unless type_output[:display_name]
             # For non MediaTypes or pure types or anonymous types fallback to their name, and worst case to their id
             type_output[:display_name] = type_output[:name] || type_output[:id]
           end
-          example_data = type.example(type.to_s)
           if type_output[:views]
             type_output[:views].delete(:master)
             type_output[:views].each do |view_name, view_info|
-              view_info[:example] = example_data.render(view_name)
+              view_info[:example] = example_data.render(view: view_name)
             end
           end
           type_output[:example] = if example_data.respond_to? :render
-            example_data.render(:master)
+            example_data.render(view: :master)
           else
             type.dump(example_data)
           end
@@ -198,7 +195,7 @@ module Praxis
       def dump_example_for(context_name, object)
         example = object.example(Array(context_name))
         if object.is_a? Praxis::Blueprint
-          example.render(:master)
+          example.render(view: :master)
         elsif object.is_a? Attributor::Attribute
           object.dump(example)
         else

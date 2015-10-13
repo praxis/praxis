@@ -51,12 +51,12 @@ module Praxis
       unless path =~ ABSOLUTE_PATH_REGEX
         path = prefix + path
       end
-
+      prefixed_path = path.gsub('//','/')
       path = (base + path).gsub('//','/')
       # Reject our own options
       route_name = options.delete(:name);
       pattern = Mustermann.new(path, {ignore_unknown_options: true}.merge( options ))
-      route = Route.new(verb, pattern, version, name: route_name, **options)
+      route = Route.new(verb, pattern, version, name: route_name, prefixed_path: prefixed_path, **options)
       @routes << route
       route
     end

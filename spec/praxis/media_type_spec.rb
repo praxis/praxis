@@ -96,7 +96,7 @@ describe Praxis::MediaType do
   end
 
   context "rendering" do
-    subject(:output) { address.render(:default) }
+    subject(:output) { address.render(view: :default) }
 
     its([:id])    { should eq(address.id) }
     its([:name])  { should eq(address.name) }
@@ -112,7 +112,7 @@ describe Praxis::MediaType do
       context 'for a collection summary' do
         let(:volume) { Volume.example }
         let(:snapshots_summary) { volume.snapshots_summary }
-        let(:output) { volume.render(:default) }
+        let(:output) { volume.render(view: :default) }
         subject { links[:snapshots] }
 
         its([:name]) { should eq(snapshots_summary.name) }

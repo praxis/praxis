@@ -1,4 +1,5 @@
 require 'set'
+require 'active_support/core_ext/object/blank'
 
 module Praxis
   # Ruby object representation of an Internet Media Type Identifier as defined by
@@ -41,7 +42,9 @@ module Praxis
     # @return [MediaTypeIdentifier]
     # @see Attributor::Model#load
     def self.load(value, context=Attributor::DEFAULT_ROOT_CONTEXT, recurse: false, **options)
-      if value.is_a?(String)
+      case value
+      when String
+        return nil if value.blank?
         base, *parameters = value.split(PARAMETER_SEPARATOR)
         match = VALID_TYPE.match(base)
 
@@ -62,6 +65,8 @@ module Praxis
           obj.parameters = {}
         end
         obj
+      when nil
+        return nil
       else
         super
       end
@@ -129,6 +134,9 @@ module Praxis
       # May contain peanuts, tree nuts, soy, dairy, sawdust or glue
       s
     end
+
+    alias_method :to_str, :to_s
+
 
     # If parameters are empty, return self; otherwise return a new object consisting of this type
     # minus parameters.

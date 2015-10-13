@@ -4,11 +4,11 @@
 <div ng-if="action">
   <div class="row">
     <div class="col-lg-12">
-      <h1>
+      <h2>
         {{ action.name }}
-      </h1>
+      </h2>
       <p ng-repeat="url in action.urls">
-        {{ url.verb }} {{ url.path }}
+        <span class="label label-default verb" ng-class="url.verb | lowercase">{{ url.verb }}</span> <b>{{ url.path }}</b>
       </p>
       <p ng-bind-html="action.description | markdown"></p>
     </div>
@@ -16,30 +16,30 @@
 
   <div class="row" ng-if="action.headers.type.attributes">
     <div class="col-lg-12">
-      <h2>Request Headers</h2>
+      <h3>Request Headers</h3>
       <type-placeholder details="action.headers.type.attributes" type="action.headers.type" template="standalone"></type-placeholder>
     </div>
   </div>
 
   <div class="row" ng-if="action.params.type.attributes">
     <div class="col-lg-12">
-      <h2>Request Parameters</h2>
+      <h3>Request Parameters</h3>
       <type-placeholder details="action.params.type.attributes" type="action.params.type" template="standalone"></type-placeholder>
     </div>
   </div>
 
   <div class="row" ng-if="action.payload.type">
     <div class="col-lg-12">
-      <h2>Request Body</h2>
+      <h3>Request Body</h3>
       <type-placeholder type="action.payload.type" template="standalone" details="action.payload.type.attributes"></type-placeholder>
     </div>
   </div>
 
   <div class="row" ng-if="hasResponses()">
     <div class="col-lg-12">
-      <h2>Responses</h2>
+      <h3>Responses</h3>
       <div class="table-responsive">
-        <table class="table table-striped">
+        <table class="table table-striped table-bordered">
           <thead>
             <tr>
               <th>Code</th>
@@ -54,10 +54,20 @@
                 <span ng-if="response.isMultipart">
                   <em>Parts Like:</em>
                 </span>
-                <span>{{response.status}}</span>
+                <a ng-if="hasResponseExample(response)" ui-sref="root.controller.action.response({response: response.name, action: action.name, controller: controllerName, version: apiVersion})">
+                  {{response.status}}
+                </a>
+                <span ng-if="!hasResponseExample(response)">
+                  {{response.status}}
+                </span>
               </td>
               <td>
-                {{response.name}}
+                <a ng-if="hasResponseExample(response)" ui-sref="root.controller.action.response({response: response.name, action: action.name, controller: controllerName, version: apiVersion})">
+                  {{response.name}}
+                </a>
+                <span ng-if="!hasResponseExample(response)">
+                  {{response.name}}
+                </span>
               </td>
               <td>
                 {{response.media_type.id || response.media_type.identifier}}
@@ -70,5 +80,23 @@
         </table>
       </div>
     </div>
+
+    <div class="col-lg-12" ng-repeat="response in responses | filter: hasResponseExample" id="action-{{action.name}}-{{response.name}}">
+      <h4>Response example: {{ response.name }}</h4>
+
+      <div class="row">
+        <div class="col-md-4">
+          <h5>Status</h5>
+          <p>{{ response.status }}</p>
+          <h5>Content-Type</h5>
+          <p>{{ response.jsonExample.content_type }}</p>
+        </div>
+        <div class="col-md-8">
+          <h5>Example</h5>
+          <pre>{{ response.jsonExample.body }}</pre>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+<hr class="action-divider" />

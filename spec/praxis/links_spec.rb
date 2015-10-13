@@ -19,13 +19,30 @@ describe Praxis::Links do
     expect(link.for(Address)).to eq(link)
   end
 
-  context 'rendering' do
+  context 'contents' do
     subject(:view) { link.view(:default) }
 
     its(:name)      { should eq(:default) }
     its(:schema)    { should eq(Address::Links) }
     its(:contents)  { should have_key(:owner) }
     its(:contents)  { should have_key(:super) }
+  end
+
+  context 'rendering' do
+    let(:example){ Address.example }
+    context 'for :default' do
+      subject(:rendered_links){ example.render(view: :default)[:links] }
+
+      it 'should use the :link for rendering its attributes' do
+        expect(rendered_links[:owner]).to eq( example.owner.render(view: :link))
+      end
+    end
+    context 'for :master' do
+      subject(:rendered_links){ example.render(view: :master)[:links] }
+      it 'should use the :link for rendering its attributes' do
+        expect(rendered_links[:owner]).to eq( example.owner.render(view: :link))
+      end
+    end
   end
 
   context '.example' do

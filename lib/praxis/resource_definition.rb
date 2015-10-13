@@ -281,6 +281,7 @@ module Praxis
           hash[:media_type] = media_type.describe(true) if media_type
           hash[:actions] = actions.values.collect{|action| action.describe(context: context)}
           hash[:name] = self.name
+          hash[:display_name] = self.display_name
           hash[:parent] = self.parent.id if self.parent
           hash[:display_name] = self.display_name
           hash[:metadata] = metadata

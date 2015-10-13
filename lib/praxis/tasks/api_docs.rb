@@ -33,7 +33,7 @@ namespace :praxis do
     end
 
     desc "Build docs that can be shipped"
-    task :build => [:install, :generate] do
+    task :build => [:install, :experiments] do
       exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs')}, "#{path}/node_modules/.bin/grunt build --gruntfile '#{path}/Gruntfile.js'")
     end
 

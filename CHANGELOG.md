@@ -2,10 +2,12 @@
 
 ## next
 
+* Handle loading empty `MediaTypeIdentifier` values (to return `nil`)
+* Doc browser now displays examples for action responses.
+
 ## 0.18.1
 
 * Fix Doc Browser regression, which would not show the schema in the Resource Definition home page.
-* Handle loading empty `MediaTypeIdentifier` values (to return `nil`)
 
 ## 0.18.0
 

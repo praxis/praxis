@@ -36,7 +36,7 @@ require 'terminal-table'
 #      output into the Praxis::Application.instance.logger app log. Possible
 #      values are: "detailed", "short", and "skip" (i.e. do not print the stats
 #      at all).
-#   3. stats_log_level: the logging level with which the statistics should be logged. 
+#   3. stats_log_level: the logging level with which the statistics should be logged.
 #
 # See http://praxis-framework.io/reference/plugins/ for further details on how
 # to use a plugin and pass it options.
@@ -76,7 +76,7 @@ module Praxis
         def prepare_config!(node)
           node.attributes do
             attribute :log_stats, String, values: ['detailed', 'short', 'skip'], default: 'detailed'
-            attribute :stats_log_level, Symbol, values: [:fatal,:error,:warn,:info,:debug], default: :info            
+            attribute :stats_log_level, Symbol, values: [:fatal,:error,:warn,:info,:debug], default: :info
             attribute :repositories, Attributor::Hash.of(key: String, value: RepositoryConfig)
           end
         end
@@ -104,7 +104,8 @@ module Praxis
           log_stats = PraxisMapperPlugin::Plugin.instance.config.log_stats
           unless log_stats == 'skip'
             Praxis::Notifications.subscribe 'praxis.request.all' do |name, *junk, payload|
-              if (identity_map = payload[:request].identity_map)
+              if (payload[:request].identity_map?)
+                identity_map = payload[:request].identity_map
                 PraxisMapperPlugin::Statistics.log(payload[:request], identity_map, log_stats)
               end
             end
@@ -122,13 +123,17 @@ module Praxis
 
       module Request
         def identity_map
-          @identity_map
+          @identity_map ||= Praxis::Mapper::IdentityMap.new
         end
 
         def identity_map=(map)
           @identity_map = map
         end
-        
+
+        def identity_map?
+          !@identity_map.nil?
+        end
+
         def silence_mapper_stats
           @silence_mapper_stats
         end
@@ -143,10 +148,24 @@ module Praxis
         extend ActiveSupport::Concern
 
         included do
-          before :action do |controller|
-            controller.request.identity_map = Praxis::Mapper::IdentityMap.new
+          # Ensure we call #release on any identity map
+          # that may be set by the controller after the action
+          # completes.
+          around :action do |controller, callee|
+            begin
+              callee.call
+            ensure
+              if controller.request.identity_map?
+                controller.request.identity_map.release
+              end
+            end
           end
         end
+
+        def identity_map
+          request.identity_map
+        end
+
       end
 
       module Statistics
@@ -158,8 +177,8 @@ module Praxis
             self.to_logger "No database interactions observed."
             return
           end
-          
-          
+
+
           case log_stats
           when 'detailed'
             self.detailed(identity_map)
@@ -217,7 +236,7 @@ module Praxis
         def self.short(identity_map)
           self.to_logger identity_map.query_statistics.sum_totals.to_s
         end
-        
+
         def self.to_logger(message)
             Praxis::Application.instance.logger.__send__(Plugin.instance.config.stats_log_level, "Praxis::Mapper Statistics: #{message}")
         end

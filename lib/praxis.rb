@@ -83,6 +83,11 @@ module Praxis
     autoload :Validation, 'praxis/exceptions/validation'
   end
 
+  module Extensions
+    autoload :MapperSelectors, 'praxis/extensions/mapper_selectors'
+    autoload :Rendering, 'praxis/extensions/rendering'
+    autoload :FieldExpansion, 'praxis/extensions/field_expansion'
+  end
 
   module Handlers
     autoload :Plain, 'praxis/handlers/plain'

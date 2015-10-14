@@ -55,6 +55,7 @@ module Praxis
   #     end
   #   end
   class MediaType < Praxis::Blueprint
+
     include Types::MediaTypeCommon
 
     class DSLCompiler < Attributor::DSLCompiler
@@ -69,16 +70,60 @@ module Praxis
 
     def self._finalize!
       super
+
+      # Only define our special links accessor if it was setup using the special DSL
+      # (we might have an app defining an attribute called `links` on its own, in which
+      # case we leave it be)
       if @attribute && self.attributes.key?(:links) && self.attributes[:links].type < Praxis::Links
-        # Only define out special links accessor if it was setup using the special DSL
-        # (we might have an app defining an attribute called `links` on its own, in which
-        # case we leave it be)
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def links
           self.class::Links.new(@object)
         end
         RUBY
       end
+    end
+
+
+    class FieldResolver
+
+      def self.resolve(type,fields)
+        return true if fields == true
+
+        result = Hash.new
+
+        if fields.kind_of?(Array)
+          loop do
+            type = type.member_attribute.type
+            fields = fields.first
+            break unless fields.kind_of?(Array)
+          end
+        end
+
+        fields.each do |name, sub_fields|
+          # skip links for now
+          next if name == :links && defined?(type::Links)
+
+          new_type = type.attributes[name].type
+          result[name] = resolve(new_type, sub_fields)
+        end
+
+        # now to tackle whatever links there may be
+        if (links_fields = fields[:links])
+          resolved_links = resolve_links(type::Links, links_fields)
+          result.deep_merge!(resolved_links)
+        end
+
+        result
+      end
+
+      def self.resolve_links(links_type, links)
+        links.each_with_object({}) do |(name, link_fields), hash|
+          using = links_type.links[name]
+          new_type = links_type.attributes[name].type
+          hash[using] = resolve(new_type, link_fields)
+        end
+      end
+
     end
 
   end

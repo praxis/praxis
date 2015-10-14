@@ -4,6 +4,48 @@
 
 * Handle loading empty `MediaTypeIdentifier` values (to return `nil`)
 * Doc browser now displays examples for action responses.
+* Added `Controller#media_type` helper that returns the `media_type` defined
+for the current response, or defaults to the one defined by the controller's
+resource definition.
+* Added assorted extensions, all under the `Praxis::Extensions` module:
+  * `FieldSelection` adds a new type, `Praxis::Extensions::FieldSelection::FieldSelector`
+    that wraps the `Attributor::FieldSelector` type and improves the definition
+    of parameters for a set of fields. Must be required explicitly from
+    'praxis/extensions/field_selection'.
+      * The parsed set of fields will be available as the `fields` accessor of
+      the loaded value.
+      * For example, to define a parameter that should take a set of fields
+      for a `Person` media type, you would define a `:fields` attribute in the
+      params like: `attribute :fields, FieldSelector.for(Person)`. The parsed
+      fields in the request would then be available with
+      `request.params.fields.fields`.
+      * Note:
+  * `Rendering` adds `render` and `display` helper methods to controllers to
+  reduce common boilerplate in producing rendered representations of media types
+  and setting response "Content-Type" headers.
+    * `Controller#render(object, include_nil: false)` loads `object` into the  
+    the current applicable `MediaType` (as from `Controller#media_type`) and
+    renders it using the fields provided by `Controller#expanded_fields` (from the
+      `FieldExpansion` extension).
+    * `Controller#display(object, include_nil: false)` calls `render` (above) with
+      `object`, assigns the result to the current `response.body`, sets the
+      response's "Content-Type" header to the approriate MediaType identifier,
+      and returns the response.
+    * To use this extension, include it in a controller with
+      `include Praxis::Extensions::Rendering`.
+  * `MapperSelectors` adds `Controller#set_selectors`, which sets selectors
+    in the controller's `identity_map` to ensure any fields and associations
+    necessary to render the `:view` and/or `:fields` params specified in the
+    request are loaded for a given model when `identity_map.load(model)` is called.
+    * To use this extension, include it in a controller with
+      `include Praxis::Extensions::MapperSelectors`, and define `before`
+      callbacks on relevant actions that call `set_selectors`. For example:
+      `before actions: [:index, :show] { |controller| controller.set_selectors }`
+  * `FieldExpansion` provides a `Controller#expanded_fields` helper for
+  processing `:view` and/or `:fields` params to determine the final set fields
+  necessary to handle the request.
+    * Note: This is primarily an internal extension used by the `MapperSelectors`
+    and `Rendering` extensions, and is automatically included by them.
 
 ## 0.18.1
 

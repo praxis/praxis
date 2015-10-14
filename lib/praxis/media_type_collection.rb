@@ -104,7 +104,7 @@ module Praxis
     def self.member_view(name, using: nil)
       if using
         member_view = self.member_type.view(using)
-        return self.views[name] = CollectionView.new(name, self, member_view)
+        return self.views[name] = CollectionView.new(name, self.member_type, member_view)
       end
 
       self.views[name]

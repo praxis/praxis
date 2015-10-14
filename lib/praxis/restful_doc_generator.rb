@@ -17,7 +17,8 @@ module Praxis
       Attributor::Ids,
       Attributor::Integer,
       Attributor::Object,
-      Attributor::String
+      Attributor::String,
+      Attributor::Symbol
     ]).freeze
 
     def self.inspect_attributes(the_type)
@@ -130,6 +131,10 @@ module Praxis
         return if found == nil
         @reachable_types += found
       end
+
+      def display_name
+        @controller_config.display_name
+      end
     end
 
     def initialize(root_dir)
@@ -233,7 +238,7 @@ module Praxis
           # ...but not for links or link classes (there's no object container context if done alone!!)
           unless( type < Praxis::Links ) #TODO: again, why is this special?
             type_output[:example] = if example_data.respond_to? :render
-              example_data.render(view: :master)
+              nil #example_data.render(view: :master)
             else
               type.dump(example_data)
             end
@@ -273,7 +278,7 @@ module Praxis
           info[:media_type] = r.media_type.id
           media_types_seen_from_controllers << r.media_type
         end
-        display_name  = r.name.split("::").last
+        display_name  = r.display_name #.name.split("::").last
         index[r.version][display_name] = info
       end
 
@@ -285,7 +290,8 @@ module Praxis
 
         reportable_types.each do |type|
           index[version] ||= Hash.new
-          display_name = type.name.split("::").last
+          next unless type.respond_to?(:display_name)
+          display_name = type.display_name #.name.split("::").last
           if index[version].has_key? display_name
             raise "Display name already taken for version #{version}! #{display_name}"
           end

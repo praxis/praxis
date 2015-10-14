@@ -46,8 +46,13 @@ class Instances < BaseClass
     response
   end
 
-  def show(cloud_id:, id:, junk:, **other_params)
+  def show(cloud_id:, id:, junk:, create_identity_map:, **other_params)
+    if create_identity_map
+      request.identity_map
+    end
+
     payload = request.payload
+
     response.body = {cloud_id: cloud_id, id: id, junk: junk, other_params: other_params, payload: payload && payload.dump}
     response.headers['Content-Type'] = 'application/json'
     response

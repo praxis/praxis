@@ -87,10 +87,6 @@ module Praxis
     class FieldResolver
 
       def self.resolve(type,fields)
-        return true if fields == true
-
-        result = Hash.new
-
         if fields.kind_of?(Array)
           loop do
             type = type.member_attribute.type
@@ -98,6 +94,10 @@ module Praxis
             break unless fields.kind_of?(Array)
           end
         end
+
+        return true if fields == true
+
+        result = Hash.new
 
         fields.each do |name, sub_fields|
           # skip links for now

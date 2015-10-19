@@ -9,8 +9,7 @@ module Praxis
         loaded = self.media_type.load(object)
         renderer = Praxis::Renderer.new(include_nil: include_nil)
         renderer.render(loaded, self.expanded_fields)
-
-      rescue Attributor::DumpError => e
+      rescue Attributor::DumpError
         if self.media_type.domain_model == Object
           warn "Detected the rendering of an object of type #{self.media_type} without having a domain object model set.\n" +
                "Did you forget to define it?"
@@ -18,16 +17,18 @@ module Praxis
         raise
       end
 
-      def self.default_encoder
-        ''
-      end
-
       def display(object, include_nil: false, encoder: self.default_encoder )
         identifier = Praxis::MediaTypeIdentifier.load(self.media_type.identifier)
-        response.headers['Content-Type'] = (identifier + encoder).to_s
+        identifier += encoder unless encoder.blank?
+        response.headers['Content-Type'] = identifier.to_s
         response.body = render(object, include_nil: include_nil)
         response
       end
+
+      def default_encoder
+        ''
+      end
+
     end
   end
 end

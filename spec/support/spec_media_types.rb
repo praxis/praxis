@@ -5,7 +5,9 @@ class Person < Praxis::MediaType
     attribute :id, Integer
     attribute :name, String, example: /[:name:]/
     attribute :href, String, example: proc { |person| "/people/#{person.id}" }
-    attribute :links, Attributor::Collection.of(String)
+    attribute :links, Attributor::Collection.of(String),
+      description: 'Here to ensure an explicit links attribute works'
+      
   end
 
   view :default do
@@ -29,6 +31,10 @@ class Person < Praxis::MediaType
     view :link do
       attribute :href
       attribute :size
+    end
+
+    view :default do
+      attribute :href
     end
 
   end

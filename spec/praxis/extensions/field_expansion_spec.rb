@@ -86,7 +86,7 @@ describe Praxis::Extensions::FieldExpansion do
     end
 
     context 'with only a view param defined' do
-      let(:test_attributes) { {fields: true}  }
+      let(:test_attributes) { {view: true}  }
 
       it 'returns the fields for the default view' do
         expect(expansion).to eq({id: true, name: true, links: [true]})

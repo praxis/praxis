@@ -48,4 +48,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'fuubar', '~> 2'
   spec.add_development_dependency 'yard', '~> 0'
   spec.add_development_dependency 'sqlite3', '~> 1'
+  spec.add_development_dependency 'coveralls'
 end

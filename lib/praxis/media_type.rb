@@ -85,8 +85,21 @@ module Praxis
 
 
     class FieldResolver
-
       def self.resolve(type,fields)
+        self.new.resolve(type,fields)
+      end
+
+      attr_reader :history
+
+      def initialize
+        @history = Hash.new do |hash,key|
+          hash[key] = Hash.new
+        end
+      end
+
+      def resolve(type,fields)
+        history_key = fields
+        history_type = type
         if fields.kind_of?(Array)
           loop do
             type = type.member_attribute.type
@@ -97,10 +110,15 @@ module Praxis
 
         return true if fields == true
 
-        result = Hash.new
+        if history[history_type].include? history_key
+          return history[history_type][history_key]
+        end
+
+        result = history[history_type][history_key] = {}
+
 
         fields.each do |name, sub_fields|
-          # skip links for now
+          # skip links and do them below
           next if name == :links && defined?(type::Links)
 
           new_type = type.attributes[name].type
@@ -110,18 +128,39 @@ module Praxis
         # now to tackle whatever links there may be
         if (links_fields = fields[:links])
           resolved_links = resolve_links(type::Links, links_fields)
-          result.deep_merge!(resolved_links)
+          self.deep_merge(result, resolved_links)
         end
 
         result
       end
 
-      def self.resolve_links(links_type, links)
+      def resolve_links(links_type, links)
         links.each_with_object({}) do |(name, link_fields), hash|
           using = links_type.links[name]
           new_type = links_type.attributes[name].type
           hash[using] = resolve(new_type, link_fields)
         end
+      end
+
+      # perform a deep recursive *in place* merge
+      # form all values in +source+ onto +target+
+      #
+      # note: can not use ActiveSupport's Hash#deep_merge! because it does not
+      # properly do a recursive `deep_merge!`, but instead does `deep_merge`,
+      # which destroys the self-referential behavior of field hashes.
+      #
+      # note: unlike Hash#merge, doesn't take a block.
+      def deep_merge(target, source)
+        source.each do |current_key, source_value|
+          target_value = target[current_key]
+
+          target[current_key] = if target_value.is_a?(Hash) && source_value.is_a?(Hash)
+            deep_merge(target_value, source_value)
+          else
+            source_value
+          end
+        end
+        target
       end
 
     end

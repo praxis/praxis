@@ -65,6 +65,17 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
       expect(example).to receive(:validate).and_return([])
       type.validate(selector_string)
     end
+    context 'validating subattributes' do
+      let(:selector_string) { 'id,resident,owner(age)' }
+      it 'validates subattributes' do
+        errors =  type.validate(selector_string)
+        expect(errors).to match_array([
+          "Attribute with name resident not found in Address",
+          "Attribute with name age not found in Person"
+        ])
+      end
+    end
+
   end
 
   context '#validate' do

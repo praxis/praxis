@@ -86,7 +86,7 @@ module Praxis
             errors = []
             fields.each do |name, field_spec|
               unless type.attributes.key?(name)
-                errors << "nope for #{name}"
+                errors << "Attribute with name #{name} not found in #{Attributor.type_name(type)}"
                 next
               end
 
@@ -97,7 +97,7 @@ module Praxis
                 if sub_attribute.type.respond_to?(:member_attribute)
                   sub_type = sub_type.member_type
                 end
-                errors.push(*_validate(type,field_spec, sub_context))
+                errors.push(*_validate(sub_type,field_spec, sub_context))
               end
             end
             errors

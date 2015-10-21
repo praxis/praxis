@@ -16,7 +16,7 @@
       <h3>Served by</h3>
       <ul>
         <li ng-repeat="controller in controllers">
-          <a ui-sref="root.controller({version: apiVersion, controller: controller.controller})">{{ controller.name | resourceName }}</a>
+          <a ui-sref="root.controller({version: apiVersion, controller: controller.id})">{{ controller.name | resourceName }}</a>
         </li>
       </ul>
     </div>

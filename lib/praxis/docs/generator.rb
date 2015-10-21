@@ -129,7 +129,7 @@ module Praxis
         full_data = {
           info: version_info[:info],
           resources: dumped_resources,
-          schemas: nil,#dumped_schemas,
+          schemas: dumped_schemas,
           traits: version_info[:traits] || []
         }
         # Write the file

@@ -1,16 +1,16 @@
 <!doctype html>
-<html>
+<html ng-app="DocBrowser">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>API Browser</title>
+  <title ng-bind="subtitle ? title + ' – ' + subtitle : title">API Browser</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width">
   <!-- bower:css -->
   <!-- endbower -->
   <link rel="stylesheet" href="css/main.css">
 </head>
-<body ng-app="DocBrowser">
+<body>
   <div ui-view=""></div>
   <!-- build:js({.tmp,app}) scripts/praxis.js -->
   <!-- bower:js -->

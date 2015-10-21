@@ -4,99 +4,94 @@
 <div ng-if="action">
   <div class="row">
     <div class="col-lg-12">
-      <h2>
-        {{ action.name }}
-      </h2>
-      <p ng-repeat="url in action.urls">
-        <span class="label label-default verb" ng-class="url.verb | lowercase">{{ url.verb }}</span> <b>{{ url.path }}</b>
-      </p>
+      <h1>
+        <a ui-sref="root.controller({version: apiVersion, controller: controller.id})">{{controller.display_name}}</a> » {{ action.name }}
+      </h1>
+      <url action="action"></url>
       <p ng-bind-html="action.description | markdown"></p>
+      <p class="traits" ng-if="action.traits.length > 0">
+        This action is&nbsp;
+        <readable-list repeat="trait in action.traits"><a ui-sref="root.trait({version: apiVersion, trait: trait})">{{trait}}</a></readable-list>.
+      </p>
     </div>
   </div>
 
   <div class="row" ng-if="action.headers.type.attributes">
     <div class="col-lg-12">
-      <h3>Request Headers</h3>
+      <h2>Request Headers</h2>
       <type-placeholder details="action.headers.type.attributes" type="action.headers.type" template="standalone"></type-placeholder>
     </div>
   </div>
 
   <div class="row" ng-if="action.params.type.attributes">
     <div class="col-lg-12">
-      <h3>Request Parameters</h3>
+      <h2>Request Parameters</h2>
       <type-placeholder details="action.params.type.attributes" type="action.params.type" template="standalone"></type-placeholder>
     </div>
   </div>
 
   <div class="row" ng-if="action.payload.type">
     <div class="col-lg-12">
-      <h3>Request Body</h3>
+      <h2>Request Body</h2>
       <type-placeholder type="action.payload.type" template="standalone" details="action.payload.type.attributes"></type-placeholder>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12">
+      <h2>Request Example</h2>
+      <div ng-if="!action.payload.examples">
+        <h4>URL</h4>
+        <url action="action" example></url>
+      </div>
+      <tabset ng-if="action.payload.examples">
+        <tab ng-repeat="(type, example) in action.payload.examples" heading="{{type}}">
+          <h4>URL</h4>
+          <url action="action" example></url>
+          <h4>Content-Type</h4>
+          <p><code>{{example.content_type}}</code></p>
+          <h4>Request body</h4>
+          <pre>{{ example.body }}</pre>
+        </tab>
+      </tabset>
     </div>
   </div>
 
   <div class="row" ng-if="hasResponses()">
     <div class="col-lg-12">
-      <h3>Responses</h3>
-      <div class="table-responsive">
-        <table class="table table-striped table-bordered">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Name</th>
-              <th>Media Type</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr ng-repeat="response in responses">
-              <td>
-                <span ng-if="response.isMultipart">
-                  <em>Parts Like:</em>
-                </span>
-                <a ng-if="hasResponseExample(response)" ui-sref="root.controller.action.response({response: response.name, action: action.name, controller: controllerName, version: apiVersion})">
-                  {{response.status}}
-                </a>
-                <span ng-if="!hasResponseExample(response)">
-                  {{response.status}}
-                </span>
-              </td>
-              <td>
-                <a ng-if="hasResponseExample(response)" ui-sref="root.controller.action.response({response: response.name, action: action.name, controller: controllerName, version: apiVersion})">
-                  {{response.name}}
-                </a>
-                <span ng-if="!hasResponseExample(response)">
-                  {{response.name}}
-                </span>
-              </td>
-              <td>
-                {{response.media_type.id || response.media_type.identifier}}
-              </td>
-              <td>
-                <attribute-description attribute="response"></attribute-description>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="col-lg-12" ng-repeat="response in responses | filter: hasResponseExample" id="action-{{action.name}}-{{response.name}}">
-      <h4>Response example: {{ response.name }}</h4>
-
-      <div class="row">
-        <div class="col-md-4">
-          <h5>Status</h5>
-          <p>{{ response.status }}</p>
-          <h5>Content-Type</h5>
-          <p>{{ response.jsonExample.content_type }}</p>
-        </div>
-        <div class="col-md-8">
-          <h5>Example</h5>
-          <pre>{{ response.jsonExample.body }}</pre>
+      <h2>Responses</h2>
+      <div class="panel panel-default" ng-repeat="response in responses">
+        <div class="panel-heading"><h4 class="panel-title">{{response.name}}</h4></div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-4">
+              <h5>Status</h5>
+              <p>{{ response.status }}</p>
+              <div ng-if="response.examples.json">
+                <h5>Content-Type</h5>
+                <p>{{ response.examples.json.content_type }}</p>
+              </div>
+              <div ng-if="response.payload.id">
+                <h5>Media Type</h5>
+                <p><a ui-sref="root.type({version: apiVersion, type: response.payload.id})">{{response.payload.name}}</a></p>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div ng-if="response.payload.examples">
+                <h5>Response Example</h5>
+                <tabset ng-if="numExamples > 1">
+                  <tab ng-repeat="(type, example) in response.payload.examples" heading="{{type}}">
+                    <pre>{{ example.body }}</pre>
+                  </tab>
+                </tabset>
+                <div ng-if="response.numExamples == 1">
+                  <pre ng-repeat="(type, example) in response.payload.examples">{{ example.body }}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
-<hr class="action-divider" />

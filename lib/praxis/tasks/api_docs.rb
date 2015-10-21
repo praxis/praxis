@@ -37,16 +37,16 @@ namespace :praxis do
       exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs')}, "#{path}/node_modules/.bin/grunt build --gruntfile '#{path}/Gruntfile.js'")
     end
 
-    desc "Generate API docs (JSON definitions) for a Praxis App"
-    task :generate => [:environment] do |t, args|
+    desc "Generate deprecated API docs (JSON definitions) for a Praxis App"
+    task :generate_old => [:environment] do |t, args|
       require 'fileutils'
 
       Praxis::Blueprint.caching_enabled = false
       generator = Praxis::RestfulDocGenerator.new(Dir.pwd)
     end
 
-    desc "Generate BETA API docs (JSON definitions) for a Praxis App"
-    task :generate_beta => [:environment] do |t, args|
+    desc "Generate API docs (JSON definitions) for a Praxis App"
+    task :generate => [:environment] do |t, args|
       require 'fileutils'
 
       Praxis::Blueprint.caching_enabled = false

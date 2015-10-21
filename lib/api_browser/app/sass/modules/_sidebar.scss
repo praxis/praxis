@@ -3,9 +3,6 @@
 // ------------------------------
 
 .sidebar {
-  @media (min-width: $screen-sm-min) {
-    width: 160px;
-  }
   @media (min-width: $screen-lg-min) {
     width: 250px;
   }
@@ -20,25 +17,57 @@
 }
 
 .sidebar {
+  .open .dropdown-menu {
+    margin-left: 15px;
+  }
   .list-group {
     margin-bottom: 0;
     margin-top: 0;
-  }
-  .list-group-item {
-    border-width: 1px 0;
-    word-break: break-word;
-    &:first-of-type {
+    & > menu-item:first-of-type > .menu-item {
       border-radius: 0;
       border-top: 0 none;
     }
-    &:last-of-type {
-      border-bottom: 0 none;
+  }
+  .action {
+    background: $table-bg-accent;
+  }
+  .menu-item {
+    position: relative;
+    display: block;
+    // Place the border on the list items and negative margin up for better styling
+    margin-bottom: -1px;
+    background-color: $list-group-bg;
+    border: 1px solid $list-group-border;
+    border-width: 1px 0;
+    word-break: break-word;
+    a {
+      display: block;
+      padding: 10px 15px;
+      // Hover state
+      &:hover,
+      &:focus {
+        text-decoration: none;
+        background-color: $list-group-hover-bg;
+      }
+
+      // Active class on item itself, not parent
+      &.active,
+      &.active:hover,
+      &.active:focus {
+        z-index: 2; // Place active items above their siblings for proper border styling
+        color: $list-group-active-color;
+        background-color: $list-group-active-bg;
+        border-color: $list-group-active-border;
+      }
     }
-    &.child-resource {
-      padding-left: 2.5em;
-    }
-    &.group-selected {
-      border-left: 2px solid $link-color;
+    .menu-item {
+      a { padding: 10px 2.5em; }
+      .menu-item {
+        a { padding: 10px 3.5em; }
+        .menu-item {
+          a { padding: 10px 4.5em; }
+        }
+      }
     }
   }
 }
@@ -73,6 +102,7 @@
       a {
         border-bottom: 0;
         font-size: 12px;
+        padding: 10px 5px;
         &:hover {
           background-color: #fff;
           border-color: transparent;

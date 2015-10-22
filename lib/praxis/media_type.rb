@@ -55,6 +55,7 @@ module Praxis
   #     end
   #   end
   class MediaType < Praxis::Blueprint
+
     include Types::MediaTypeCommon
 
     class DSLCompiler < Attributor::DSLCompiler
@@ -69,16 +70,99 @@ module Praxis
 
     def self._finalize!
       super
+
+      # Only define our special links accessor if it was setup using the special DSL
+      # (we might have an app defining an attribute called `links` on its own, in which
+      # case we leave it be)
       if @attribute && self.attributes.key?(:links) && self.attributes[:links].type < Praxis::Links
-        # Only define out special links accessor if it was setup using the special DSL
-        # (we might have an app defining an attribute called `links` on its own, in which
-        # case we leave it be)
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def links
           self.class::Links.new(@object)
         end
         RUBY
       end
+    end
+
+
+    class FieldResolver
+      def self.resolve(type,fields)
+        self.new.resolve(type,fields)
+      end
+
+      attr_reader :history
+
+      def initialize
+        @history = Hash.new do |hash,key|
+          hash[key] = Hash.new
+        end
+      end
+
+      def resolve(type,fields)
+        history_key = fields
+        history_type = type
+        if fields.kind_of?(Array)
+          loop do
+            type = type.member_attribute.type
+            fields = fields.first
+            break unless fields.kind_of?(Array)
+          end
+        end
+
+        return true if fields == true
+
+        if history[history_type].include? history_key
+          return history[history_type][history_key]
+        end
+
+        result = history[history_type][history_key] = {}
+
+
+        fields.each do |name, sub_fields|
+          # skip links and do them below
+          next if name == :links && defined?(type::Links)
+
+          new_type = type.attributes[name].type
+          result[name] = resolve(new_type, sub_fields)
+        end
+
+        # now to tackle whatever links there may be
+        if (links_fields = fields[:links])
+          resolved_links = resolve_links(type::Links, links_fields)
+          self.deep_merge(result, resolved_links)
+        end
+
+        result
+      end
+
+      def resolve_links(links_type, links)
+        links.each_with_object({}) do |(name, link_fields), hash|
+          using = links_type.links[name]
+          new_type = links_type.attributes[name].type
+          hash[using] = resolve(new_type, link_fields)
+        end
+      end
+
+      # perform a deep recursive *in place* merge
+      # form all values in +source+ onto +target+
+      #
+      # note: can not use ActiveSupport's Hash#deep_merge! because it does not
+      # properly do a recursive `deep_merge!`, but instead does `deep_merge`,
+      # which destroys the self-referential behavior of field hashes.
+      #
+      # note: unlike Hash#merge, doesn't take a block.
+      def deep_merge(target, source)
+        source.each do |current_key, source_value|
+          target_value = target[current_key]
+
+          target[current_key] = if target_value.is_a?(Hash) && source_value.is_a?(Hash)
+            deep_merge(target_value, source_value)
+          else
+            source_value
+          end
+        end
+        target
+      end
+
     end
 
   end

@@ -2,34 +2,28 @@ require "spec_helper"
 
 describe Praxis::Collection do
 
-  let(:type) { Volume }
-  let(:example) { Volume.example('example-volume') }
+  let(:member_type) { Volume }
 
-  let(:snapshots) { example.snapshots }
 
-  subject(:media_type_collection) do
-    Volume.attributes[:snapshots].type
+  subject!(:collection) do
+    Praxis::Collection.of(member_type)
   end
 
   context '.of' do
-    let(:media_type) do
+    let(:member_type) do
       Class.new(Praxis::MediaType) do
         identifier 'application/an-awesome-type'
       end
     end
 
-    subject!(:collection) do
-      Praxis::Collection.of(media_type)
-    end
-
     its(:identifier) { should eq 'application/an-awesome-type; type=collection' }
 
     it 'sets the collection on the media type' do
-      expect(media_type::Collection).to be(collection)
+      expect(member_type::Collection).to be(collection)
     end
 
     it 'returns an existing Collection type' do
-      expect(Praxis::Collection.of(media_type)).to be(collection)
+      expect(Praxis::Collection.of(member_type)).to be(collection)
     end
 
     it 'works with explicitly-defined collections' do
@@ -41,7 +35,6 @@ describe Praxis::Collection do
     subject(:type) { Volume::Collection }
     its(:member_type) { should be Volume }
     its(:identifier) { should eq 'application/vnd.acme.volumes' }
-
   end
 
   context '.member_type' do
@@ -55,6 +48,19 @@ describe Praxis::Collection do
     its(:member_attribute){ should be_kind_of(Attributor::Attribute) }
     its('member_attribute.type'){ should be(Person) }
     its(:identifier) { should eq Person.identifier + "; type=collection" }
+  end
+
+  context '.views' do
+    subject(:views) { collection.views }
+    its(:keys) { should match_array(member_type.views.keys)}
+
+    it 'generates CollectionViews from the member views' do
+      collection.views.each do |name, view|
+        expect(view.name).to be name
+        expect(view.schema).to be member_type
+        expect(view.contents).to eq member_type.views[name].contents
+      end
+    end
   end
 
   context '.load' do
@@ -93,19 +99,19 @@ describe Praxis::Collection do
   end
 
 
-   context '#render' do
 
-
+  context '#render' do
     context 'for members' do
+      let(:example) { Volume.example('example-volume') }
+      let(:snapshots) { example.snapshots }
+
       let(:volume_output) { example.render(view: :default) }
 
       subject(:output) { volume_output[:snapshots] }
 
       it { should eq(snapshots.collect(&:render)) }
     end
-
-
-   end
+  end
 
   context '#validate' do
     let(:volume_data) do

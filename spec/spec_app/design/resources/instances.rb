@@ -55,6 +55,7 @@ module ApiResources
         attribute :junk, String, default: ''
         attribute :some_date, DateTime, default: DateTime.parse('2012-12-21')
         attribute :fail_filter, Attributor::Boolean, default: false
+        attribute :create_identity_map, Attributor::Boolean, default: false
       end
 
       payload required: false do

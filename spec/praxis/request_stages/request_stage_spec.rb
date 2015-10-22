@@ -10,7 +10,7 @@ describe Praxis::RequestStages::RequestStage do
 
   let(:stage_class) { Class.new(Praxis::RequestStages::RequestStage) }
 
-  let(:request) { instance_double("Praxis::Request") }
+  let(:request) { Praxis::Request.new({}) }
   let(:controller){ controller_class.new(request) }
 
 

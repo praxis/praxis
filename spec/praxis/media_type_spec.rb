@@ -38,6 +38,14 @@ describe Praxis::MediaType do
   end
 
 
+  context 'loading' do
+    it do
+      Person.load({id: 1})
+      Person.load(owner_resource)
+
+    end
+  end
+
 
   context 'accessor methods' do
     subject(:address_klass) { address.class }
@@ -162,15 +170,105 @@ describe Praxis::MediaType do
     its([:name]) { should eq(Address.name) }
     its([:identifier]) { should eq(Address.identifier.to_s) }
     it 'should include the defined views' do
-      expect( subject[:views].keys ).to match( [:default, :master] )
+      expect( subject[:views].keys ).to match_array([:default, :master, :link])
     end
     it 'should include the defined attributes' do
-      expect( subject[:attributes].keys ).to match( [:id, :name, :owner, :custodian, :residents, :residents_summary, :links] )
+      expect( subject[:attributes].keys ).to match_array([:id, :name, :owner, :custodian, :residents, :residents_summary, :links])
     end
   end
 
   context 'using blueprint caching' do
     it 'has specs'
   end
+
+  context Praxis::MediaType::FieldResolver do
+    let(:expander) { Praxis::FieldExpander }
+    let(:user_view) { User.views[:default] }
+
+    let(:fields) { expander.expand(user_view) }
+
+    let(:field_resolver) { Praxis::MediaType::FieldResolver }
+
+    subject(:output) { field_resolver.resolve(User,fields) }
+
+
+    it 'merges link stuff in properly' do
+      expect(output).to_not have_key(:links)
+      expect(output).to have_key(:primary_blog)
+
+      expect(output[:primary_blog]).to eq({href: true})
+    end
+
+    it 'resolves link aliases (from link ... using:)' do
+      expect(output).to have_key(:posts_summary)
+      expect(output[:posts_summary]).to eq({href: true})
+    end
+
+    context 'merging top-level attributes with those from links' do
+      let(:user_view) { User.views[:extended] }
+
+      subject(:primary_blog_output) { output[:primary_blog] }
+      it 'merges them' do
+        expected = {
+          href: true,
+          id: true,
+          name: true,
+          description: true
+        }
+        expect(primary_blog_output).to eq(expected)
+      end
+    end
+
+    context 'deep-merging fields' do
+      let(:fields) do
+        {
+          primary_blog: {
+            owner: { first: true, last: true }
+          },
+          links: {
+            primary_blog: {
+              owner: { href: true }
+            }
+          }
+        }
+      end
+
+      it 'does a deep-merge for sub-attributes' do
+        expected = {
+          owner: {first: true, last: true, href: true}
+        }
+        expect(output[:primary_blog]).to eq(expected)
+      end
+    end
+
+    context 'resolving collections' do
+      let(:fields) { {:id=>true, :posts=>[{:href=>true}]}}
+      it 'strips arrays from the incoming fields' do
+        expect(output).to eq(id: true, posts: {href: true})
+      end
+
+      it 'supports multi-dimensional collections' do
+        fields = {
+          id: true,
+          post_matrix:[[{title: true, href: true}]]
+        }
+        output = field_resolver.resolve(User,fields)
+        expect(output).to eq(id: true, post_matrix:{href: true, title: true})
+      end
+
+      it 'supports nesting structs and arrays collections' do
+        fields = {
+         id: true,
+         daily_posts: [
+           {day: true, posts: [{id: true}]}
+         ]
+        }
+        output = field_resolver.resolve(User,fields)
+        expect(output).to eq(id: true, daily_posts:{day: true, posts: {id:true}})
+      end
+    end
+
+  end
+
 
 end

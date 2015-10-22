@@ -34,6 +34,7 @@ describe Praxis::Links do
       subject(:rendered_links){ example.render(view: :default)[:links] }
 
       it 'should use the :link for rendering its attributes' do
+        example.render(view: :default)[:links]
         expect(rendered_links[:owner]).to eq( example.owner.render(view: :link))
       end
     end

@@ -23,7 +23,8 @@ Praxis::Application.configure do |application|
 
   application.bootloader.use Praxis::Plugins::PraxisMapperPlugin, {
     config_data: {
-      repositories: { default: {adapter: 'sqlite', database: ':memory:'} }
+      repositories: { default: {adapter: 'sqlite', database: ':memory:'} },
+      log_stats: 'detailed'
     }
   }
 

@@ -100,7 +100,6 @@ describe Praxis::MediaTypeCollection do
       it { should eq(snapshots.collect(&:render)) }
     end
 
-
   end
 
   context '#validate' do

@@ -6,6 +6,7 @@
         "name" :         { "type": ["string"] },
         "display_name" : { "type": ["string","null"] },
         "description" :  { "type": ["string","null"] },
+        "parent" : { "type": ["string"] },
         "media_type" : {
           "type" : "object",
           "properties": {

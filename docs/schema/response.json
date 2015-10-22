@@ -10,8 +10,9 @@
   "definitions": {
     "header" : {
       "type": "object",
-      "value": X,
-      "type" : Y ...
+      "value": "???",
+      "type" : "???",
+      "description" : "TODO! FINISH THIS!!"
     }
   }
 }

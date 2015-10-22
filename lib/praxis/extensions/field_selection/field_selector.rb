@@ -108,3 +108,10 @@ module Praxis
     end
   end
 end
+
+# Alias it to a much shorter and sweeter name in the Types namespace.
+module Praxis
+  module Types
+    FieldSelector = Praxis::Extensions::FieldSelection::FieldSelector
+  end
+end

@@ -8,3 +8,5 @@ group :test do
 
   gem 'parslet'
 end
+
+gem 'json-schema'

@@ -238,7 +238,7 @@ module Praxis
           # ...but not for links or link classes (there's no object container context if done alone!!)
           unless( type < Praxis::Links ) #TODO: again, why is this special?
             type_output[:example] = if example_data.respond_to? :render
-              nil #example_data.render(view: :master)
+              example_data.render(view: :master)
             else
               type.dump(example_data)
             end

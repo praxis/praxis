@@ -1,3 +1,6 @@
+require 'coveralls'
+Coveralls.wear!
+
 $:.unshift File.expand_path(__dir__)
 $:.unshift File.expand_path('../lib',__dir__)
 $:.unshift File.expand_path('support',__dir__)

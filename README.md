@@ -1,7 +1,11 @@
-# Praxis [![TravisCI][travis-img-url]][travis-ci-url] 
+# Praxis [![TravisCI][travis-img-url]][travis-ci-url] [![Coverage Status][coveralls-img-url]][coveralls-url] [![Dependency Status][gemnasium-img-url]][gemnasium-url]
 
 [travis-img-url]: https://travis-ci.org/rightscale/praxis.svg?branch=master
 [travis-ci-url]:https://travis-ci.org/rightscale/praxis
+[coveralls-img-url]:https://coveralls.io/repos/rightscale/praxis/badge.svg?branch=master&service=github
+[coveralls-url]:https://coveralls.io/github/rightscale/praxis?branch=master
+[gemnasium-img-url]:https://gemnasium.com/rightscale/praxis.svg
+[gemnasium-url]:https://gemnasium.com/rightscale/praxis
 
 Praxis is a framework that takes a different approach to creating APIs, an approach that treats both designers and implementors as first class citizens and hold both their hands throughout the API building process. With Praxis you create an API by iterating through the design, review and implementation phases.
 

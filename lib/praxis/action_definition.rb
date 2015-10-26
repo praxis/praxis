@@ -222,7 +222,7 @@ module Praxis
         hash[:metadata] = metadata
         if headers
           headers_example = headers.example(context)
-          hash[:headers] = headers.describe(example: headers_example)
+          hash[:headers] = headers_description(example: headers_example)
         end
         if params
           params_example = params.example(context)
@@ -249,6 +249,14 @@ module Praxis
       end
     end
 
+    def headers_description(example: )
+      output = headers.describe(example: example)
+      required_headers = self.headers.attributes.select{|k,attr| attr.options && attr.options[:required] == true  }
+      output[:example] = required_headers.each_with_object({}) do | (name, attr), hash |
+        hash[name] = example[name]
+      end
+      output
+    end
 
     def params_description(example:)
       route_params = []
@@ -270,6 +278,11 @@ module Praxis
         end
         desc[:type][:attributes][k][:source] = source
       end
+      required_params = desc[:type][:attributes].select{|k,v| v[:source] == 'query' && v[:required] == true }.keys
+      phash = required_params.each_with_object({}) do | name, hash |
+        hash[name] = example[name]
+      end
+      desc[:example] = URI.encode_www_form(phash)
       desc
     end
 

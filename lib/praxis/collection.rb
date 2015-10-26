@@ -8,6 +8,7 @@ module Praxis
       end
 
       klass = super
+      klass.anonymous_type
 
       if type < Praxis::Types::MediaTypeCommon
         klass.member_type type

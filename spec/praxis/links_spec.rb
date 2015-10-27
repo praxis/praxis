@@ -19,6 +19,11 @@ describe Praxis::Links do
     expect(link.for(Address)).to eq(link)
   end
 
+  it 'are marked as anonymous' do
+    described = link.for(Address).describe
+    expect(described[:anonymous]).to be(true)
+  end
+
   context 'contents' do
     subject(:view) { link.view(:default) }
 

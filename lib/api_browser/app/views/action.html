@@ -43,6 +43,11 @@
       <div ng-if="!action.payload.examples">
         <h4>URL</h4>
         <url action="action" example></url>
+        <div ng-if="action.headers.example">
+          <h4>Headers</h4>
+          <pre><span ng-repeat="(header, value) in action.headers.example">{{header}}: {{value}}
+</span></pre>
+        </div>
       </div>
       <tabset ng-if="action.payload.examples">
         <tab ng-repeat="(type, example) in action.payload.examples" heading="{{type}}">
@@ -50,6 +55,11 @@
           <url action="action" example></url>
           <h4>Content-Type</h4>
           <p><code>{{example.content_type}}</code></p>
+          <div ng-if="action.headers.example">
+            <h4>Headers</h4>
+            <pre><span ng-repeat="(header, value) in action.headers.example">{{header}}: {{value}}
+</span></pre>
+          </div>
           <h4>Request body</h4>
           <pre>{{ example.body }}</pre>
         </tab>
@@ -73,7 +83,7 @@
               </div>
               <div ng-if="response.payload.id">
                 <h5>Media Type</h5>
-                <p><a ui-sref="root.type({version: apiVersion, type: response.payload.id})">{{response.payload.name}}</a></p>
+                <p><type-placeholder template="label" type="response.payload"></type-placeholder></p>
               </div>
             </div>
             <div class="col-md-8">

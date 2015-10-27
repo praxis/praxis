@@ -30,6 +30,8 @@
   }
   .action {
     background: $table-bg-accent;
+    font-size: 11px;
+    font-weight: bolder;
   }
   .menu-item {
     position: relative;
@@ -58,14 +60,21 @@
         color: $list-group-active-color;
         background-color: $list-group-active-bg;
         border-color: $list-group-active-border;
+        font-weight: bolder;
       }
     }
     .menu-item {
-      a { padding: 10px 2.5em; }
+      a.action { padding: 10px 2.5rem; }
+      a.main { padding: 10px 2rem; }
+      a.main::before {
+        content: "↳"
+      }
       .menu-item {
-        a { padding: 10px 3.5em; }
+        a.action { padding: 10px 3.5rem; }
+        a.main { padding: 10px 3rem; }
         .menu-item {
-          a { padding: 10px 4.5em; }
+          a.action { padding: 10px 4.5rem; }
+          a.main { padding: 10px 4rem; }
         }
       }
     }

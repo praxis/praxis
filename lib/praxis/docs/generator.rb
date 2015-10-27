@@ -125,7 +125,6 @@ module Praxis
         collect_reachable_types( found_media_types , collected_types );
 
         dumped_schemas = dump_schemas( collected_types )
-
         full_data = {
           info: version_info[:info],
           resources: dumped_resources,
@@ -169,9 +168,13 @@ module Praxis
       def dump_schemas(types)
         reportable_types = types - EXCLUDED_TYPES_FROM_OUTPUT
         reportable_types.each_with_object({}) do |type, array|
+          next if ( type.respond_to?(:anonymous?) && type.anonymous? )
+
           context = [type.id]
           example_data = type.example(context)
           type_output = type.describe(false, example: example_data)
+
+          type_output[:display_name] = type.display_name if type.respond_to?(:display_name)
           unless type_output[:display_name]
             # For non MediaTypes or pure types or anonymous types fallback to their name, and worst case to their id
             type_output[:display_name] = type_output[:name] || type_output[:id]

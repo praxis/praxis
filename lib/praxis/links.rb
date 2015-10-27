@@ -32,6 +32,7 @@ module Praxis
       klass = Class.new(self) do
         @reference = reference
         @links = Hash.new
+        anonymous_type
       end
 
       reference.const_set :Links, klass

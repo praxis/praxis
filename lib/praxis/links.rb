@@ -57,8 +57,6 @@ module Praxis
     def self._finalize!
       super
       if @attribute
-        # Make sure the attribute gets any anonymous definition set on the links type
-        @attribute.type.anonymous_type @_anonymous
         # Master and default views must be set for all attributes, always using their :link view
         self.define_default_view
         self.define_master_view

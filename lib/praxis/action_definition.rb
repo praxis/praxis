@@ -253,7 +253,7 @@ module Praxis
       output = headers.describe(example: example)
       required_headers = self.headers.attributes.select{|k,attr| attr.options && attr.options[:required] == true  }
       output[:example] = required_headers.each_with_object({}) do | (name, attr), hash |
-        hash[name] = example[name]
+        hash[name] = example[name].to_s # Some simple types (like Boolean) can be used as header values, but must convert back to s
       end
       output
     end

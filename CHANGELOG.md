@@ -46,6 +46,14 @@ resource definition.
   necessary to handle the request.
     * Note: This is primarily an internal extension used by the `MapperSelectors`
     and `Rendering` extensions, and is automatically included by them.
+* Doc browser now uses the new JSON format for responses.
+* Traits now get exposed in the doc browser.
+* Doc browser now displays examples for requesting actions.
+* Doc browser now correctly displays top-level collections in action payloads.
+* Doc browser has improved scrolling for the sidebar.
+* Doc browser displays more detailed HTML titles.
+* Doc browser has been switched back to having a separate page per action, however actions are now shown in the sidebar.
+* Doc browser will now display multiply nested resources in a proper hierarchy.
 
 ## 0.18.1
 

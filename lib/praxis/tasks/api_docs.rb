@@ -37,16 +37,17 @@ namespace :praxis do
       exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs')}, "#{path}/node_modules/.bin/grunt build --gruntfile '#{path}/Gruntfile.js'")
     end
 
-    desc "Generate API docs (JSON definitions) for a Praxis App"
-    task :generate => [:environment] do |t, args|
+    desc "Generate deprecated API docs (JSON definitions) for a Praxis App"
+    task :generate_old => [:environment] do |t, args|
       require 'fileutils'
+      STDERR.puts "DEPRECATION: praxis:docs:generate_old is deprecated and will be removed in the next version. Please update tooling that may need this."
 
       Praxis::Blueprint.caching_enabled = false
       generator = Praxis::RestfulDocGenerator.new(Dir.pwd)
     end
 
-    desc "Generate BETA API docs (JSON definitions) for a Praxis App"
-    task :generate_beta => [:environment] do |t, args|
+    desc "Generate API docs (JSON definitions) for a Praxis App"
+    task :generate => [:environment] do |t, args|
       require 'fileutils'
 
       Praxis::Blueprint.caching_enabled = false
@@ -59,7 +60,7 @@ namespace :praxis do
   desc "Generate API docs (JSON definitions) for a Praxis App"
   task :api_docs do
     STDERR.puts "DEPRECATION: praxis:api_docs is deprecated and will be removed by 1.0. Please use praxis:docs:generate instead."
-    Rake::Task["praxis:docs:generate"].invoke
+    Rake::Task["praxis:docs:generate_old"].invoke
   end
 
   desc "Run API Documentation Browser"

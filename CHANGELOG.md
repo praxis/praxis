@@ -23,7 +23,7 @@ resource definition.
   * `Rendering` adds `render` and `display` helper methods to controllers to
   reduce common boilerplate in producing rendered representations of media types
   and setting response "Content-Type" headers.
-    * `Controller#render(object, include_nil: false)` loads `object` into the  
+    * `Controller#render(object, include_nil: false)` loads `object` into the
     the current applicable `MediaType` (as from `Controller#media_type`) and
     renders it using the fields provided by `Controller#expanded_fields` (from the
       `FieldExpansion` extension).
@@ -46,14 +46,15 @@ resource definition.
   necessary to handle the request.
     * Note: This is primarily an internal extension used by the `MapperSelectors`
     and `Rendering` extensions, and is automatically included by them.
-* Doc browser now uses the new JSON format for responses.
-* Traits now get exposed in the doc browser.
-* Doc browser now displays examples for requesting actions.
-* Doc browser now correctly displays top-level collections in action payloads.
-* Doc browser has improved scrolling for the sidebar.
-* Doc browser displays more detailed HTML titles.
-* Doc browser has been switched back to having a separate page per action, however actions are now shown in the sidebar.
-* Doc browser will now display multiply nested resources in a proper hierarchy.
+* A slew of Doc browser improvements:
+  * Now uses the new JSON format for responses.
+  * Traits now get exposed in the doc browser.
+  * Now displays examples for requesting actions.
+  * Now correctly displays top-level collections in action payloads.
+  * Has improved scrolling for the sidebar.
+  * Displays more detailed HTML titles.
+  * Has been switched back to having a separate page per action, however actions are now shown in the sidebar.
+  * Will now display multiply nested resources in a proper hierarchy.
 
 ## 0.18.1
 

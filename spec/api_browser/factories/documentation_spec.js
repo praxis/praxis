@@ -4,9 +4,33 @@ describe('Documentation service', function() {
   beforeEach(angular.mock.module('PraxisDocBrowser'));
 
   beforeEach(inject(function($rootScope, $injector) {
+    $httpBackend = $injector.get('$httpBackend');
+    $httpBackend.expectGET('api/index-new.json').respond({
+      versions: ['1.0', '2.0']
+    });
+    $httpBackend.expectGET('api/1.0.json').respond({
+      resources: {
+        foo: {
+
+        }
+      },
+      schemas: {
+        bar: {
+
+        }
+      }
+    });
+    $httpBackend.expectGET('api/2.0.json').respond({
+      resources: {
+        test: 'TestCTRL'
+      },
+      schemas: {
+        testType: 'TestType'
+      }
+    });
     $scope = $rootScope.$new();
     Documentation = $injector.get('Documentation');
-    $httpBackend = $injector.get('$httpBackend');
+    $httpBackend.flush();
   }));
 
   afterEach(function() {
@@ -14,37 +38,63 @@ describe('Documentation service', function() {
     $httpBackend.verifyNoOutstandingRequest();
   });
 
-  describe('#getIndex', function() {
-    var result, response = {
-      '1.0': {
-        'Blogs': {
-          'controller': 'V1-Controllers-Blogs',
-          'name': 'V1::Controllers::Blogs',
-          'media_type': 'V1-MediaTypes-Blog'
-        },
-        'Posts': {
-          'controller': 'V1-ResourceDefinitions-Posts',
-          'name': 'V1::ResourceDefinitions::Posts',
-          'media_type': 'V1-MediaTypes-Post'
-        },
-        'Users': {
-          'controller': 'V1-ResourceDefinitions-Users',
-          'name': 'V1::ResourceDefinitions::Users',
-          'media_type': 'V1-MediaTypes-User'
-        }
-      }
-    };
+  describe('#versions', function() {
+    var versions;
     beforeEach(function() {
-      $httpBackend.expectGET('api/index.json').respond(response);
-      Documentation.getIndex().then(function(data) {
-        result = data;
+      Documentation.versions().then(function(v) {
+        versions = v;
       });
-      $httpBackend.flush();
+      $scope.$apply();
+    });
+    it('returns both versions', function() {
+      expect(versions).toEqual(['1.0', '2.0']);
+    });
+  });
+
+  describe('#items', function() {
+    var items;
+    beforeEach(function() {
+      Documentation.items('1.0').then(function(data) {
+        items = data;
+      });
       $scope.$apply();
     });
 
-    it('returns the index data', function() {
-      expect(result.data).toEqual(response);
+    it('returns all items for 1.0', function() {
+      expect(items).toEqual({
+        resources: {
+          foo: { }
+        },
+        schemas: {
+          bar: {}
+        }
+      });
+    });
+  });
+  describe('#controller', function() {
+    var item;
+    beforeEach(function() {
+      Documentation.controller('2.0', 'test').then(function(data) {
+        item = data;
+      });
+      $scope.$apply();
+    });
+
+    it('returns all items for 1.0', function() {
+      expect(item).toEqual('TestCTRL');
+    });
+  });
+  describe('#type', function() {
+    var item;
+    beforeEach(function() {
+      Documentation.type('2.0', 'testType').then(function(data) {
+        item = data;
+      });
+      $scope.$apply();
+    });
+
+    it('returns all items for 1.0', function() {
+      expect(item).toEqual('TestType');
     });
   });
 });

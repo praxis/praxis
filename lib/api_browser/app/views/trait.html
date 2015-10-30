@@ -1,0 +1,13 @@
+<div ng-if="error" class="alert alert-danger">
+  <p>The requested trait could not be found.</p>
+</div>
+<div ng-if="trait">
+  <div class="row">
+    <div class="col-lg-12">
+      <h1>
+        {{ traitName | resourceName }}
+      </h1>
+    </div>
+  </div>
+  <div ng-if="trait.description" ng-bind-html="trait.description | markdown"></div>
+</div>

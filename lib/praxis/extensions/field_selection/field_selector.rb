@@ -10,6 +10,14 @@ module Praxis
             self
           end
 
+          def self.display_name
+            'FieldSelector'
+          end
+
+          def family
+            'string'
+          end
+
           def self.for(media_type)
             unless media_type < Praxis::MediaType
               raise ArgumentError, "Invalid type: #{media_type.name} for FieldSelector. " +

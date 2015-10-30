@@ -48,7 +48,7 @@ describe Praxis::Extensions::Rendering do
           exception: circular_exception,
           request: request,
           stage: :action,
-          errors: nil
+          errors: [circular_exception.message]
         }
       end
       let(:circular_exception){ Praxis::Renderer::CircularRenderingError.new(object, "ctx") }

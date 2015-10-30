@@ -18,13 +18,14 @@ module Praxis
         if request.action.payload
           begin
             request.load_payload(CONTEXT_FOR[:payload])
-          rescue => e
+          rescue Attributor::LoadError => e
             message = "Error loading payload. Used Content-Type: '#{request.content_type}'"
             return validation_handler.handle!(
               exception: e,
               summary: message,
               request: request,
-              stage: name
+              stage: name,
+              errors: [e.message]
             )
           end
           Attributor::AttributeResolver.current.register("payload",request.payload)

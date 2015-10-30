@@ -13,15 +13,6 @@ module Praxis
 
           response.validate(action, validate_body: validate_body)
         end
-      rescue Exceptions::Validation => e
-        controller.response = validation_handler.handle!(
-          summary: "Error validating response", 
-          exception: e,
-          request: request,
-          stage: name, 
-          errors: e.errors
-        )
-        retry
       end
 
     end

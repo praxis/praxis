@@ -1,4 +1,5 @@
 source 'https://rubygems.org'
+gem 'attributor', path: '../attributor'
 gemspec
 
 group :test do

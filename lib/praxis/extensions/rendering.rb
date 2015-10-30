@@ -30,7 +30,7 @@ module Praxis
           exception: e,
           request: request,
           stage: :action,
-          errors: nil
+          errors: [e.message]
         )
       end
 

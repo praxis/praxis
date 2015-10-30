@@ -88,12 +88,10 @@ describe 'Functional specs' do
 
       it 'fails to validate the response' do
         get '/api/clouds/1/instances?response_content_type=somejunk&api_version=1.0', nil, 'HTTP_FOO' => "bar", 'global_session' => session
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(500)
         response = JSON.parse(last_response.body)
-
-        expect(response['name']).to eq('ValidationError')
-        expect(response['summary']).to eq("Error validating response")
-        expect(response['errors'].first).to match(/Bad Content-Type/)
+        expect(response['name']).to eq('Praxis::Exceptions::Validation')
+        expect(response['message']).to match(/Bad Content-Type/)
       end
 
       context 'with response validation disabled' do
@@ -415,14 +413,23 @@ describe 'Functional specs' do
     end
 
     context 'with an invalid name' do
+      around do |example|
+        logger = app.logger
+        app.logger = Logger.new(StringIO.new)
+
+        example.call
+
+        app.logger = logger
+      end
+
+
       let(:request_payload) { {name: 'Invalid Name'} }
 
-      its(['name']) { should eq 'ValidationError' }
-      its(['summary']) { should eq 'Error validating response' }
-      its(['errors']) { should match_array [/\$\.name value \(Invalid Name\) does not match regexp/] }
+      its(['name']) { should eq 'Praxis::Exceptions::Validation' }
+      its(['message']) { should match(/\$\.name value \(Invalid Name\) does not match regexp/) }
 
-      it 'returns a validation error' do
-        expect(last_response.status).to eq(400)
+      it 'returns a response validation error' do
+        expect(last_response.status).to eq(500)
       end
     end
 

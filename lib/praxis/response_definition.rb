@@ -229,7 +229,7 @@ module Praxis
     #
     def validate_location!(response)
       return if location.nil? || location === response.headers['Location']
-      raise Exceptions::Validation.new("LOCATION does not match #{location.inspect}")
+      raise Exceptions::Validation.new("Location header does not match #{location.inspect}")
     end
 
 
@@ -240,11 +240,6 @@ module Praxis
     def validate_headers!(response)
       return unless headers
       headers.each do |name, value|
-        if name.is_a? Symbol
-          raise Exceptions::Validation.new(
-            "Symbols are not supported in headers"
-          )
-        end
 
         unless response.headers.has_key?(name)
           raise Exceptions::Validation.new(

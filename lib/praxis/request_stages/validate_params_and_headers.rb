@@ -16,25 +16,27 @@ module Praxis
       def execute
         begin
           request.load_headers(CONTEXT_FOR[:headers])
-        rescue => e
+        rescue Attributor::LoadError => e
           message = "Error loading headers."
           return validation_handler.handle!(
             exception: e,
             summary: message,
             request: request,
-            stage: name
+            stage: name,
+            errors: [e.message]
           )
         end
 
         begin
           request.load_params(CONTEXT_FOR[:params])
-        rescue Attributor::AttributorException => e
+        rescue Attributor::LoadError => e
           message = "Error loading params."
           return validation_handler.handle!(
             exception: e,
             summary: message,
             request: request,
-            stage: name
+            stage: name,
+            errors: [e.message]
           )
         end
 

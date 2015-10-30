@@ -23,6 +23,15 @@ module Praxis
         response.headers['Content-Type'] = identifier.to_s
         response.body = render(object, include_nil: include_nil)
         response
+      rescue Praxis::Renderer::CircularRenderingError => e
+          Praxis::Application.instance.validation_handler.handle!(
+          summary: "Circular Rendering Error when rendering response. " +
+                   "Please especify a view to narrow the dependent fields, or narrow your field set.",
+          exception: e,
+          request: request,
+          stage: :action,
+          errors: nil
+        )
       end
 
       def default_encoder

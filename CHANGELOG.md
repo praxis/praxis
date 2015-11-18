@@ -19,7 +19,6 @@ resource definition.
       params like: `attribute :fields, FieldSelector.for(Person)`. The parsed
       fields in the request would then be available with
       `request.params.fields.fields`.
-      * Note:
   * `Rendering` adds `render` and `display` helper methods to controllers to
   reduce common boilerplate in producing rendered representations of media types
   and setting response "Content-Type" headers.
@@ -29,7 +28,7 @@ resource definition.
       `FieldExpansion` extension).
     * `Controller#display(object, include_nil: false)` calls `render` (above) with
       `object`, assigns the result to the current `response.body`, sets the
-      response's "Content-Type" header to the approriate MediaType identifier,
+      response's "Content-Type" header to the aproriate MediaType identifier,
       and returns the response.
     * To use this extension, include it in a controller with
       `include Praxis::Extensions::Rendering`.

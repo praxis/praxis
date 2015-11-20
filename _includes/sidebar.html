@@ -2,7 +2,11 @@
   {% assign section = page.url | replace_first:"/" | split:"/" | first | prepend:"/" %}
   {% for item in site.navigation %}
     <li class="{% if item.href == section %}active{% endif %}">
-      <a href="{{ site.baseurl }}{{ item.href }}">{{ item.title }}</a>
+      {% if item.href %}
+        <a href="{{ site.baseurl }}{{ item.href }}">{{ item.title }}</a>
+      {% else %}
+        {{ item.title }}
+      {% endif %}
       {% if item.subsections %}
         <ul class="nav">
         {% for subsection in item.subsections %}

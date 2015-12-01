@@ -14,7 +14,7 @@ module Praxis
             'FieldSelector'
           end
 
-          def family
+          def self.family
             'string'
           end
 

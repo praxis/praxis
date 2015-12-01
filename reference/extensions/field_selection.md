@@ -24,13 +24,14 @@ Must be required explicitly with 'praxis/extensions/field_selection'.
 
 ## Field Selection Syntax
 
-* a simple comma-separated list of attributes
-  * sub-attributes may be selected by enclosing in parentheses, which may be nested as many times as desired.
-* the parsed result is a hash with `true` indicating the field was selected, or another sub-hash with selected sub-attributes.
+* Similar to [GraphQL](https://facebook.github.io/graphql/)
+* A simple comma-separated list of attributes
+  * Sub-attributes may be selected by enclosing in curly-braces, which may be nested as many times as desired.
+* The parsed result is a hash with `true` indicating the field was selected, or another sub-hash with selected sub-attributes.
 
 Examples:
 
 * `a` - select the `a` attribute. yields: `{a: true}`
-* `a(b)` - select the `b` sub-attribute of `a` (i.e. `a.b`). yields: `{a: {b:true}}`
-* `a(b,c)` - select both `b` and `c` from `a`, yields: `{a: {b: true, c: true}}`
-* `a(b(c))` - select `c` from `b` from `a` (i.e. `a.b.c`) yields: `{a: {b: {c: true}}}`
+* `a{b}` - select the `b` sub-attribute of `a` (i.e. `a.b`). yields: `{a: {b:true}}`
+* `a{b,c}` - select both `b` and `c` from `a`, yields: `{a: {b: true, c: true}}`
+* `a{b{c}}` - select `c` from `b` from `a` (i.e. `a.b.c`) yields: `{a: {b: {c: true}}}`

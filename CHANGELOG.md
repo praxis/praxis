@@ -28,7 +28,7 @@ resource definition.
       `FieldExpansion` extension).
     * `Controller#display(object, include_nil: false)` calls `render` (above) with
       `object`, assigns the result to the current `response.body`, sets the
-      response's "Content-Type" header to the aproriate MediaType identifier,
+      response's "Content-Type" header to the appropriate MediaType identifier,
       and returns the response.
     * To use this extension, include it in a controller with
       `include Praxis::Extensions::Rendering`.

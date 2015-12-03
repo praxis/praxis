@@ -54,6 +54,7 @@ resource definition.
   * Displays more detailed HTML titles.
   * Has been switched back to having a separate page per action, however actions are now shown in the sidebar.
   * Will now display multiply nested resources in a proper hierarchy.
+* Fix doc generator to only output versions in index for which we have resources (i.e. some can be nodoc!)
 
 ## 0.18.1
 

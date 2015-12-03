@@ -35,7 +35,8 @@ module Praxis
       end
 
       def save!
-        write_index_file
+        # Restrict the versions listed in the index file to the ones for which we have at least 1 resource
+        write_index_file( for_versions: resources_by_version.keys )
         resources_by_version.keys.each do |version|
           write_version_file(version)
         end
@@ -97,9 +98,9 @@ module Praxis
         reachable_types
       end
 
-      def write_index_file
+      def write_index_file( for_versions:  )
         # Gather the versions
-        versions = infos_by_version.keys.reject{|v| v == :global || v == :traits }.map do |version|
+        versions = infos_by_version.keys.reject{|v| v == :global || v == :traits || !for_versions.include?(v) }.map do |version|
           version == "n/a" ? "unversioned" : version
         end
         data = {

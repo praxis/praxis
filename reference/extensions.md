@@ -3,14 +3,7 @@ layout: page
 title: Extensions
 ---
 
-Extensions are similar to [Plugins](../plugins), except for the ways they are not:
-
-  * extensions are typically just modules (really `ActiveSupport::Concern`s) that provide
-  additional logic and behavior to the specific class they're included in.
-    * or, they are simply additional classes wrapped up in a file you `require`.
-  * extensions do not have any configuration data
-  * extensions never instantiated during application loading, nor do they
-  provide callback hooks (beyond that from `ActiveSupport::Concern.included` )
+Extensions are modules or classes we ship with Praxis, that must be explicitly required and that extend the default functionality.
 
 Praxis currently includes the following extensions, all under the `Praxis::Extensions`
 namespace:

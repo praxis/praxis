@@ -30,7 +30,7 @@ Praxis::ApiDefinition.define
   end
 
   info '1.0' do
-    base_path '/v1'  
+    base_path '/v1'
   end
 
   response_template :other_response do
@@ -53,22 +53,23 @@ information on the various bootstrapping stages.
 
 # Global Information
 
-It is possible to provide some global API information in the `ApiDefinition.define` block with the `info` method. You may define this metadata for all versions of your API, or only for a specific version. All definitions at the global level (i.e. those that do not specify a version) will be inherited by all versions. Any directive defined within a version will overwrite anything inherited, with the exceptions of `base_path` and `base_params`, which will always be enforced when defined globally.
+It is possible to provide global API information in the `ApiDefinition.define` block with the `info` method. You may define this metadata for all versions of your API, or only for a specific version. All definitions at the global level (i.e. those that do not specify a version) will be inherited by all versions. Any directive defined within a version will overwrite anything inherited (except `base_path` and `base_params` which a version cannot override if they have been set at the default level).
 
-The following directives are supported:
+There are two attributes that are _only_ allowed at global level:
 
- * `name`
- * `title`
- * `description`
+* `endpoint` can define your fully qualified API's endpoint. It's used purely for documentation purposes and will not be used in any routing or route-generation.
+* `version_with` will define what versioning "scheme" your application will use. By default it's set to `[:header, :params]`, meaning Praxis will look for either an  `X-Api-Version` request header *or* an `api_version` query parameter to determine the version of your API to use for processing the request. It is also possible to use a path-based versioning scheme by using `version_with :path`. See section below for details.
+
+The rest of the directives are supported in both the global or version level:
+
+ * `name`: A short name for your API
+ * `title`: A title or tagline.
+ * `description`: A longer description about the API.
  * `base_path`: Root path prepended to *all* routes.
  * `base_params`: Default parameters applied to all actions. Used to define any params specified in `base_path`.
  * `consumes`: List of [handlers](../handlers) the API accepts from clients (defaults to `'json', 'x-www-form-urlencoded'`).
  * `produces`: List of [handlers](../handlers) the API may use to generate responses (defaults to `'json'`).
 
-
-In addition to the above which may be specified globally or on a version, there is a `version_with` directive that is only applicable on the global version to define what versioning "scheme" your application will use. By default it's set to `[:header, :params]`, meaning Praxis will look for either an  `X-Api-Version` request header *or* an `api_version` query parameter to determine the version of your API to use for processing the request. It is also possible to use a path-based versioning scheme by using `version_with :path`. See section below for details.
-
-There is also an  `endpoint` directive to define your API's endpoint. It's used purely for documentation purposes and will not be used in any routing or route-generation.
 
 Below is a basic ApiDefinition that defines global info, as well info for a specific version:
 
@@ -85,11 +86,11 @@ Praxis::ApiDefinition.define
     base_path '/:app_name'
     base_params do
       attribute :app_name, String, required: true
-    end    
+    end
   end
 
   info '1.0' do
-    base_path '/v1'  
+    base_path '/v1'
     # override the global description.
     description 'The first stable version of of this example API.'
   end

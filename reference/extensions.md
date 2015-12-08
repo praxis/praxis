@@ -3,12 +3,12 @@ layout: page
 title: Extensions
 ---
 
-Extensions are modules or classes we ship with Praxis, that must be explicitly required and that extend the default functionality.
+Extensions are helper modules or classes we ship with Praxis that extend the default functionality. They can be extremely useful to reuse pattern, reuse boilerplate or provide common functionality. However, they are completely optional and must be explicitly required when you choose to use them.
 
 Praxis currently includes the following extensions, all under the `Praxis::Extensions`
 namespace:
 
-  * [`FieldSelection`](./field_selection): adds an enhanced version of [`Attributor::FieldSelector`](https://github.com/rightscale/attributor/wiki/FieldSelector)
+  * [`FieldSelection`](./field_selection): adds an enhanced version of [`Attributor::FieldSelector`](https://github.com/rightscale/attributor/wiki/FieldSelector) suitable for defining API parameters that describe which fields to return in responses. I.e. a compatible (yet simplified) GraphQL type syntax for field selection.
   * [`Rendering`](./rendering): adds `render` and `display` helper methods to controllers to
 reduce common boilerplate in producing rendered representations of media types
 and setting response "Content-Type" headers.

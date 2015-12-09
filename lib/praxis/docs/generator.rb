@@ -119,7 +119,7 @@ module Praxis
         # Eventually traits should be defined for a version (and inheritable from global) so we'll emulate that here
         version_info[:traits] = infos_by_version[:traits]
         dumped_resources = dump_resources( resources_by_version[version] )
-        found_media_types =  resources_by_version[version].collect {|r| r.media_type.describe }
+        found_media_types =  resources_by_version[version].select{|r| r.media_type}.collect {|r| r.media_type.describe }
 
         collected_types = Set.new
         collect_reachable_types( dumped_resources, collected_types );

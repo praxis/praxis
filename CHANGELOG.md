@@ -1,6 +1,8 @@
-# praxis changelog
+# Praxis Changelog
 
 ## next
+
+## 0.19.0
 
 * Handle loading empty `MediaTypeIdentifier` values (to return `nil`)
 * Doc browser now displays examples for action responses.

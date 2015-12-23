@@ -27,7 +27,7 @@
     "grunt-usemin": "^2.1.1",
     "grunt-wiredep": "^1.7.0",
     "load-grunt-tasks": "^0.4.0",
-    "package-merge": "~0.1.2"
+    "package-merge": "gampleman/package-merge"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "^0.11.0",

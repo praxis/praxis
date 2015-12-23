@@ -29,12 +29,19 @@ namespace :praxis do
     desc "Run API Documentation Browser"
     task :preview, [:port] => [:install, :generate]  do |t, args|
       doc_port = args[:port] || '9090'
-      exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs'), 'DOC_PORT' => doc_port}, "#{path}/node_modules/.bin/grunt serve --gruntfile '#{path}/Gruntfile.js'")
+      exec({
+        'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs'),
+        'DOC_PORT' => doc_port,
+        'PLUGIN_PATHS' => Praxis::Application.instance.doc_browser_plugin_paths.join(':')
+      }, "#{path}/node_modules/.bin/grunt serve --gruntfile '#{path}/Gruntfile.js'")
     end
 
     desc "Build docs that can be shipped"
     task :build => [:install, :generate] do
-      exec({'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs')}, "#{path}/node_modules/.bin/grunt build --gruntfile '#{path}/Gruntfile.js'")
+      exec({
+        'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs'),
+        'PLUGIN_PATHS' => Praxis::Application.instance.doc_browser_plugin_paths.join(':')
+      }, "#{path}/node_modules/.bin/grunt build --gruntfile '#{path}/Gruntfile.js'")
     end
 
     desc "Generate deprecated API docs (JSON definitions) for a Praxis App"

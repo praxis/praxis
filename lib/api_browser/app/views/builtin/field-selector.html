@@ -1,0 +1,24 @@
+<div class="row">
+  <div class="col-lg-12">
+    <h1 class="page-header">FieldSelector</h1>
+
+    <p>Field Selectors allow you to specify in a request exactly what data you
+      wish to recieve in the response. This allows the client to get an efficient
+      response with only the fields required.</p>
+    <p>The fields can come from the endpointʼs associated Schema, or from an
+      attribute exposed in any of the views of the resource. Multiple fields are
+      separated by commas.</p>
+    <p>You can also select properties from nested schemas from parent schema
+      using curly braces. For example <code>title,user{name,email}</code> would lead to a
+      response like this:</p>
+    <pre>{
+  "title": "Nice Blog Post",
+  "user": {
+    "name": "John Appleseed",
+    "email": "john@example.com"
+  }
+}</pre>
+    <p>If you do not specify attributes of nested properties, the <code>default</code>
+      view will be used to render them.</p>
+  </div>
+</div>

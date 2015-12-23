@@ -35,7 +35,8 @@ module Praxis
       end
 
       def save!
-        write_index_file
+        # Restrict the versions listed in the index file to the ones for which we have at least 1 resource
+        write_index_file( for_versions: resources_by_version.keys )
         resources_by_version.keys.each do |version|
           write_version_file(version)
         end
@@ -97,9 +98,9 @@ module Praxis
         reachable_types
       end
 
-      def write_index_file
+      def write_index_file( for_versions:  )
         # Gather the versions
-        versions = infos_by_version.keys.reject{|v| v == :global || v == :traits }.map do |version|
+        versions = infos_by_version.keys.reject{|v| v == :global || v == :traits || !for_versions.include?(v) }.map do |version|
           version == "n/a" ? "unversioned" : version
         end
         data = {
@@ -118,7 +119,7 @@ module Praxis
         # Eventually traits should be defined for a version (and inheritable from global) so we'll emulate that here
         version_info[:traits] = infos_by_version[:traits]
         dumped_resources = dump_resources( resources_by_version[version] )
-        found_media_types =  resources_by_version[version].collect {|r| r.media_type.describe }
+        found_media_types =  resources_by_version[version].select{|r| r.media_type}.collect {|r| r.media_type.describe }
 
         collected_types = Set.new
         collect_reachable_types( dumped_resources, collected_types );

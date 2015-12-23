@@ -34,7 +34,7 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
 
 
     it 'loads fields' do
-      fields = 'id,name,owner(name)'
+      fields = 'id,name,owner{name}'
 
       expect(Attributor::FieldSelector).to receive(:load).
         with(fields).and_return(parsed_fields)
@@ -47,7 +47,7 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
 
   context '#dump' do
     it 'dumps nested fields properly' do
-      fields = 'id,name,owner(name)'
+      fields = 'id,name,owner{name}'
       result = type.load(fields)
       expect(result.dump).to eq fields
     end
@@ -66,7 +66,7 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
       type.validate(selector_string)
     end
     context 'validating subattributes' do
-      let(:selector_string) { 'id,resident,owner(age)' }
+      let(:selector_string) { 'id,resident,owner{age}' }
       it 'validates subattributes' do
         errors =  type.validate(selector_string)
         expect(errors).to match_array([
@@ -82,8 +82,8 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
     it do
       expect(type.validate('id,name')).to be_empty
       expect(type.validate('id,state')).to have(1).items
-      expect(type.validate('id,owner(name)')).to have(0).items
-      expect(type.validate('id,owner(foo)')).to have(1).items
+      expect(type.validate('id,owner{name}')).to have(0).items
+      expect(type.validate('id,owner{foo}')).to have(1).items
     end
   end
 

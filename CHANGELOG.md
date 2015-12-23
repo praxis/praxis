@@ -2,6 +2,13 @@
 
 ## next
 
+* You can now add a `bower.json` file to your `docs` folder. Any dependencies
+  you list there will be included in the doc browser.
+* The Plugin API now exposes `Praxis::Plugin#register_doc_browser_plugin(path)`,
+  which allows plugins to register assets that will be included in the doc browser.
+  This is a convenient way to share customizations and optional features amongst
+  different API projects.
+
 ## 0.19.0
 
 * Handle loading empty `MediaTypeIdentifier` values (to return `nil`)

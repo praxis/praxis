@@ -173,3 +173,27 @@ The configuration of the Plugin instance, however, is deferred until a separate 
 3. `setup`: The last phase is `setup`, and it allows the Plugin to perform any final initialization before the application's code is loaded. This is implemented in the `Plugin#setup!` method. The default implementation of this method is empty.
 
 Note that these phases are invoked for all registered Plugins as a block, one phase after the other. In other words, all registered Plugins will go through the `prepare` phase first, before they all move to the `load` phase, and finally move onto the `setup` phase.
+
+## Doc Browser Customization
+
+It is possible to modify and enhance the Doc browser from plugins. To begin, you must register your plugin as extending the doc browser by calling `Praxis::Plugin#register_doc_browser_plugin(path)`, where `path` will be the path to the directory where you store the assets for your plugin. The best place to call this is in the `Plugin#setup!` method mentioned above. Once this is done, Praxis will automatically pick up your plugin's components into its build system. This allows you to do the following:
+
+#### Add Dependencies
+
+If you place a `bower.json` into your `path`, the `dependencies` field will be merged into a master `bower.json` and then the dependencies will be automatically installed and linked into the doc browser.
+
+#### Override or Add Templates
+
+You may choose to override any of the Praxis builtin templates, simply place them at a matching path within a `views` subdirectory and they will be automatically picked up.
+
+#### Add Scripts
+
+Any code you provide will be loaded after the core Praxis doc browser, but before any of the user's code. This will allow you to override any components from core you need as well as take advantage of any APIs exposed. You can also expose APIs to the user from your plugin. See [the doc browser customization wiki](https://github.com/rightscale/praxis/wiki/Doc-Browser-Customisation-Recipes) for more details.
+
+#### Provide SCSS Styles
+
+`path` will be made available to the user's `docs/styles.scss` file, but will not be included automatically. Therefore it is up to you to instruct users to add any necessary imports to use styles you provide.
+
+#### Add Other Assets
+
+Any assets not mentioned above will be copied to the user's `docs/output` directory on build. This way you can provide images, fonts or other assets in a plugin.

@@ -28,6 +28,10 @@ module Praxis
     def setup!
     end
 
+    def register_doc_browser_plugin(path)
+      application.doc_browser_plugin_paths << File.expand_path(path)
+    end
+
     def after(stage,&block)
       application.bootloader.after(stage,&block)
     end

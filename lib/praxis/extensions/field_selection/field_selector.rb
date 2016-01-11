@@ -14,7 +14,7 @@ module Praxis
             'FieldSelector'
           end
 
-          def family
+          def self.family
             'string'
           end
 
@@ -79,7 +79,7 @@ module Praxis
               if spec == true
                 array << field
               else
-                array << "#{field}(#{_dump(spec)})"
+                array << "#{field}{#{_dump(spec)}}"
               end
             end.join(',')
           end

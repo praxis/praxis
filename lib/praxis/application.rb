@@ -17,6 +17,7 @@ module Praxis
     attr_accessor :loaded_files
     attr_accessor :logger
     attr_accessor :plugins
+    attr_accessor :doc_browser_plugin_paths
     attr_accessor :handlers
     attr_accessor :root
     attr_accessor :error_handler
@@ -44,6 +45,7 @@ module Praxis
       @bootloader = Bootloader.new(self)
       @file_layout = nil
       @plugins = Hash.new
+      @doc_browser_plugin_paths = []
       @handlers = Hash.new
       @loaded_files = Set.new
       @config = Config.new

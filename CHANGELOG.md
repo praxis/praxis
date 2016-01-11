@@ -1,6 +1,15 @@
-# praxis changelog
+# Praxis Changelog
 
 ## next
+
+* You can now add a `bower.json` file to your `docs` folder. Any dependencies
+  you list there will be included in the doc browser.
+* The Plugin API now exposes `Praxis::Plugin#register_doc_browser_plugin(path)`,
+  which allows plugins to register assets that will be included in the doc browser.
+  This is a convenient way to share customizations and optional features amongst
+  different API projects.
+
+## 0.19.0
 
 * Handle loading empty `MediaTypeIdentifier` values (to return `nil`)
 * Doc browser now displays examples for action responses.
@@ -28,7 +37,7 @@ resource definition.
       `FieldExpansion` extension).
     * `Controller#display(object, include_nil: false)` calls `render` (above) with
       `object`, assigns the result to the current `response.body`, sets the
-      response's "Content-Type" header to the aproriate MediaType identifier,
+      response's "Content-Type" header to the appropriate MediaType identifier,
       and returns the response.
     * To use this extension, include it in a controller with
       `include Praxis::Extensions::Rendering`.
@@ -54,6 +63,7 @@ resource definition.
   * Displays more detailed HTML titles.
   * Has been switched back to having a separate page per action, however actions are now shown in the sidebar.
   * Will now display multiply nested resources in a proper hierarchy.
+* Fix doc generator to only output versions in index for which we have resources (i.e. some can be nodoc!)
 
 ## 0.18.1
 

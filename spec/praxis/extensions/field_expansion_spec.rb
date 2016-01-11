@@ -4,7 +4,6 @@ require 'praxis/extensions/field_selection'
 
 describe Praxis::Extensions::FieldExpansion do
 
-
   # include the ActionDefinitionExtension module directly, as that's where the
   # bulk of lies, and by including this instead of the base FieldExpansion module
   # we avoid the side-effect of injecting the ActionDefinitionExtension into
@@ -31,7 +30,6 @@ describe Praxis::Extensions::FieldExpansion do
   end
 
   let(:request) { double('Praxis::Request', params: request_params) }
-  #let(:media_type) { double('Praxis::MediaType') }
   let(:media_type) { Person }
 
   let(:fields) { nil }
@@ -40,15 +38,9 @@ describe Praxis::Extensions::FieldExpansion do
   let(:test_attributes) {  }
   let(:test_params) { double('test_params', attributes: test_attributes) }
 
-
   subject(:expansion) { test_instance.expanded_fields(request, media_type)}
 
-
   context '#expanded_fields' do
-    # it 'memoizes the results of expansion' do
-    #   binding.pry
-    #   expect(field_selector.expand(view)).to be(field_selector.expand(view))
-    # end
 
     context 'with fields and view params defined' do
       let(:test_attributes) { {view: true, fields: true}  }
@@ -67,7 +59,7 @@ describe Praxis::Extensions::FieldExpansion do
       end
 
       context 'with a set of fields provided' do
-        let(:fields) { 'id,name,owner(name)' }
+        let(:fields) { 'id,name,owner{name}' }
         it 'returns the subset of fields for the default view' do
           expected = {id: true, name: true }
           expect(expansion).to eq expected

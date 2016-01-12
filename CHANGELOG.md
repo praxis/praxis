@@ -8,6 +8,7 @@
   which allows plugins to register assets that will be included in the doc browser.
   This is a convenient way to share customizations and optional features amongst
   different API projects.
+* Fixes an issue where an odd scrollbar would appear in some cases in the doc browser.
 
 ## 0.19.0
 

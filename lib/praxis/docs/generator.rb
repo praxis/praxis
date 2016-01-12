@@ -122,8 +122,10 @@ module Praxis
         found_media_types =  resources_by_version[version].select{|r| r.media_type}.collect {|r| r.media_type.describe }
 
         collected_types = Set.new
-        collect_reachable_types( dumped_resources, collected_types );
-        collect_reachable_types( found_media_types , collected_types );
+        collect_reachable_types( dumped_resources, collected_types )
+        found_media_types.each do |mt|
+          collect_reachable_types( { type: mt} , collected_types )
+        end
 
         dumped_schemas = dump_schemas( collected_types )
         full_data = {

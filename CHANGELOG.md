@@ -8,6 +8,8 @@
   which allows plugins to register assets that will be included in the doc browser.
   This is a convenient way to share customizations and optional features amongst
   different API projects.
+* Fixed a corner-case in doc generation which could omit certain existing MediaTypes
+  (when these existed but there were never referenced in any other part of the app).
 
 ## 0.19.0
 

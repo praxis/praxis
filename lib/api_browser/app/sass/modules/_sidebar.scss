@@ -45,6 +45,8 @@
     a {
       display: block;
       padding: 10px 15px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       // Hover state
       &:hover,
       &:focus {

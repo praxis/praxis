@@ -51,7 +51,11 @@
         <div class="panel-heading"><h4 class="panel-title">{{response.name}}</h4></div>
         <div class="panel-body">
           <div class="row">
-            <div class="col-md-4">
+            <div ng-class="{'col-md-4': response.payload.examples, 'col-md-12': !response.payload.examples}">
+              <div ng-if="response.description && response.description != ''">
+                <h5>Description</h5>
+                <div ng-bind-html="response.description | markdown"></div>
+              </div>
               <h5>Status</h5>
               <p>{{ response.status }}</p>
               <div ng-if="response.examples.json">

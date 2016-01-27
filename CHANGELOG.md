@@ -11,6 +11,7 @@
 * Fixes an issue where an odd scrollbar would appear in some cases in the doc browser.
 * Fixed a corner-case in doc generation which could omit certain existing MediaTypes
   (when these existed but there were never referenced in any other part of the app).
+* Added `ApiGeneralInfo` to supported modules a `PluginConcern` can extend.
 
 ## 0.19.0
 

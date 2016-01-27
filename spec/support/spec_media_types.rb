@@ -1,3 +1,4 @@
+require 'praxis/extensions/field_selection'
 class Person < Praxis::MediaType
   identifier "application/vnd.acme.person"
 
@@ -7,7 +8,7 @@ class Person < Praxis::MediaType
     attribute :href, String, example: proc { |person| "/people/#{person.id}" }
     attribute :links, Attributor::Collection.of(String),
       description: 'Here to ensure an explicit links attribute works'
-      
+
   end
 
   view :default do
@@ -57,6 +58,8 @@ class Address < Praxis::MediaType
     attribute :residents, Praxis::Collection.of(Person)
     attribute :residents_summary, Person::CollectionSummary
 
+    attribute :fields, Praxis::Types::FieldSelector.for(Person)
+
     links do
       link :owner
       link :super, Person, using: :manager
@@ -70,6 +73,7 @@ class Address < Praxis::MediaType
     attribute :id
     attribute :name
     attribute :owner
+    attribute :fields
 
     attribute :links
   end

@@ -46,6 +46,10 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
   end
 
   context '#dump' do
+    it 'is dumpable' do
+      expect( type.load('id') ).to be_kind_of( Attributor::Dumpable )
+    end
+
     it 'dumps nested fields properly' do
       fields = 'id,name,owner{name}'
       result = type.load(fields)

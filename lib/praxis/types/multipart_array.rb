@@ -153,6 +153,68 @@ module Praxis
         example
       end
 
+      def self.json_schema_type
+        :object
+      end
+
+      # Multipart request bodies are special in OPEN API
+      # schema:            # Request payload
+      # type: object
+      # properties:      # Request parts
+      #   id:            # Part 1 (string value)
+      #     type: string
+      #     format: uuid
+      #   address:       # Part2 (object)
+      #     type: object
+      #     properties:
+      #       street:
+      #         type: string
+      #       city:
+      #         type: string
+      #   profileImage:  # Part 3 (an image)
+      #     type: string
+      #     format: binary
+      # 
+      # NOTE: not sure if this 
+      def self.as_openapi_request_body( attribute_options: {} )
+        hash = { type: json_schema_type }
+        opts = self.options.merge( attribute_options )
+        hash[:description] = opts[:description] if opts[:description]
+        hash[:default] = opts[:default] if opts[:default]
+
+        unless self.attributes.empty?
+          props = {}
+          encoding = {}
+          self.attributes.each do |part_name, part_attribute|
+            part_example = part_attribute.example
+            key_to_use = part_name.is_a?(Regexp) ? part_name.source : part_name
+            
+            part_info = {}
+            if (payload_attribute = part_attribute.options[:payload_attribute])
+              props[key_to_use] = payload_attribute.as_json_schema(example: part_example.payload)
+            end
+            #{
+            # contentType: 'fff',
+            # headers: {
+            #   custom1: 'safd'
+            # }
+            if (headers_attribute = part_attribute.options[:headers_attribute])
+              # Does this 'Content-Type' string check work?...can it be a symbol? what does it mean anyway?
+              encoding[key_to_use][:contentType] = headers_attribute['Content-Type'] if headers_attribute['Content-Type']
+              # TODO?rethink? ...is this correct?: att a 'headers' key with some header schemas if this part have some
+              encoding[key_to_use]['headers'] = headers_attribute.as_json_schema(example: part_example.headers)
+            end
+          end
+
+          hash[:properties] = props
+          hash[:encoding] = encoding unless encoding.empty?
+        end
+        hash
+      end
+
+      def self.as_json_schema( shallow: false, example: nil, attribute_options: {} )
+        as_openapi_request_body(attribute_options: attribute_options)
+      end
 
       def self.describe(shallow=true, example: nil)
         type_name = Attributor.type_name(self)

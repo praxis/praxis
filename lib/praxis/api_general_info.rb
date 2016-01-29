@@ -15,6 +15,19 @@ module Praxis
       end
     end
 
+    # Allow any custom method to get/set any value
+    def method_missing(name, val=nil)
+      if val.nil?
+        get(name)
+      else
+        set(name, val)
+      end
+    end
+
+    def respond_to_missing?(*)
+      true
+    end
+
     def get(k)
       return @data[k] if @data.key?(k)
       return @global_info.get(k) if @global_info
@@ -38,6 +51,14 @@ module Praxis
         get(:title)
       else
         set(:title, val)
+      end
+    end
+
+    def logo_url(val=nil)
+      if val.nil?
+        get(:logo_url)
+      else
+        set(:logo_url, val)
       end
     end
 

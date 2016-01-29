@@ -120,12 +120,7 @@ module Praxis
         File.open(filename, 'w') {|f| f.write(JSON.pretty_generate(data))}
       end
 
-      def write_version_file( version )
-        version_info = infos_by_version[version]
-        # Hack, let's "inherit/copy" all traits of a version from the global definition
-        # Eventually traits should be defined for a version (and inheritable from global) so we'll emulate that here
-        version_info[:traits] = infos_by_version[:traits]
-        dumped_resources = dump_resources( resources_by_version[version] )
+      def scan_types_for_version(version, dumped_resources)
         found_media_types =  resources_by_version[version].select{|r| r.media_type}.collect {|r| r.media_type.describe }
 
         # We'll start by processing the rendered mediatypes
@@ -150,7 +145,17 @@ module Praxis
           processed_types += newfound
           newfound = scan_dump_for_types( dumped, processed_types )
         end
+        processed_types
+      end
 
+      def write_version_file( version )
+        version_info = infos_by_version[version]
+        # Hack, let's "inherit/copy" all traits of a version from the global definition
+        # Eventually traits should be defined for a version (and inheritable from global) so we'll emulate that here
+        version_info[:traits] = infos_by_version[:traits]
+
+        dumped_resources = dump_resources( resources_by_version[version] )
+        processed_types = scan_types_for_version(version, dumped_resources)
         dumped_schemas = dump_schemas( processed_types )
         full_data = {
           info: version_info[:info],

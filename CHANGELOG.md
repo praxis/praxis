@@ -1,6 +1,10 @@
 # Praxis Changelog
 
-## next
+## 2.0.pre.5
+
+- Added support for OpenAPI document generation. Consider this in Beta state, although it is fairly close to feature complete.
+
+## 2.0.pre.4
 - Reworked the field selection DB query generation to support full tree of eager loaded dependencies
   - Built support for both ActiveRecord and Sequel gems
   - Selected DB fields will include/map the defined resource properties and will always include any necessary fields on both sides of the joins for the given associations.

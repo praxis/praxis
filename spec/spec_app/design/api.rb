@@ -27,6 +27,12 @@ Praxis::ApiDefinition.define do
     produces 'json','xml'
     #version_with :path
     #base_path "/v:api_version"
+
+    # Custom attributes (for OpenApi, for example)
+    termsOfService "http://example.com/tos"
+    contact name: 'Joe', email: 'joe@email.com'
+    license name: "Apache 2.0",
+            url: "https://www.apache.org/licenses/LICENSE-2.0.html"
   end
 
   info '1.0' do # Applies to 1.0 version (and inherits everything else form the global one)

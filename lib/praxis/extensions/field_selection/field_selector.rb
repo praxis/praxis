@@ -5,6 +5,7 @@ module Praxis
 
         class FieldSelector
           include Attributor::Type
+          include Attributor::Dumpable
 
           def self.native_type
             self

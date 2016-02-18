@@ -15,7 +15,8 @@ describe Praxis::MediaType do
       owner: owner_resource,
       manager: manager_resource,
       custodian: custodian_resource,
-      residents_summary: residents_summary_resource
+      residents_summary: residents_summary_resource,
+      fields: {id: true, name: true}
     )
   end
 
@@ -109,7 +110,7 @@ describe Praxis::MediaType do
     its([:id])    { should eq(address.id) }
     its([:name])  { should eq(address.name) }
     its([:owner]) { should eq(Person.dump(owner_resource, view: :default)) }
-
+    its([:fields]) { should eq(address.fields.dump ) }
 
     context 'links' do
       subject(:links) { output[:links] }
@@ -173,7 +174,7 @@ describe Praxis::MediaType do
       expect( subject[:views].keys ).to match_array([:default, :master, :link])
     end
     it 'should include the defined attributes' do
-      expect( subject[:attributes].keys ).to match_array([:id, :name, :owner, :custodian, :residents, :residents_summary, :links])
+      expect( subject[:attributes].keys ).to match_array([:id, :name, :owner, :custodian, :residents, :residents_summary, :links, :fields])
     end
   end
 

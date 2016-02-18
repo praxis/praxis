@@ -12,6 +12,7 @@
 * Fixed a corner-case in doc generation which could omit certain existing MediaTypes
   (when these existed but there were never referenced in any other part of the app).
 * Added `ApiGeneralInfo` to supported modules a `PluginConcern` can extend.
+* Fixed `MediaType` support for attributor advanced requirements.
 
 ## 0.19.0
 

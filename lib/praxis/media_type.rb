@@ -58,7 +58,7 @@ module Praxis
 
     include Types::MediaTypeCommon
 
-    class DSLCompiler < Attributor::DSLCompiler
+    class DSLCompiler < Attributor::HashDSLCompiler
       def links(&block)
         attribute :links, Praxis::Links.for(options[:reference]), dsl_compiler: Links::DSLCompiler, &block
       end

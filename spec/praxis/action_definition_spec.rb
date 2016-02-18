@@ -1,6 +1,13 @@
 require 'spec_helper'
 
 describe Praxis::ActionDefinition do
+  class SpecMediaType < Praxis::MediaType
+    attributes do
+      attribute :one, String
+      attribute :two, Integer
+    end
+  end
+
   let(:resource_definition) do
     Class.new do
       include Praxis::ResourceDefinition
@@ -9,7 +16,7 @@ describe Praxis::ActionDefinition do
         'FooBar'
       end
 
-      media_type 'application/json'
+      media_type SpecMediaType
       version '1.0'
       prefix '/foobars/hello_world'
       action_defaults do
@@ -120,6 +127,24 @@ describe Praxis::ActionDefinition do
 
       expect(subject.params.options[:required]).to be(false)
     end
+
+    context 'advanced requirements' do
+      before do
+        action.params do
+          attribute :two
+          #requires.at_most(1).of :one, :two
+          requires :one
+        end
+      end
+
+      let(:value) { {two: 2} }
+      it 'includes the requirements in the param struct type' do
+        errors = action.params.load(value).validate
+        expect(errors).to have(1).item
+        expect(errors.first).to match(/Key one is required/)
+      end
+    end
+
   end
 
   describe '#payload' do

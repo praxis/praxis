@@ -2,6 +2,8 @@
 
 ## next
 
+## 0.20.0
+
 * You can now add a `bower.json` file to your `docs` folder. Any dependencies
   you list there will be included in the doc browser.
 * The Plugin API now exposes `Praxis::Plugin#register_doc_browser_plugin(path)`,

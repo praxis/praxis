@@ -21,6 +21,4 @@ There are some plugins that will be always bundled with the Praxis framework. Pr
 * [Stats](./stats/): A metrics collector plugin that is Statsd-compatible
 * [Notifications](./notifications/) A Praxis wrapper to ActiveSupport Notifications
 
-Other plugins will be available elsewhere. We are planning to start a praxis-plugins or contrib repository for these to live in. For the moment, and until we have a few available, we're planning to embed them within the "lib/plugins" directory of Praxis itself. This is the list of them:
-
-* Praxis Mapper (coming soon)
+You can find other plugins on [our wiki page](https://github.com/rightscale/praxis/wiki/Plugins-and-Tools).

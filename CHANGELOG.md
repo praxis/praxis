@@ -13,6 +13,8 @@
   (when these existed but there were never referenced in any other part of the app).
 * Added `ApiGeneralInfo` to supported modules a `PluginConcern` can extend.
 * Fixed `MediaType` support for attributor advanced requirements.
+* Doc Browser now exposes an API to register functions that generate code examples.
+  These can be registered with `ExamplesProvider.register` call.
 
 ## 0.19.0
 

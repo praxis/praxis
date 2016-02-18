@@ -13,7 +13,8 @@ module Praxis
         :Controller,
         :ResourceDefinition,
         :ActionDefinition,
-        :Response
+        :Response,
+        :ApiGeneralInfo
       ]
 
       def setup!

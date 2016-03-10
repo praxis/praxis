@@ -98,7 +98,8 @@ module Praxis
         description 'Standard response for successful HTTP requests.'
       end
 
-      api.response_template :created do |location: nil|
+      api.response_template :created do |location: nil, media_type: nil|
+        media_type media_type if media_type
         location location
         status 201
         description 'The request has been fulfilled and resulted in a new resource being created.'

@@ -2,6 +2,8 @@ module Praxis
   module Docs
 
     class Generator
+      require 'active_support/core_ext/enumerable' # For index_by
+
       API_DOCS_DIRNAME = 'docs/api'
 
       attr_reader :resources_by_version, :types_by_id, :infos_by_version
@@ -11,6 +13,7 @@ module Praxis
         Attributor::Boolean,
         Attributor::CSV,
         Attributor::DateTime,
+        Attributor::Date,
         Attributor::Float,
         Attributor::Hash,
         Attributor::Ids,
@@ -85,9 +88,9 @@ module Praxis
         when Hash
           if data.key?(:type) && data[:type].kind_of?(Hash) && ( [:id,:name,:family] - data[:type].keys ).empty?
             type_id = data[:type][:id]
-            unless type_id.nil?
+            unless type_id.nil? || type_id == Praxis::SimpleMediaType.id #SimpleTypes shouldn't be collected
               unless types_by_id[type_id]
-                raise "Error! We have detected a reference to a 'Type' which is not derived from Attributor::Type" +
+                raise "Error! We have detected a reference to a 'Type' with id='#{type_id}' which is not derived from Attributor::Type" +
                       " Document generation cannot proceed."
               end
               reachable_types << types_by_id[type_id]

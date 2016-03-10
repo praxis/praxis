@@ -6,13 +6,19 @@ module Praxis
   # @see Praxis::MediaType
   # @see Praxis::Types::MediaTypeCommon
   SimpleMediaType = Struct.new(:identifier) do
+
     def name
       self.class.name
     end
 
-    def id
-      self.class.name.gsub("::",'-')
+    def self.id
+      "Praxis-SimpleMediaType".freeze
     end
+
+    def id
+      self.class.id
+    end
+
 
     def describe(shallow=true)
       {name: name, family: "string", id: id, identifier: identifier}

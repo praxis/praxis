@@ -2,6 +2,14 @@
 
 ## next
 
+## 0.20.1
+
+* Doc generation: handle SimpleMediaTypes so that they don’t show up in the generated schemas.
+* Ensure we require AS#Enumerable extension is loaded, which is required in the generator code.
+* Add Date to the list of primitive types so that it does not show in the generated schemas.
+* Enhance the `:created` response_template, so that it can take the associated media_type
+* Doc Browser: fix route display to have the captures instead of the example
+
 ## 0.20.0
 
 * You can now add a `bower.json` file to your `docs` folder. Any dependencies

@@ -126,7 +126,7 @@ module Praxis
         end
 
         # now to tackle whatever links there may be
-        if (links_fields = fields[:links])
+        if defined?(type::Links) &&(links_fields = fields[:links])
           resolved_links = resolve_links(type::Links, links_fields)
           self.deep_merge(result, resolved_links)
         end

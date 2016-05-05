@@ -2,6 +2,8 @@
 
 ## next
 
+* Protect against `MediaType`s that do not have any links defined.
+
 ## 0.20.1
 
 * Doc generation: handle SimpleMediaTypes so that they don’t show up in the generated schemas.

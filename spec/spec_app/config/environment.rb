@@ -21,9 +21,19 @@ Praxis::Application.configure do |application|
   application.bootloader.use SimpleAuthenticationPlugin, config_file: 'config/authentication.yml'
   application.bootloader.use AuthorizationPlugin
 
+
+  adapter_name = 'sqlite'
+  db_name = ':memory:'
+  connection_opts = if RUBY_PLATFORM !~ /java/
+    { adapter: adapter_name , database: db_name }
+   else
+    require 'jdbc/sqlite3'
+    { adapter: 'jdbc', uri: "jdbc:#{adapter_name}:#{db_name}" }
+  end
+
   application.bootloader.use Praxis::Plugins::PraxisMapperPlugin, {
     config_data: {
-      repositories: { default: {adapter: 'sqlite', database: ':memory:'} },
+      repositories: { default: connection_opts },
       log_stats: 'detailed'
     }
   }

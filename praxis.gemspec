@@ -34,9 +34,14 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler', '~> 1.6'
   spec.add_development_dependency 'rake', '~> 0.9'
   spec.add_development_dependency 'rake-notes', '~> 0'
-  spec.add_development_dependency 'pry', '~> 0'
-  spec.add_development_dependency 'pry-byebug', '~> 1'
-  spec.add_development_dependency 'pry-stack_explorer', '~> 0'
+  if RUBY_PLATFORM !~ /java/
+    spec.add_development_dependency 'pry', '~> 0'
+    spec.add_development_dependency 'pry-byebug', '~> 1'
+    spec.add_development_dependency 'pry-stack_explorer', '~> 0'
+    spec.add_development_dependency 'sqlite3', '~> 1'
+  else
+    spec.add_development_dependency 'jdbc-sqlite3'
+  end
   spec.add_development_dependency 'rspec', '~> 3'
   spec.add_development_dependency 'rspec-its', '~> 1'
   spec.add_development_dependency 'rspec-collection_matchers', '~> 1'
@@ -47,6 +52,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'simplecov', '~> 0'
   spec.add_development_dependency 'fuubar', '~> 2'
   spec.add_development_dependency 'yard', '~> 0'
-  spec.add_development_dependency 'sqlite3', '~> 1'
   spec.add_development_dependency 'coveralls'
 end

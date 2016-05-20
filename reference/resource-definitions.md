@@ -76,14 +76,14 @@ You can define the parent of a resource by using the `parent` directive. This wi
 
 Additionally, any parameters in the parent's route will also be applied as defaults in the child. The last route parameter is assumed to be an 'id'-type parameter, and is prefixed with the parent's snake-cased singular name. I.e., `id` from a `Blog` parent will be renamed to `blog_id`. Any other parameters are copied unchanged.
 
-This behavior can be overridden by providing a mapping hash of the form `{parent_name => child_name}` to the `parent` directive. 
+This behavior can be overridden by providing a mapping hash of the form `{parent_name => child_name}` to the `parent` directive.
 
 For example, to define a `Posts` subresource of the above `Blogs` resource:
 
 {% highlight ruby %}
 class Posts
   include Praxis::ResourceDefinition
-  
+
   parent Blogs
 
   action :show do
@@ -400,7 +400,7 @@ action :create do
 end
 {% endhighlight %}
 
-Praxis only accepts JSON encoded content types. For example, sending the
+Give that payload definition sending the
 following request body with an 'application/json' content type will pass
 validation:
 
@@ -419,6 +419,28 @@ distinguishes payload parameters from URL parameters (path and query string
 parameters). Be sure not to expect any parameters coming from the request body
 in the `params` accessor. Request body parameters will only appear in
 `payload`.
+
+#### Payload inheritance
+
+It is common practice (especially in RESTful APIs) to be able to accept incoming resource payloads that closely match outgoing resource responses receive from the same API. For example, if you get a blog MediaType from a show action, it is nice to easily modify parts of it, and re-POST it to the API to save some changes. To help with this, Praxis will maps any payload attribute definition of any action to its corresponding attribute of the default MediaType of the Resource. By doing that, the designer can define attributes by name, without being required to specify the type and/or options that might exist in the associated MediaType.
+
+In other words: payloads you define can inherit any attribute definition of the same name that exists in the MediaType associated with the resource definition. It is for this reason that the following `create` action payload definition is enough if the default MediaType of the corresponding `Post` resource has those same attribute names defined.
+
+```
+action :create do
+  routing { post '' }
+  payload do
+    attribute :title, required: true
+    attribute :text, required: true
+    attribute :author
+    attribute :tags
+  end
+end
+```
+
+Also, know that you can mix and match the inherited attributes with other ones that do not exist in the MediaType. For example, the above payload can also add a new attribute called `:hidden` which includes its type, description or any other options it requires.
+
+As a side note, this inheritance property is achieved using the `:reference` option (available in the [Attributor types library](https://github.com/rightscale/attributor/wiki)) when creating the underlying `payload` attribute to point to the default MediaType of the resource.
 
 #### Request headers
 

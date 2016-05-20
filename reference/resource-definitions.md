@@ -76,7 +76,7 @@ You can define the parent of a resource by using the `parent` directive. This wi
 
 Additionally, any parameters in the parent's route will also be applied as defaults in the child. The last route parameter is assumed to be an 'id'-type parameter, and is prefixed with the parent's snake-cased singular name. I.e., `id` from a `Blog` parent will be renamed to `blog_id`. Any other parameters are copied unchanged.
 
-This behavior can be overridden by providing a mapping hash of the form `{parent_name => child_name}` to the `parent` directive.
+This behavior can be overridden by providing a mapping hash of the form { "parent_name" => "child_name" } to the `parent` directive.
 
 For example, to define a `Posts` subresource of the above `Blogs` resource:
 

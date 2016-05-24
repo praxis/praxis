@@ -128,7 +128,10 @@ module Praxis
         found_media_types =  resources_by_version[version].select{|r| r.media_type}.collect {|r| r.media_type.describe }
 
         # We'll start by processing the rendered mediatypes
-        processed_types = Set.new(resources_by_version[version].select{|r| r.media_type}.collect(&:media_type))
+        processed_types = Set.new(resources_by_version[version].select do|r|
+          r.media_type && !r.media_type.is_a?(Praxis::SimpleMediaType)
+        end.collect(&:media_type))
+
         newfound = Set.new
         found_media_types.each do |mt|
           newfound += scan_dump_for_types( { type: mt} , processed_types )

@@ -91,6 +91,16 @@ describe Praxis::Extensions::FieldExpansion do
         end
       end
     end
+
+
+    context 'with an action with no params' do
+      let(:test_params) { nil }
+      let(:fields){ nil }
+      let(:view){ nil }
+      it 'ignores incoming parameters and expands for the default view' do
+        expect(expansion).to eq({id: true, name: true, links: [true]})
+      end
+    end
   end
 
 end

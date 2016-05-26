@@ -17,8 +17,8 @@ module Praxis
         extend ActiveSupport::Concern
 
         def expanded_fields(request, media_type)
-          use_fields = self.params.attributes.key?(:fields)
-          use_view = self.params.attributes.key?(:view)
+          use_fields = self.params && self.params.attributes.key?(:fields)
+          use_view = self.params && self.params.attributes.key?(:view)
 
           # Determine what, if any, fields to display.
           fields = if use_fields

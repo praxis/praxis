@@ -6,6 +6,10 @@
 * More robust scanning of existing types when generating docs. Some types might have not been
   properly reported in the `schemas` section of the JSON docs if they were only used somewhere
   deep in some other type or action hierarchy
+* Build doc browser support for defining top-level home pages for types.
+  Apps can achieve the override by registering templates that respond to the ‘home’ type (instead of
+  the other existing ‘label’,’embedded’ and ‘standalone’ modes).
+
 
 ## 0.20.1
 

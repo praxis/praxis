@@ -9,7 +9,8 @@
 * Build doc browser support for defining top-level home pages for types.
   Apps can achieve the override by registering templates that respond to the ‘home’ type (instead of
   the other existing ‘label’,’embedded’ and ‘standalone’ modes).
-
+* Enhance doc browser to show header and location expectations on action responses that have them
+  defined
 
 ## 0.20.1
 

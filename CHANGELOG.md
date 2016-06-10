@@ -11,6 +11,8 @@
   the other existing ‘label’,’embedded’ and ‘standalone’ modes).
 * Enhance doc browser to show header and location expectations on action responses that have them
   defined
+* Allow Plugin registration without requiring config_key
+  * registration will select a default config_key based on the class name
 
 ## 0.20.1
 

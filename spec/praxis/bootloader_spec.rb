@@ -70,5 +70,33 @@ describe Praxis::Bootloader do
       bootloader.use(plugin)
       expect(bootloader.application.plugins[:foo].class).to be(plugin)
     end
+
+    it "complains if a plugin with same name already registered" do
+      bootloader.use(plugin)
+      expect do
+        bootloader.use(plugin)
+      end.to raise_error /another plugin (.*) is already registered with key: foo/
+    end
+    context "defaults config_key" do
+      let(:plugin_two) do
+        Class.new(Praxis::Plugin) do
+          def self.name
+            "Two" # Need this to avoid creating a true named class.
+          end
+        end
+      end
+
+      it "to the class name" do
+        bootloader.use(plugin_two)
+        expect(bootloader.application.plugins[:two].class).to be(plugin_two)
+      end
+
+      it 'but raises if class is anonymous' do
+        plugin_anon = Class.new(Praxis::Plugin) {}
+        expect do
+          bootloader.use(plugin_anon)
+        end.to raise_error(/It does not have a config_key defined, and its class does not have a name/)
+      end
+    end
   end
 end

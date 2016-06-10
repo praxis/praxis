@@ -18,11 +18,6 @@ module Praxis
     # being created.
     class Created < Praxis::Response
       self.status = 201
-
-      def initialize(status:self.class.status, headers:{}, body:'', location: nil)
-        super(status: status, headers: headers, body: body)
-        headers['Location'] = location if location
-      end
     end
 
 
@@ -138,94 +133,35 @@ module Praxis
 
     ApiDefinition.define do |api|
 
-      api.response_template :accepted do
-        status 202
-        description "The request has been accepted for processing, but the processing has not been completed."
-      end
 
-      api.response_template :no_content do
-        status 204
-        description "The server successfully processed the request, but is not returning any content."
-      end
+      [
+        [ :accepted, 202, "The request has been accepted for processing, but the processing has not been completed." ],
+        [ :no_content, 204,"The server successfully processed the request, but is not returning any content."],
+        [ :multiple_choices, 300,"Indicates multiple options for the resource that the client may follow."],
+        [ :moved_permanently, 301,"This and all future requests should be directed to the given URI."],
+        [ :found, 302,"The requested resource resides temporarily under a different URI."],
+        [ :see_other, 303,"The response to the request can be found under another URI using a GET method"],
+        [ :not_modified, 304,"Indicates that the resource has not been modified since the version specified by the request headers If-Modified-Since or If-Match."],
+        [ :temporary_redirect, 307,"In this case, the request should be repeated with another URI; however, future requests should still use the original URI."],
+        [ :bad_request, 400,"The request cannot be fulfilled due to bad syntax."],
+        [ :unauthorized, 401,"Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided."],
+        [ :forbidden, 403,"The request was a valid request, but the server is refusing to respond to it."],
+        [ :not_found, 404,"The requested resource could not be found but may be available again in the future."],
+        [ :method_not_allowed, 405,"A request was made of a resource using a request method not supported by that resource."],
+        [ :not_acceptable, 406,"The requested resource is only capable of generating content not acceptable according to the Accept headers sent in the request."],
+        [ :request_timeout, 408,"The server timed out waiting for the request."],
+        [ :conflict, 409, "Indicates that the request could not be processed because of conflict in the request, such as an edit conflict in the case of multiple updates."],
+        [ :precondition_failed, 412,"The server does not meet one of the preconditions that the requester put on the request."],
+        [ :unprocessable_entity, 422,"The request was well-formed but was unable to be followed due to semantic errors."],
+      ].each do |name, code, base_description|
+        api.response_template name do |media_type: nil, location: nil, headers: nil, description: nil|
+          status code
+          description( description || base_description ) # description can "potentially" be overriden in an individual action.
 
-      api.response_template :multiple_choices do
-        status 300
-        description "Indicates multiple options for the resource that the client may follow."
-      end
-
-      api.response_template :moved_permanently do
-        status 301
-        description "This and all future requests should be directed to the given URI."
-      end
-
-      api.response_template :found do
-        status 302
-        description "The requested resource resides temporarily under a different URI."
-      end
-
-      api.response_template :see_other do
-        status 303
-        description "The response to the request can be found under another URI using a GET method"
-      end
-
-      api.response_template :not_modified do
-        status 304
-        description "Indicates that the resource has not been modified since the version specified by the request headers If-Modified-Since or If-Match."
-      end
-
-      api.response_template :temporary_redirect do
-        status 307
-        description "In this case, the request should be repeated with another URI; however, future requests should still use the original URI."
-      end
-
-      api.response_template :bad_request do
-        status 400
-        description "The request cannot be fulfilled due to bad syntax."
-      end
-
-      api.response_template :unauthorized do
-        status 401
-        description "Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided."
-      end
-
-      api.response_template :forbidden do
-        status 403
-        description "The request was a valid request, but the server is refusing to respond to it."
-      end
-
-      api.response_template :not_found do
-        status 404
-        description "The requested resource could not be found but may be available again in the future."
-      end
-
-      api.response_template :method_not_allowed do
-        status 405
-        description "A request was made of a resource using a request method not supported by that resource."
-      end
-
-      api.response_template :not_acceptable do
-        status 406
-        description "The requested resource is only capable of generating content not acceptable according to the Accept headers sent in the request."
-      end
-
-      api.response_template :request_timeout do
-        status 408
-        description "The server timed out waiting for the request."
-      end
-
-      api.response_template :conflict do
-        status 409
-        description "Indicates that the request could not be processed because of conflict in the request, such as an edit conflict in the case of multiple updates."
-      end
-
-      api.response_template :precondition_failed do
-        status 412
-        description "The server does not meet one of the preconditions that the requester put on the request."
-      end
-
-      api.response_template :unprocessable_entity do
-        status 422
-        description "The request was well-formed but was unable to be followed due to semantic errors."
+          media_type media_type if media_type
+          location location if location
+          headers headers if headers
+        end
       end
 
     end

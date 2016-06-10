@@ -2,9 +2,14 @@ require 'spec_helper'
 
 describe Praxis::ActionDefinition do
   class SpecMediaType < Praxis::MediaType
+    identifier 'application/json'
+
     attributes do
       attribute :one, String
       attribute :two, Integer
+    end
+    view :default do
+      attribute :one
     end
   end
 
@@ -28,11 +33,22 @@ describe Praxis::ActionDefinition do
   end
 
   subject(:action) do
+
+    Praxis::ApiDefinition.define do |api|
+      api.response_template :ok do |media_type: , location: nil, headers: nil, description: nil |
+        status 200
+
+        media_type media_type
+        location location
+        headers headers if headers
+      end
+    end
     Praxis::ActionDefinition.new(:foo, resource_definition) do
       routing { get '/:one' }
       payload { attribute :two, String }
       headers { header "X_REQUESTED_WITH", 'XMLHttpRequest' }
       params  { attribute :one, String }
+      response :ok, headers: { "Foo" => "Bar"}, location: %r{/some/thing}
     end
   end
 
@@ -53,11 +69,13 @@ describe Praxis::ActionDefinition do
     before do
       action.response :ok
       action.response :internal_server_error
+      action.response :created, location: 'foobar'
     end
 
     it { should be_kind_of Hash }
     it { should include :ok }
     it { should include :internal_server_error }
+    it { should include :created }
   end
 
   describe '#allowed_responses' do
@@ -252,6 +270,10 @@ describe Praxis::ActionDefinition do
       end
     end
 
+    context 'responses' do
+      subject(:response_description) { describe[:responses] }
+      its(:keys) { should include(:ok) }
+    end
   end
 
   context 'href generation' do

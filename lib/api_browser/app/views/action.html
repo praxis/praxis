@@ -56,11 +56,20 @@
                 <h5>Description</h5>
                 <div ng-bind-html="response.description | markdown"></div>
               </div>
-              <h5>Status</h5>
-              <p>{{ response.status }}</p>
+              <h5>Status: {{ response.status }}</h5>
               <div ng-if="response.examples.json">
                 <h5>Content-Type</h5>
                 <p>{{ response.examples.json.content_type }}</p>
+              </div>
+              <div ng-if="response.location">
+                <h5>Location:</h5>
+                <p>{{response.location.value}} <em>({{response.location.type}})</em></p>
+              </div>
+              <div ng-hide="response.headers | isEmpty">
+                <h5>Headers:</h5>
+                <div ng-repeat="(hname, hinfo) in response.headers">
+                  <p> {{hname}}: {{ hinfo | headerInfo }}</p>
+                </div>
               </div>
               <div ng-if="response.payload.id">
                 <h5>Media Type</h5>

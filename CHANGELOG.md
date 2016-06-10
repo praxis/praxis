@@ -7,7 +7,7 @@
   properly reported in the `schemas` section of the JSON docs if they were only used somewhere
   deep in some other type or action hierarchy
 * Build doc browser support for defining top-level home pages for types.
-  Apps can achieve the override by registering templates that respond to the ‘home’ type (instead of
+  Apps can achieve the override by registering templates that respond to the ‘main’ type (instead of
   the other existing ‘label’,’embedded’ and ‘standalone’ modes).
 * Enhance doc browser to show header and location expectations on action responses that have them
   defined

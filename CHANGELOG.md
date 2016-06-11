@@ -14,6 +14,7 @@
 * Allow Plugin registration without requiring config_key
   * registration will select a default config_key based on the class name
 
+
 ## 0.20.1
 
 * Doc generation: handle SimpleMediaTypes so that they don’t show up in the generated schemas.

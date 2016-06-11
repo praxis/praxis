@@ -8,10 +8,10 @@ describe('attributeName filter', function() {
     };
   }));
 
-  it('only modifies input with one dot', function() {
+  it('only modifies input with one or more dots', function() {
     expect(function(str) {
       var dotsCount = str.split('.').length - 1;
-      if (dotsCount !== 1) {
+      if (dotsCount === 0) {
         return str === filter(str);
       }
     }).forAll(qc.string);

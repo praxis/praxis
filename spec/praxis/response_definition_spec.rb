@@ -520,8 +520,8 @@ describe Praxis::ResponseDefinition do
       its([:name]) { should eq 'Instance' }
       context 'examples' do
         subject(:examples) { payload[:examples] }
-        its(['json', :content_type]) { 'application/vnd.acme.instance+json '}
-        its(['xml', :content_type]) { 'application/vnd.acme.instance+xml' }
+        its(['json', :content_type]) { should eq('application/vnd.acme.instance+json') }
+        its(['xml', :content_type]) { should eq('application/vnd.acme.instance+xml') }
 
         it 'properly encodes the example bodies' do
           json = Praxis::Application.instance.handlers['json'].parse(examples['json'][:body])
@@ -529,6 +529,18 @@ describe Praxis::ResponseDefinition do
           expect(json).to eq xml
         end
 
+      end
+
+      context 'which does not have a identifier' do
+        subject(:examples) { payload[:examples] }
+        before do
+          allow(response.media_type).to receive(:identifier).and_return(nil)
+        end
+
+        it 'still renders examples but as pure handler types for contents' do
+          expect(subject['json'][:content_type]).to eq('application/json')
+          expect(subject['xml'][:content_type]).to eq('application/xml')
+        end
       end
 
 

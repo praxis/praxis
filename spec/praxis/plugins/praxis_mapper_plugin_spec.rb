@@ -4,7 +4,6 @@ describe Praxis::Plugins::PraxisMapperPlugin do
 
   subject(:plugin) { Praxis::Plugins::PraxisMapperPlugin::Plugin.instance }
   let(:config) { plugin.config }
-
   context 'Plugin' do
     context 'configuration' do
       subject { config }
@@ -15,8 +14,14 @@ describe Praxis::Plugins::PraxisMapperPlugin do
       context 'default repository' do
         subject(:default) { config.repositories['default'] }
         its(['type']) { should eq 'sequel' }
-        its(['connection_settings']) do
-          should eq('adapter' => 'sqlite','database' => ':memory:')
+        it 'has the right connection settings' do
+          if RUBY_PLATFORM !~ /java/
+            expect(subject['connection_settings'].dump).to eq( 'adapter' => 'sqlite','database' => ':memory:' )
+          else
+            expect(subject['connection_settings'].dump).to eq( 'adapter' => 'jdbc', 'uri' => 'jdbc:sqlite::memory:' )
+          end
+
+
         end
       end
 

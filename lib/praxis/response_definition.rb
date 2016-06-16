@@ -147,14 +147,14 @@ module Praxis
             default_handlers.include?(k)
           end
 
-          if (handler = handlers[identifier.handler_name])
+          if (identifier && handler = handlers[identifier.handler_name])
             payload[:examples][identifier.handler_name] = {
               content_type: identifier.to_s,
               body: handler.generate(rendered_payload)
             }
           else
             handlers.each do |name, handler|
-              content_type = identifier + name
+              content_type = ( identifier ) ? identifier + name : 'application/' + name
               payload[:examples][name] = {
                 content_type: content_type.to_s,
                 body: handler.generate(rendered_payload)

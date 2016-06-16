@@ -93,15 +93,21 @@ module Praxis
       instance.options.merge!(options)
       instance.block = block if block_given?
 
+      config_key = if instance.config_key.nil?
+        raise "Cannot use plugin: #{plugin}. It does not have a config_key defined, and its class does not have a name" unless instance.class.name
+        # Default the config key based on the full class name transformed to snake case (and joining modules with '_')
+        instance.class.name.to_s.split('::').collect{|n| n.underscore }.join('_').to_sym
+      else
+        instance.config_key
+      end
+
       if application.plugins.key?(instance.config_key)
-        raise "Can not use plugin: #{plugin}, another plugin is already registered with key: #{instance.config_key}"
+        used_in = application.plugins[config_key].class
+        raise "Can not use plugin: #{plugin}, another plugin (#{used_in}) is already registered with key: #{instance.config_key}"
       end
 
-      if instance.config_key.nil?
-        raise "Error initializing plugin: #{plugin}, config_key may not be nil."
-      end
+      application.plugins[config_key] = instance
 
-      application.plugins[instance.config_key] = instance
       instance
     end
 

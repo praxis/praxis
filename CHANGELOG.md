@@ -2,6 +2,27 @@
 
 ## next
 
+* Protect against `MediaType`s that do not have any links defined.
+* More robust scanning of existing types when generating docs. Some types might have not been
+  properly reported in the `schemas` section of the JSON docs if they were only used somewhere
+  deep in some other type or action hierarchy
+* Build doc browser support for defining top-level home pages for types.
+  Apps can achieve the override by registering templates that respond to the ‘main’ type (instead of
+  the other existing ‘label’,’embedded’ and ‘standalone’ modes).
+* Enhance doc browser to show header and location expectations on action responses that have them
+  defined
+* Allow Plugin registration without requiring config_key
+  * registration will select a default config_key based on the class name
+
+
+## 0.20.1
+
+* Doc generation: handle SimpleMediaTypes so that they don’t show up in the generated schemas.
+* Ensure we require AS#Enumerable extension is loaded, which is required in the generator code.
+* Add Date to the list of primitive types so that it does not show in the generated schemas.
+* Enhance the `:created` response_template, so that it can take the associated media_type
+* Doc Browser: fix route display to have the captures instead of the example
+
 ## 0.20.0
 
 * You can now add a `bower.json` file to your `docs` folder. Any dependencies

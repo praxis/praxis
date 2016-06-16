@@ -18,11 +18,12 @@ module Praxis
       klass.status = self.status if self.status
     end
 
-    def initialize(status:self.class.status, headers:{}, body:'')
+    def initialize(status:self.class.status, headers:{}, body:'', location: nil)
       @name    = response_name
       @status  = status
       @headers = headers
       @body    = body
+      @headers['Location'] = location if location
       @form_data = nil
       @parts = Hash.new
     end

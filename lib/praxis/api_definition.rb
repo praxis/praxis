@@ -92,17 +92,22 @@ module Praxis
     end
 
     define do |api|
-      api.response_template :ok do |media_type: |
-        media_type media_type
+      api.response_template :ok do |media_type: , location: nil, headers: nil, description: nil |
         status 200
-        description 'Standard response for successful HTTP requests.'
+        description( description || 'Standard response for successful HTTP requests.' )
+
+        media_type media_type
+        location location
+        headers headers if headers
       end
 
-      api.response_template :created do |location: nil, media_type: nil|
+      api.response_template :created do |media_type: nil, location: nil, headers: nil, description: nil|
+        status 201
+        description( description || 'The request has been fulfilled and resulted in a new resource being created.' )
+
         media_type media_type if media_type
         location location
-        status 201
-        description 'The request has been fulfilled and resulted in a new resource being created.'
+        headers headers if headers
       end
     end
 

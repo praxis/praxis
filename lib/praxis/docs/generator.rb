@@ -79,12 +79,15 @@ module Praxis
       end
 
 
-      # Recursively inspect the structure in data and collect any
-      # newly discovered types into the `reachable_types` in/out parameter
-      def collect_reachable_types( data, reachable_types )
+      # Data: hash/array structure of dumped resources and/or types
+      # processed_types: list of type classes that have already gone through a describe+collect (this or previous rounds)
+      # ... any processed type won't need to be described+reached any longer
+      # newly_found: list of type classes that have been seen in the search (and that weren't already in the processed type)
+      def scan_dump_for_types( data, processed_types )
+        newfound_types = Set.new
         case data
         when Array
-          data.collect{|item| collect_reachable_types( item , reachable_types) }
+          data.collect{|item| newfound_types += scan_dump_for_types( item , processed_types ) }
         when Hash
           if data.key?(:type) && data[:type].kind_of?(Hash) && ( [:id,:name,:family] - data[:type].keys ).empty?
             type_id = data[:type][:id]
@@ -93,12 +96,12 @@ module Praxis
                 raise "Error! We have detected a reference to a 'Type' with id='#{type_id}' which is not derived from Attributor::Type" +
                       " Document generation cannot proceed."
               end
-              reachable_types << types_by_id[type_id]
+              newfound_types << types_by_id[type_id] unless processed_types.include? types_by_id[type_id]
             end
           end
-          data.values.map{|item| collect_reachable_types( item , reachable_types)}
+          data.values.map{|item| newfound_types += scan_dump_for_types( item , processed_types)}
         end
-        reachable_types
+        newfound_types
       end
 
       def write_index_file( for_versions:  )
@@ -124,13 +127,30 @@ module Praxis
         dumped_resources = dump_resources( resources_by_version[version] )
         found_media_types =  resources_by_version[version].select{|r| r.media_type}.collect {|r| r.media_type.describe }
 
-        collected_types = Set.new
-        collect_reachable_types( dumped_resources, collected_types )
+        # We'll start by processing the rendered mediatypes
+        processed_types = Set.new(resources_by_version[version].select do|r|
+          r.media_type && !r.media_type.is_a?(Praxis::SimpleMediaType)
+        end.collect(&:media_type))
+
+        newfound = Set.new
         found_media_types.each do |mt|
-          collect_reachable_types( { type: mt} , collected_types )
+          newfound += scan_dump_for_types( { type: mt} , processed_types )
+        end
+        # Then will process the rendered resources (noting)
+        newfound += scan_dump_for_types( dumped_resources, Set.new )
+
+        # At this point we've done a scan of the dumped resources and mediatypes.
+        # In that scan we've discovered a bunch of types, however, many of those might have appeared in the JSON
+        # rendered in just shallow mode, so it is not guaranteed that we've seen all the available types.
+        # For that we'll do a (non-shallow) dump of all the types we found, and scan them until the scans do not
+        # yield types we haven't seen before
+        while !newfound.empty? do
+          dumped = newfound.collect(&:describe)
+          processed_types += newfound
+          newfound = scan_dump_for_types( dumped, processed_types )
         end
 
-        dumped_schemas = dump_schemas( collected_types )
+        dumped_schemas = dump_schemas( processed_types )
         full_data = {
           info: version_info[:info],
           resources: dumped_resources,

@@ -2,7 +2,7 @@
   <div class="row">
     <div class="col-sm-12">
       <p>
-        <div ng-if="versions.length > 1" dropdown auto-close="outsideClick">
+        <div ng-if="versions.length > 1" dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-success" dropdown-toggle ng-disabled="disabled">
             {{:: versionLabel}}: {{selectedVersion}} <span class="caret"></span>
           </button>

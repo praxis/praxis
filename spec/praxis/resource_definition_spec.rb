@@ -26,7 +26,7 @@ describe Praxis::ResourceDefinition do
 
     context 'for a resource with a parent' do
       let(:resource_definition) { ApiResources::VolumeSnapshots}
-      
+
       its([:parent]) { should eq ApiResources::Volumes.id }
     end
 
@@ -78,6 +78,7 @@ describe Praxis::ResourceDefinition do
         include Praxis::ResourceDefinition
         media_type Person
 
+        version '1.0'
         def self.name
           'FooBar'
         end
@@ -101,12 +102,53 @@ describe Praxis::ResourceDefinition do
       end
     end
 
+    let(:non_singleton_api) do
+      api_def=Praxis::ApiDefinition.__send__(:new)
+      api_def.instance_eval do |api|
+
+        api.info do
+          base_path '/api/:base_param'
+          base_params do
+            attribute :base_param, String
+          end
+        end
+
+        api.info '1.0' do
+          base_params do
+            attribute :app_name, String
+          end
+        end
+        api.info '2.0' do
+          base_params do
+            attribute :v2_param, String
+          end
+        end
+      end
+      api_def
+    end
+
+    before do
+      allow(Praxis::ApiDefinition).to receive(:instance).and_return(non_singleton_api)
+    end
+
     it 'are applied to actions' do
       action = resource_definition.actions[:show]
       expect(action.params.attributes).to have_key(:id)
-      expect(action.routes.first.path.to_s).to eq '/api/people/:id'
+      expect(action.routes.first.path.to_s).to eq '/api/:base_param/people/:id'
     end
 
+    context 'includes base_params from the APIDefinition' do
+      let(:show_action_params){ resource_definition.actions[:show].params }
+
+      it 'including globally defined' do
+        expect(show_action_params.attributes).to have_key(:base_param)
+      end
+      it 'including the ones defined for its own version' do
+        expect(show_action_params.attributes).to have_key(:app_name)
+        expect(show_action_params.attributes).to_not have_key(:v2_param)
+      end
+
+    end
   end
 
   context 'setting other values' do

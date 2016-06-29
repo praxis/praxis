@@ -14,6 +14,8 @@
 * Allow Plugin registration without requiring config_key
   * registration will select a default config_key based on the class name
 * Make Traits accumulate block definitions for `params`,`headers` and `payload` rather than overriding them.
+* Switch to lazy evaluation of `base_params` from `ApiDefinition` to properly inherit them into the resources
+  and their corresponding actions even before the application's `MediaTtypes` have been finalized.
 
 
 ## 0.20.1

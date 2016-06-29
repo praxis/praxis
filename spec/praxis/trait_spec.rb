@@ -13,8 +13,11 @@ describe Praxis::Trait do
       response :something
       response :nothing
 
+      # Double params to test "additive behavior"
       params do
         attribute :app_name, String
+      end
+      params do
         attribute :order, String,
           description: "Field to sort by."
       end
@@ -48,4 +51,14 @@ describe Praxis::Trait do
 
   end
 
+  context 'apply!' do
+    let(:target) { double("Target") }
+    it 'does' do
+      expect(target).to receive(:routing).once
+      expect(target).to receive(:response).twice
+      expect(target).to receive(:params).twice
+      expect(target).to receive(:headers).once
+      subject.apply!(target)
+    end
+  end
 end

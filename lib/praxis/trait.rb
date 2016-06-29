@@ -12,7 +12,7 @@ module Praxis
       @other = []
 
       @attribute_groups = Hash.new do |h,k|
-        h[k] = Trait.new
+        h[k] = []
       end
 
       if block_given?
@@ -34,7 +34,7 @@ module Praxis
     end
 
     def create_group(name, &block)
-      @attribute_groups[name] = block
+      @attribute_groups[name] << block
     end
 
     def headers(*args, &block)
@@ -68,7 +68,7 @@ module Praxis
         desc[:routing] = ConfigHash.new(&@routing).to_hash
       end
 
-      @attribute_groups.each_with_object(desc) do |(name, block), hash|
+      @attribute_groups.each_with_object(desc) do |(name, blocks), hash|
         type_class = if name == :headers
           # Headers are special:
           # Keys are strings, they have a special DSL, and are case insensitive
@@ -76,9 +76,12 @@ module Praxis
             dsl_compiler: ActionDefinition::HeadersDSLCompiler,
             case_insensitive_load: true
           }
-          Attributor::Hash.of(key: String).construct(block, hash_opts)
+          Attributor::Hash.of(key: String).construct(Proc.new {}, hash_opts)
         else
-          Attributor::Hash.construct(block)
+          Attributor::Hash.construct(Proc.new {})
+        end
+        blocks.each do |block|
+          type_class.construct(block)
         end
         hash[name] = type_class.describe[:attributes]
       end
@@ -88,8 +91,10 @@ module Praxis
 
 
     def apply!(target)
-      @attribute_groups.each do |name, block|
-        target.send(name, &block)
+      @attribute_groups.each do |name, blocks|
+        blocks.each do |block|
+          target.send(name, &block)
+        end
       end
 
       if @routing

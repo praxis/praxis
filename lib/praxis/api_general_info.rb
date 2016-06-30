@@ -78,6 +78,19 @@ module Praxis
       end
     end
 
+    def documentation_url(val=nil)
+      if val.nil?
+        get(:documentation_url)
+      else
+        if @global_info.nil? # this *is* the global info
+          set(:documentation_url, val)
+        else
+          raise "Use of documentation_url is only allowed in the global part of " \
+            "the API definition (but you are attempting to use it in the API " \
+            "definition of version #{self.version}"
+        end
+      end
+    end
 
     def base_path(val=nil)
       if val

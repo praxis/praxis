@@ -22,7 +22,8 @@ module Praxis
             exception: e,
             summary: message,
             request: request,
-            stage: name
+            stage: name,
+            documentation: Docs::LinkBuilder.instance.linkForRequest(request)
           )
         end
 
@@ -34,7 +35,8 @@ module Praxis
             exception: e,
             summary: message,
             request: request,
-            stage: name
+            stage: name,
+            documentation: Docs::LinkBuilder.instance.linkForRequest(request)
           )
         end
 
@@ -52,7 +54,8 @@ module Praxis
             summary: message,
             errors: errors,
             request: request,
-            stage: name
+            stage: name,
+            documentation: Docs::LinkBuilder.instance.linkForRequest(request)
           )
         end
       end

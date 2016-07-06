@@ -13,6 +13,7 @@
   defined
 * Allow Plugin registration without requiring config_key
   * registration will select a default config_key based on the class name
+* Make Traits accumulate block definitions for `params`,`headers` and `payload` rather than overriding them.
 
 
 ## 0.20.1

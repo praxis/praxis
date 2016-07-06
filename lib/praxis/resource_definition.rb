@@ -11,7 +11,8 @@ module Praxis
       @version = 'n/a'.freeze
       @actions = Hash.new
       @responses = Hash.new
-      @action_defaults = Trait.new
+
+      @action_defaults = Trait.new &ResourceDefinition.generate_defaults_block
 
       @version_options = {}
       @metadata = {}
@@ -35,9 +36,28 @@ module Praxis
       Application.instance.resource_definitions << self
     end
 
+    def self.generate_defaults_block( version: nil )
+
+      # Ensure we inherit any base params defined in the API definition for the passed in version
+      base_attributes = if (base_params = ApiDefinition.instance.info(version).base_params)
+        base_params.attributes
+      else
+        {}
+      end
+
+      Proc.new do
+        unless base_attributes.empty?
+          params do
+            base_attributes.each do |base_name, base_attribute|
+              attribute base_name, base_attribute.type, base_attribute.options
+            end
+          end
+        end
+      end
+    end
+
     def self.finalize!
       Application.instance.resource_definitions.each do |resource_definition|
-
         while (block = resource_definition.on_finalize.shift)
           block.call
         end
@@ -178,6 +198,8 @@ module Praxis
             @version_prefix = "#{Praxis::Request::path_version_prefix}#{self.version}"
           end
         end
+
+        @action_defaults.instance_eval &ResourceDefinition.generate_defaults_block( version: version )
       end
 
 

@@ -39,7 +39,7 @@ module Praxis
     def self.generate_defaults_block( version: nil )
 
       # Ensure we inherit any base params defined in the API definition for the passed in version
-      base_attributes = if base_params = ApiDefinition.instance.info(version).base_params
+      base_attributes = if (base_params = ApiDefinition.instance.info(version).base_params)
         base_params.attributes
       else
         {}

@@ -110,6 +110,9 @@ describe Praxis::ResourceDefinition do
           base_path '/api/:base_param'
           base_params do
             attribute :base_param, String
+            attribute :grouped_params do
+              attribute :nested_param, String
+            end
           end
         end
 
@@ -142,6 +145,10 @@ describe Praxis::ResourceDefinition do
 
       it 'including globally defined' do
         expect(show_action_params.attributes).to have_key(:base_param)
+        expect(show_action_params.attributes).to have_key(:grouped_params)
+        grouped = show_action_params.attributes[:grouped_params]
+        expect(grouped.type.ancestors).to include(::Attributor::Struct)
+        expect(grouped.type.attributes.keys).to eq([:nested_param])
       end
       it 'including the ones defined for its own version' do
         expect(show_action_params.attributes).to have_key(:app_name)

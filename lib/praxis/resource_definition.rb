@@ -12,11 +12,7 @@ module Praxis
       @actions = Hash.new
       @responses = Hash.new
 
-      # Ensure we inherit any base params defined in the API definition for this version
-      base_attrs = if base_params = ApiDefinition.instance.info.base_params
-        base_params.attributes
-      end
-      @action_defaults = Trait.new &ResourceDefinition.generate_defaults_block( base_attrs || {} )
+      @action_defaults = Trait.new &ResourceDefinition.generate_defaults_block
 
       @version_options = {}
       @metadata = {}
@@ -40,7 +36,15 @@ module Praxis
       Application.instance.resource_definitions << self
     end
 
-    def self.generate_defaults_block( base_attributes )
+    def self.generate_defaults_block( version: nil )
+
+      # Ensure we inherit any base params defined in the API definition for the passed in version
+      base_attributes = if base_params = ApiDefinition.instance.info(version).base_params
+        base_params.attributes
+      else
+        {}
+      end
+
       Proc.new do
         unless base_attributes.empty?
           params do
@@ -195,11 +199,7 @@ module Praxis
           end
         end
 
-        # Ensure we inherit any base params defined in the API definition for this version
-        base_attrs = if base_params = ApiDefinition.instance.info(version).base_params
-          base_params.attributes
-        end
-        @action_defaults.instance_eval &ResourceDefinition.generate_defaults_block( base_attrs || {} )
+        @action_defaults.instance_eval &ResourceDefinition.generate_defaults_block( version: version )
       end
 
 

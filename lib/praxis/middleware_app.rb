@@ -5,7 +5,7 @@ module Praxis
 
     # Initialize the application instance with the desired args, and return the wrapping class.
     def self.for( **args )
-      Praxis::Application.instance.setup(args)
+      Praxis::Application.instance.setup(**args)
       self
      end
 

@@ -98,9 +98,9 @@ services with full-featured REST APIs.
 
 ### Other Dependencies
 
-Praxis uses the [randexp](https://github.com/benburkert/randexp) library to generate examples given regular expressions, which expects to find a word list (dictionary) in one of three common locations: ```/usr/share/dict/words``` or ```/usr/dict/words```, or  ```~/.dict/words```. 
+Praxis uses the [randexp](https://github.com/benburkert/randexp) library to generate examples given regular expressions, which expects to find a word list (dictionary) in one of three common locations: ```/usr/share/dict/words``` or ```/usr/dict/words```, or  ```~/.dict/words```.
 
-This should be present by default in OS X as well as most (but not all) Linux distributions. If you receive an error like "Words file not found. Check if it is installed..." then you need to install a package that provides one. 
+This should be present by default in OS X as well as most (but not all) Linux distributions. If you receive an error like "Words file not found. Check if it is installed..." then you need to install a package that provides one.
 
 For apt-based distributions, you can install one with the ```wamerican``` package (see the relevant [debian](https://packages.debian.org/search?keywords=wamerican) or [ubuntu](http://packages.ubuntu.com/search?keywords=wamerican) pages for more information or alternatives).
 
@@ -177,10 +177,10 @@ module V1
   module Resources
     class Posts
       include Praxis::ResourceDefinition
-			
+
       version '1.0'
       media_type 'application/json'
-			 
+
       action :show do
         routing do
           get '/:id'
@@ -289,7 +289,7 @@ you start reviewing the interface details for these actions? Ask Praxis to
 generate documentation for you:
 
 {% highlight bash %}
-$ bundle exec rake praxis:api_docs
+$ bundle exec rake praxis:docs:generate
 {% endhighlight %}
 
 This generates a series of JSON files with the full specification of the API we
@@ -300,15 +300,20 @@ Thankfully, Praxis can generate the same documentation in a more human-friendly
 format:
 
 {% highlight bash %}
-$ bundle exec rake praxis:doc_browser
-[2014-07-08 20:24:30] INFO  WEBrick 1.3.1
-[2014-07-08 20:24:30] INFO  ruby 2.1.2 (2014-05-08) [x86_64-darwin13.0]
-[2014-07-08 20:24:30] INFO  WEBrick::HTTPServer#start: pid=31476 port=4567
+$ bundle exec rake praxis:docs:preview
+...
+Running "connect:livereload" (connect) task
+Started connect web server on http://0.0.0.0:9090
+
+Running "watch" task
+Waiting...
 {% endhighlight %}
 
-and direct your favorite browser to: `http://localhost:4567`
+which should open up a new browser page for you, pointing to the documentation browser (typically at `http://localhost:9090`). This task will automatically detect any changes to your design objects, and redisplay the results the browser for you. It is common to have the browser and the API design editor side by side, to see the changes as new things are added or edited.
 
-You should see something like this, which incudes the already existing
+If you have the praxis gem installed in the system, you can directly use its executable. In this case, typing `praxis docs` would be equivalent to (`bundle exec rake praxis:docs:preview`). See `praxis --help` (and `rake -T`) for more commands and information.
+
+For our example, the doc browser should show you something like this, which incudes the already existing
 definition of the sample 'hello' app, plus your ```Posts``` resource, including
 both actions and their URLs, parameters and payload specifications.
 
@@ -381,7 +386,7 @@ To use this newly defined media type, change the ``media_type``` declaration
 in our Posts resource definition from th 'application/json' string to the full
 class. By doing this, Praxis will know that, by default, actions belonging to the
 ```Posts``` resource definition are likely to generate responses of this
-MediaType. 
+MediaType.
 
 {% highlight ruby %}
 # design/v1/resources/post.rb

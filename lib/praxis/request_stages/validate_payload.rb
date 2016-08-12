@@ -24,8 +24,7 @@ module Praxis
               exception: e,
               summary: message,
               request: request,
-              stage: name,
-              documentation: Docs::LinkBuilder.instance.linkForRequest(request)
+              stage: name
             )
           end
           Attributor::AttributeResolver.current.register("payload",request.payload)
@@ -36,8 +35,7 @@ module Praxis
               summary: "Errors validating payload data",
               errors: errors,
               request: request,
-              stage: name,
-              documentation: Docs::LinkBuilder.instance.linkForRequest(request)
+              stage: name
             )
           end
         end

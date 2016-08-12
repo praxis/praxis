@@ -13,6 +13,16 @@
   defined
 * Allow Plugin registration without requiring config_key
   * registration will select a default config_key based on the class name
+* A new `documentation_url` global directive is exposed for authors to be able to
+  indicate where documentation will be hosted.
+  * If this is provided, the default *validation handler* will add a `documentation`
+    key to the response pointing at a url that should correspond to the documentation
+    for the resource the user was requesting.
+  * `Praxis::Docs::LinkBuilder` can be used to generate these documentation urls from
+    the praxis application.
+* You can now switch your doc browser to use HTML5 style urls (i.e.
+  `/1.0/type/V1-MediaTypes-PriceFilter` instead of
+  `/index.html#/1.0/type/V1-MediaTypes-PriceFilter`).
 
 
 ## 0.20.1

@@ -6,7 +6,7 @@ module Praxis
 
       # Generates a link based on a request gone wrong.
       # @return [String, nil] The doc browser link.
-      def linkForRequest(req)
+      def for_request(req)
         build_link req.version, 'controller', req.action.resource_definition.id, req.action.name
       end
 

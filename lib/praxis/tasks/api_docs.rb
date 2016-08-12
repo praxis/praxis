@@ -5,8 +5,6 @@ namespace :praxis do
     def base_path
       require 'uri'
       documentation_url = Praxis::ApiDefinition.instance.global_info.documentation_url
-      puts documentation_url
-      puts URI(documentation_url).path.gsub(/\/[^\/]*$/, '/') if documentation_url
       URI(documentation_url).path.gsub(/\/[^\/]*$/, '/') if documentation_url
     end
 

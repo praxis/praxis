@@ -17,6 +17,13 @@
 * Remove some remaining inline styling in doc browser.
 * Adds a `ExampleProvider.removeHandlersForKey` call. You can use `ExampleProvider.removeHandlersForKey('general')`
   to get rid of the default example if required.
+* Make Traits accumulate block definitions for `params`,`headers` and `payload` rather than overriding them.
+* Switch to lazy evaluation of `base_params` from `ApiDefinition` to properly inherit them into the resources
+  and their corresponding actions even before the application's `MediaTtypes` have been finalized.
+* Built the `MiddlewareApp` class to make it easy to run a Praxis app mounted as an intercepting
+  middleware which will only forward requests down the stack if they didn't match any of its routes.
+  * Note: it properly skips forwarding when 404s are purposedly returned by the application itself.
+  * Note2: it also respects the `X-Cascade=pass` conventions.
 
 
 ## 0.20.1

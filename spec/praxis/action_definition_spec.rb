@@ -340,7 +340,7 @@ describe Praxis::ActionDefinition do
     end
 
     its('routes.first.path.to_s') { should eq '/apps/:app_name/foobars/hello_world/:one' }
-    its('params.attributes.keys') { should eq [:inherited, :app_name, :one]}
+    its('params.attributes.keys') { should match_array [:inherited, :app_name, :one]}
 
     context 'where the action overrides a base_param' do
 

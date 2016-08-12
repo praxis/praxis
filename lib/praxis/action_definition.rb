@@ -118,14 +118,6 @@ module Praxis
         update_attribute(@params, opts, block)
       else
         @params = create_attribute(type, **opts, &block)
-        if (api_info = ApiDefinition.instance.info(resource_definition.version))
-          if api_info.base_params
-            base_attrs = api_info.base_params.attributes
-            @params.attributes.merge!(base_attrs) do |key, oldval, newval|
-              oldval
-            end
-          end
-        end
       end
 
       @params

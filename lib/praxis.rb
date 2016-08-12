@@ -45,6 +45,7 @@ module Praxis
 
   autoload :Stats, 'praxis/stats'
   autoload :Notifications, 'praxis/notifications'
+  autoload :MiddlewareApp, 'praxis/middleware_app'
 
   autoload :RestfulDocGenerator, 'praxis/restful_doc_generator'
   module Docs

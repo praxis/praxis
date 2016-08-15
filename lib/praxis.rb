@@ -50,6 +50,7 @@ module Praxis
   autoload :RestfulDocGenerator, 'praxis/restful_doc_generator'
   module Docs
     autoload :Generator, 'praxis/docs/generator'
+    autoload :LinkBuilder, 'praxis/docs/link_builder'
   end
 
   # types

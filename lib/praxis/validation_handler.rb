@@ -3,7 +3,8 @@ module Praxis
 
     # Should return the Response to send back
     def handle!(summary:, request:, stage:, errors: nil, exception: nil, **opts)
-      Responses::ValidationError.new(summary: summary, errors: errors, exception: exception, **opts)
+      documentation = Docs::LinkBuilder.instance.for_request request
+      Responses::ValidationError.new(summary: summary, errors: errors, exception: exception, documentation: documentation, **opts)
     end
 
   end

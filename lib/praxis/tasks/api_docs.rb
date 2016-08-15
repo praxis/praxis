@@ -1,6 +1,13 @@
 namespace :praxis do
 
   namespace :docs do
+
+    def base_path
+      require 'uri'
+      documentation_url = Praxis::ApiDefinition.instance.global_info.documentation_url
+      URI(documentation_url).path.gsub(/\/[^\/]*$/, '/') if documentation_url
+    end
+
     path = File.expand_path(File.join(File.dirname(__FILE__), '../../api_browser'))
 
     desc "Install dependencies"
@@ -32,7 +39,8 @@ namespace :praxis do
       exec({
         'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs'),
         'DOC_PORT' => doc_port,
-        'PLUGIN_PATHS' => Praxis::Application.instance.doc_browser_plugin_paths.join(':')
+        'PLUGIN_PATHS' => Praxis::Application.instance.doc_browser_plugin_paths.join(':'),
+        'BASE_PATH' => '/'
       }, "#{path}/node_modules/.bin/grunt serve --gruntfile '#{path}/Gruntfile.js'")
     end
 
@@ -40,7 +48,8 @@ namespace :praxis do
     task :build => [:install, :generate] do
       exec({
         'USER_DOCS_PATH' => File.join(Dir.pwd, 'docs'),
-        'PLUGIN_PATHS' => Praxis::Application.instance.doc_browser_plugin_paths.join(':')
+        'PLUGIN_PATHS' => Praxis::Application.instance.doc_browser_plugin_paths.join(':'),
+        'BASE_PATH' => base_path
       }, "#{path}/node_modules/.bin/grunt build --gruntfile '#{path}/Gruntfile.js'")
     end
 

@@ -16,7 +16,7 @@
       </p>
     </div>
   </div>
-  <div class="row" ng-if="controller.actions.length">
+  <div class="row actions-overview" ng-if="controller.actions.length">
     <div class="col-lg-12">
       <h2>Actions</h2>
       <div class="table-responsive">
@@ -30,13 +30,13 @@
         </thead>
         <tbody>
           <tr ng-repeat="action in controller.actions">
-            <td>
+            <td class="action-overview-name">
               <a ui-sref="root.action({action: action.name, controller: controllerName, version: apiVersion})">{{ action.name }}</a>
             </td>
-            <td>
+            <td class="action-overview-url">
               <url action="action"></url>
             </td>
-            <td style="font-size: 110%;">
+            <td class="action-overview-description">
               <p ng-bind-html="action.description | markdown"></p>
             </td>
           </tr>

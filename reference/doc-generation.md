@@ -123,11 +123,11 @@ angular.module('DocBrowser', ['PraxisDocBrowser'])
 });
 {% endhighlight %}
 
-Here we register a new resolver function that is dependency injected. There are several special variables you can inject: `$type` is the name of the type, `$family` is the name of type family this type belongs to (type families provide a generic way to render similar types), `$typeDefinition` is an object containing everything we know about the type and finally `$requestedTemplate` is one of `standalone`, `embedded` or `label`.
+Here we register a new resolver function that is dependency injected. There are several special variables you can inject: `$type` is the name of the type, `$family` is the name of type family this type belongs to (type families provide a generic way to render similar types), `$typeDefinition` is an object containing everything we know about the type and finally `$requestedTemplate` is one of `standalone`, `embedded`, `label` or `main`.
 
 ![template illustration](/public/images/template-illustration.png)
 
-Standalone templates exist at a standalone context and take the full width of the page. Embedded templates are for types that exist as a value of a key in a parent type and are rendered in a three column table - they should be one or more `<tr>`s. Label templates display the name of a type - which can be a link or conceivably you may add a popover explaining something about your type.
+Standalone templates exist at a standalone context and take the full width of the page. Embedded templates are for types that exist as a value of a key in a parent type and are rendered in a three column table - they should be one or more `<tr>`s. Label templates display the name of a type - which can be a link or conceivably you may add a popover explaining something about your type. Main templates are used for overriding the whole page dedicated to that type.
 
 The resolver function must return one of these possible values:
 

@@ -10,7 +10,7 @@ Response Definitions
 : Reusable response templates (see [Response Definitions](../response-definitions/))
 
 API Information
-: Global, or versioned, metadata about the api (see [API Information](../global-api-information/)).
+: Global, or versioned, metadata about the api (see [API Information](#global-information)).
 
 Traits
 : A convenient way to share common DSL elements across resource definitions and
@@ -55,10 +55,11 @@ information on the various bootstrapping stages.
 
 It is possible to provide global API information in the `ApiDefinition.define` block with the `info` method. You may define this metadata for all versions of your API, or only for a specific version. All definitions at the global level (i.e. those that do not specify a version) will be inherited by all versions. Any directive defined within a version will overwrite anything inherited (except `base_path` and `base_params` which a version cannot override if they have been set at the default level).
 
-There are two attributes that are _only_ allowed at global level:
+There are several attributes that are _only_ allowed at global level:
 
 * `endpoint` can define your fully qualified API's endpoint. It's used purely for documentation purposes and will not be used in any routing or route-generation.
 * `version_with` will define what versioning "scheme" your application will use. By default it's set to `[:header, :params]`, meaning Praxis will look for either an  `X-Api-Version` request header *or* an `api_version` query parameter to determine the version of your API to use for processing the request. It is also possible to use a path-based versioning scheme by using `version_with :path`. See section below for details.
+* `documentation_url` is a hint to users where they can find the final version of the API's documentation.
 
 The rest of the directives are supported in both the global or version level:
 
@@ -81,6 +82,7 @@ Praxis::ApiDefinition.define
     title 'An example Praxis application'
     description 'This is an example application API.'
     endpoint 'api.example.com'
+    documentation_url 'https://docs.example.com/some-app/'
     consumes 'json', ''x-www-form-urlencoded''
     produces 'json', 'xml'
     base_path '/:app_name'

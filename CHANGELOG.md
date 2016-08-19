@@ -2,6 +2,8 @@
 
 ## next
 
+## 0.21
+
 * Protect against `MediaType`s that do not have any links defined.
 * More robust scanning of existing types when generating docs. Some types might have not been
   properly reported in the `schemas` section of the JSON docs if they were only used somewhere

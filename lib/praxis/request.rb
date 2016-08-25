@@ -1,6 +1,8 @@
 module Praxis
 
-  class Request
+  BaseRequest = Object unless defined? BaseRequest
+
+  class Request < BaseRequest
     attr_reader :env, :query
     attr_accessor :route_params, :action
 

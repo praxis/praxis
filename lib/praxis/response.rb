@@ -18,7 +18,7 @@ module Praxis
       klass.status = self.status if self.status
     end
 
-    def initialize(status:self.class.status, headers:{}, body:'', location: nil)
+    def initialize(status:self.class.status, headers:{}, body: nil, location: nil)
       @name    = response_name
       @status  = status
       @headers = headers

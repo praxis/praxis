@@ -9,7 +9,7 @@ describe Praxis::Responses::ValidationError do
     it 'always sets the json content type' do
       expect(response.name).to be(:validation_error)
       expect(response.status).to be(400)
-      expect(response.body).to be_empty
+      expect(response.body).to be_nil
       expect(response.headers).to have_key('Content-Type')
       expect(response.headers['Content-Type']).to eq('application/json')
       expect(response.instance_variable_get(:@errors)).to be(nil)
@@ -24,7 +24,7 @@ describe Praxis::Responses::ValidationError do
     let(:exception){ nil }
     subject(:response) { Praxis::Responses::ValidationError.new(summary: summary, errors: errors, exception: exception) }
     before do
-      expect(response.body).to be_empty
+      expect(response.body).to be_nil
     end
     context 'when errors' do
       it 'it fills the errors key' do

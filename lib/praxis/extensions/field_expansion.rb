@@ -29,7 +29,7 @@ module Praxis
 
           # Determine the view that COULD be applicable.
           view = if use_view && (view_name = request.params.view)
-            media_type.views[view_name]
+            media_type.views[view_name.to_sym]
           else
             media_type.views[:default]
           end

@@ -103,11 +103,12 @@ describe Praxis::Extensions::FieldExpansion do
     end
 
     context 'supports view parameters defined as String' do
-      let(:test_attributes) { {view: true}  }
+      let(:test_attributes) { {view: true, fields: true}  }
+      let(:fields) { 'id,href' }
       let(:view) { "link" }
 
       it 'expands the fields on the view' do
-        expect(expansion).to eq({id: true, name: true, href: true})
+        expect(expansion).to eq({id: true, href: true})
       end
     end
 

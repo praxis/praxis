@@ -20,7 +20,7 @@ module Praxis
       def display(object, include_nil: false, encoder: self.default_encoder )
         identifier = Praxis::MediaTypeIdentifier.load(self.media_type.identifier)
         identifier += encoder unless encoder.blank?
-        response.headers['Content-Type'] = identifier.to_s
+        response.headers['Content-Type'] = identifier.to_s unless response.headers['Content-Type']
         response.body = render(object, include_nil: include_nil)
         response
       rescue Praxis::Renderer::CircularRenderingError => e

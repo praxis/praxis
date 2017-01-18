@@ -1,6 +1,6 @@
 module Praxis
 
-  class Request
+  class Request < Praxis.request_superclass
     attr_reader :env, :query
     attr_accessor :route_params, :action
 

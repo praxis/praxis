@@ -8,7 +8,7 @@ describe Praxis::Responses::InternalServerError do
     it 'always sets the json content type' do
       expect(response.name).to be(:internal_server_error)
       expect(response.status).to be(500)
-      expect(response.body).to be_empty
+      expect(response.body).to be_nil
       expect(response.headers).to have_key('Content-Type')
       expect(response.headers['Content-Type']).to eq('application/json')
       expect(response.instance_variable_get(:@error)).to be(nil)
@@ -52,7 +52,7 @@ describe Praxis::Responses::InternalServerError do
 
     subject(:response) { Praxis::Responses::InternalServerError.new(error: error) }
     before do
-      expect(response.body).to be_empty
+      expect(response.body).to be_nil
       response.format!
     end
 

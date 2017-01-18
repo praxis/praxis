@@ -4,6 +4,7 @@ require 'praxis-mapper'
 require 'praxis-blueprints'
 
 require 'active_support/concern'
+require 'praxis/request_superclassing'
 
 $:.unshift File.dirname(__FILE__)
 

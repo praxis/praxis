@@ -76,8 +76,17 @@ module Praxis
       @action = action
       @request = request
 
-      payload = {request: request, response: nil}
+      payload = {request: request, response: nil, controller: @controller}
 
+      instrumented_dispatch( payload )
+
+    ensure
+      @controller = nil
+      @action = nil
+      @request = nil
+    end
+
+    def instrumented_dispatch( payload )
       Notifications.instrument 'praxis.request.all'.freeze, payload do
         begin
           # the response stage must be the final stage in the list
@@ -100,12 +109,7 @@ module Praxis
           @application.error_handler.handle!(request, e)
         end
       end
-    ensure
-      @controller = nil
-      @action = nil
-      @request = nil
     end
-
 
     # TODO: fix for multithreaded environments
     def reset_cache!

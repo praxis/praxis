@@ -81,6 +81,22 @@ module Praxis
           self.response.body = body
         end
 
+        def head(status, options = {})
+          options, status = status, nil if status.is_a?(Hash)
+          status ||= options.delete(:status) || :ok
+          location = options.delete(:location)
+          content_type = options.delete(:content_type)
+
+          code = Rack::Utils::SYMBOL_TO_STATUS_CODE[status]
+          response = Praxis::Response.new(status: code, body: status.to_s, location: location)
+
+          options.each do |key, value|
+            response.headers[key.to_s.dasherize.split('-').each { |v| v[0] = v[0].chr.upcase }.join('-')] = value.to_s
+          end
+          response.content_type = content_type if content_type
+          response
+        end
+
       end
 
     end

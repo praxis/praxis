@@ -87,9 +87,9 @@ module Praxis
 
       @buf = ""
 
-      @params = Rack::Utils::KeySpaceConstrainedParams.new
+      @params = Rack::Utils::KeySpaceConstrainedParams.new(65536)
 
-      @boundary_size = Rack::Utils.bytesize(@boundary) + EOL.size
+      @boundary_size = @boundary.size + EOL.size
 
       if @content_length = @headers['Content-Length']
         @content_length = @content_length.to_i

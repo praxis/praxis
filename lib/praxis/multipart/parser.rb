@@ -24,6 +24,8 @@ module Praxis
 
     BUFSIZE = 16384
 
+    KEYSPACE_SIZE = 65536
+
     def self.parse(headers,body)
       self.new(headers,body).parse
     end
@@ -87,7 +89,7 @@ module Praxis
 
       @buf = ""
 
-      @params = Rack::Utils::KeySpaceConstrainedParams.new(65536)
+      @params = Rack::Utils::KeySpaceConstrainedParams.new(KEYSPACE_SIZE)
 
       @boundary_size = @boundary.size + EOL.size
 

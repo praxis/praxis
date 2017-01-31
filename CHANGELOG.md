@@ -2,6 +2,10 @@
 
 ## next
 
+* update rack version to 2.0.1
+* update ruby version to 2.3.1
+* small fixes to support the version changes
+
 ## 0.21
 
 * Protect against `MediaType`s that do not have any links defined.

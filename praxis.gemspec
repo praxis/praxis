@@ -13,14 +13,14 @@ Gem::Specification.new do |spec|
 
   spec.homepage = "https://github.com/rightscale/praxis"
   spec.license = "MIT"
-  spec.required_ruby_version = ">=2.1"
+  spec.required_ruby_version = ">= 2.3.1"
 
   spec.require_paths = ["lib"]
   spec.files         = `git ls-files -z`.split("\x0")
   spec.bindir = 'bin'
   spec.executables << 'praxis'
 
-  spec.add_dependency 'rack', '~> 1'
+  spec.add_dependency 'rack', '~> 2.0.1'
   spec.add_dependency 'mustermann', '~> 0'
   spec.add_dependency 'activesupport', '>= 3'
   spec.add_dependency 'mime', '~> 0'

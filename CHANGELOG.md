@@ -2,6 +2,17 @@
 
 ## next
 
+* Builds an initial Rails embeddability/compatibility set of functions and helpers:
+  * Refactored dispatcher methods so that instrumentation can be easily added on (but without building a flexible hook system that might decrease the performance)
+  * Change `Praxis:Request` super classing to be definable by a module setter
+      * Make `rails_compat/request_methods` to use it.
+  * Built `rails_compat` extension. Which for now only:
+    * changes `Praxis:Request` to derive from `ActionDispatch::Request`
+    * Will load the RailsPlugin code
+  * Built a `RailsPlugin` plugin which, for now, will:
+    * emulate firing off the `action_controller` basic hooks (`start_processing` and `process_action`).
+    * Add a few basic controller methods (which make some of the other mixing you might want to throw in your controllers happier). For example: the `head` method for controllers, as it is one of the most used for simple extensions. NOTE: The `render` method is not currently added.
+    * NOTE: db and view runtime values on request processing not done (i.e., not integrated with Praxis’ DB or rendering frameworks)
 * Include URI in the primitive types when generating docs and displaying them (as to not have a generic URI schema polluting the lists)
 
 ## 0.21

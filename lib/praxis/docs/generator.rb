@@ -20,7 +20,8 @@ module Praxis
         Attributor::Integer,
         Attributor::Object,
         Attributor::String,
-        Attributor::Symbol
+        Attributor::Symbol,
+        Attributor::URI,
       ]).freeze
 
 

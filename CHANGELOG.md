@@ -2,6 +2,8 @@
 
 ## next
 
+* Include URI in the primitive types when generating docs and displaying them (as to not have a generic URI schema polluting the lists)
+
 ## 0.21
 
 * Protect against `MediaType`s that do not have any links defined.

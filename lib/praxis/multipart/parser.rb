@@ -101,11 +101,11 @@ module Praxis
 
     if Rack.const_defined?(:RELEASE) && Rack::RELEASE[0] == '2'
       # Rack 2 requires the buffer size
-      define_method(:new_params) do
+      def new_params
         Rack::Utils::KeySpaceConstrainedParams.new(PARAMS_BUF_SIZE)
       end
     else
-      define_method(:new_params) do
+      def new_params
         Rack::Utils::KeySpaceConstrainedParams.new
       end
     end

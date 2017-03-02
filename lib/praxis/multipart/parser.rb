@@ -22,6 +22,7 @@ module Praxis
     TERMINAL_CRLF = /\r\n$/.freeze
 
 
+    PARAMS_BUF_SIZE = 16384
     BUFSIZE = 16384
 
     def self.parse(headers,body)
@@ -87,15 +88,23 @@ module Praxis
 
       @buf = ""
 
-      @params = Rack::Utils::KeySpaceConstrainedParams.new
+      @params = if rack_2x?
+        Rack::Utils::KeySpaceConstrainedParams.new(PARAMS_BUF_SIZE)
+      else
+        Rack::Utils::KeySpaceConstrainedParams.new
+      end
 
-      @boundary_size = Rack::Utils.bytesize(@boundary) + EOL.size
+      @boundary_size = @boundary.bytesize + EOL.size
 
       if @content_length = @headers['Content-Length']
         @content_length = @content_length.to_i
         @content_length -= @boundary_size
       end
       true
+    end
+
+    def rack_2x?
+      Rack.const_defined?(:RELEASE) && Rack::RELEASE[0] == '2'
     end
 
     def full_boundary

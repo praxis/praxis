@@ -14,6 +14,7 @@
     * Add a few basic controller methods (which make some of the other mixing you might want to throw in your controllers happier). For example: the `head` method for controllers, as it is one of the most used for simple extensions. NOTE: The `render` method is not currently added.
     * NOTE: db and view runtime values on request processing not done (i.e., not integrated with Praxis’ DB or rendering frameworks)
 * Include URI in the primitive types when generating docs and displaying them (as to not have a generic URI schema polluting the lists)
+* Loosen up the version of Rack that Praxis requires. Adapted the old MultipartParser to be compabible with Rack 2x (but in reality we should see about reusing the brand new parser that 2x comes with in the future)
 
 ## 0.21
 

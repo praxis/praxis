@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   spec.executables << 'praxis'
 
   spec.add_dependency 'rack', '>= 1'
-  spec.add_dependency 'mustermann', '~> 0'
+  spec.add_dependency 'mustermann', '>=0', '<=1'
   spec.add_dependency 'activesupport', '>= 3'
   spec.add_dependency 'mime', '~> 0'
   spec.add_dependency 'praxis-mapper', '~> 4.3'

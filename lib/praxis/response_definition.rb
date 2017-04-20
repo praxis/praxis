@@ -13,6 +13,12 @@ module Praxis
       end
       @spec = { headers:{} }
       @name = response_name
+      @example = spec.delete(:example)
+      if( @example && !@example.is_a?(::Proc) )
+        raise Exceptions::InvalidConfiguration.new(
+            "Example for reponse #{response_name} must be a proc/lambda. Got #{@example.class}"
+          )
+      end
       self.instance_exec(**spec, &block) if block_given?
 
       if self.status.nil?
@@ -103,15 +109,42 @@ module Praxis
       end
     end
 
-    def example(context=nil)
-      return nil if self.media_type.nil?
-      return nil if self.media_type.kind_of?(SimpleMediaType)
+    # values could
+    def example_by_object(context)
+      case @example
+      when ::Proc
+        if @example.arity == 1
+          @example.call(context)
+        else
+         @example.call
+        end
+      when nil
+        nil
+      else
+        val
+      end
+    end
 
+    def example(context=nil)
       if context.nil?
-        context = "#{self.media_type.name}-#{self.name}"
+        context = "Response-#{self.name}"
       end
 
-      self.media_type.example(context)
+      generated = if @example
+        example_by_object(context)
+      elsif self.media_type && ! self.media_type.kind_of?(SimpleMediaType)
+        self.media_type.example(context)
+      else
+        nil
+      end
+
+      return nil unless generated
+      if (@example && !self.media_type)
+        # This is because otherwise the .define logic must change a fair amount as well
+        raise "You need to also specify a MediaType when overriding an example on a response"
+      end
+
+      self.media_type.load(generated, context)
     end
 
 

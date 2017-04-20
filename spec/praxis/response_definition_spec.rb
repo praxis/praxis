@@ -1,8 +1,9 @@
 require "spec_helper"
 
 describe Praxis::ResponseDefinition do
-  subject(:response_definition) { Praxis::ResponseDefinition.new(name, &block) }
+  subject(:response_definition) { Praxis::ResponseDefinition.new(name, **spec_options, &block) }
   let(:name) { 'response_name' }
+  let(:spec_options) { {} }
 
   let(:block) do
     Proc.new do
@@ -48,6 +49,21 @@ describe Praxis::ResponseDefinition do
       expect{ response_definition.media_type :symbol }.to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
+
+#  context 'providing an explicit block' do
+#    let(:response_example_block){ -> { {id: 123} } }
+#    let(:spec_options){ {example: response_example_block } }
+#
+#    it 'should yield that result' do
+#
+#      response_definition.media_type example_mt
+#
+#      binding.pry
+#      response_definition.example
+##      expect(response_definition.describe).to have_key(:example)
+#      expect(response_definition.describe[:example]).to eq(response_example_block.call)
+#    end
+#  end
 
   context '#example' do
     let(:media_type) { nil }

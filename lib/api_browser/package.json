@@ -2,7 +2,7 @@
   "name": "api_doc_browser",
   "version": "0.13.0",
   "description": "Praxis API Browser app",
-  "repository": "https://github.com/rightscale/praxis",
+  "repository": "https://github.com/praxis/praxis",
   "private": true,
   "scripts": {
     "test": "node_modules/.bin/grunt ci"

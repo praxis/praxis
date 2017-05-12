@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.email = ["blanquer@gmail.com","dane.jensen@gmail.com"]
 
-  spec.homepage = "https://github.com/rightscale/praxis"
+  spec.homepage = "https://github.com/praxis/praxis"
   spec.license = "MIT"
   spec.required_ruby_version = ">=2.1"
 

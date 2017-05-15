@@ -1,8 +1,8 @@
 source "https://rubygems.org"
 
-gem 'praxis', github: 'rightscale/praxis'
-gem 'attributor', github: 'rightscale/attributor'
-gem 'praxis-blueprints', github: 'rightscale/praxis-blueprints'
+gem 'praxis', github: 'praxis/praxis'
+gem 'attributor', github: 'praxis/attributor'
+gem 'praxis-blueprints', github: 'praxis/praxis-blueprints'
 
 gem 'rainbows', require: false
 gem 'rake'

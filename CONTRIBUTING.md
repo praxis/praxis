@@ -5,7 +5,7 @@ know if anything feels wrong or incomplete.
 
 ## Reporting Issues
 
-When reporting [issues](https://github.com/rightscale/praxis/issues) on GitHub,
+When reporting [issues](https://github.com/praxis/praxis/issues) on GitHub,
 remember to include your Ruby version.
 
 Please also include the steps required to reproduce the problem if possible and
@@ -45,8 +45,8 @@ everything for everybody. This means that we might decide against incorporating
 a new feature. However, there might be a way to implement that feature *on top
 of* Praxis.
 
-If you want to work on something that we have already reviewed and prepared, 
-checkout the *Ready* column on our [Waffle board](https://waffle.io/rightscale/praxis).
+If you want to work on something that we have already reviewed and prepared,
+checkout the *Ready* column on our [Waffle board](https://waffle.io/praxis/praxis).
 
 ### Discuss your design on the mailing list
 
@@ -60,7 +60,7 @@ is working on the same thing.
 ### Create issues...
 
 Any significant improvement should be documented as [a GitHub
-issue](https://github.com/rightscale/praxis/issues) before anybody starts
+issue](https://github.com/praxis/praxis/issues) before anybody starts
 working on it.
 
 ### ...but check for existing issues first!

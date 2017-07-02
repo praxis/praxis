@@ -26,14 +26,17 @@
   <div class="row" ng-if="action.params.type.attributes">
     <div class="col-lg-12">
       <h2>Request Parameters</h2>
-      <type-placeholder details="action.params.type.attributes" type="action.params.type" template="standalone"></type-placeholder>
+      <type-placeholder details="action.params.type.attributes" type="action.params.type" template="standalone" parentrequirements="action.params.type.requirements"></type-placeholder>
+      <span ng-bind-html="[action.params.type.requirements, 'body'] | hasRequirement | tagRequirement"></span>
     </div>
   </div>
 
   <div class="row" ng-if="action.payload.type">
     <div class="col-lg-12">
       <h2>Request Body</h2>
-      <type-placeholder type="action.payload.type" template="standalone" details="action.payload.type.attributes"></type-placeholder>
+      <type-placeholder type="action.payload.type" template="standalone" details="action.payload.type.attributes" parentrequirements="action.payload.type.requirements"></type-placeholder>
+      <span ng-bind-html="[action.payload.type.requirements, 'body'] | hasRequirement | tagRequirement"></span>
+
     </div>
   </div>
 

@@ -1,7 +1,9 @@
 <tr>
-  <td ng-bind-html="name | attributeName">
+  <td>
+    <span ng-bind-html="name | attributeName"></span>
   </td>
   <td>
+    <span ng-bind-html="[parentrequirements, name] | hasRequirement | tagRequirement"></span>
     <type-placeholder template="label" type="type"></type-placeholder>
   </td>
   <td>

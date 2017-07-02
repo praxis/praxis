@@ -1,0 +1,9 @@
+<p style='margin-bottom: 0px' ng-if="req.type == 'most'">
+  <em>at most {{req.count}} of:</em> <span ng-bind-html="req.attributes.join(', ')"></span>
+</p>
+<p style='margin-bottom: 0px' ng-if="req.type == 'least'">
+  <em>at least {{req.count}} of:</em> <span ng-bind-html="req.attributes.join(', ')"></span>
+</p>
+<p style='margin-bottom: 0px' ng-if="req.type == 'exactly'">
+  <em>exactly {{req.count}} of:</em> <span ng-bind-html="req.attributes.join(', ')"></span>
+</p>

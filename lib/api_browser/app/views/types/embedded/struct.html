@@ -4,8 +4,8 @@
     <conditional-requirements requirements='type.requirements'></conditional-requirements>
   </td>
   <td>
-    <span ng-bind-html="[parentrequirements, name] | hasRequirement | tagRequirement"></span>
     <type-placeholder template="label" type="type"></type-placeholder>
+    <span ng-bind-html="parentrequirements | hasRequirement:name | tagRequirement"></span>
   </td>
   <td>
     <attribute-description attribute="details"></attribute-description>

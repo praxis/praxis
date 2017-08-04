@@ -31,6 +31,17 @@
   color: #aaa;
 }
 
+.required-attribute-mark {
+  color: red;
+  font-weight: bold;
+}
+
+.conditional-attribute-mark {
+  color: orange;
+  font-weight: bold;
+}
+
+
 .attribute-table {
   div[class*='col-'] {
     padding: $table-cell-padding;

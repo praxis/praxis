@@ -5,9 +5,9 @@
       <p ng-if="type.identifier"><b>Media-type identifier: {{ type.identifier }}</b></p>
       <div ng-if="type.description" ng-bind-html="type.description | markdown"></div>
 
-      <attribute-table attributes="type.attributes" parentrequirements="type.requirements"></attribute-table>
+      <attribute-table attributes="type.attributes" parent-requirements="type.requirements"></attribute-table>
     </div>
-    <div ng-if="type.attributes === undefined" type-placeholder type="type" template="standalone" name="type.name" details="type" parentrequirements="type.requirements"></div>
+    <div ng-if="type.attributes === undefined" type-placeholder type="type" template="standalone" name="type.name" details="type" parent-requirements="type.requirements"></div>
   </div>
 </div>
 <div class="row" ng-if="views.length">

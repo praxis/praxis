@@ -5,10 +5,10 @@
   </td>
   <td>
     <type-placeholder template="label" type="type"></type-placeholder>
-    <span ng-bind-html="parentrequirements | hasRequirement:name | tagRequirement"></span>
+    <span ng-bind-html="parentRequirements | hasRequirement:name | tagRequirement"></span>
   </td>
   <td>
     <attribute-description attribute="details"></attribute-description>
   </td>
 </tr>
-<tr type-placeholder ng-repeat="(k,v) in type.attributes" type="v.type" template="embedded" name="name + '.' + k" details="v" parentrequirements="type.requirements"></tr>
+<tr type-placeholder ng-repeat="(k,v) in type.attributes" type="v.type" template="embedded" name="name + '.' + k" details="v" parent-requirements="type.requirements"></tr>

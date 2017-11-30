@@ -16,6 +16,12 @@
 * Include URI in the primitive types when generating docs and displaying them (as to not have a generic URI schema polluting the lists)
 * Loosen up the version of Rack that Praxis requires. Adapted the old MultipartParser to be compabible with Rack 2x (but in reality we should see about reusing the brand new parser that 2x comes with in the future)
 * Loosen up the version of Mustermann to allow for their latest 1.x series (which will be used by some of the latest gems with Rails 5 and friends)
+* Fix and improve Doc Browser presentation
+  * proper showing of substructures of payloads
+  * mark required attrs with red star (and semi-required as orange)
+  * display the existing special requirements as well
+  * Added requirements for parameters as well (in addition to payload)
+  * format member_options display better
 
 ## 0.21
 

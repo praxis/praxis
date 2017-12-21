@@ -5,15 +5,28 @@ module Praxis
 
     # Initialize the application instance with the desired args, and return the wrapping class.
     def self.for( **args )
-      Praxis::Application.instance.setup(**args)
-      self
+      Class.new(self) do
+
+        @args = args
+        def self.name
+          'MiddlewareApp'
+        end
+        def self.args
+          @args
+        end
+      end
      end
 
     def initialize( inner )
       @target = inner
+      @setup_done = false
     end
 
     def call(env)
+      unless @setup_done
+        Praxis::Application.instance.setup(**self.class.args)
+        @setup_done = true
+      end
       result = Praxis::Application.instance.call(env)
 
       unless ( [404,405].include?(result[0].to_i) && result[1]['X-Cascade'] == 'pass' )

@@ -2,35 +2,46 @@ require 'spec_helper'
 
 describe Praxis::MiddlewareApp do
 
-  context '.for' do
-    let(:init_args){ { root: 'here'} }
-    subject(:middleware) { Praxis::MiddlewareApp.for( init_args ) }
+  let(:init_args){ { root: 'here'} }
+  let(:middleware) { Praxis::MiddlewareApp.for( init_args ) }
+  let(:instance){ middleware.new(target)}
 
-    it 'initializes the application singletone with the passed parameters' do
-      expect( Praxis::Application.instance ).to receive(:setup).with( init_args ).once
-      subject
+  context '.for' do
+    it 'does not initialize the Application instance yet' do
+      expect( Praxis::Application.instance ).to_not receive(:setup)
+      middleware
     end
     it 'returns its class' do
-      expect( subject ).to be( Praxis::MiddlewareApp )
+      expect( middleware ).to be < Praxis::MiddlewareApp 
     end
   end
 
   context 'instantiated' do
+    subject{ instance }
     let(:target_response){ [201,{}] }
     let(:target){ double("target app", call: target_response) }
-    subject(:instance){ Praxis::MiddlewareApp.new(target)}
     it 'saves the target app' do
       expect(subject.target).to be(target)
     end
+    it 'does not initialize the Application instance yet' do
+      expect( Praxis::Application.instance ).to_not receive(:setup)
+      subject
+    end
+    
     context '.call' do
       let(:env){ {} }
       let(:praxis_response){ [200,{}] }
-      subject(:response){ Praxis::MiddlewareApp.new(target).call(env) }
+      subject(:response){ instance.call(env) }
       before do
         # always invokes the praxis app
         expect( Praxis::Application.instance ).to receive(:call).with( env ).once.and_return(praxis_response)
       end
 
+      it 'initializes the application singletone with the passed parameters' do
+        expect( Praxis::Application.instance ).to receive(:setup).with( init_args ).once
+        subject
+      end
+      
       context 'properly handled (non-404 and 405) responses from praxis' do
         it 'are returned straight through' do
           expect( response ).to be(praxis_response)

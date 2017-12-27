@@ -1,11 +1,13 @@
-# Praxis [![TravisCI][travis-img-url]][travis-ci-url] [![Coverage Status][coveralls-img-url]][coveralls-url] [![Dependency Status][gemnasium-img-url]][gemnasium-url]
+# Praxis [![TravisCI][travis-img-url]][travis-ci-url] [![Coverage Status][coveralls-img-url]][coveralls-url] 
 
-[travis-img-url]: https://travis-ci.org/rightscale/praxis.svg?branch=master
-[travis-ci-url]:https://travis-ci.org/rightscale/praxis
-[coveralls-img-url]:https://coveralls.io/repos/rightscale/praxis/badge.svg?branch=master&service=github
-[coveralls-url]:https://coveralls.io/github/rightscale/praxis?branch=master
-[gemnasium-img-url]:https://gemnasium.com/rightscale/praxis.svg
-[gemnasium-url]:https://gemnasium.com/rightscale/praxis
+[//]: # ( COMMENTED OUT UNTIL GEMNASIUM CAN SEE THE REPOS: [![Dependency Status][gemnasium-img-url]][gemnasium-url])
+
+[travis-img-url]: https://travis-ci.org/praxis/praxis.svg?branch=master
+[travis-ci-url]:https://travis-ci.org/praxis/praxis
+[coveralls-img-url]:https://coveralls.io/repos/github/praxis/praxis/badge.svg?branch=master
+[coveralls-url]:https://coveralls.io/github/praxis/praxis?branch=master
+[gemnasium-img-url]:https://gemnasium.com/praxis/praxis.svg
+[gemnasium-url]:https://gemnasium.com/praxis/praxis
 
 Praxis is a framework for both _designing_ and _implementing_ APIs.
 
@@ -33,7 +35,7 @@ bundle
 rackup
 ```
 
-Or better yet, checkout a simple, but functional [blog example app](https://github.com/rightscale/praxis-example-app) which showcases a few of the main design and implementation aspects that Praxis has to offer.
+Or better yet, checkout a simple, but functional [blog example app](https://github.com/praxis/praxis-example-app) which showcases a few of the main design and implementation aspects that Praxis has to offer.
 
 
 ## Mailing List
@@ -52,7 +54,7 @@ And follow us on twitter: [@praxisapi](http://twitter.com/praxisapi)
 
 ## Contributions
 Contributions to make Praxis better are welcome. Please refer to
-[CONTRIBUTING](https://github.com/rightscale/praxis/blob/master/CONTRIBUTING.md)
+[CONTRIBUTING](https://github.com/praxis/praxis/blob/master/CONTRIBUTING.md)
 for further details on what contributions are accepted and how to go about
 contributing.
 

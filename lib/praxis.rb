@@ -90,6 +90,7 @@ module Praxis
     autoload :MapperSelectors, 'praxis/extensions/mapper_selectors'
     autoload :Rendering, 'praxis/extensions/rendering'
     autoload :FieldExpansion, 'praxis/extensions/field_expansion'
+    autoload :AttributeFiltering, 'praxis/extensions/attribute_filtering'
   end
 
   module Handlers

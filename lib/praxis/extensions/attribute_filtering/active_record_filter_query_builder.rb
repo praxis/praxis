@@ -106,7 +106,7 @@ module Praxis
 
           through_model = reflection.through_reflection.klass
           through_assoc = reflection.delegate_reflection.name
-          final_reflection = through_model.reflections[through_assoc.to_s]
+          final_reflection = reflection.source_reflection
 
           do_join_reflection(query, final_reflection, salias, table_alias)
         else

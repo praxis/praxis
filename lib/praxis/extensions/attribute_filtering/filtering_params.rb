@@ -37,7 +37,7 @@ module Praxis
           end
         end
   
-        VALUE_REGEX = /[^,&]+/
+        VALUE_REGEX = /[^,&]*/
         AVAILABLE_OPERATORS = Set.new(['!=', '>=', '<=', '=', '<', '>']).freeze
         FILTER_REGEX = /(?<attribute>([^=!><])+)(?<operator>!=|>=|<=|=|<|>)(?<value>#{VALUE_REGEX}(,#{VALUE_REGEX})*)/
   
@@ -159,7 +159,7 @@ module Praxis
               values
             else
               multimatch = false
-              values.first
+              match[:value]
             end
   
             attr_name = match[:attribute].to_sym
@@ -228,9 +228,11 @@ module Praxis
             end
   
             next unless value_type == Attributor::String
-            fuzzy_match = attr_filters[:fuzzy_match]
-            if (value[-1] == '*' || value[0] == '*') && !fuzzy_match
-              errors << "Fuzzy matching for #{attr_name} is not allowed (yet '*' was found in the value)"
+            unless value.empty?
+              fuzzy_match = attr_filters[:fuzzy_match]
+              if (value[-1] == '*' || value[0] == '*') && !fuzzy_match
+                errors << "Fuzzy matching for #{attr_name} is not allowed (yet '*' was found in the value)"
+              end
             end
           end
         end

@@ -106,7 +106,7 @@ module Praxis
   
         def self.find_filter_attribute(name_components, type)
           type = type.member_type if type < Attributor::Collection
-          first, rest = name_components
+          first, *rest = name_components
           first_attr = type.attributes[first]
           unless first_attr
             raise "Error, you've requested to filter by field #{first} which does not exist in the #{type.name} mediatype!\n"

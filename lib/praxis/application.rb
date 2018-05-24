@@ -4,7 +4,6 @@ require 'logger'
 
 module Praxis
   class Application
-    include Singleton
 
     attr_reader :router
     attr_reader :controllers
@@ -26,6 +25,10 @@ module Praxis
     attr_accessor :versioning_scheme
 
 
+    def self.instance
+      $instance || Thread.current[:praxis_instance] 
+    end
+    
     def self.configure
       yield(self.instance)
     end
@@ -55,6 +58,7 @@ module Praxis
 
 
     def setup(root: '.')
+      $instance=self
       return self unless @app.nil?
 
       @root = Pathname.new(root).expand_path
@@ -81,7 +85,7 @@ module Praxis
         status, _, _ = payload[:response]
         Stats.increment "rack.request.#{status}"
       end
-
+      $instance = nil
       self
     end
 

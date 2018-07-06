@@ -143,6 +143,7 @@ module Praxis
 
           default_handlers = ApiDefinition.instance.info.produces
 
+          # TODO SINGLETON: ... what do do here?...
           handlers = Praxis::Application.instance.handlers.select do |k,v|
             default_handlers.include?(k)
           end

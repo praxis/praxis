@@ -16,6 +16,7 @@ module Praxis
       def format!(exception = @error)
         if @error
 
+          # TODO SINGLETON: ... what do do here?...
           if Application.instance.config.praxis.show_exceptions == true
             msg = {
               name: exception.class.name,

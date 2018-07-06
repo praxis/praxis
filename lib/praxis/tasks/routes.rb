@@ -11,6 +11,7 @@ namespace :praxis do
     ]
 
     rows = []
+    # TODO SINGLETON: ... what do do here?...
     Praxis::Application.instance.resource_definitions.each do |resource_definition|
       resource_definition.actions.each do |name, action|
         method = begin

@@ -19,15 +19,12 @@ module Praxis
 
     def initialize( inner )
       @target = inner
-      @setup_done = false
+      @app_instance = false
     end
 
     def call(env)
-      unless @setup_done
-        Praxis::Application.instance.setup(**self.class.args)
-        @setup_done = true
-      end
-      result = Praxis::Application.instance.call(env)
+      @app_instance ||= Praxis::Application.new.setup(**self.class.args)
+      result = @app_instance.call(env)
 
       unless ( [404,405].include?(result[0].to_i) && result[1]['X-Cascade'] == 'pass' )
         # Respect X-Cascade header if it doesn't specify 'pass'

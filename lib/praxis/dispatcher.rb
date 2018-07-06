@@ -28,10 +28,12 @@ module Praxis
       @deferred_callbacks[:after] << [conditions, block]
     end
 
+    # TODO SINGLETON: ... what do do here?...
     def self.current(thread: Thread.current, application: Application.instance)
       thread[:praxis_dispatcher] ||= self.new(application: application)
     end
 
+    # TODO SINGLETON: ... what do do here?...
     def initialize(application: Application.instance)
       @stages = []
       @application = application

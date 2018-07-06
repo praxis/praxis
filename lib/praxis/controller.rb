@@ -20,6 +20,7 @@ module Praxis
         end
 
         definition.controller = self
+        # TODO SINGLETON: ... can we be sure we're pointing to the right instance here? ...
         Application.instance.controllers << self
       end
 

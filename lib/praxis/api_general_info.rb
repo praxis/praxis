@@ -54,6 +54,7 @@ module Praxis
         get(:version_with)
       else
         if @global_info.nil? # this *is* the global info
+          # TODO SINGLETON: ... can we be sure we're pointing to the right instance here? ...
           Application.instance.versioning_scheme = val
           set(:version_with, val)
         else

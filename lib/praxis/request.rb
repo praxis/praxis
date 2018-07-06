@@ -86,6 +86,7 @@ module Praxis
     PATH_VERSION_MATCHER = %r{^#{self.path_version_prefix}(?<version>[^\/]+)\/}.freeze
 
     def path_version_matcher
+      # TODO SINGLETON: ... what do do here?...
       if Application.instance.versioning_scheme == :path
         matcher = Mustermann.new(ApiDefinition.instance.info.base_path + '*')
         matcher.params(self.path)[API_VERSION_PARAM_NAME]
@@ -96,7 +97,7 @@ module Praxis
 
     def version
       result = nil
-
+      # TODO SINGLETON: ... what do do here?...
       Array(Application.instance.versioning_scheme).find do |mode|
         case mode
         when :header;
@@ -128,7 +129,7 @@ module Praxis
     def load_payload(context)
       return unless action.payload
       return if content_type.nil?
-
+      # TODO SINGLETON: ... what do do here?...
       raw = if (handler = Praxis::Application.instance.handlers[content_type.handler_name])
         handler.parse(self.raw_payload)
       else

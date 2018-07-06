@@ -72,6 +72,7 @@ module Praxis
         # response payload is structured data; transform it into an entity using the handler
         # implied by the response's media type. If no handler is registered for this
         # name, assume JSON as a default handler.
+        # TODO SINGLETON: ... what do do here?...
         handlers = Praxis::Application.instance.handlers
         handler = (content_type && handlers[content_type.handler_name]) || handlers['json']
         @body = handler.generate(@body)

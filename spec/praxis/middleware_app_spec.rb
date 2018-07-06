@@ -29,16 +29,19 @@ describe Praxis::MiddlewareApp do
     end
     
     context '.call' do
+      let(:the_instance) { double("The instance") }
       let(:env){ {} }
       let(:praxis_response){ [200,{}] }
       subject(:response){ instance.call(env) }
       before do
         # always invokes the praxis app
-        expect( Praxis::Application.instance ).to receive(:call).with( env ).once.and_return(praxis_response)
+        expect( Praxis::Application ).to receive(:new).once.and_return(the_instance)
+        expect( the_instance ).to receive(:call).with( env ).once.and_return(praxis_response)
+        allow( the_instance ).to receive(:setup).and_return(the_instance)
       end
 
       it 'initializes the application singletone with the passed parameters' do
-        expect( Praxis::Application.instance ).to receive(:setup).with( init_args ).once
+        expect( the_instance ).to receive(:setup).with( init_args ).once
         subject
       end
       

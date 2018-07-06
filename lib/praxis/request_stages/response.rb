@@ -8,6 +8,7 @@ module Praxis
 
         response.handle
 
+        # TODO SINGLETON: ... what do do here?...
         if Application.instance.config.praxis.validate_responses == true
           validate_body = Application.instance.config.praxis.validate_response_bodies
 

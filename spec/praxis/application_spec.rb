@@ -94,12 +94,15 @@ describe Praxis::Application do
   end
 
   describe '#setup' do
-    subject { Class.new(Praxis::Application).instance }
-
+    subject { Praxis::Application.new }
+    let(:boot_loader) { double("BL", setup!: true) }
+    let(:builder) { double("Builder", to_app: double('Rack app'), run: true) }
+    
     before do
-      # don't actually bootload; we're merely running specs
-      allow(subject.bootloader).to receive(:setup!).and_return(true)
-      allow(subject.builder).to receive(:to_app).and_return(double('Rack app'))
+      # don't actually bootload; we're merely running specs  
+      allow(subject).to receive(:bootloader).and_return(boot_loader)
+      allow(subject).to receive(:builder).and_return(builder)
+
     end
 
     it 'is idempotent' do

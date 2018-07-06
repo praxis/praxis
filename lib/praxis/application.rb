@@ -26,7 +26,10 @@ module Praxis
 
 
     def self.instance
-      $instance || Thread.current[:praxis_instance] 
+      i = $instance || Thread.current[:praxis_instance] 
+      return i if i
+      $instance = self.new
+      $instance
     end
     
     def self.configure
@@ -58,9 +61,8 @@ module Praxis
 
 
     def setup(root: '.')
-      $instance=self
-      return self unless @app.nil?
 
+      return self unless @app.nil?
       @root = Pathname.new(root).expand_path
 
       builtin_handlers = {
@@ -68,15 +70,15 @@ module Praxis
         'json' => Praxis::Handlers::JSON,
         'x-www-form-urlencoded' => Praxis::Handlers::WWWForm
       }
+      
       # Register built-in handlers unless the app already provided its own
       builtin_handlers.each_pair do |name, handler|
         self.handler(name, handler) unless handlers.key?(name)
       end
 
-      @bootloader.setup!
-
-      @builder.run(@router)
-      @app = @builder.to_app
+      bootloader.setup!
+      builder.run(@router)
+      @app = builder.to_app
 
       Notifications.subscribe 'rack.request.all'.freeze do |name, start, finish, _id, payload|
         duration = (finish - start) * 1000
@@ -85,7 +87,6 @@ module Praxis
         status, _, _ = payload[:response]
         Stats.increment "rack.request.#{status}"
       end
-      $instance = nil
       self
     end
 

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Praxis::Application do
   context 'configuration' do
     subject(:app) do
-      app = Class.new(Praxis::Application).instance
+      app = Class.new(Praxis::Application).new
 
       config = Object.new
       def config.define(key=nil, type=Attributor::Struct, **opts, &block)
@@ -45,7 +45,7 @@ describe Praxis::Application do
   end
 
   context 'media type handlers' do
-    subject { Class.new(Praxis::Application).instance }
+    subject { Class.new(Praxis::Application).new }
 
     before do
       # don't actually bootload; we're merely running specs

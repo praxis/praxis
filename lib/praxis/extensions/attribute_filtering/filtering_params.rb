@@ -75,7 +75,7 @@ module Praxis
           end
         end
   
-        attr_reader :parsed_hash
+        attr_reader :parsed_array
   
         def self.native_type
           self
@@ -151,7 +151,7 @@ module Praxis
         def self.load(filters, _context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           return filters if filters.is_a?(native_type)
           return new if filters.nil?
-          parsed = filters.split('&').each_with_object({}) do |filter_string, hash|
+          parsed = filters.split('&').each_with_object([]) do |filter_string, arr|
             match = FILTER_REGEX.match(filter_string)
             values = match[:value].split(',')
             value = if values.size > 1
@@ -176,7 +176,7 @@ module Praxis
             else
               value
             end
-            hash[attr_name] = { op: match[:operator], value: coerced }
+            arr.push(name: attr_name, specs: { op: match[:operator], value: coerced } )
           end
           new(parsed)
         end
@@ -197,12 +197,14 @@ module Praxis
           hash
         end
   
-        def initialize(parsed = {})
-          @parsed_hash = parsed
+        def initialize(parsed = [])
+          @parsed_array = parsed
         end
   
         def validate(_context = Attributor::DEFAULT_ROOT_CONTEXT)
-          parsed_hash.each_with_object([]) do |(attr_name, specs), errors|
+          parsed_array.each_with_object([]) do |item, errors|
+            attr_name = item[:name]
+            specs = item[:specs]
             attr_filters = allowed_filters[attr_name]
             unless attr_filters
               errors << "Filtering by #{attr_name} is not allowed. You can filter by #{allowed_filters.keys.map(&:to_s).join(', ')}"
@@ -239,13 +241,15 @@ module Praxis
   
         # Dump back string parseable form
         def dump
-          parsed_hash.each_with_object([]) do |(field, spec), arr|
+          parsed_array.each_with_object([]) do |item, arr|
+            field = item[:name]
+            spec = item[:specs]
             arr << "#{field}#{spec[:op]}#{spec[:value]}"
           end.join('&')
         end
   
         def each
-          parsed_hash&.each do |filter|
+          parsed_array&.each do |filter|
             yield filter
           end
         end

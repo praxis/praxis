@@ -36,7 +36,9 @@ module Praxis
       end
 
       def build_clause(filters)
-        filters.each do |(attr, spec)|
+        filters.each do |item|
+          attr = item[:name]
+          spec = item[:specs]
           column_name = attr_to_column[attr]
           raise "Filtering by #{attr} not allowed (no mapping found)" unless column_name
           if column_name.is_a?(Proc)

@@ -118,9 +118,11 @@ module Praxis
         unless rest.empty?
           joined_alias = pick_alias(column_name)
           @query = do_join(query, column_name, @last_join_alias, joined_alias)
+          saved_join_alias = @last_join_alias
           @last_join_alias = joined_alias
           new_column_name, *new_rest = rest
           expand_binding(column_name: new_column_name, rest: new_rest, op: op, value: value, use_this_name_for_clause: joined_alias)
+          @last_join_alias = saved_join_alias          
         else
           column_name = "#{use_this_name_for_clause}.#{column_name}"
           add_clause(column_name: column_name, op: op, value: value)

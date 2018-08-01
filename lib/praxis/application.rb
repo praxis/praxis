@@ -10,6 +10,7 @@ module Praxis
     attr_reader :resource_definitions
     attr_reader :app
     attr_reader :builder
+    attr_reader :api_definition
 
     attr_accessor :bootloader
     attr_accessor :file_layout
@@ -24,12 +25,15 @@ module Praxis
 
     attr_accessor :versioning_scheme
 
-
+    def print_me
+      ">>>0x#{(self.object_id << 1).to_s(16)}"
+    end
+    
     def self.instance
-      i = $instance || Thread.current[:praxis_instance] 
+      i = $praxis_initializing_instance || Thread.current[:praxis_instance] 
       return i if i
-      $instance = self.new
-      $instance
+      $praxis_initializing_instance = self.new
+      $praxis_initializing_instance
     end
     
     def self.configure
@@ -37,6 +41,8 @@ module Praxis
     end
 
     def initialize
+      old = $praxis_initializing_instance
+      $praxis_initializing_instance = self # ApiDefinition.new needs to get the instance...
       @controllers = Set.new
       @resource_definitions = Set.new
 
@@ -57,12 +63,36 @@ module Praxis
       @config = Config.new
       @root = nil
       @logger = Logger.new(STDOUT)
+      @api_definition = ApiDefinition.new
+      
+      @api_definition.define do |api|
+        api.response_template :ok do |media_type: , location: nil, headers: nil, description: nil |
+          status 200
+          description( description || 'Standard response for successful HTTP requests.' )
+
+          media_type media_type
+          location location
+          headers headers if headers
+        end
+
+        api.response_template :created do |media_type: nil, location: nil, headers: nil, description: nil|
+          status 201
+          description( description || 'The request has been fulfilled and resulted in a new resource being created.' )
+
+          media_type media_type if media_type
+          location location
+          headers headers if headers
+        end
+      end
+      
+      $praxis_initializing_instance = old
     end
 
 
     def setup(root: '.')
-
       return self unless @app.nil?
+      saved_value = $praxis_initializing_instance
+      $praxis_initializing_instance = self
       @root = Pathname.new(root).expand_path
 
       builtin_handlers = {
@@ -76,6 +106,11 @@ module Praxis
         self.handler(name, handler) unless handlers.key?(name)
       end
 
+      require 'praxis/responses/http'
+      require 'praxis/responses/internal_server_error'
+      require 'praxis/responses/validation_error'
+      require 'praxis/responses/multipart_ok'
+
       bootloader.setup!
       builder.run(@router)
       @app = builder.to_app
@@ -87,6 +122,7 @@ module Praxis
         status, _, _ = payload[:response]
         Stats.increment "rack.request.#{status}"
       end
+      $praxis_initializing_instance = saved_value
       self
     end
 
@@ -116,9 +152,13 @@ module Praxis
 
     def call(env)
       response = []
+      old = Thread.current[:praxis_instance]
+      Thread.current[:praxis_instance] = self
       Notifications.instrument 'rack.request.all'.freeze, response: response do
         response.push(*@app.call(env))
       end
+    ensure
+      Thread.current[:praxis_instance] = old      
     end
 
     def layout(&block)

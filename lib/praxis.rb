@@ -124,10 +124,11 @@ module Praxis
     autoload :Response, 'praxis/request_stages/response'
   end
 
-  # Avoid loading responses (and templates) lazily as they need to be registered in time
-  require 'praxis/responses/http'
-  require 'praxis/responses/internal_server_error'
-  require 'praxis/responses/validation_error'
-  require 'praxis/responses/multipart_ok'
+  # # Avoid loading responses (and templates) lazily as they need to be registered in time
+  # ... now done in Praxis initialize
+  # require 'praxis/responses/http'
+  # require 'praxis/responses/internal_server_error'
+  # require 'praxis/responses/validation_error'
+  # require 'praxis/responses/multipart_ok'
 
 end

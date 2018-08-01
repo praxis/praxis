@@ -4,7 +4,7 @@ require 'forwardable'
 module Praxis
 
   class ApiDefinition
-    include Singleton
+#    include Singleton
     extend Forwardable
 
     attr_reader :traits
@@ -14,11 +14,27 @@ module Praxis
 
     attr_accessor :versioning_scheme
 
+    def self.instance
+      i = $praxis_initializing_instance || Thread.current[:praxis_instance] 
+      raise "Trying to use Praxis::ApiDefinition outside the context of a Praxis::Application" unless i
+      i.api_definition
+    end
+    
     def self.define(&block)
+      
+      definition = Praxis::Application.instance.api_definition
       if block.arity == 0
-        self.instance.instance_eval(&block)
+        definition.instance_eval(&block)
       else
-        yield(self.instance)
+        yield(definition)
+      end
+    end
+    
+    def define(&block)
+      if block.arity == 0
+        self.instance_eval(&block)
+      else
+        yield(self)
       end
     end
 
@@ -91,25 +107,26 @@ module Praxis
       data
     end
 
-    define do |api|
-      api.response_template :ok do |media_type: , location: nil, headers: nil, description: nil |
-        status 200
-        description( description || 'Standard response for successful HTTP requests.' )
-
-        media_type media_type
-        location location
-        headers headers if headers
-      end
-
-      api.response_template :created do |media_type: nil, location: nil, headers: nil, description: nil|
-        status 201
-        description( description || 'The request has been fulfilled and resulted in a new resource being created.' )
-
-        media_type media_type if media_type
-        location location
-        headers headers if headers
-      end
-    end
+    # CANNOT DEFINE IT AT FILE LOADING TIME: THE INSTANCE FOR THE API_DEFINITION IS NOT READY YET.
+    # define do |api|
+    #   api.response_template :ok do |media_type: , location: nil, headers: nil, description: nil |
+    #     status 200
+    #     description( description || 'Standard response for successful HTTP requests.' )
+    #
+    #     media_type media_type
+    #     location location
+    #     headers headers if headers
+    #   end
+    #
+    #   api.response_template :created do |media_type: nil, location: nil, headers: nil, description: nil|
+    #     status 201
+    #     description( description || 'The request has been fulfilled and resulted in a new resource being created.' )
+    #
+    #     media_type media_type if media_type
+    #     location location
+    #     headers headers if headers
+    #   end
+    # end
 
   end
 

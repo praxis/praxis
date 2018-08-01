@@ -130,10 +130,7 @@ module Praxis
     class UnprocessableEntity < Praxis::Response
       self.status = 422
     end
-
-    ApiDefinition.define do |api|
-
-
+    Praxis::Application.instance.api_definition.define do |api|
       [
         [ :accepted, 202, "The request has been accepted for processing, but the processing has not been completed." ],
         [ :no_content, 204,"The server successfully processed the request, but is not returning any content."],

@@ -33,6 +33,7 @@ module Praxis
       i = $praxis_initializing_instance || Thread.current[:praxis_instance] 
       return i if i
       $praxis_initializing_instance = self.new
+      puts "Praxis: New instance #{$praxis_initializing_instance.print_me}"      
       $praxis_initializing_instance
     end
     
@@ -41,6 +42,7 @@ module Praxis
     end
 
     def initialize
+      puts "Praxis: initialize #{print_me}"
       old = $praxis_initializing_instance
       $praxis_initializing_instance = self # ApiDefinition.new needs to get the instance...
       @controllers = Set.new

@@ -35,7 +35,7 @@ module Praxis
     end
     
     def self.instance
-      i = $praxis_initializing_instance || Thread.current[:praxis_instance] 
+      i = Thread.current[:praxis_instance] || $praxis_initializing_instance
       return i if i
       $praxis_initializing_instance = self.new
       puts "Praxis: New instance #{$praxis_initializing_instance.print_me}"      
@@ -91,6 +91,68 @@ module Praxis
           headers headers if headers
         end
       end
+      
+      require 'praxis/responses/http'
+      self.api_definition.define do |api|
+        [
+          [ :accepted, 202, "The request has been accepted for processing, but the processing has not been completed." ],
+          [ :no_content, 204,"The server successfully processed the request, but is not returning any content."],
+          [ :multiple_choices, 300,"Indicates multiple options for the resource that the client may follow."],
+          [ :moved_permanently, 301,"This and all future requests should be directed to the given URI."],
+          [ :found, 302,"The requested resource resides temporarily under a different URI."],
+          [ :see_other, 303,"The response to the request can be found under another URI using a GET method"],
+          [ :not_modified, 304,"Indicates that the resource has not been modified since the version specified by the request headers If-Modified-Since or If-Match."],
+          [ :temporary_redirect, 307,"In this case, the request should be repeated with another URI; however, future requests should still use the original URI."],
+          [ :bad_request, 400,"The request cannot be fulfilled due to bad syntax."],
+          [ :unauthorized, 401,"Similar to 403 Forbidden, but specifically for use when authentication is required and has failed or has not yet been provided."],
+          [ :forbidden, 403,"The request was a valid request, but the server is refusing to respond to it."],
+          [ :not_found, 404,"The requested resource could not be found but may be available again in the future."],
+          [ :method_not_allowed, 405,"A request was made of a resource using a request method not supported by that resource."],
+          [ :not_acceptable, 406,"The requested resource is only capable of generating content not acceptable according to the Accept headers sent in the request."],
+          [ :request_timeout, 408,"The server timed out waiting for the request."],
+          [ :conflict, 409, "Indicates that the request could not be processed because of conflict in the request, such as an edit conflict in the case of multiple updates."],
+          [ :precondition_failed, 412,"The server does not meet one of the preconditions that the requester put on the request."],
+          [ :unprocessable_entity, 422,"The request was well-formed but was unable to be followed due to semantic errors."],
+        ].each do |name, code, base_description|
+          api.response_template name do |media_type: nil, location: nil, headers: nil, description: nil|
+            status code
+            description( description || base_description ) # description can "potentially" be overriden in an individual action.
+
+            media_type media_type if media_type
+            location location if location
+            headers headers if headers
+          end
+        end
+
+      end
+      
+      require 'praxis/responses/internal_server_error'
+      self.api_definition.define do |api|
+        api.response_template :internal_server_error do
+          description "A generic error message, given when an unexpected condition was encountered and no more specific message is suitable."
+          status 500
+          media_type "application/json"
+        end
+      end
+      
+      require 'praxis/responses/validation_error'
+      self.api_definition.define do |api|
+        api.response_template :validation_error do
+          description "An error message indicating that one or more elements of the request did not match the API specification for the action"
+          status 400
+          media_type "application/json"
+        end
+      end
+      
+      
+      require 'praxis/responses/multipart_ok'
+      self.api_definition.define do |api|
+        api.response_template :multipart_ok do |media_type: Praxis::Types::MultipartArray|
+          status 200
+          media_type media_type
+        end
+      end
+      
       if self.class.registered_apps[name]
         raise "A Praxis instance named #{name} has already been registered, please use the :name parameter to initialize them"
       end
@@ -115,11 +177,6 @@ module Praxis
       builtin_handlers.each_pair do |name, handler|
         self.handler(name, handler) unless handlers.key?(name)
       end
-
-      require 'praxis/responses/http'
-      require 'praxis/responses/internal_server_error'
-      require 'praxis/responses/validation_error'
-      require 'praxis/responses/multipart_ok'
 
       bootloader.setup!
       builder.run(@router)

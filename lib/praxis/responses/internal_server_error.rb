@@ -35,12 +35,4 @@ module Praxis
 
   end
 
-  ApiDefinition.define do |api|
-    api.response_template :internal_server_error do
-      description "A generic error message, given when an unexpected condition was encountered and no more specific message is suitable."
-      status 500
-      media_type "application/json"
-    end
-  end
-
 end

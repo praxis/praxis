@@ -41,11 +41,4 @@ module Praxis
 
   end
 
-  ApiDefinition.define do |api|
-    api.response_template :multipart_ok do |media_type: Praxis::Types::MultipartArray|
-      status 200
-      media_type media_type
-    end
-  end
-
 end

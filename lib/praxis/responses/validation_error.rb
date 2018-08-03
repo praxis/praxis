@@ -31,13 +31,4 @@ module Praxis
 
   end
 
-
-  ApiDefinition.define do |api|
-    api.response_template :validation_error do
-      description "An error message indicating that one or more elements of the request did not match the API specification for the action"
-      status 400
-      media_type "application/json"
-    end
-  end
-
 end

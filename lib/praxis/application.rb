@@ -25,6 +25,11 @@ module Praxis
 
     attr_accessor :versioning_scheme
 
+    @registered_apps = {}
+    def self.registered_apps
+      @registered_apps
+    end
+    
     def print_me
       ">>>0x#{(self.object_id << 1).to_s(16)}"
     end
@@ -41,7 +46,7 @@ module Praxis
       yield(self.instance)
     end
 
-    def initialize
+    def initialize(name: 'default')
       puts "Praxis: initialize #{print_me}"
       old = $praxis_initializing_instance
       $praxis_initializing_instance = self # ApiDefinition.new needs to get the instance...
@@ -86,7 +91,10 @@ module Praxis
           headers headers if headers
         end
       end
-      
+      if self.class.registered_apps[name]
+        raise "A Praxis instance named #{name} has already been registered, please use the :name parameter to initialize them"
+      end
+      self.class.registered_apps[name] = self
       $praxis_initializing_instance = old
     end
 

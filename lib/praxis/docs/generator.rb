@@ -5,7 +5,8 @@ module Praxis
       require 'active_support/core_ext/enumerable' # For index_by
 
       API_DOCS_DIRNAME = 'docs/api'
-
+      
+      attr_reader :app_instance
       attr_reader :resources_by_version, :types_by_id, :infos_by_version
       attr_reader :doc_root_dir
 
@@ -24,13 +25,21 @@ module Praxis
         Attributor::URI,
       ]).freeze
 
-
-      def initialize(root)
+      def self.generate(root, name:, skip_sub_directory: false)
+        instance = Praxis::Application.registered_apps[name]
+        Thread.current[:praxis_instance] = instance
+        self.new(root, instance: instance, name: name, skip_sub_directory: skip_sub_directory).save!
+        Thread.current[:praxis_instance] = nil
+      end
+      
+      def initialize(root, instance:, name:, skip_sub_directory:)
         require 'yaml'
         @resources_by_version =  Hash.new do |h,k|
           h[k] = Set.new
         end
-        initialize_directories(root)
+        @app_instance = instance
+        subdir = skip_sub_directory ? nil : name
+        initialize_directories(root, subdir: subdir )
 
         Attributor::AttributeResolver.current = Attributor::AttributeResolver.new
         collect_infos
@@ -48,9 +57,10 @@ module Praxis
 
       private
 
-      def initialize_directories(root)
+      def initialize_directories(root, subdir: nil )
         @doc_root_dir = File.join(root, API_DOCS_DIRNAME)
-
+        @doc_root_dir = File.join(@doc_root_dir, subdir) if subdir
+        
         # remove previous data (and reset the directory)
         FileUtils.rm_rf @doc_root_dir if File.exists?(@doc_root_dir)
         FileUtils.mkdir_p @doc_root_dir unless File.exists? @doc_root_dir
@@ -59,7 +69,7 @@ module Praxis
       def collect_resources
         # load all resource definitions registered with Praxis
         # TODO SINGLETON: ... what do do here?...
-        Praxis::Application.instance.resource_definitions.map do |resource|
+        app_instance.resource_definitions.map do |resource|
           # skip resources with doc_visibility of :none
           next if resource.metadata[:doc_visibility] == :none
           version = resource.version
@@ -77,7 +87,7 @@ module Praxis
 
       def collect_infos
         # All infos. Including keys for `:global`, "n/a", and any string version
-        @infos_by_version = ApiDefinition.instance.describe
+        @infos_by_version = app_instance.api_definition.describe
       end
 
 

@@ -58,8 +58,16 @@ namespace :praxis do
       require 'fileutils'
 
       Praxis::Blueprint.caching_enabled = false
-      generator = Praxis::Docs::Generator.new(Dir.pwd)
-      generator.save!
+      
+      apps = Praxis::Application.registered_apps
+      if apps.size == 1
+        # Backwards compatible directory generation when there's only 1 app
+        Praxis::Docs::Generator.generate(Dir.pwd, name: apps.first[0], skip_sub_directory: true)
+      else
+        apps.each do|name,instance|
+          Praxis::Docs::Generator.generate(Dir.pwd, name: name)
+        end
+      end
     end
 
   end

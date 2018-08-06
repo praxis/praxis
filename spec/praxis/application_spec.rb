@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Praxis::Application do
   context 'configuration' do
     subject(:app) do
-      app = Class.new(Praxis::Application).new
+      app = Class.new(Praxis::Application).new(skip_registration: true)
 
       config = Object.new
       def config.define(key=nil, type=Attributor::Struct, **opts, &block)
@@ -45,7 +45,7 @@ describe Praxis::Application do
   end
 
   context 'media type handlers' do
-    subject { Class.new(Praxis::Application).new }
+    subject { Class.new(Praxis::Application).new(skip_registration: true) }
 
     before do
       # don't actually bootload; we're merely running specs
@@ -94,7 +94,7 @@ describe Praxis::Application do
   end
 
   describe '#setup' do
-    subject { Praxis::Application.new }
+    subject { Praxis::Application.new(skip_registration: true) }
     let(:boot_loader) { double("BL", setup!: true) }
     let(:builder) { double("Builder", to_app: double('Rack app'), run: true) }
     

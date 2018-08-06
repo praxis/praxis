@@ -15,7 +15,7 @@ module Praxis
     attr_accessor :versioning_scheme
 
     def self.instance
-      i = $praxis_initializing_instance || Thread.current[:praxis_instance] 
+      i = Thread.current[:praxis_instance] || $praxis_initializing_instance
       raise "Trying to use Praxis::ApiDefinition outside the context of a Praxis::Application" unless i
       i.api_definition
     end

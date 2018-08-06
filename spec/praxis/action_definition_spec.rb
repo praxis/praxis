@@ -1,6 +1,15 @@
 require 'spec_helper'
 
 describe Praxis::ActionDefinition do
+  
+  before(:context) do
+    Thread.current[:praxis_instance] = Praxis::Application.new(name: 'action_definition_spec', skip_registration: true)
+  end
+  
+  let(:praxis_instance) do
+    Thread.current[:praxis_instance]
+  end
+  
   class SpecMediaType < Praxis::MediaType
     identifier 'application/json'
 
@@ -31,16 +40,18 @@ describe Praxis::ActionDefinition do
       end
     end
   end
-
   subject(:action) do
-
-    Praxis::ApiDefinition.define do |api|
+    praxis_instance.api_definition.define do |api|
       api.response_template :ok do |media_type: , location: nil, headers: nil, description: nil |
         status 200
 
         media_type media_type
         location location
         headers headers if headers
+      end
+      
+      api.info do # applies to all API infos
+        base_path "/pref"
       end
     end
     Praxis::ActionDefinition.new(:foo, resource_definition) do
@@ -111,11 +122,11 @@ describe Praxis::ActionDefinition do
     let(:traits) { {test: trait} }
 
     before do
-      allow(Praxis::ApiDefinition.instance).to receive(:traits).and_return(traits)
+      allow(praxis_instance.api_definition).to receive(:traits).and_return(traits)
     end
 
     its('params.attributes.keys') { should eq [:inherited, :app_name, :name, :one]}
-    its('routes.first.path.to_s') { should eq '/api/foobars/hello_world/test_trait/:app_name/:one' }
+    its('routes.first.path.to_s') { should eq '/pref/foobars/hello_world/test_trait/:app_name/:one' }
     its(:traits) { should eq [:test] }
 
     it 'is reflected in the describe output' do
@@ -315,11 +326,9 @@ describe Praxis::ActionDefinition do
   end
 
   context 'with a base_path and base_params on ApiDefinition' do
-    # Without getting a fresh new ApiDefinition it is very difficult to test stuff using the Singleton
-    # So for some tests we're gonna create a new instance and work with it to avoid the singleton issues
-    let(:non_singleton_api) do
-      api_def=Praxis::ApiDefinition.__send__(:new)
-      api_def.instance_eval do |api|
+    subject(:action) do
+      api_def=Praxis::ApiDefinition.new
+      api_def.define do |api|
 
         api.info do
           base_path '/apps/:app_name'
@@ -332,11 +341,13 @@ describe Praxis::ActionDefinition do
         end
 
       end
-      api_def
-    end
-
-    before do
-      allow(Praxis::ApiDefinition).to receive(:instance).and_return(non_singleton_api)
+      # No setter...and its fine to do it here as it would not be used in a runtime situation
+      praxis_instance.instance_variable_set(:@api_definition, api_def)
+      # Define the action after the api_definition is set (as it uses is config to setup the routes)
+      Praxis::ActionDefinition.new(:bar, resource_definition) do
+        routing { get '/:one' }
+        params  { attribute :one, String }
+      end
     end
 
     its('routes.first.path.to_s') { should eq '/apps/:app_name/foobars/hello_world/:one' }

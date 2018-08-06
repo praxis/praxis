@@ -7,9 +7,10 @@ module Praxis
       Class.new(self) do
         class << self
           attr_accessor :app_instance
-          attr_reader :app_name
+          attr_reader :app_name, :skip_registration
         end
         @app_name = args.delete(:name)
+        @skip_registration = args.delete(:skip_registration) || false
         @args = args
         @app_instance = nil
         
@@ -27,11 +28,8 @@ module Praxis
     end
 
     def initialize( inner )
-      puts "SELF: #{self}"
       @target = inner
-      self.class.app_instance = Praxis::Application.new(name: self.class.app_name)
-      
-      #$josep_hack_mware = self
+      self.class.app_instance = Praxis::Application.new(name: self.class.app_name, skip_registration: self.class.skip_registration)      
     end
     
     def call(env)

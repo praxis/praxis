@@ -25,9 +25,10 @@ module Praxis
 
     attr_accessor :versioning_scheme
 
-    @registered_apps = {}
+    @@registered_apps = {}
+
     def self.registered_apps
-      @registered_apps
+      @@registered_apps
     end
     
     def print_me
@@ -46,8 +47,8 @@ module Praxis
       yield(self.instance)
     end
 
-    def initialize(name: 'default')
-      puts "Praxis: initialize #{print_me}"
+    def initialize(name: 'default', skip_registration: false)
+      # puts "Praxis: initialize #{print_me}"
       old = $praxis_initializing_instance
       $praxis_initializing_instance = self # ApiDefinition.new needs to get the instance...
       @controllers = Set.new
@@ -153,10 +154,12 @@ module Praxis
         end
       end
       
-      if self.class.registered_apps[name]
-        raise "A Praxis instance named #{name} has already been registered, please use the :name parameter to initialize them"
+      unless skip_registration
+        if self.class.registered_apps[name]
+          raise "A Praxis instance named #{name} has already been registered, please use the :name parameter to initialize them"
+        end
+        self.class.registered_apps[name] = self
       end
-      self.class.registered_apps[name] = self
       $praxis_initializing_instance = old
     end
 

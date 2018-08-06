@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Praxis::MiddlewareApp do
 
-  let(:init_args){ { root: 'here'} }
+  let(:init_args){ { root: 'here', name: 'middleware_app_spec', skip_registration: true} }
   let(:middleware) { Praxis::MiddlewareApp.for( init_args ) }
   let(:instance){ middleware.new(target)}
 
@@ -29,7 +29,7 @@ describe Praxis::MiddlewareApp do
     end
     
     context '.call' do
-      let(:the_instance) { double("The instance") }
+      let(:the_instance) { double("The instance", setup: nil) }
       let(:env){ {} }
       let(:praxis_response){ [200,{}] }
       subject(:response){ instance.call(env) }
@@ -40,8 +40,8 @@ describe Praxis::MiddlewareApp do
         allow( the_instance ).to receive(:setup).and_return(the_instance)
       end
 
-      it 'initializes the application singletone with the passed parameters' do
-        expect( the_instance ).to receive(:setup).with( init_args ).once
+      it 'does not explicitly call setup in the initialization (the app needs to do it at the right time)' do
+        expect( the_instance ).to_not receive(:setup)
         subject
       end
       

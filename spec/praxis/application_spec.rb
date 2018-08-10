@@ -51,6 +51,7 @@ describe Praxis::Application do
       # don't actually bootload; we're merely running specs
       allow(subject.bootloader).to receive(:setup!).and_return(true)
       allow(subject.builder).to receive(:to_app).and_return(double('Rack app'))
+      allow(subject.config).to receive(:praxis).and_return(double("praxis_config", enable_praxis_stats: false))
     end
 
     describe '#handler' do
@@ -102,7 +103,7 @@ describe Praxis::Application do
       # don't actually bootload; we're merely running specs  
       allow(subject).to receive(:bootloader).and_return(boot_loader)
       allow(subject).to receive(:builder).and_return(builder)
-
+      allow(subject.config).to receive(:praxis).and_return(double("praxis_config", enable_praxis_stats: false))
     end
 
     it 'is idempotent' do

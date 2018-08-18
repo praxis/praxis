@@ -1,7 +1,24 @@
 require "spec_helper"
 
 describe Praxis::ResponseDefinition do
-  subject(:response_definition) { Praxis::ResponseDefinition.new(name, &block) }
+  let(:praxis_app) do
+    app = Praxis::Application.new(skip_registration: true)
+    app.versioning_scheme = [:header, :params]
+    app.handler 'json' , Praxis::Handlers::JSON
+    app.handler 'x-www-form-urlencoded', Praxis::Handlers::WWWForm
+    app.handler 'xml', Praxis::Handlers::XML
+    app.api_definition.instance_eval do |api_def|
+      api_def.info do
+        base_path "/api"
+        produces 'json','xml'
+      end
+    end
+    app
+  end
+  
+  
+  
+  subject(:response_definition) { Praxis::ResponseDefinition.new(name, praxis_app, &block) }
   let(:name) { 'response_name' }
 
   let(:block) do
@@ -482,7 +499,7 @@ describe Praxis::ResponseDefinition do
   context 'with invalid definitions' do
     it 'raises an error if status code is not part of the definition' do
       expect do
-        Praxis::ResponseDefinition.new('response name') do
+        Praxis::ResponseDefinition.new('response name',praxis_app) do
           description "testing"
         end
       end.to raise_error(Praxis::Exceptions::InvalidConfiguration)
@@ -496,7 +513,7 @@ describe Praxis::ResponseDefinition do
     let(:parts) { nil }
 
     let(:response) do
-      Praxis::ResponseDefinition.new(:custom) do
+      Praxis::ResponseDefinition.new(:custom, praxis_app) do
         status 300
       end
     end
@@ -524,8 +541,8 @@ describe Praxis::ResponseDefinition do
         its(['xml', :content_type]) { should eq('application/vnd.acme.instance+xml') }
 
         it 'properly encodes the example bodies' do
-          json = Praxis::Application.instance.handlers['json'].parse(examples['json'][:body])
-          xml = Praxis::Application.instance.handlers['xml'].parse(examples['xml'][:body])
+          json = praxis_app.handlers['json'].parse(examples['json'][:body])
+          xml = praxis_app.handlers['xml'].parse(examples['xml'][:body])
           expect(json).to eq xml
         end
 

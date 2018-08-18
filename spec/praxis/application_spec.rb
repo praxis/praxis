@@ -116,5 +116,9 @@ describe Praxis::Application do
       expect(subject.setup).to eq(subject)
       expect(subject.setup).to eq(subject)
     end
+    
+    it 'creates an ApiDefinition that has a back-reference' do
+      expect(subject.api_definition.application).to eq(subject)
+    end
   end
 end

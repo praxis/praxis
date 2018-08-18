@@ -1,7 +1,7 @@
 module Praxis
 
   class Request < Praxis.request_superclass
-    attr_reader :env, :query
+    attr_reader :env, :query, :praxis_instance
     attr_accessor :route_params, :action
 
     PATH_VERSION_PREFIX = "/v".freeze
@@ -14,10 +14,11 @@ module Praxis
     API_NO_VERSION_NAME = 'n/a'.freeze
     VERSION_USING_DEFAULTS = [:header, :params].freeze
 
-    def initialize(env)
+    def initialize(env, args={})
       @env = env
       @query = Rack::Utils.parse_nested_query(env[QUERY_STRING_NAME])
       @route_params = {}
+      @praxis_instance = args[:application]
     end
 
     # Determine the content type of this request as indicated by the Content-Type header.
@@ -86,9 +87,8 @@ module Praxis
     PATH_VERSION_MATCHER = %r{^#{self.path_version_prefix}(?<version>[^\/]+)\/}.freeze
 
     def path_version_matcher
-      # TODO SINGLETON: ... what do do here?...
-      if Application.instance.versioning_scheme == :path
-        matcher = Mustermann.new(ApiDefinition.instance.info.base_path + '*')
+      if praxis_instance.versioning_scheme == :path
+        matcher = Mustermann.new(praxis_instance.api_definition.info.base_path + '*')
         matcher.params(self.path)[API_VERSION_PARAM_NAME]
       else
         PATH_VERSION_MATCHER.match(self.path)[:version]
@@ -98,7 +98,7 @@ module Praxis
     def version
       result = nil
       # TODO SINGLETON: ... what do do here?...
-      Array(Application.instance.versioning_scheme).find do |mode|
+      Array(praxis_instance.versioning_scheme).find do |mode|
         case mode
         when :header;
           result = env[API_VERSION_HEADER_NAME]
@@ -130,7 +130,7 @@ module Praxis
       return unless action.payload
       return if content_type.nil?
       # TODO SINGLETON: ... what do do here?...
-      raw = if (handler = Praxis::Application.instance.handlers[content_type.handler_name])
+      raw = if (handler = praxis_instance.handlers[content_type.handler_name])
         handler.parse(self.raw_payload)
       else
         # TODO is this a good default?

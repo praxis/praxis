@@ -20,7 +20,8 @@ module Praxis
         end
 
         definition.controller = self
-        # TODO SINGLETON: ... can we be sure we're pointing to the right instance here? ...
+        # `implements` should only be processed while the application initializes/setup
+        # So we will use the `.instance` function to get the "current" application instance
         Application.instance.controllers << self
       end
 

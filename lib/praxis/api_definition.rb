@@ -1,10 +1,8 @@
-require 'singleton'
 require 'forwardable'
 
 module Praxis
 
   class ApiDefinition
-#    include Singleton
     extend Forwardable
 
     attr_reader :traits

@@ -189,7 +189,7 @@ describe Praxis::Router do
       end
 
       context 'with X-Cascade disabled' do
-        let(:config) { Praxis::Application.instance.config.praxis }
+        let(:config) { application.config.praxis }
         before do
           expect(config).to receive(:x_cascade).and_return(false)
         end

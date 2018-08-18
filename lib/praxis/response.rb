@@ -63,7 +63,7 @@ module Praxis
       self.class.response_name
     end
 
-    def format!
+    def format!(config:)
     end
 
     def encode!(handlers:)
@@ -77,9 +77,9 @@ module Praxis
       end
     end
 
-    def finish(handlers:)
-      format!
-      encode!(handlers: handlers)
+    def finish(application:)
+      format!(config: application.config)
+      encode!(handlers: application.handlers)
 
       @body = Array(@body)
 

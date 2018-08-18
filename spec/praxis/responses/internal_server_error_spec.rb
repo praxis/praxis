@@ -17,14 +17,11 @@ describe Praxis::Responses::InternalServerError do
 
 
   context '.format!' do
+    let(:app){ double("PraxisApp", config: double(praxis: config)) }
     let(:error) { double('error', message: 'error message', backtrace: [1, 2], cause: cause) }
 
     let(:show_exceptions) { true }
     let(:config) { double("config", show_exceptions: show_exceptions) }
-
-    before do
-      allow(Praxis::Application.instance.config).to receive(:praxis).and_return(config)
-    end
 
     context 'with show_exceptions false' do
     end
@@ -53,7 +50,7 @@ describe Praxis::Responses::InternalServerError do
     subject(:response) { Praxis::Responses::InternalServerError.new(error: error) }
     before do
       expect(response.body).to be_nil
-      response.format!
+      response.format!(config: app.config)
     end
 
   end

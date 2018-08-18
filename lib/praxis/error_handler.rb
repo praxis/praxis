@@ -14,7 +14,7 @@ module Praxis
 
       response = Responses::InternalServerError.new(error: error)
       response.request = request
-      response.finish(handlers: praxis_instance.handlers)
+      response.finish(application: praxis_instance)
     end
 
   end

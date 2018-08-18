@@ -15,7 +15,7 @@ module Praxis
         @documentation = documentation
       end
 
-      def format!
+      def format!(**_args)
         @body = {name: 'ValidationError', summary: @summary }
         @body[:errors] = @errors if @errors
 

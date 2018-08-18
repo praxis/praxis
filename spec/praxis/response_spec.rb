@@ -49,9 +49,13 @@ describe Praxis::Response do
   end
 
   subject(:response) { Praxis::Responses::Ok.new(status: response_status, headers: response_headers) }
+  let(:application) do
+    double("PraxisApp", handlers: handlers, config: praxis_config)
+  end
   let(:handlers) do
     {'json' => Praxis::Handlers::JSON.new }
   end
+  let(:praxis_config){ double(praxis: double("...") )  }
   
   describe '#validate' do
     before do
@@ -161,7 +165,7 @@ describe Praxis::Response do
         response.status = 500
       end
 
-      let!(:finished_response) { response.finish(handlers: handlers) }
+      let!(:finished_response) { response.finish(application: application) }
 
       it 'returns status, headers, body' do
         expect(finished_response).to eq([response.status, response.headers, response.body])

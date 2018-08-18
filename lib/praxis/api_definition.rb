@@ -21,7 +21,7 @@ module Praxis
     
     def self.define(&block)
       
-      definition = Praxis::Application.instance.api_definition
+      definition = Praxis::Application.current_instance.api_definition
       if block.arity == 0
         definition.instance_eval(&block)
       else
@@ -43,10 +43,10 @@ module Praxis
       @traits = Hash.new
       @base_path = ''
 
-      @global_info = ApiGeneralInfo.new
+      @global_info = ApiGeneralInfo.new(application: application)
 
       @infos = Hash.new do |hash, version|
-        hash[version] = ApiGeneralInfo.new(@global_info, version: version)
+        hash[version] = ApiGeneralInfo.new(@global_info, application: application, version: version)
       end
     end
 

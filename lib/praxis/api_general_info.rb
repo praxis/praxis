@@ -3,10 +3,11 @@ module Praxis
 
     attr_reader :version
 
-    def initialize(global_info=nil, version: nil)
+    def initialize(global_info=nil, application:, version: nil)
       @data = Hash.new
       @global_info = global_info
       @version = version
+      @application = application
 
       if @global_info.nil? # this *is* the global info
         version_with [:header, :params]
@@ -55,7 +56,7 @@ module Praxis
       else
         if @global_info.nil? # this *is* the global info
           # TODO SINGLETON: ... can we be sure we're pointing to the right instance here? ...
-          Application.instance.versioning_scheme = val
+          @application.versioning_scheme = val
           set(:version_with, val)
         else
           raise "Use of version_with is only allowed in the global part of " \

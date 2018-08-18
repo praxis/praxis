@@ -35,15 +35,20 @@ module Praxis
     end
     
     def self.instance
-      i = Thread.current[:praxis_instance] || $praxis_initializing_instance
+      i = current_instance
       return i if i
       $praxis_initializing_instance = self.new
       puts "Praxis: New instance #{$praxis_initializing_instance.print_me}"      
       $praxis_initializing_instance
     end
     
+    def self.current_instance
+      Thread.current[:praxis_instance] || $praxis_initializing_instance
+    end
+    
     def self.configure
-      yield(self.instance)
+       # Should fail (i.e., be nil) if it's not in initialization/setup or a runtime call
+      yield(current_instance)
     end
 
     def initialize(name: 'default', skip_registration: false)

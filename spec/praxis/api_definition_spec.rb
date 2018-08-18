@@ -8,6 +8,10 @@ describe Praxis::ApiDefinition do
   # Without getting a fresh new ApiDefinition it is very difficult to test stuff using the Singleton
   # So for some tests we're gonna create a new instance and work with it to avoid the singleton issues
   let(:app_instance){ double("AppInstance") }
+  before do
+    allow(app_instance).to receive(:versioning_scheme=).with([:header, :params])
+  end
+  
   let(:non_singleton_api) do
     api_def=Praxis::ApiDefinition.new(app_instance)
     api_def.instance_eval do |api|

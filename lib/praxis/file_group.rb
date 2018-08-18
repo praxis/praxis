@@ -7,7 +7,7 @@ module Praxis
     def initialize(base, &block)
       if base.nil?
         raise ArgumentError, "base must not be nil." \
-          "Are you missing a call Praxis::Application.instance.setup?"
+          "Have you forgot to call 'setup' on the Praxis application instance?"
       end
 
 

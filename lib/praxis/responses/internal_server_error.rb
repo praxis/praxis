@@ -13,17 +13,15 @@ module Praxis
         @error = error
       end
 
-      def format!(exception = @error)
+      def format!(exception = @error, config:)
         if @error
-
-          # TODO SINGLETON: ... what do do here?...
-          if Application.instance.config.praxis.show_exceptions == true
+          if config.praxis.show_exceptions == true
             msg = {
               name: exception.class.name,
               message: exception.message,
               backtrace: exception.backtrace
             }
-            msg[:cause] = format!(exception.cause) if exception.cause
+            msg[:cause] = format!(exception.cause, config: config) if exception.cause
           else
             msg = {name: 'InternalServerError', message: "Something bad happened."}
           end

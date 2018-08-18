@@ -1,4 +1,3 @@
-require 'singleton'
 require 'mustermann'
 require 'logger'
 
@@ -54,7 +53,7 @@ module Praxis
       @controllers = Set.new
       @resource_definitions = Set.new
 
-      @error_handler = ErrorHandler.new
+      @error_handler = ErrorHandler.new(praxis_instance: self)
       @validation_handler = ValidationHandler.new
 
       @router = Router.new(self)

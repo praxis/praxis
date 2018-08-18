@@ -66,7 +66,7 @@ module Praxis
     def call(env_or_request)
       request = case env_or_request
       when Hash
-        request_class.new(env_or_request)
+        request_class.new(env_or_request, application: application)
       when request_class
         env_or_request
       else

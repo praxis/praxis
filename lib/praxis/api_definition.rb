@@ -9,6 +9,7 @@ module Praxis
     attr_reader :responses
     attr_reader :infos
     attr_reader :global_info
+    attr_reader :application    
 
     attr_accessor :versioning_scheme
 
@@ -36,7 +37,8 @@ module Praxis
       end
     end
 
-    def initialize
+    def initialize(application)
+      @application = application
       @responses = Hash.new
       @traits = Hash.new
       @base_path = ''
@@ -49,7 +51,7 @@ module Praxis
     end
 
     def response_template(name, &block)
-      @responses[name] = Praxis::ResponseTemplate.new(name, &block)
+      @responses[name] = Praxis::ResponseTemplate.new(name, application, &block)
     end
 
     def response(name)

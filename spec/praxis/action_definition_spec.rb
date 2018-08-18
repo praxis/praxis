@@ -327,7 +327,7 @@ describe Praxis::ActionDefinition do
 
   context 'with a base_path and base_params on ApiDefinition' do
     subject(:action) do
-      api_def=Praxis::ApiDefinition.new
+      api_def=Praxis::ApiDefinition.new(praxis_instance)
       api_def.define do |api|
 
         api.info do

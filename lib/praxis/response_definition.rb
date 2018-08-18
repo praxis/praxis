@@ -4,8 +4,9 @@ module Praxis
 
   class ResponseDefinition
     attr_reader :name
-
-    def initialize(response_name, **spec, &block)
+    attr_reader :application
+    
+    def initialize(response_name, application, **spec, &block)
       unless response_name
         raise Exceptions::InvalidConfiguration.new(
           "Response name is required for a response specification"
@@ -13,6 +14,7 @@ module Praxis
       end
       @spec = { headers:{} }
       @name = response_name
+      @application = application
       self.instance_exec(**spec, &block) if block_given?
 
       if self.status.nil?
@@ -141,10 +143,9 @@ module Praxis
           # FIXME: remove load when when MediaTypeCommon.identifier returns a MediaTypeIdentifier
           identifier = MediaTypeIdentifier.load(self.media_type.identifier)
 
-          default_handlers = Praxis::Application.instance.api_definition.info.produces
+          default_handlers = application.api_definition.info.produces
 
-          # TODO SINGLETON: ... what do do here?...
-          handlers = Praxis::Application.instance.handlers.select do |k,v|
+          handlers = application.handlers.select do |k,v|
             default_handlers.include?(k)
           end
 
@@ -201,7 +202,7 @@ module Praxis
         raise ArgumentError, "Parts definition for response #{name} does not allow :like and a block simultaneously"
       end
       if like
-        template = ApiDefinition.instance.response(like)
+        template = application.api_definition.response(like)
         @parts = template.compile(nil, **args)
       else # block
         @parts = Praxis::ResponseDefinition.new('anonymous', **args, &a_proc)

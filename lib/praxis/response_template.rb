@@ -1,11 +1,12 @@
 module Praxis
 
   class ResponseTemplate
-    attr_reader :name, :block
+    attr_reader :name, :block, :application
 
-    def initialize(response_name, &block)
+    def initialize(response_name, application, &block)
       @name = response_name
       @block = block
+      @application = application
     end
 
     def compile(action=nil, **args)
@@ -23,7 +24,7 @@ module Praxis
           args[:media_type] = media_type
         end
       end
-      Praxis::ResponseDefinition.new(name, **args, &block)   
+      Praxis::ResponseDefinition.new(name, application, **args, &block)   
     end
 
     def describe

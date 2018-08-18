@@ -70,7 +70,7 @@ module Praxis
       @config = Config.new
       @root = nil
       @logger = Logger.new(STDOUT)
-      @api_definition = ApiDefinition.new
+      @api_definition = ApiDefinition.new(self)
       
       @api_definition.define do |api|
         api.response_template :ok do |media_type: , location: nil, headers: nil, description: nil |

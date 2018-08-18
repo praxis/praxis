@@ -153,22 +153,6 @@ module Praxis
         end
       end
       
-      unless skip_registration
-        if self.class.registered_apps[name]
-          raise "A Praxis instance named #{name} has already been registered, please use the :name parameter to initialize them"
-        end
-        self.class.registered_apps[name] = self
-      end
-      $praxis_initializing_instance = old
-    end
-
-
-    def setup(root: '.')
-      return self unless @app.nil?
-      saved_value = $praxis_initializing_instance
-      $praxis_initializing_instance = self
-      @root = Pathname.new(root).expand_path
-
       builtin_handlers = {
         'plain' => Praxis::Handlers::Plain,
         'json' => Praxis::Handlers::JSON,
@@ -179,6 +163,37 @@ module Praxis
       builtin_handlers.each_pair do |name, handler|
         self.handler(name, handler) unless handlers.key?(name)
       end
+      
+      setup_initial_config!
+      
+      unless skip_registration
+        if self.class.registered_apps[name]
+          raise "A Praxis instance named #{name} has already been registered, please use the :name parameter to initialize them"
+        end
+        self.class.registered_apps[name] = self
+      end
+      $praxis_initializing_instance = old
+    end
+
+    def setup_initial_config!
+      self.config do
+        attribute :praxis do
+          attribute :validate_responses, Attributor::Boolean, default: false
+          attribute :validate_response_bodies, Attributor::Boolean, default: false
+
+          attribute :show_exceptions, Attributor::Boolean, default: false
+          attribute :x_cascade, Attributor::Boolean, default: true
+          attribute :enable_praxis_stats, Attributor::Boolean, default: true
+        end
+      end
+    end
+
+
+    def setup(root: '.')
+      return self unless @app.nil?
+      saved_value = $praxis_initializing_instance
+      $praxis_initializing_instance = self
+      @root = Pathname.new(root).expand_path
 
       bootloader.setup!
       builder.run(@router)

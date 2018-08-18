@@ -106,7 +106,7 @@ module Praxis
           response_stage.run
 
           payload[:response] = controller.response
-          controller.response.finish
+          controller.response.finish(handlers: application.handlers)
         rescue => e
           @application.error_handler.handle!(request, e)
         end

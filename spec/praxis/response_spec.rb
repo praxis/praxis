@@ -49,7 +49,10 @@ describe Praxis::Response do
   end
 
   subject(:response) { Praxis::Responses::Ok.new(status: response_status, headers: response_headers) }
-
+  let(:handlers) do
+    {'json' => Praxis::Handlers::JSON.new }
+  end
+  
   describe '#validate' do
     before do
       allow(action).to receive(:responses).and_return({response_spec.name => response_spec })
@@ -86,7 +89,7 @@ describe Praxis::Response do
       before { response.body = response_body_entity }
 
       it 'leaves well enough alone' do
-        response.encode!
+        response.encode!(handlers: handlers)
         expect(response.body).to eq(response_body_entity)
       end
     end
@@ -95,7 +98,7 @@ describe Praxis::Response do
       before { response.body = response_body_structured_data }
 
       it 'encodes using a suitable handler' do
-        response.encode!
+        response.encode!(handlers: handlers)
         expect(JSON.load(response.body)).to eq(response_body_structured_data)
       end
     end
@@ -108,7 +111,7 @@ describe Praxis::Response do
           'Location'     => '/api/resources/123' }
       }
       it 'still defaults to the default handler' do
-        response.encode!
+        response.encode!(handlers: handlers)
         expect(JSON.load(response.body)).to eq(response_body_structured_data)
       end
     end
@@ -158,7 +161,7 @@ describe Praxis::Response do
         response.status = 500
       end
 
-      let!(:finished_response) { response.finish }
+      let!(:finished_response) { response.finish(handlers: handlers) }
 
       it 'returns status, headers, body' do
         expect(finished_response).to eq([response.status, response.headers, response.body])

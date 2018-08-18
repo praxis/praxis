@@ -19,7 +19,7 @@ module Praxis
       end
 
 
-      def encode!
+      def encode!(handlers:)
         case @body
         when Praxis::Types::MultipartArray
           @body = @body.dump
@@ -28,9 +28,9 @@ module Praxis
         end
       end
 
-      def finish
+      def finish(handlers:)
         format!
-        encode!
+        encode!(handlers: handlers)
 
         @body = Array(@body)
 

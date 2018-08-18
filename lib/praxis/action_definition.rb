@@ -12,6 +12,7 @@ module Praxis
 
     attr_reader :name
     attr_reader :resource_definition
+    attr_reader :api_definition
     attr_reader :routes
     attr_reader :primary_route
     attr_reader :named_routes
@@ -39,6 +40,7 @@ module Praxis
       @metadata = Hash.new
       @routes = []
       @traits = []
+      @api_definition = resource_definition.application.api_definition
 
       if (media_type = resource_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::Types::MediaTypeCommon
@@ -47,7 +49,7 @@ module Praxis
       end
 
       version = resource_definition.version
-      api_info = ApiDefinition.instance.info(resource_definition.version)
+      api_info = api_definition.info(resource_definition.version)
 
       route_base = "#{api_info.base_path}#{resource_definition.version_prefix}"
       prefix = Array(resource_definition.routing_prefix)
@@ -64,11 +66,11 @@ module Praxis
     end
 
     def trait(trait_name)
-      unless ApiDefinition.instance.traits.has_key? trait_name
+      unless api_definition.traits.has_key? trait_name
         raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found in the system")
       end
 
-      trait = ApiDefinition.instance.traits.fetch(trait_name)
+      trait = api_definition.traits.fetch(trait_name)
       trait.apply!(self)
       traits << trait_name
     end
@@ -90,7 +92,7 @@ module Praxis
         args[:media_type] = type
       end
 
-      template = ApiDefinition.instance.response(name)
+      template = api_definition.response(name)
       @responses[name] = template.compile(self, **args)
     end
 
@@ -303,7 +305,7 @@ module Praxis
 
         # and return that one if it already corresponds to a registered handler
         # otherwise, add the encoding
-        if Praxis::Application.instance.handlers.include?(pick.handler_name)
+        if resource_definition.application.handlers.include?(pick.handler_name)
           return pick
         else
           return pick + handler_name
@@ -320,13 +322,13 @@ module Praxis
 
       hash[:examples] = {}
 
-      default_handlers = ApiDefinition.instance.info.consumes
+      default_handlers = api_definition.info.consumes
 
       default_handlers.each do |default_handler|
         dumped_payload = payload.dump(example, default_format: default_handler)
 
         content_type = derive_content_type(example, default_handler)
-        handler = Praxis::Application.instance.handlers[content_type.handler_name]
+        handler = resource_definition.application.handlers[content_type.handler_name]
 
         # in case handler is nil, use dumped_payload as-is.
         generated_payload = if handler.nil?

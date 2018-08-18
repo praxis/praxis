@@ -101,12 +101,13 @@ describe Praxis::ResourceDefinition do
 
       end
     end
-
-    let(:non_singleton_api) do
-      api_def=Praxis::ApiDefinition.__send__(:new)
-      api_def.instance_eval do |api|
-
-        api.info do
+    let(:praxis_application) do
+      app = Praxis::Application.new(skip_registration: true)
+      app.versioning_scheme = [:header, :params]
+      app.handler 'json' , Praxis::Handlers::JSON
+      app.handler 'x-www-form-urlencoded', Praxis::Handlers::WWWForm
+      app.api_definition.instance_eval do |api_def|
+        api_def.info do
           base_path '/api/:base_param'
           base_params do
             attribute :base_param, String
@@ -116,22 +117,23 @@ describe Praxis::ResourceDefinition do
           end
         end
 
-        api.info '1.0' do
+        api_def.info '1.0' do
           base_params do
             attribute :app_name, String
           end
         end
-        api.info '2.0' do
+        api_def.info '2.0' do
           base_params do
             attribute :v2_param, String
           end
         end
+
       end
-      api_def
+      app
     end
 
     before do
-      allow(Praxis::ApiDefinition).to receive(:instance).and_return(non_singleton_api)
+      allow(Praxis::Application).to receive(:instance).and_return(praxis_application)
     end
 
     it 'are applied to actions' do

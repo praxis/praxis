@@ -8,11 +8,15 @@ module Praxis
     DEFAULT_RESOURCE_HREF_ACTION = :show
 
     included do
+      # Store the attached (i.e., current) Praxis App instance into the resource definition for easy retrieval later
+      @application = Application.instance
+      @application.resource_definitions << self
+
       @version = 'n/a'.freeze
       @actions = Hash.new
       @responses = Hash.new
 
-      @action_defaults = Trait.new &ResourceDefinition.generate_defaults_block
+      @action_defaults = Trait.new &ResourceDefinition.generate_defaults_block(application: @application)
 
       @version_options = {}
       @metadata = {}
@@ -33,15 +37,12 @@ module Praxis
 
       @on_finalize = Array.new
 
-      # TODO SINGLETON: ... what do do here?...
-      Application.instance.resource_definitions << self
+ 
     end
 
-    def self.generate_defaults_block( version: nil )
-
+    def self.generate_defaults_block( version: nil, application:)
       # Ensure we inherit any base params defined in the API definition for the passed in version
-      # TODO SINGLETON: ... what do do here?...
-      base_attributes = if (base_params = ApiDefinition.instance.info(version).base_params)
+      base_attributes = if (base_params = application.api_definition.info(version).base_params)
         base_params.attributes
       else
         {}
@@ -58,9 +59,8 @@ module Praxis
       end
     end
 
-    def self.finalize!
-      # TODO SINGLETON: ... what do do here?...
-      Application.instance.resource_definitions.each do |resource_definition|
+    def self.finalize!(application: )
+      application.resource_definitions.each do |resource_definition|
         while (block = resource_definition.on_finalize.shift)
           block.call
         end
@@ -76,6 +76,7 @@ module Praxis
       attr_reader :traits
       attr_reader :version_prefix
       attr_reader :parent_prefix
+      attr_reader :application
 
       # opaque hash of user-defined medata, used to decorate the definition,
       # and also available in the generated JSON documents
@@ -202,7 +203,7 @@ module Praxis
           end
         end
 
-        @action_defaults.instance_eval &ResourceDefinition.generate_defaults_block( version: version )
+        @action_defaults.instance_eval &ResourceDefinition.generate_defaults_block( version: version, application: self.application)
       end
 
 
@@ -241,10 +242,10 @@ module Praxis
       end
 
       def trait(trait_name)
-        unless ApiDefinition.instance.traits.has_key? trait_name
+        unless self.application.api_definition.traits.has_key? trait_name
           raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found in the system")
         end
-        trait = ApiDefinition.instance.traits.fetch(trait_name)
+        trait = self.application.api_definition.traits.fetch(trait_name)
         @traits << trait_name
       end
       alias_method :use, :trait

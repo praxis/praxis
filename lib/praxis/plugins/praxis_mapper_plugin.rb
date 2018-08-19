@@ -33,7 +33,7 @@ require 'terminal-table'
 #             }
 #           }
 #   2. log_stats: A String indicating what kind of DB stats you would like
-#      output into the Praxis::Application.instance.logger app log. Possible
+#      output into the Praxis::Application.current_instance.logger app log. Possible
 #      values are: "detailed", "short", and "skip" (i.e. do not print the stats
 #      at all).
 #   3. stats_log_level: the logging level with which the statistics should be logged.
@@ -238,7 +238,7 @@ module Praxis
         end
 
         def self.to_logger(message)
-            Praxis::Application.instance.logger.__send__(Plugin.instance.config.stats_log_level, "Praxis::Mapper Statistics: #{message}")
+            Praxis::Application.current_instance.logger.__send__(Plugin.instance.config.stats_log_level, "Praxis::Mapper Statistics: #{message}")
         end
       end
     end

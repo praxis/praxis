@@ -10,6 +10,7 @@ module Praxis
     attr_accessor :headers_attribute
     attr_accessor :filename_attribute
     attr_accessor :default_handler
+    attr_accessor :application
 
     def self.check_option!(name, definition)
       case name
@@ -77,7 +78,8 @@ module Praxis
       @name = name
       @body = body
       @headers = headers
-      @default_handler = Praxis::Application.instance.handlers['json']
+      @application = Praxis::Application.current_instance
+      @default_handler = application.handlers['json']
 
       if content_type.nil?
         self.content_type = 'text/plain'
@@ -212,7 +214,7 @@ module Praxis
     end
 
     def handler
-      handlers = Praxis::Application.instance.handlers
+      handlers = application.handlers
       (content_type && handlers[content_type.handler_name]) || @default_handler
     end
 
@@ -249,7 +251,7 @@ module Praxis
 
       # and return that one if it already corresponds to a registered handler
       # otherwise, add the encoding
-      if Praxis::Application.instance.handlers.include?(pick.handler_name)
+      if application.handlers.include?(pick.handler_name)
         return pick
       else
         return pick + handler_name

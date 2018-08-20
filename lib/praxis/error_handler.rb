@@ -1,20 +1,15 @@
 module Praxis
   class ErrorHandler
-    attr_reader :praxis_instance
     
-    def initialize(praxis_instance:)
-      @praxis_instance = praxis_instance
-    end
-    def handle!(request, error)
-      # TODO SINGLETON: ... this is probably right...or maybe we can get to the actual instance?...
-      praxis_instance.logger.error error.inspect
+    def handle!(request, error, app:)
+      app.logger.error error.inspect
       error.backtrace.each do |line|
-        praxis_instance.logger.error line
+        app.logger.error line
       end
 
       response = Responses::InternalServerError.new(error: error)
       response.request = request
-      response.finish(application: praxis_instance)
+      response.finish(application: app)
     end
 
   end

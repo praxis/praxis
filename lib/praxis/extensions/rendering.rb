@@ -24,8 +24,7 @@ module Praxis
         response.body = render(object, include_nil: include_nil)
         response
       rescue Praxis::Renderer::CircularRenderingError => e
-        # TODO SINGLETON: ... what do do here?...
-          Praxis::Application.instance.validation_handler.handle!(
+          Praxis::Application.current_instance.validation_handler.handle!(
           summary: "Circular Rendering Error when rendering response. " +
                    "Please especify a view to narrow the dependent fields, or narrow your field set.",
           exception: e,

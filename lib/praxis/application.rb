@@ -29,17 +29,11 @@ module Praxis
     def self.registered_apps
       @@registered_apps
     end
-    
-    def print_me
-      ">>>0x#{(self.object_id << 1).to_s(16)}"
-    end
-    
+        
     def self.instance
       i = current_instance
       return i if i
       $praxis_initializing_instance = self.new
-      puts "Praxis: New instance #{$praxis_initializing_instance.print_me}"      
-      $praxis_initializing_instance
     end
     
     def self.current_instance
@@ -52,13 +46,12 @@ module Praxis
     end
 
     def initialize(name: 'default', skip_registration: false)
-      # puts "Praxis: initialize #{print_me}"
       old = $praxis_initializing_instance
       $praxis_initializing_instance = self # ApiDefinition.new needs to get the instance...
       @controllers = Set.new
       @resource_definitions = Set.new
 
-      @error_handler = ErrorHandler.new(praxis_instance: self)
+      @error_handler = ErrorHandler.new
       @validation_handler = ValidationHandler.new
 
       @router = Router.new(self)

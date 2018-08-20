@@ -68,7 +68,6 @@ module Praxis
 
       def collect_resources
         # load all resource definitions registered with Praxis
-        # TODO SINGLETON: ... what do do here?...
         app_instance.resource_definitions.map do |resource|
           # skip resources with doc_visibility of :none
           next if resource.metadata[:doc_visibility] == :none

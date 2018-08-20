@@ -97,7 +97,6 @@ module Praxis
 
     def version
       result = nil
-      # TODO SINGLETON: ... what do do here?...
       Array(praxis_instance.versioning_scheme).find do |mode|
         case mode
         when :header;
@@ -129,7 +128,6 @@ module Praxis
     def load_payload(context)
       return unless action.payload
       return if content_type.nil?
-      # TODO SINGLETON: ... what do do here?...
       raw = if (handler = praxis_instance.handlers[content_type.handler_name])
         handler.parse(self.raw_payload)
       else

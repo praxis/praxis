@@ -21,7 +21,6 @@ module Praxis
           @args
         end
         def self.setup
-          puts "SETTING UP CLASS!!!#{args}" 
           app_instance.setup(**args)
         end
       end

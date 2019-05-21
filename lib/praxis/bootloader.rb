@@ -113,9 +113,8 @@ module Praxis
 
     def setup!
       # use the Stats and Notifications plugins by default
-      use Praxis::Stats
+      #use Praxis::Stats
       use Praxis::Notifications
-
       run
     end
 

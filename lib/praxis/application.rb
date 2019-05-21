@@ -181,7 +181,6 @@ module Praxis
 
           attribute :show_exceptions, Attributor::Boolean, default: false
           attribute :x_cascade, Attributor::Boolean, default: true
-          attribute :enable_praxis_stats, Attributor::Boolean, default: true
         end
       end
     end

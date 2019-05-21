@@ -44,7 +44,6 @@ module Praxis
   autoload :Stage, 'praxis/stage'
   autoload :Trait, 'praxis/trait'
 
-  # autoload :Stats, 'praxis/stats'
   autoload :Notifications, 'praxis/notifications'
   autoload :MiddlewareApp, 'praxis/middleware_app'
 

@@ -333,13 +333,11 @@ describe 'Functional specs' do
 
   context 'wildcard verb routing' do
     it 'can terminate instances with POST' do
-      pending
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0', '', 'global_session' => session
       expect(last_response.status).to eq(200)
     end
     it 'can terminate instances with DELETE' do
-      pending
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0', '', 'global_session' => session
       expect(last_response.status).to eq(200)
     end
 
@@ -354,19 +352,16 @@ describe 'Functional specs' do
       get '/api/clouds/23/otherinstances/_action/exceptional?api_version=1.0', nil, 'global_session' => session
       expect(last_response.status).to eq(404)
     end
-
-
   end
 
   context 'auth_plugin' do
     it 'can terminate' do
-      pending
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0', '', 'global_session' => session
       expect(last_response.status).to eq(200)
     end
 
     it 'can not stop' do
-      post '/api/clouds/23/instances/1/stop?api_version=1.0', nil, 'global_session' => session
+      post '/api/clouds/23/instances/1/stop?api_version=1.0', '', 'global_session' => session
       expect(last_response.status).to eq(403)
     end
   end

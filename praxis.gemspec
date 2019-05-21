@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'thor', '~> 0.18'
   spec.add_dependency 'terminal-table', '~> 1.4'
 
-  spec.add_development_dependency 'bundler', '~> 1.6'
+  spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake', '~> 0.9'
   spec.add_development_dependency 'rake-notes', '~> 0'
   if RUBY_PLATFORM !~ /java/

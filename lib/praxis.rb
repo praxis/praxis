@@ -50,7 +50,6 @@ module Praxis
   autoload :RestfulDocGenerator, 'praxis/restful_doc_generator'
   module Docs
     autoload :Generator, 'praxis/docs/generator'
-    autoload :LinkBuilder, 'praxis/docs/link_builder'
     autoload :OpenApiGenerator, 'praxis/docs/open_api_generator'
   end
 
@@ -61,7 +60,6 @@ module Praxis
     autoload :MultipartArray, 'praxis/types/multipart_array'
   end
 
-  autoload :Links, 'praxis/links'
   autoload :MediaType, 'praxis/media_type'
   autoload :MediaTypeIdentifier, 'praxis/media_type_identifier'
   autoload :Multipart, 'praxis/types/multipart'

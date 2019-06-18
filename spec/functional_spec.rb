@@ -331,12 +331,15 @@ describe 'Functional specs' do
   end
 
   context 'wildcard verb routing' do
+    let(:content_type){ 'application/json' }
     it 'can terminate instances with POST' do
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', '', 'global_session' => session
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'CONTENT_TYPE' => content_type, 'global_session' => session
+      puts last_response.body
+      #binding.pry
       expect(last_response.status).to eq(200)
     end
     it 'can terminate instances with DELETE' do
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', '', 'global_session' => session
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'CONTENT_TYPE' => content_type, 'global_session' => session
       expect(last_response.status).to eq(200)
     end
 
@@ -355,7 +358,7 @@ describe 'Functional specs' do
 
   context 'auth_plugin' do
     it 'can terminate' do
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', '', 'global_session' => session
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session
       expect(last_response.status).to eq(200)
     end
 
@@ -366,8 +369,8 @@ describe 'Functional specs' do
   end
 
   context 'with mismatch between Content-Type and payload' do
-    let(:body) { '{}' }
-    let(:content_type) { 'application/x-www-form-urlencoded' }
+    let(:body) { 'some-text' }
+    let(:content_type) { 'application/json' }
 
     before do
       post '/api/clouds/1/instances/2/terminate?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
@@ -376,7 +379,7 @@ describe 'Functional specs' do
     it 'returns a useful error message' do
       body = JSON.parse(last_response.body)
       expect(body['name']).to eq('ValidationError')
-      expect(body['summary']).to match("Error loading payload. Used Content-Type: 'application/x-www-form-urlencoded'")
+      expect(body['summary']).to match("Error loading payload. Used Content-Type: 'application/json'")
       expect(body['errors']).to_not be_empty
     end
   end

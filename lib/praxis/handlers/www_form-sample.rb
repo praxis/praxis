@@ -1,3 +1,8 @@
+# This is an example of a handler that can load and generate www-url-encoded payloads.
+# Note that if you use your API to pass nil values for attributes as a way to unset their 
+# values, this handler will not work (as there isn't necessarily a defined "null" value in 
+# this encoding (although you can probably define how to encode/decode it and use it as such)
+# Use at your own risk.
 module Praxis
   module Handlers
     class WWWForm

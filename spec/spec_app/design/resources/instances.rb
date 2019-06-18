@@ -144,7 +144,7 @@ module ApiResources
         attribute :id
       end
 
-      payload do
+      payload required: false do
         attribute :when, DateTime
       end
 

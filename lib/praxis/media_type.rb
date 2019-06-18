@@ -7,9 +7,7 @@ module Praxis
   # encodings; for example, a controller might respond with an actual Widget object, but a
   # Content-Type header specifying 'application/vnd.acme.widget+json'; Praxis uses the information
   # contained in the media-type definition of Widget to transform the object into an equivalent
-  # JSON representation. If the content type ends with '+xml' instead, and the XML handler is
-  # registered with the framework, Praxis will respond with an XML representation of the
-  # widget. The use of media types allows your application's models to be decoupled from its
+  # JSON representation. The use of media types allows your application's models to be decoupled from its
   # HTTP interface specification.
   #
   # A media type definition consists of:

@@ -137,7 +137,7 @@ describe Praxis::ResourceDefinition do
     it 'are applied to actions' do
       action = resource_definition.actions[:show]
       expect(action.params.attributes).to have_key(:id)
-      expect(action.routes.first.path.to_s).to eq '/api/:base_param/people/:id'
+      expect(action.route.path.to_s).to eq '/api/:base_param/people/:id'
     end
 
     context 'includes base_params from the APIDefinition' do

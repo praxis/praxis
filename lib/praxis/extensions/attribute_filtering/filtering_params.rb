@@ -153,7 +153,7 @@ module Praxis
           return new if filters.nil?
           parsed = filters.split('&').each_with_object([]) do |filter_string, arr|
             match = FILTER_REGEX.match(filter_string)
-            values = match[:value].split(',')
+            values = CGI.unescape(match[:value]).split(',')
             value = if values.size > 1
               multimatch = true
               values

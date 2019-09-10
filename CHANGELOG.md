@@ -24,6 +24,7 @@
   * format member_options display better
 * Make `MiddleWareApp` initialize lazily. This allows the main rack app (i.e., Rails) to be fully initialized by the time any code in the Praxis middleware gets touched (i.e., full ActiveRecord connection initialization...etc.)
 * Removed 'Stats' plugin
+* CGI.decode filter values in the `FilteringParams` extension
 
 ## 0.21
 

@@ -159,7 +159,7 @@ module Praxis
               values
             else
               multimatch = false
-              match[:value]
+              values.first
             end
   
             attr_name = match[:attribute].to_sym

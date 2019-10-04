@@ -12,17 +12,7 @@ describe Praxis::Request do
     env['HTTP_AUTHORIZATION'] = 'Secret'
     env
   end
-  let(:application) do
-    app = Praxis::Application.new(skip_registration: true)
-    app.versioning_scheme = [:header, :params]
-    app.handler 'json' , Praxis::Handlers::JSON
-    app.handler 'x-www-form-urlencoded', Praxis::Handlers::WWWForm
-    app.api_definition.info do # applies to all API infos
-      base_path "/api"
-    end
-    app
-  end
-  
+
   let(:action) { Instances.definition.actions[:show] }
 
   let(:context) do
@@ -34,7 +24,7 @@ describe Praxis::Request do
   end
 
   subject(:request) do
-    request = Praxis::Request.new(env, application: application)
+    request = Praxis::Request.new(env)
     request.action = action
     request
   end
@@ -47,10 +37,10 @@ describe Praxis::Request do
   context 'path versioning' do
     before do
       allow(
-        application
+        Praxis::Application.instance
       ).to receive(:versioning_scheme).and_return(:path)
       allow(
-        application.api_definition.info
+        Praxis::ApiDefinition.instance.info
       ).to receive(:base_path).and_return('/api/v:api_version')
 
     end
@@ -74,7 +64,7 @@ describe Praxis::Request do
     let(:versioning_scheme){ Praxis::Request::VERSION_USING_DEFAULTS }
     before do
       allow(
-        application
+        Praxis::Application.instance
       ).to receive(:versioning_scheme).and_return(versioning_scheme)
     end
 
@@ -94,7 +84,7 @@ describe Praxis::Request do
 
       before do
         allow(
-          application.api_definition.info
+          Praxis::ApiDefinition.instance.info
         ).to receive(:base_path).and_return('/v:api_version')
       end
       it { should eq('5.0') }
@@ -219,7 +209,7 @@ describe Praxis::Request do
       let(:parsed_result){ double("parsed") }
 
       before do
-        application.handler 'xml', Praxis::Handlers::XML
+        Praxis::Application.instance.handler 'xml', Praxis::Handlers::XML
       end
 
       after do

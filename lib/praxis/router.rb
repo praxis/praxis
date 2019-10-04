@@ -50,7 +50,7 @@ module Praxis
     end
 
     def add_route(target, route)
-      path_versioning = (application.versioning_scheme == :path)
+      path_versioning = (Application.instance.versioning_scheme == :path)
 
       # DEPRECATED: remove with ResourceDefinition.version using: :path
       path_versioning ||= (target.action.resource_definition.version_options[:using] == :path)
@@ -65,7 +65,7 @@ module Praxis
     def call(env_or_request)
       request = case env_or_request
       when Hash
-        request_class.new(env_or_request, application: application)
+        request_class.new(env_or_request)
       when request_class
         env_or_request
       else
@@ -101,7 +101,7 @@ module Praxis
           body += " Available versions = #{pretty_versions}."
         end
         headers = {"Content-Type" => "text/plain"}
-        if application.config.praxis.x_cascade
+        if Praxis::Application.instance.config.praxis.x_cascade
           headers['X-Cascade'] = 'pass'
         end
         result = [404, headers, [body]]

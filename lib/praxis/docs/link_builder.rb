@@ -20,7 +20,7 @@ module Praxis
 
       def endpoint
         @endpoint ||= begin
-          endpoint = Application.current_instance.api_definition.global_info.documentation_url
+          endpoint = ApiDefinition.instance.global_info.documentation_url
           endpoint.gsub(/\/index\.html$/i, '/') if endpoint
         end
       end

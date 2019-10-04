@@ -20,21 +20,22 @@ require 'rspec/its'
 require 'rspec/collection_matchers'
 
 
+
 Dir["#{File.dirname(__FILE__)}/../lib/praxis/plugins/*.rb"].each do |file|
   require file
 end
 
-APP = Praxis::Application.instance
 Dir["#{File.dirname(__FILE__)}/support/*.rb"].each do |file|
   require file
 end
+
 
 RSpec.configure do |config|
   config.include Rack::Test::Methods
 
   config.before(:suite) do
     Praxis::Blueprint.caching_enabled = true
-    APP.setup(root:'spec/spec_app')
+    Praxis::Application.instance.setup(root:'spec/spec_app')
 
     # create the table
     setup_database!
@@ -49,7 +50,6 @@ RSpec.configure do |config|
   config.before(:all) do
     # disable logging below warn level
     Praxis::Application.instance.logger.level = 2 # warn
-    Thread.current[:praxis_instance] = APP
   end
 end
 

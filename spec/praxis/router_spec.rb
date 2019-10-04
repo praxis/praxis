@@ -1,11 +1,6 @@
 require 'spec_helper'
 
 describe Praxis::Router do
-  let(:application) do
-    app = Praxis::Application.new(skip_registration: true)
-    app.versioning_scheme = [:header, :params]
-    app
-  end
   describe Praxis::Router::VersionMatcher do
     let(:resource_definition){ double("resource_definition", version_options: { using: [:header, :params] }) }
     let(:action){ double("action", resource_definition: resource_definition ) }
@@ -22,7 +17,7 @@ describe Praxis::Router do
 
     context '.call' do
       let(:env){ {"HTTP_X_API_VERSION" => request_version } }
-      let(:request) {Praxis::Request.new(env,application: application)}
+      let(:request) {Praxis::Request.new(env)}
 
       context 'with matching versions' do
         let(:request_version) { "1.0" }
@@ -72,6 +67,7 @@ describe Praxis::Router do
     end
   end
 
+  let(:application) { instance_double('Praxis::Application')}
   subject(:router) {Praxis::Router.new(application)}
 
   context "attributes" do
@@ -108,7 +104,7 @@ describe Praxis::Router do
     let(:request_verb) { 'POST' }
     let(:request_path_info) { '/' }
     let(:request_version){ nil }
-    let(:request) {Praxis::Request.new(env, application: application)}
+    let(:request) {Praxis::Request.new(env)}
     let(:router_response){ 1 }
     let(:router_response_for_post){ "POST result" }
     let(:router_response_for_wildcard){ "* result" }
@@ -189,7 +185,7 @@ describe Praxis::Router do
       end
 
       context 'with X-Cascade disabled' do
-        let(:config) { application.config.praxis }
+        let(:config) { Praxis::Application.instance.config.praxis }
         before do
           expect(config).to receive(:x_cascade).and_return(false)
         end

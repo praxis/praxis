@@ -20,8 +20,6 @@ module Praxis
         end
 
         definition.controller = self
-        # `implements` should only be processed while the application initializes/setup
-        # So we will use the `.instance` function to get the "current" application instance
         Application.instance.controllers << self
       end
 

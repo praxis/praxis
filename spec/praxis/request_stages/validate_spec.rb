@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Praxis::RequestStages::Validate do
-  let(:dispatcher) { Praxis::Dispatcher.new(application: APP) }
+  let(:dispatcher) { Praxis::Dispatcher.new }
 
   # Instances controller is defined in the 'app' folder and is already in scope. Using this
   # controller for the specs instead of creating a simple controller.

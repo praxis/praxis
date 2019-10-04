@@ -63,23 +63,24 @@ module Praxis
       self.class.response_name
     end
 
-    def format!(config:)
+    def format!
     end
 
-    def encode!(handlers:)
+    def encode!
       case @body
       when Hash, Array
         # response payload is structured data; transform it into an entity using the handler
         # implied by the response's media type. If no handler is registered for this
         # name, assume JSON as a default handler.
+        handlers = Praxis::Application.instance.handlers
         handler = (content_type && handlers[content_type.handler_name]) || handlers['json']
         @body = handler.generate(@body)
       end
     end
 
-    def finish(application:)
-      format!(config: application.config)
-      encode!(handlers: application.handlers)
+    def finish
+      format!
+      encode!
 
       @body = Array(@body)
 

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Praxis::Application do
   context 'configuration' do
     subject(:app) do
-      app = Class.new(Praxis::Application).new(skip_registration: true)
+      app = Class.new(Praxis::Application).instance
 
       config = Object.new
       def config.define(key=nil, type=Attributor::Struct, **opts, &block)
@@ -45,7 +45,7 @@ describe Praxis::Application do
   end
 
   context 'media type handlers' do
-    subject { Class.new(Praxis::Application).new(skip_registration: true) }
+    subject { Class.new(Praxis::Application).instance }
 
     before do
       # don't actually bootload; we're merely running specs
@@ -94,14 +94,12 @@ describe Praxis::Application do
   end
 
   describe '#setup' do
-    subject { Praxis::Application.new(skip_registration: true) }
-    let(:boot_loader) { double("BL", setup!: true) }
-    let(:builder) { double("Builder", to_app: double('Rack app'), run: true) }
-    
+    subject { Class.new(Praxis::Application).instance }
+
     before do
-      # don't actually bootload; we're merely running specs  
-      allow(subject).to receive(:bootloader).and_return(boot_loader)
-      allow(subject).to receive(:builder).and_return(builder)
+      # don't actually bootload; we're merely running specs
+      allow(subject.bootloader).to receive(:setup!).and_return(true)
+      allow(subject.builder).to receive(:to_app).and_return(double('Rack app'))
     end
 
     it 'is idempotent' do
@@ -113,10 +111,6 @@ describe Praxis::Application do
     it 'returns itself' do
       expect(subject.setup).to eq(subject)
       expect(subject.setup).to eq(subject)
-    end
-    
-    it 'creates an ApiDefinition that has a back-reference' do
-      expect(subject.api_definition.application).to eq(subject)
     end
   end
 end

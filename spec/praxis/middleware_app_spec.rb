@@ -37,11 +37,20 @@ describe Praxis::MiddlewareApp do
         expect( Praxis::Application.instance ).to receive(:call).with( env ).once.and_return(praxis_response)
       end
 
-      it 'initializes the application singletone with the passed parameters' do
-        expect( Praxis::Application.instance ).to receive(:setup).with( init_args ).once
-        subject
+      context 'when it has not been setup yet' do
+        it 'initializes the application singleton with the passed parameters' do
+          expect( Praxis::Application.instance ).to receive(:setup).with( init_args ).once
+          subject
+        end
       end
-      
+      context 'when it has already been setup' do
+        it 'does NOT call instance setup' do
+          middleware.setup
+          expect( Praxis::Application.instance ).to_not receive(:setup)
+          subject
+        end
+      end
+
       context 'properly handled (non-404 and 405) responses from praxis' do
         it 'are returned straight through' do
           expect( response ).to be(praxis_response)

@@ -3,49 +3,47 @@ module Praxis
   module Extensions
     module FieldSelection
       class ActiveRecordQuerySelector
-        attr_reader :selector, :ds, :top_model, :resolved, :root
+        attr_reader :selector, :query, :top_model, :resolved, :root
         # Gets a dataset, a selector...and should return a dataset with the selector definition applied.
-        def initialize(ds:, model:, selectors:, resolved:)
+        def initialize(query:, model:, selectors:, resolved:)
           @selector = selectors
-          @ds = ds
+          @query = query
           @top_model = model
           @resolved = resolved
           @seen = Set.new
           @root = model.table_name
         end
 
-        def add_select(ds:, model:, table_name:)
+        def add_select(query:, model:, table_name:)
           if (fields = fields_for(model))
             # Note, let's always add the pk fields so that associations can load properly
             fields = fields | [model.primary_key.to_sym]
-            ds.select(*fields)
+            query.select(*fields)
           else
-            ds
+            query
           end
         end
 
         def generate
           # TODO: unfortunately, I think we can only control the select clauses for the top model 
           # (as I'm not sure ActiveRecord supports expressing it in the join...)
-          @ds = add_select(ds: ds, model: top_model, table_name: root)
+          @query = add_select(query: query, model: top_model, table_name: root)
 
-          @ds.includes(_eager(top_model, resolved) )
+          @query.includes(_eager(top_model, resolved) )
         end
 
         def _eager(model, resolved)
-            # Cannot select fields in included rels...boooo :()
-            # d = add_select(ds: dset, model: model, table_name: model.table_name)
-            tracks = only_assoc_for(model, resolved)
-            tracks.inject([]) do |dataset, track|
-              next dataset if @seen.include?([model, track])
-              @seen << [model, track]
-              assoc_model = model.associations[track][:model]
-              dataset << { track => _eager(assoc_model, resolved[track]) }
-            end
+          tracks = only_assoc_for(model, resolved)
+          tracks.inject([]) do |dataset, track|
+            next dataset if @seen.include?([model, track])
+            @seen << [model, track]
+            assoc_model = model._praxis_associations[track][:model]
+            dataset << { track => _eager(assoc_model, resolved[track]) }
+          end
         end
 
         def only_assoc_for(model, hash)
-          hash.keys.reject { |assoc| model.associations[assoc].nil? }
+          hash.keys.reject { |assoc| model._praxis_associations[assoc].nil? }
         end
 
         def fields_for(model)

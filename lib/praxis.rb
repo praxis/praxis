@@ -1,10 +1,10 @@
 require 'rack'
 require 'attributor'
-require 'praxis-mapper'
 require 'praxis-blueprints'
 
 require 'active_support/concern'
 require 'praxis/request_superclassing'
+require 'active_support/inflector'
 
 $:.unshift File.dirname(__FILE__)
 
@@ -62,7 +62,6 @@ module Praxis
 
   autoload :Links, 'praxis/links'
   autoload :MediaType, 'praxis/media_type'
-  autoload :MediaTypeCollection, 'praxis/media_type_collection'
   autoload :MediaTypeIdentifier, 'praxis/media_type_identifier'
   autoload :Multipart, 'praxis/types/multipart'
   autoload :Collection, 'praxis/collection'
@@ -89,7 +88,8 @@ module Praxis
     autoload :MapperSelectors, 'praxis/extensions/mapper_selectors'
     autoload :Rendering, 'praxis/extensions/rendering'
     autoload :FieldExpansion, 'praxis/extensions/field_expansion'
-    autoload :AttributeFiltering, 'praxis/extensions/attribute_filtering'
+    autoload :ActiveRecordFilterQueryBuilder, 'praxis/extensions/attribute_filtering/active_record_filter_query_builder'
+    autoload :SequelFilterQueryBuilder, 'praxis/extensions/attribute_filtering/sequel_filter_query_builder'
   end
 
   module Handlers
@@ -121,6 +121,11 @@ module Praxis
     autoload :ValidatePayload, 'praxis/request_stages/validate_payload'
     autoload :Action, 'praxis/request_stages/action'
     autoload :Response, 'praxis/request_stages/response'
+  end
+
+  module Mapper
+    autoload :Resource, 'praxis/mapper/resource'
+    autoload :SelectorGenerator, 'praxis/mapper/selector_generator'
   end
 
   # Avoid loading responses (and templates) lazily as they need to be registered in time

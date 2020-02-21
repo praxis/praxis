@@ -5,9 +5,9 @@ module Praxis
       class SequelQuerySelector
         attr_reader :selector, :ds, :top_model, :resolved, :root
         # Gets a dataset, a selector...and should return a dataset with the selector definition applied.
-        def initialize(ds:, model:, selectors:, resolved:)
+        def initialize(query:, model:, selectors:, resolved:)
           @selector = selectors
-          @ds = ds
+          @ds = query
           @top_model = model
           @resolved = resolved
           @seen = Set.new
@@ -32,7 +32,7 @@ module Praxis
           @ds = tracks.inject(@ds) do |dataset, track|
             next dataset if @seen.include?([top_model, track])
             @seen << [top_model, track]
-            assoc_model = top_model.associations[track][:model]
+            assoc_model = top_model._praxis_associations[track][:model]
             #      hash[track] = _eager(assoc_model, resolved[track])
             dataset.eager(track => _eager(assoc_model, resolved[track]))
           end
@@ -46,14 +46,14 @@ module Praxis
             tracks.inject(d) do |dataset, track|
               next dataset if @seen.include?([model, track])
               @seen << [model, track]
-              assoc_model = model.associations[track][:model]
+              assoc_model = model._praxis_associations[track][:model]
               dataset.eager(track => _eager(assoc_model, resolved[track]))
             end
           end
         end
 
         def only_assoc_for(model, hash)
-          hash.keys.reject { |assoc| model.associations[assoc].nil? }
+          hash.keys.reject { |assoc| model._praxis_associations[assoc].nil? }
         end
 
         def fields_for(model)

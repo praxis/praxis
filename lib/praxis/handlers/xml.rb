@@ -60,7 +60,7 @@ module Praxis
         when "symbol"
           return node.content.to_sym
         when "decimal"
-          return BigDecimal.new(node.content)
+          return BigDecimal(node.content)
         when "float"
           return Float(node.content)
         when "boolean"

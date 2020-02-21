@@ -128,7 +128,7 @@ describe Praxis::Handlers::XML do
         it_behaves_like 'xml something'
       end
       context 'a array with elements of all types' do
-        let(:parsed){ ["just text",:a,1,BigDecimal.new(100),0.1,true,Date.new] }
+        let(:parsed){ ["just text",:a,1,BigDecimal(100),0.1,true,Date.new] }
         it_behaves_like 'xml something'
       end
       context 'a hash with a complex substructure' do
@@ -137,7 +137,7 @@ describe Praxis::Handlers::XML do
             "text" => "just text",
             "symbol" => :a,
             "num" => 1,
-            "bd" => BigDecimal.new(100),
+            "bd" => BigDecimal(100),
             "float" => 0.1,
             "truthyness" => true,
             "day" => Date.new,

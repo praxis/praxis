@@ -1,3 +1,3 @@
 module Praxis
-  VERSION = '0.22.pre.2'
+  VERSION = '2.0.pre.1'
 end

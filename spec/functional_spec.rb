@@ -136,7 +136,6 @@ describe 'Functional specs' do
     headers = last_response.headers
     expect(headers['Content-Type']).to eq('application/json')
     expect(headers['Spec-Middleware']).to eq('used')
-    expect(headers['Content-Length']).to eq(last_response.body.size.to_s)
   end
 
   it 'returns early when making the before filter break' do

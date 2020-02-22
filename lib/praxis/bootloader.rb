@@ -47,9 +47,8 @@ module Praxis
       stages << BootloaderStages::WarnUnloadedFiles.new(:warn_unloaded_files, application)
 
       after(:app) do
-        Praxis::Mapper.finalize!
         Praxis::Blueprint.finalize!
-        Praxis::ResourceDefinition.finalize!(application: self.application)
+        Praxis::ResourceDefinition.finalize!
       end
 
     end

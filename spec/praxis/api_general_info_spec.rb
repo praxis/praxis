@@ -2,7 +2,12 @@ require 'spec_helper'
 
 describe Praxis::ApiGeneralInfo do
 
-  subject(:info){ Praxis::ApiGeneralInfo.new(application: APP) }
+  subject(:info){ Praxis::ApiGeneralInfo.new }
+
+  before do
+    allow(Praxis::Application.instance).to receive(:versioning_scheme=).with([:header, :params])
+  end
+
 
   let(:info_block) do
     Proc.new do
@@ -59,8 +64,8 @@ describe Praxis::ApiGeneralInfo do
   end
 
   context 'base_path with versioning' do
-    let(:global_info){ Praxis::ApiGeneralInfo.new(application: APP) }
-    subject(:info){ Praxis::ApiGeneralInfo.new(global_info, application: APP, version: '1.0') }
+    let(:global_info){ Praxis::ApiGeneralInfo.new }
+    subject(:info){ Praxis::ApiGeneralInfo.new(global_info, version: '1.0') }
 
     before do
       global_info

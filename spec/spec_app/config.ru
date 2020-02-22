@@ -9,4 +9,9 @@ $:.unshift File.expand_path('lib', __dir__)
 
 require 'praxis'
 
-run Praxis::Application.new.setup
+
+application = Praxis::Application.instance
+
+application.setup
+
+run application

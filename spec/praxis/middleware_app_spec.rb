@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Praxis::MiddlewareApp do
 
-  let(:init_args){ { root: 'here', name: 'middleware_app_spec', skip_registration: true} }
+  let(:init_args){ { root: 'here'} }
   let(:middleware) { Praxis::MiddlewareApp.for( init_args ) }
   let(:instance){ middleware.new(target)}
 
@@ -29,22 +29,28 @@ describe Praxis::MiddlewareApp do
     end
     
     context '.call' do
-      let(:the_instance) { double("The instance", setup: nil) }
       let(:env){ {} }
       let(:praxis_response){ [200,{}] }
       subject(:response){ instance.call(env) }
       before do
         # always invokes the praxis app
-        expect( Praxis::Application ).to receive(:new).once.and_return(the_instance)
-        expect( the_instance ).to receive(:call).with( env ).once.and_return(praxis_response)
-        allow( the_instance ).to receive(:setup).and_return(the_instance)
+        expect( Praxis::Application.instance ).to receive(:call).with( env ).once.and_return(praxis_response)
       end
 
-      it 'does not explicitly call setup in the initialization (the app needs to do it at the right time)' do
-        expect( the_instance ).to_not receive(:setup)
-        subject
+      context 'when it has not been setup yet' do
+        it 'initializes the application singleton with the passed parameters' do
+          expect( Praxis::Application.instance ).to receive(:setup).with( init_args ).once
+          subject
+        end
       end
-      
+      context 'when it has already been setup' do
+        it 'does NOT call instance setup' do
+          middleware.setup
+          expect( Praxis::Application.instance ).to_not receive(:setup)
+          subject
+        end
+      end
+
       context 'properly handled (non-404 and 405) responses from praxis' do
         it 'are returned straight through' do
           expect( response ).to be(praxis_response)

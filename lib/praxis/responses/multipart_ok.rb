@@ -19,7 +19,7 @@ module Praxis
       end
 
 
-      def encode!(handlers:)
+      def encode!
         case @body
         when Praxis::Types::MultipartArray
           @body = @body.dump
@@ -28,9 +28,9 @@ module Praxis
         end
       end
 
-      def finish(application:)
-        format!(config: application.config)
-        encode!(handlers: application.handlers)
+      def finish
+        format!
+        encode!
 
         @body = Array(@body)
 
@@ -39,6 +39,13 @@ module Praxis
 
     end
 
+  end
+
+  ApiDefinition.define do |api|
+    api.response_template :multipart_ok do |media_type: Praxis::Types::MultipartArray|
+      status 200
+      media_type media_type
+    end
   end
 
 end

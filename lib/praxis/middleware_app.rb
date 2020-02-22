@@ -2,39 +2,37 @@ module Praxis
   class MiddlewareApp
 
     attr_reader :target
+
     # Initialize the application instance with the desired args, and return the wrapping class.
     def self.for( **args )
       Class.new(self) do
-        class << self
-          attr_accessor :app_instance
-          attr_reader :app_name, :skip_registration
-        end
-        @app_name = args.delete(:name)
-        @skip_registration = args.delete(:skip_registration) || false
         @args = args
-        @app_instance = nil
-        
+        @setup_done = false
         def self.name
           'MiddlewareApp'
         end
         def self.args
           @args
         end
+        def self.setup_done
+          @setup_done
+        end
         def self.setup
-          app_instance.setup(**args)
+          @setup_done = true
+          Praxis::Application.instance.setup(**@args)
         end
       end
-    end
+     end
 
     def initialize( inner )
       @target = inner
-      self.class.app_instance = Praxis::Application.new(name: self.class.app_name, skip_registration: self.class.skip_registration)      
+      @setup_done = false
     end
-    
+
     def call(env)
-      # NOTE: Need to make sure somebody has properly called the setup above before this is called
-      #@app_instance ||= Praxis::Application.new.setup(**self.class.args) #I Think that's not right at all...
-      result = self.class.app_instance.call(env)
+      self.class.setup unless self.class.setup_done
+      
+      result = Praxis::Application.instance.call(env)
 
       unless ( [404,405].include?(result[0].to_i) && result[1]['X-Cascade'] == 'pass' )
         # Respect X-Cascade header if it doesn't specify 'pass'

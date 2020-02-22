@@ -23,7 +23,7 @@ module Praxis
       end
 
       # Base query to build upon
-      def initialize(query: , model: )
+      def initialize(query: , model:)
         @query = query
         @table = model.table_name
         @last_join_alias = model.table_name

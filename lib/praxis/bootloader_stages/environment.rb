@@ -8,6 +8,7 @@ module Praxis
       # 1) the environment.rb file    - generic stuff for all environments
       # 2) "Deployer.environment".rb  - environment specific stuff
       def execute
+        setup_initial_config!
 
         env_file = application.root + "config/environment.rb"
         require env_file if File.exists? env_file
@@ -36,6 +37,18 @@ module Praxis
         end
       end
 
+      # TODO: not really sure I like this here... but where else is better?
+      def setup_initial_config!
+        application.config do
+          attribute :praxis do
+            attribute :validate_responses, Attributor::Boolean, default: false
+            attribute :validate_response_bodies, Attributor::Boolean, default: false
+
+            attribute :show_exceptions, Attributor::Boolean, default: false
+            attribute :x_cascade, Attributor::Boolean, default: true
+          end
+        end
+      end
 
     end
 

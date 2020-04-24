@@ -52,16 +52,6 @@ describe Praxis::MediaType do
     subject(:address_klass) { address.class }
 
     context '#identifier' do
-      context 'in praxis v0' do
-        it 'should be a kind of String' do
-          if Praxis::VERSION =~ /^0/
-            expect(subject.identifier).to be_kind_of(String)
-          else
-            raise 'Please remove this spec which is no longer pertinent'
-          end
-        end
-      end
-
       context 'in praxis v1.0 and beyond' do
         it 'should be a kind of Praxis::MediaTypeIdentifier' do
           pending('interface-breaking change') if Praxis::VERSION =~ /^0/

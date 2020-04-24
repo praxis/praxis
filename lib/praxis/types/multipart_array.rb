@@ -83,7 +83,7 @@ module Praxis
 
         self.multiple << name if multiple
 
-        compiler = Attributor::DSLCompiler.new(self, opts)
+        compiler = Attributor::DSLCompiler.new(self, **opts)
 
         if filename
           filename_attribute = compiler.define('filename', String, required: true)
@@ -218,7 +218,7 @@ module Praxis
       attr_accessor :preamble
       attr_reader :content_type
 
-      def initialize(content_type: self.class.identifier)
+      def initialize(content_type: self.class.identifier.to_s)
         self.content_type = content_type
       end
 

@@ -14,7 +14,7 @@ module Praxis
 
         def update_attribute(attribute, options, block)
           attribute.options.merge!(options)
-          attribute.type.attributes(options, &block)
+          attribute.type.attributes(**options, &block)
         end
 
         def create_attribute(type=Attributor::Struct, **opts, &block)

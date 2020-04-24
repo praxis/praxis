@@ -72,12 +72,12 @@ describe Praxis::Config do
       
       it 'it is not allowed if its for the top key' do
         expect{
-          config.define nil, config_type, config_opts
+          config.define nil, config_type, **config_opts
         }.to raise_error(/You cannot define the top level configuration with a non-Struct type/)
       end
       
       before do
-        config.define config_key, config_type, config_opts
+        config.define config_key, config_type, **config_opts
       end
 
       it 'sets the attribute to the defined type' do

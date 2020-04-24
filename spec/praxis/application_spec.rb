@@ -27,7 +27,7 @@ describe Praxis::Application do
       end
 
       it 'passes the params and block to config' do
-        ret = app.config(:key, Attributor::Hash, {option: :one}, &myblock)
+        ret = app.config(:key, Attributor::Hash, **{option: :one}, &myblock)
         expect(ret).to eq([:key, Attributor::Hash, {option: :one}, myblock])
       end
 

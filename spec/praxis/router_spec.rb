@@ -6,7 +6,7 @@ describe Praxis::Router do
     let(:action){ double("action", resource_definition: resource_definition ) }
     let(:target){ double("target", action: action ) }
     let(:args){ {version: "1.0"} }
-    subject(:matcher){ Praxis::Router::VersionMatcher.new(target,args) }
+    subject(:matcher){ Praxis::Router::VersionMatcher.new(target,**args) }
 
     context '.initialize' do
       let(:args){ {} }

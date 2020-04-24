@@ -114,7 +114,7 @@ module Praxis
 
     def config(key=nil, type=Attributor::Struct, **opts, &block)
       if block_given? || (type==Attributor::Struct && !opts.empty? )
-        @config.define(key, type, opts, &block)
+        @config.define(key, type, **opts, &block)
       else
         @config.get
       end

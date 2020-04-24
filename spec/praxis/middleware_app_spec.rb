@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Praxis::MiddlewareApp do
 
   let(:init_args){ { root: 'here'} }
-  let(:middleware) { Praxis::MiddlewareApp.for( init_args ) }
+  let(:middleware) { Praxis::MiddlewareApp.for( **init_args ) }
   let(:instance){ middleware.new(target)}
 
   context '.for' do

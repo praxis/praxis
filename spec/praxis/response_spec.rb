@@ -117,7 +117,7 @@ describe Praxis::Response do
   end
 
   context 'multipart responses' do
-    let(:part) { Praxis::MultipartPart.new('not so ok', {'Status' => 400, "Location" => "somewhere"}, {}) }
+    let(:part) { Praxis::MultipartPart.new('not so ok', {'Status' => 400, "Location" => "somewhere"}) }
 
     context '#add_part' do
 

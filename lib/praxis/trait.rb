@@ -76,7 +76,7 @@ module Praxis
             dsl_compiler: ActionDefinition::HeadersDSLCompiler,
             case_insensitive_load: true
           }
-          Attributor::Hash.of(key: String).construct(Proc.new {}, hash_opts)
+          Attributor::Hash.of(key: String).construct(Proc.new {}, **hash_opts)
         else
           Attributor::Hash.construct(Proc.new {})
         end

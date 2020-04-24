@@ -25,7 +25,7 @@ module Praxis
           # Defining the existence without any other options can only mean that it is required (otherwise it is a useless definition)
           options[:required] = true if options.empty?
         end
-        key name , String, options
+        key name , String, **options
       end
 
       # Override the attribute to really call "key" in the hash (for temporary backwards compat)      

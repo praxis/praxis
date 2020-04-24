@@ -73,7 +73,7 @@ class Instances < BaseClass
 
       headers = {
         'Status' => '201',
-        'Content-Type' => Instance.identifier + '+json',
+        'Content-Type' => (Instance.identifier + '+json').to_s,
         'Location' => definition.to_href(cloud_id: cloud_id, id: instance.id)
       }
 

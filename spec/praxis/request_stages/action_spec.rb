@@ -26,7 +26,14 @@ describe Praxis::RequestStages::Action do
 
   context '.execute' do
     before do
-      expect(controller).to receive(action_stage.name).with(request.params_hash).and_return(controller_response)
+      expect(controller).to receive(action_stage.name) do |args|
+        if args
+          expect(args).to eq({})
+        else
+           expect(args).to eq(nil)
+        end
+      end.and_return(controller_response)
+        
     end
     let(:controller_response){ controller.response }
 

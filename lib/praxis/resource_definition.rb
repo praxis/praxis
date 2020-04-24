@@ -49,7 +49,7 @@ module Praxis
         unless base_attributes.empty?
           params do
             base_attributes.each do |base_name, base_attribute|
-              attribute base_name, base_attribute.type, base_attribute.options
+              attribute base_name, base_attribute.type, **base_attribute.options
             end
           end
         end
@@ -87,9 +87,9 @@ module Praxis
         @display_name = string
       end
 
-      def on_finalize
+      def on_finalize(&block)
         if block_given?
-          @on_finalize << Proc.new
+          @on_finalize << proc(&block)
         end
 
         @on_finalize
@@ -168,7 +168,7 @@ module Praxis
 
               parent_attribute = parent_action.params.attributes[parent_name]
 
-              attribute name, parent_attribute.type, parent_attribute.options
+              attribute name, parent_attribute.type, **parent_attribute.options
             end
           end
         end

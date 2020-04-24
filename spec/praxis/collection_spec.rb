@@ -8,6 +8,7 @@ describe Praxis::Collection do
   subject!(:collection) do
     Praxis::Collection.of(member_type)
   end
+  let(:identifier_string) { subject.identifier.to_s }
 
   context '.of' do
     let(:member_type) do
@@ -16,7 +17,7 @@ describe Praxis::Collection do
       end
     end
 
-    its(:identifier) { should eq 'application/an-awesome-type; type=collection' }
+    it { expect(identifier_string).to eq('application/an-awesome-type; type=collection') }
 
     it 'sets the collection on the media type' do
       expect(member_type::Collection).to be(collection)
@@ -34,7 +35,7 @@ describe Praxis::Collection do
   context 'defined explicitly' do
     subject(:type) { Volume::Collection }
     its(:member_type) { should be Volume }
-    its(:identifier) { should eq 'application/vnd.acme.volumes' }
+    it { expect(identifier_string).to eq('application/vnd.acme.volumes') }
   end
 
   context '.member_type' do

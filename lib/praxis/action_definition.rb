@@ -76,7 +76,7 @@ module Praxis
 
     def update_attribute(attribute, options, block)
       attribute.options.merge!(options)
-      attribute.type.attributes(options, &block)
+      attribute.type.attributes(**options, &block)
     end
 
     def response(name, type=nil, **args, &block)

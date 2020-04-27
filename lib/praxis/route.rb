@@ -24,7 +24,7 @@ module Praxis
       path_params = example_hash.select{|k,v| path_param_keys.include? k }
       # Let's generate the example only using required params, to avoid mixing incompatible parameters
       query_params = example_hash.select{|k,v| required_query_param_keys.include? k }
-      example = { verb: self.verb, url: self.path.expand(path_params), query_params: query_params }
+      example = { verb: self.verb, url: self.path.expand(path_params.transform_values(&:to_s)), query_params: query_params }
 
     end
 

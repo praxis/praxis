@@ -32,8 +32,8 @@ module Praxis
         #
         # @return [String] the string-representation of this type's identifier
         def identifier(identifier=nil)
-          return @identifier.to_s unless identifier
-          (@identifier = MediaTypeIdentifier.load(identifier)).to_s
+          return @identifier unless identifier
+          @identifier = MediaTypeIdentifier.load(identifier)
         end
       end
 

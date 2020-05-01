@@ -12,7 +12,7 @@ module Praxis
       return value if value.kind_of?(self) || value.nil?
 
       unless (value.kind_of?(::String) && ! content_type.nil?)
-        raise Attributor::CoercionError, context: context, from: value.class, to: self.name, value: value
+        raise Attributor::CoercionError.new(context: context, from: value.class, to: self.name, value: value)
       end
 
       headers = {'Content-Type' => content_type}

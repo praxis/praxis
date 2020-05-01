@@ -21,7 +21,7 @@ module Praxis
     end
 
     def self.instrument(name, payload = {}, &block)
-      ActiveSupport::Notifications.instrument(name, payload, &block)
+      ActiveSupport::Notifications.instrument(name, **payload, &block)
     end
 
     def self.subscribe(*args, &block)

@@ -146,7 +146,8 @@ module Praxis
       if self.parameters.empty?
         self
       else
-        MediaTypeIdentifier.load(type: self.type, subtype: self.subtype, suffix: self.suffix)
+        val = {type: self.type, subtype: self.subtype, suffix: self.suffix}
+        MediaTypeIdentifier.load(val)
       end
     end
 

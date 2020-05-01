@@ -448,7 +448,7 @@ describe Praxis::ResponseDefinition do
         context 'with legacy multipart response' do
           subject(:response) { Praxis::Responses::Ok.new(status: response_status, headers: response_headers) }
 
-          let(:part) { Praxis::MultipartPart.new('done', {'Status' => 200, 'Content-Type' => 'application/special'},{}) }
+          let(:part) { Praxis::MultipartPart.new('done', {'Status' => 200, 'Content-Type' => 'application/special'},**{}) }
 
           before do
             response_definition.parts like: :ok, media_type: 'application/special'
@@ -463,7 +463,7 @@ describe Praxis::ResponseDefinition do
           end
 
           context 'with invalid part' do
-            let(:part) { Praxis::MultipartPart.new('done', {'Status' => 200, "Location" => "somewhere"},{}) }
+            let(:part) { Praxis::MultipartPart.new('done', {'Status' => 200, "Location" => "somewhere"}) }
 
             it 'validates' do
               expect {
@@ -494,6 +494,7 @@ describe Praxis::ResponseDefinition do
     let(:location) { %r{/my/url/} }
     let(:headers) { {'Header1' => 'Value1'} }
     let(:parts) { nil }
+    let(:parts_block) { nil }
 
     let(:response) do
       Praxis::ResponseDefinition.new(:custom) do
@@ -505,7 +506,9 @@ describe Praxis::ResponseDefinition do
     before do
       response.description(description) if description
       response.location(location) if location
-      response.parts(parts) if parts
+      if parts || parts_block
+        parts ? response.parts(nil, **parts, &parts_block) : response.parts(nil, &parts_block) 
+      end
       response.headers(headers) if headers
     end
 
@@ -572,7 +575,7 @@ describe Praxis::ResponseDefinition do
         its([:status]){ should == 200 }
       end
       context 'using a full response definition block' do
-        let(:parts) do
+        let(:parts_block) do
           Proc.new do
             status 234
             media_type 'custom_media'

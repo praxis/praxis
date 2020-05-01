@@ -54,7 +54,7 @@ module Praxis
             )
           end
           top.options.merge!(opts)
-          top.type.attributes(opts, &block)
+          top.type.attributes(**opts, &block)
         else
           @attribute.attributes[key] = Attributor::Attribute.new(type, opts, &block)
         end

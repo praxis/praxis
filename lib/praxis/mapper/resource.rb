@@ -212,10 +212,10 @@ module Praxis::Mapper
       base_query
     end
 
-    def self.craft_field_selection_query(base_query, selectors:, resolved:) # rubocop:disable Metrics/AbcSize
+    def self.craft_field_selection_query(base_query, selectors:) # rubocop:disable Metrics/AbcSize
       if selectors && model._field_selector_query_builder_class
-        base_query = model._field_selector_query_builder_class.new(query: base_query, model: self.model,
-                                          selectors: selectors, resolved: resolved).generate
+        debug = Praxis::Application.instance.config.mapper.debug_queries
+        base_query = model._field_selector_query_builder_class.new(query: base_query, selectors: selectors).generate(debug: debug)
       end
       
       base_query

@@ -1,101 +1,82 @@
 module Praxis::Mapper
-  # Generates a set of selectors given a resource and
-  # list of resource attributes.
-  class SelectorGenerator
-    attr_reader :selectors
 
-    def initialize
-      @selectors = Hash.new do |hash, key|
-        hash[key] = {select: Set.new, track: Set.new}
-      end
-      @seen = Hash.new do |hash, resource|
-        hash[resource] = Set.new
-      end
+  class SelectorGeneratorNode
+    attr_reader :select, :model, :resource, :tracks
+
+    def initialize(resource)
+      @resource = resource
+
+      @select = Set.new
+      @select_star = false
+      @tracks = Hash.new 
     end
 
-    def add(resource, fields)
-      return if @seen[resource].include? fields
-      @seen[resource] << fields
-
+    def add(fields)
       fields.each do |name, field|
-        map_property(resource, name, field)
+        map_property(name, field)
       end
+      self
     end
 
-    def select_all(resource)
-      selectors[resource.model][:select] = true
-    end
-
-    def map_property(resource, name, fields)
+    def map_property(name, fields)
       if resource.properties.key?(name)
-        add_property(resource, name, fields)
+        add_property(name, fields)
       elsif resource.model._praxis_associations.key?(name)
-        add_association(resource, name, fields)
+        add_association(name, fields)
       else
-        add_select(resource, name)
+        add_select(name)
       end
     end
 
-    def add_select(resource, name)
-      return select_all(resource) if name == :*
-      return if selectors[resource.model][:select] == true
-
-      selectors[resource.model][:select] << name
-    end
-
-    def add_track(resource, name)
-      selectors[resource.model][:track] << name
-    end
-
-    def add_association(resource, name, fields)
+    def add_association(name, fields)
+      
       association = resource.model._praxis_associations.fetch(name) do
         raise "missing association for #{resource} with name #{name}"
       end
       associated_resource = resource.model_map[association[:model]]
-
-      case association[:type]
-      when :many_to_one
-        add_track(resource, name)
-        Array(association[:key]).each do |akey|
-          add_select(resource, akey)
+      unless associated_resource
+        raise "Whoops! could not find a resource associated with model #{association[:model]} (root resource #{resource})"
+      end
+      # Add the required columns in this model to make sure the association can be loaded
+      association[:local_key_columns].each {|col| add_select(col) }
+      
+      node = SelectorGeneratorNode.new(associated_resource)
+      if association[:remote_key_columns].nil?
+        binding.pry
+        puts association
+      end
+      unless association[:remote_key_columns].empty?
+        # Make sure we add the required columns for this association to the remote model query
+        fields = {} if fields == true
+        new_fields_as_hash = association[:remote_key_columns].each_with_object({}) do|name, hash|
+          hash[name] = true
         end
-      when :one_to_many
-        add_track(resource, name)
-        Array(association[:key]).each do |akey|
-          add_select(associated_resource, akey)
-        end
-      when :many_to_many
-        # If we haven't explicitly added the "through" option in the association
-        # then we'll assume the underlying ORM is able to fill in the gap. We will
-        # simply add the fields for the associated resource below
-        if association.key? :through
-          head, *tail = association[:through]
-          new_fields = tail.reverse.inject(fields) do |thing, step|
-            {step => thing}
-          end
-          return add_association(resource, head, new_fields)
-        else
-          add_track(resource, name)
-        end
-      else
-        raise "no select applicable for #{association[:type].inspect}"
+        fields.merge!(new_fields_as_hash) 
       end
 
-      unless fields == true
-        # recurse into the field
-        add(associated_resource,fields)
-      end
+      node.add(fields) unless fields == true
+
+      self.merge_track(name, node)
     end
 
-    def add_property(resource, name, fields)
+    def add_select(name)
+      return @select_star = true if name == :*
+      return if @select_star
+      @select.add name
+    end
+
+    def add_property(name, fields)
       dependencies = resource.properties[name][:dependencies]
+      # Always add the underlying association if we're overriding the name...
+      add_association(name, fields) if resource.model._praxis_associations.key?(name)
       if dependencies
         dependencies.each do |dependency|
-          # if dependency includes the name, then map it directly as the field
-          if dependency == name
-            add_select(resource, name)
+          # To detect recursion, let's allow mapping depending fields to the same name of the property
+          # but properly detecting if it's a real association...in which case we've already added it above
+          if dependency == name 
+            add_select(name) unless resource.model._praxis_associations.key?(name)
           else
-            apply_dependency(resource, dependency)
+            apply_dependency(dependency)
           end
         end
       end
@@ -107,20 +88,62 @@ module Praxis::Mapper
         {step => thing}
       end
 
-      add_association(resource, head, new_fields)
+      add_association(head, new_fields)
     end
 
-    def apply_dependency(resource, dependency)
+    def apply_dependency(dependency)
       case dependency
       when Symbol
-        map_property(resource, dependency, {})
+        map_property(dependency, true)
       when String
         head, tail = dependency.split('.').collect(&:to_sym)
         raise "String dependencies can not be singular" if tail.nil?
 
-        add_association(resource, head, {tail => true})
+        add_association(head, {tail => true})
       end
     end
 
+    def merge_track( track_name, node )
+      raise "Cannot merge another node for association #{track_name}: incompatible model" unless node.model == self.model
+
+      existing = self.tracks[track_name]
+      if existing
+        node.select.each do|col_name|
+          existing.add_select(col_name)
+        end
+        node.tracks.each do |name, n|
+          existing.merge(name, n)
+        end
+      else
+        self.tracks[track_name] = node
+      end
+
+    end
+
+    def dump
+      hash = {}
+      hash[:model] = resource.model
+      if !@select.empty? || @select_star
+        hash[:columns] = @select_star ? [ :* ] : @select.to_a 
+      end
+      unless @tracks.empty?
+        hash[:tracks] = @tracks.each_with_object({}) {|(name, node), hash|  hash[name] = node.dump }
+      end
+      hash
+    end
+  end
+
+  # Generates a set of selectors given a resource and
+  # list of resource attributes.
+  class SelectorGenerator
+    # Entry point
+    def add(resource, fields)
+      @root = SelectorGeneratorNode.new(resource)
+      @root.add(fields)
+    end
+
+    def selectors
+      @root
+    end
   end
 end

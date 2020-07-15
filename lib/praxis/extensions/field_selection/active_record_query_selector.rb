@@ -3,51 +3,47 @@ module Praxis
   module Extensions
     module FieldSelection
       class ActiveRecordQuerySelector
-        attr_reader :selector, :query, :top_model, :resolved, :root
+        attr_reader :selector, :query
         # Gets a dataset, a selector...and should return a dataset with the selector definition applied.
-        def initialize(query:, model:, selectors:, resolved:)
+        def initialize(query:, selectors:)
           @selector = selectors
           @query = query
-          @top_model = model
-          @resolved = resolved
-          @seen = Set.new
-          @root = model.table_name
         end
 
-        def add_select(query:, model:, table_name:)
-          if (fields = fields_for(model))
-            # Note, let's always add the pk fields so that associations can load properly
-            fields = fields | [model.primary_key.to_sym]
-            query.select(*fields)
-          else
-            query
-          end
-        end
-
-        def generate
+        def generate(debug: false)
           # TODO: unfortunately, I think we can only control the select clauses for the top model 
           # (as I'm not sure ActiveRecord supports expressing it in the join...)
-          @query = add_select(query: query, model: top_model, table_name: root)
+          @query = add_select(query: query, selector_node: selector)
+          eager_hash = _eager(selector)
 
-          @query.includes(_eager(top_model, resolved) )
+          @query = @query.includes(eager_hash)          
+          explain_query(query, eager_hash) if debug
+
+          @query
         end
 
-        def _eager(model, resolved)
-          tracks = only_assoc_for(model, resolved)
-          tracks.inject([]) do |dataset, track|
-            next dataset if @seen.include?([model, track])
-            @seen << [model, track]
-            assoc_model = model._praxis_associations[track][:model]
-            dataset << { track => _eager(assoc_model, resolved[track]) }
+        def add_select(query:, selector_node:)
+          # We're gonna always require the PK of the model, as it is a special case for AR, and the app itself 
+          # might assume it is always there and not be surprised by the fact that if it isn't, it won't blow up
+          # in the same way as any other attribute not being loaded...i.e., ActiveModel::MissingAttributeError: missing attribute: xyz
+          select_fields = selector_node.select + [selector_node.resource.model.primary_key.to_sym]
+          select_fields.empty? ? query : query.select(*select_fields)
+        end
+
+        def _eager(selector_node)
+          selector_node.tracks.each_with_object({}) do |(track_name, track_node), h|
+            h[track_name] = _eager(track_node)
           end
         end
 
-        def only_assoc_for(model, hash)
-          hash.keys.reject { |assoc| model._praxis_associations[assoc].nil? }
-        end
-
-        def fields_for(model)
-          selector[model][:select].to_a
+        def explain_query(query, eager_hash)
+          prev = ActiveRecord::Base.logger
+          ActiveRecord::Base.logger = Logger.new(STDOUT)
+          ActiveRecord::Base.logger.debug("Query plan for ...#{selector.resource.model} with selectors: #{JSON.generate(selector.dump)}")
+          ActiveRecord::Base.logger.debug(" ActiveRecord query: #{selector.resource.model}.includes(#{eager_hash})")
+          query.explain
+          ActiveRecord::Base.logger.debug("Query plan end")
+          ActiveRecord::Base.logger = prev
         end
       end
     end

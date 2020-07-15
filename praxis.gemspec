@@ -51,4 +51,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'fuubar', '~> 2'
   spec.add_development_dependency 'yard', ">= 0.9.20"
   spec.add_development_dependency 'coveralls'
+  # Just for the query selector extensions etc...
+  spec.add_development_dependency 'sequel', '~> 5'
+  spec.add_development_dependency 'activerecord', '> 4'
 end

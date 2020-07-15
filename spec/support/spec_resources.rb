@@ -8,12 +8,16 @@ class SimpleModel < OpenStruct
       parent: {
         model: ParentModel,
         primary_key: :id,
-        type: :many_to_one
+        type: :many_to_one,
+        local_key_columns: [:parent_id],
+        remote_key_columns: [:id]
       },
       other_model: {
         model: OtherModel,
         primary_key: :id,
-        type: :many_to_one
+        type: :many_to_one,
+        local_key_columns: [:other_model_id],
+        remote_key_columns: [:id]
       }
     }
   end
@@ -23,14 +27,20 @@ class OtherModel < OpenStruct
   include Praxis::Mapper::ActiveModelCompat
   def self._praxis_associations
     {
-    }
-  end
-end
-
-class PersonModel < OpenStruct
-  include Praxis::Mapper::ActiveModelCompat
-  def self._praxis_associations
-    {
+      parent: {
+        model: ParentModel,
+        primary_key: :id,
+        type: :many_to_one,
+        local_key_columns: [:parent_id],
+        remote_key_columns: [:id]
+      },
+      simple_models: {
+        model: SimpleModel,
+        primary_key: :id,
+        type: :many_to_many,
+        local_key_columns: [:id],
+        remote_key_columns: [:id] # The through table is in the middle where the FKs are...
+      }
     }
   end
 end
@@ -39,6 +49,13 @@ class ParentModel < OpenStruct
   include Praxis::Mapper::ActiveModelCompat
   def self._praxis_associations
     {
+      simple_children: {
+        model: SimpleModel,
+        primary_key: :id,
+        type: :one_to_many,
+        local_key_columns: [:id],
+        remote_key_columns: [:parent_id]
+      }
     }
   end
 end
@@ -50,7 +67,9 @@ class YamlArrayModel < OpenStruct
     parents: {
       model: ParentModel,
       primary_key: :id,
-      type: :one_to_many
+      type: :one_to_many,
+      local_key_columns: [:id],
+      remote_key_columns: [:parent_id]
     }
   }
   end
@@ -66,12 +85,10 @@ class BaseResource < Praxis::Mapper::Resource
   property :href, dependencies: [:id]
 end
 
-# class CompositeIdResource < BaseResource
-#   model CompositeIdModel
-# end
-
 class OtherResource < BaseResource
   model OtherModel
+
+  property :display_name, dependencies: [:name]
 end
 
 class ParentResource < BaseResource
@@ -87,45 +104,21 @@ class SimpleResource < BaseResource
     self.other_model
   end
 
+  property :aliased_method, dependencies: [:column1, :other_model]
   property :other_resource, dependencies: [:other_model]
 
-  property :name, dependencies: [:simple_name]
-end
+  property :parent, dependencies: [:parent, :added_column]
 
-# class SimplerResource < BaseResource
-#   model SimplerModel
-# end
+  property :name, dependencies: [:simple_name]
+  property :direct_other_name, dependencies: [ 'other_model.name' ]
+  property :aliased_other_name, dependencies: [ 'other_model.display_name' ]
+
+  property :everything, dependencies: [:*]
+  property :everything_from_parent, dependencies: ['parent.*']
+  property :circular_dep, dependencies: [ :circular_dep, :column1 ]
+  property :no_deps, dependencies: []
+end
 
 class YamlArrayResource < BaseResource
   model YamlArrayModel
 end
-
-class PersonResource < BaseResource
-  model PersonModel
-
-  def href
-    "/people/#{self.id}"
-  end
-
-end
-
-# class AddressResource < BaseResource
-#   model AddressModel
-
-
-#   def href
-#     "/addresses/#{self.id}"
-#   end
-#   property :href, dependencies: [:id]
-
-#   def owner_name
-#     self.owner.name
-#   end
-#   property :owner_name, dependencies: ['owner.name']
-
-#   def resident_count
-#     self.residents.size
-#   end
-#   property :resident_count, dependencies: [:residents]
-
-# end

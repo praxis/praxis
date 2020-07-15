@@ -8,6 +8,21 @@ module Praxis
 
       class Plugin < Praxis::Plugin
         include Singleton
+
+        def config_key
+          :mapper
+        end
+
+        def load_config!
+          {} # override the default one, since we don't necessarily want to configure it via a yaml file.
+        end
+
+        def prepare_config!(node)
+          node.attributes do
+            attribute :debug_queries, Attributor::Boolean, default: false,
+              description: 'Weather or not to log debug information about queries executed in the build_query automation module'
+          end
+        end
       end
 
       module Controller
@@ -32,8 +47,7 @@ module Praxis
           filters = request.params.filters if request.params&.respond_to?(:filters)
           base_query = domain_model.craft_filter_query( base_query , filters: filters )
 
-          resolved = Praxis::MediaType::FieldResolver.resolve(self.media_type, self.expanded_fields)
-          base_query = domain_model.craft_field_selection_query(base_query, selectors: selector_generator.selectors, resolved: resolved)
+          base_query = domain_model.craft_field_selection_query(base_query, selectors: selector_generator.selectors)
 
           # TODO: handle pagination and ordering
           base_query

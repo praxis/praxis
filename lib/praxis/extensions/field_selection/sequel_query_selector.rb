@@ -1,63 +1,59 @@
 # frozen_string_literal: true
+
+require 'sequel'
+
 module Praxis
   module Extensions
     module FieldSelection
       class SequelQuerySelector
-        attr_reader :selector, :ds, :top_model, :resolved, :root
+        attr_reader :selector, :query
         # Gets a dataset, a selector...and should return a dataset with the selector definition applied.
-        def initialize(query:, model:, selectors:, resolved:)
+        def initialize(query:, selectors:)
           @selector = selectors
-          @ds = query
-          @top_model = model
-          @resolved = resolved
-          @seen = Set.new
-          @root = model.table_name
+          @query = query
         end
 
-        def add_select(ds:, model:, table_name:)
-          if (fields = fields_for(model))
-            # Note, let's always add the pk fields so that associations can load properly
-            fields = fields | model.primary_key | [:id]
-            qualified = fields.map { |f| Sequel.qualify(table_name, f) }
-            ds.select(*qualified)
-          else
-            ds
+        def generate(debug: false)
+          @query = add_select(query: query, selector_node: @selector)
+          
+          @query = @selector.tracks.inject(@query) do |ds, (track_name, track_node)|
+            ds.eager(track_name => _eager(track_node) )
           end
+
+          explain_query(query) if debug
+          @query
         end
 
-        def generate
-          @ds = add_select(ds: ds, model: top_model, table_name: root)
-
-          tracks = only_assoc_for(top_model, resolved)
-          @ds = tracks.inject(@ds) do |dataset, track|
-            next dataset if @seen.include?([top_model, track])
-            @seen << [top_model, track]
-            assoc_model = top_model._praxis_associations[track][:model]
-            #      hash[track] = _eager(assoc_model, resolved[track])
-            dataset.eager(track => _eager(assoc_model, resolved[track]))
-          end
-        end
-
-        def _eager(model, resolved)
+        def _eager(selector_node)
           lambda do |dset|
-            d = add_select(ds: dset, model: model, table_name: model.table_name)
+            dset = add_select(query: dset, selector_node: selector_node)
 
-            tracks = only_assoc_for(model, resolved)
-            tracks.inject(d) do |dataset, track|
-              next dataset if @seen.include?([model, track])
-              @seen << [model, track]
-              assoc_model = model._praxis_associations[track][:model]
-              dataset.eager(track => _eager(assoc_model, resolved[track]))
+            dset = selector_node.tracks.inject(dset) do |ds, (track_name, track_node)|
+              ds.eager(track_name => _eager(track_node) )
             end
+
           end
         end
 
-        def only_assoc_for(model, hash)
-          hash.keys.reject { |assoc| model._praxis_associations[assoc].nil? }
+        def add_select(query:, selector_node:)
+          # We're gonna always require the PK of the model, as it is a special case for Sequel, and the app itself 
+          # might assume it is always there and not be surprised by the fact that if it isn't, it won't blow up
+          # in the same way as any other attribute not being loaded...i.e., NoMethodError: undefined method `foobar' for #<...>
+          select_fields = selector_node.select + [selector_node.resource.model.primary_key.to_sym]
+    
+          table_name = selector_node.resource.model.table_name
+          qualified = select_fields.map { |f| Sequel.qualify(table_name, f) }
+          query.select(*qualified)
         end
 
-        def fields_for(model)
-          selector[model][:select].to_a
+        def explain_query(ds)
+          prev_loggers = Sequel::Model.db.loggers
+          stdout_logger = Logger.new($stdout)
+          Sequel::Model.db.loggers = [stdout_logger]
+          stdout_logger.debug("Query plan for ...#{selector.resource.model} with selectors: #{JSON.generate(selector.dump)}")
+          ds.all
+          stdout_logger.debug("Query plan end")
+          Sequel::Model.db.loggers = prev_loggers
         end
       end
     end

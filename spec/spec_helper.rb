@@ -23,8 +23,19 @@ Dir["#{File.dirname(__FILE__)}/../lib/praxis/plugins/*.rb"].each do |file|
   require file
 end
 
+
 Dir["#{File.dirname(__FILE__)}/support/*.rb"].each do |file|
   require file
+end
+
+def suppress_output
+  original_stdout, original_stderr = $stdout.clone, $stderr.clone
+  $stderr.reopen File.new('/dev/null', 'w')
+  $stdout.reopen File.new('/dev/null', 'w')
+  yield
+ensure
+  $stdout.reopen original_stdout
+  $stderr.reopen original_stderr
 end
 
 RSpec.configure do |config|

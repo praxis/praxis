@@ -46,18 +46,53 @@ module Praxis
               else
                 raise "Unknown association type: #{v.class.name} on #{v.klass.name} for #{v.name}"
               end
+            # Call out any local (i.e., of this model) columns that participate in the association 
+            info[:local_key_columns] = local_columns_used_for_the_association(info[:type], v)
+            info[:remote_key_columns] = remote_columns_used_for_the_association(info[:type], v)
 
             if v.is_a?(ActiveRecord::Reflection::ThroughReflection)
               info[:through] = v.through_reflection.name # TODO: is this correct?
             end
-
-            # TODO: add more keys for the association to make true praxis mapper functions happy
             hash[k.to_sym] = info
           end
         end
 
+        private
+        def local_columns_used_for_the_association(type, assoc_reflection)
+          case type
+          when :one_to_many
+            # The associated table  will point to us by key (usually the PK, but not always)
+            [assoc_reflection.join_keys.foreign_key.to_sym]
+          when :many_to_one
+            # We have the FKs to the associated model
+            [assoc_reflection.join_keys.foreign_key.to_sym]
+          when :many_to_many
+            ref = resolve_closest_through_reflection(assoc_reflection)
+            # The associated middle table will point to us by key (usually the PK, but not always)
+            [ref.join_keys.foreign_key.to_sym] # The foreign key that the last through table points to
+          else 
+            raise "association type #{type} not supported"
+          end
+        end
+
+        def remote_columns_used_for_the_association(type, assoc_reflection)
+          # It seems that since the reflection is the target of the association, using the join_keys.key
+          # will always get us the right column
+          case type
+          when :one_to_many, :many_to_one, :many_to_many
+            [assoc_reflection.join_keys.key.to_sym]
+          else 
+            raise "association type #{type} not supported"
+          end
+        end
+  
+        # Keep following the association reflections as long as there are middle ones (i.e., through)
+        # until we come to the one next to the source
+        def resolve_closest_through_reflection(ref)
+          return ref unless ref.through_reflection?
+          resolve_closest_through_reflection( ref.through_reflection )
+        end
       end
-    
     end
   end
 end

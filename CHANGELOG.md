@@ -1,5 +1,11 @@
 # Praxis Changelog
 
+## next
+- Reworked the field selection DB query generation to support full tree of eager loaded dependencies
+  - Built support for both ActiveRecord and Sequel gems
+  - Selected DB fields will include/map the defined resource properties and will always include any necessary fields on both sides of the joins for the given associations.
+  - Added a configurable option to enable debugging of those generated queries (through `Praxis::Application.instance.config.mapper.debug_queries=true`)
+
 ## 2.0.pre.1
 
 - Bring over partial functionality from praxis-mapper and remove dependency on same

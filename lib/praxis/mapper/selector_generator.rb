@@ -19,9 +19,10 @@ module Praxis::Mapper
     end
 
     def map_property(name, fields)
+      praxis_compat_model = resource.model && resource.model.respond_to?(:_praxis_associations)
       if resource.properties.key?(name)
         add_property(name, fields)
-      elsif resource.model._praxis_associations.key?(name)
+      elsif praxis_compat_model && resource.model._praxis_associations.key?(name)
         add_association(name, fields)
       else
         add_select(name)
@@ -68,13 +69,18 @@ module Praxis::Mapper
     def add_property(name, fields)
       dependencies = resource.properties[name][:dependencies]
       # Always add the underlying association if we're overriding the name...
-      add_association(name, fields) if resource.model._praxis_associations.key?(name)
+      praxis_compat_model = resource.model && resource.model.respond_to?(:_praxis_associations)
+      if praxis_compat_model && resource.model._praxis_associations.key?(name)
+        add_association(name, fields)
+      end
       if dependencies
         dependencies.each do |dependency|
           # To detect recursion, let's allow mapping depending fields to the same name of the property
           # but properly detecting if it's a real association...in which case we've already added it above
-          if dependency == name 
-            add_select(name) unless resource.model._praxis_associations.key?(name)
+          if dependency == name
+            unless praxis_compat_model && resource.model._praxis_associations.key?(name)
+              add_select(name)
+            end
           else
             apply_dependency(dependency)
           end
@@ -112,12 +118,11 @@ module Praxis::Mapper
           existing.add_select(col_name)
         end
         node.tracks.each do |name, n|
-          existing.merge(name, n)
+          existing.merge_track(name, n)
         end
       else
         self.tracks[track_name] = node
       end
-
     end
 
     def dump

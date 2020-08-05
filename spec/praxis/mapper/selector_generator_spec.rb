@@ -181,6 +181,38 @@ describe Praxis::Mapper::SelectorGenerator do
         end
         it_behaves_like 'a proper selector'
       end
+
+      context 'merging multiple tracks with the same name within a node' do
+        let(:fields) do
+          { # Both everything_from_parent and parent will track the underlying 'parent' assoc
+            # ...and the final respective fields and tracks will need to be merged together.
+            # columns will be merged by just *, and tracks will merge true with simple children
+            everything_from_parent: true,
+            parent: {
+              simple_children: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            columns: [:parent_id, :added_column],
+            tracks: {
+              parent: {
+                model: ParentModel,
+                columns: [:*],
+                tracks: {
+                  simple_children: {
+                    model: SimpleModel,
+                    columns: [:parent_id]
+                  }
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
     end
 
     context 'string associations' do

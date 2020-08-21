@@ -54,6 +54,10 @@ module Praxis
       super(false,**opts) # Links must always describe attributes
     end
 
+    def self.json_schema_type
+      @attribute.type.json_schema_type
+    end
+
     def self._finalize!
       super
       if @attribute

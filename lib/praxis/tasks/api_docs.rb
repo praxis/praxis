@@ -62,5 +62,28 @@ namespace :praxis do
       generator.save!
     end
 
+    desc "Generate OpenAPI 3 docs for a Praxis App"
+    task :openapi => [:environment] do |t, args|
+      require 'fileutils'
+
+      Praxis::Blueprint.caching_enabled = false
+      generator = Praxis::Docs::OpenApiGenerator.new(Dir.pwd)
+      generator.save!
+    end
+
+    desc "Preview (and Generate) OpenAPI 3 docs for a Praxis App"
+    task :openapipreview => [:openapi] do |t, args|
+      require 'webrick' 
+      docs_port = 9090
+      root = Dir.pwd + '/docs/openapi/'
+      wb = Thread.new do
+        s = WEBrick::HTTPServer.new(:Port => docs_port, :DocumentRoot => root)
+        trap('INT') { s.shutdown }
+        s.start
+      end
+      `open http://localhost:#{docs_port}/`
+      wb.join
+    end
+
   end
 end

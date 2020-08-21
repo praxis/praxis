@@ -163,7 +163,7 @@ module Praxis
           end
         end
 
-        content[:payload] = payload
+        content[:payload] = {type: payload}
       end
 
       unless parts == nil

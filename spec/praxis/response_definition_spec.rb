@@ -514,12 +514,11 @@ describe Praxis::ResponseDefinition do
 
     context 'for a definition with a media type' do
       let(:media_type) { Instance }
-      subject(:payload) { output[:payload] }
+      subject(:payload) { output[:payload][:type] }
 
       before do
         response.media_type Instance
       end
-
       its([:name]) { should eq 'Instance' }
       context 'examples' do
         subject(:examples) { payload[:examples] }
@@ -571,7 +570,9 @@ describe Praxis::ResponseDefinition do
         end
 
         it{ should be_kind_of(::Hash) }
-        its([:payload]){ should ==  {id: 'Praxis-SimpleMediaType', name: 'Praxis::SimpleMediaType', family: 'string', identifier: 'foobar' } }
+        it 'has the right type info' do
+          expect(subject[:payload][:type]).to match(id: 'Praxis-SimpleMediaType', name: 'Praxis::SimpleMediaType', family: 'string', identifier: 'foobar')
+        end
         its([:status]){ should == 200 }
       end
       context 'using a full response definition block' do
@@ -587,7 +588,9 @@ describe Praxis::ResponseDefinition do
         end
 
         it{ should be_kind_of(::Hash) }
-        its([:payload]) { should == {id: 'Praxis-SimpleMediaType', name: 'Praxis::SimpleMediaType', family: 'string', identifier: 'custom_media'} }
+        it 'has the right type info' do
+          expect(subject[:payload][:type]).to match(id: 'Praxis-SimpleMediaType', name: 'Praxis::SimpleMediaType', family: 'string', identifier: 'custom_media')
+        end
         its([:status]) { should == 234 }
       end
     end

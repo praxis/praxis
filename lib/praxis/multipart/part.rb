@@ -28,6 +28,10 @@ module Praxis
       self
     end
 
+    def self.json_schema_type
+      :object
+    end
+
     def self.example(context=nil, options:{})
       if (payload_attribute = options[:payload_attribute])
         payload = payload_attribute.example(context + ['payload'])
@@ -52,8 +56,7 @@ module Praxis
                headers_attribute: headers_attribute,
                filename_attribute: filename_attribute)
     end
-
-
+    
     def self.describe(shallow=true, example: nil, options:{})
       hash = super(shallow, example: example)
 

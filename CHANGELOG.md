@@ -2,7 +2,7 @@
 
 ## 2.0.pre.5
 
-- Added support for OpenAPI document generation. Consider this in Beta state, although it is fairly close to feature complete.
+- Added support for OpenAPI 3.x document generation. Consider this in Beta state, although it is fairly close to feature complete.
 
 ## 2.0.pre.4
 - Reworked the field selection DB query generation to support full tree of eager loaded dependencies

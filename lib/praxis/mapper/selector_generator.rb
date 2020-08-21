@@ -42,10 +42,6 @@ module Praxis::Mapper
       association[:local_key_columns].each {|col| add_select(col) }
       
       node = SelectorGeneratorNode.new(associated_resource)
-      if association[:remote_key_columns].nil?
-        binding.pry
-        puts association
-      end
       unless association[:remote_key_columns].empty?
         # Make sure we add the required columns for this association to the remote model query
         fields = {} if fields == true

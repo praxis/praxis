@@ -18,7 +18,6 @@ module Praxis
           headers.each_with_object({}) do |(name,data),accum|
             # data is a hash with :value and :type keys
             # How did we say in that must match a value in json schema again??
-            binding.pry
             accum[name] = {
               schema: SchemaObject.new(info: data[:type])
               # allowed values:  [ data[:value] ] ??? is this the right json schema way?

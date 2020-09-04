@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-require_relative 'support/spec_resources_active_model.rb'
+require_relative '../support/spec_resources_active_model.rb'
 
 describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
   let(:selector_fields) do
@@ -79,7 +79,7 @@ describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
       expect(includes_hash).to match(expected_includes)
       # Also, make AR do the actual query to make sure everything is wired up correctly
       result = final_query.to_a
-      expect(result.size).to be 2
+      expect(result.size).to be > 2 # We are using 2 but we've seeded more
       book1 = result[0]
       book2 = result[1]
       expect(book1.author.id).to eq 11

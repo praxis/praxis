@@ -89,7 +89,7 @@ module Praxis
     autoload :FieldExpansion, 'praxis/extensions/field_expansion'
     autoload :ActiveRecordFilterQueryBuilder, 'praxis/extensions/attribute_filtering/active_record_filter_query_builder'
     autoload :SequelFilterQueryBuilder, 'praxis/extensions/attribute_filtering/sequel_filter_query_builder'
-    autoload :Pagination, 'praxis/extensions/pagination'    
+    autoload :Pagination, 'praxis/extensions/pagination'
   end
 
   module Handlers

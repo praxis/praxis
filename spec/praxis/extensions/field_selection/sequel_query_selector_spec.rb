@@ -37,7 +37,7 @@ describe Praxis::Extensions::FieldSelection::SequelQuerySelector do
   # Pay the price for creating and connecting only in this spec instead in spec helper
   # this way all other specs do not need to be slower and it's a better TDD experience
 
-  require_relative 'support/spec_resources_sequel.rb'
+  require_relative '../support/spec_resources_sequel.rb'
   
   let(:selector_fields) do
     { 

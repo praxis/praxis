@@ -2,6 +2,8 @@ module Praxis
   module Extensions
     module Pagination
       class PaginationHandler
+        class PaginationException < Exception; end
+
         def self.paginate(query, table, pagination)
           # TODO: rethink how/if table is necessary for AR/Sequel...
           return query unless pagination.paginator
@@ -18,6 +20,7 @@ module Praxis
             # If there is an order clause that complies with the "by" field sorting, we can use it directly
             # i.e., We can be smart about allowing the main sort field matching the pagination one (in case you want to sub-order in a custom way)
             oclause = if pagination.order.nil? || pagination.order.empty? # No ordering specified => use ascending based on the "by" field
+                        direction = :asc
                         order(query, [{ asc: attr_selector }])
                       else
                         first_ordering = pagination.order.items.first
@@ -52,10 +55,12 @@ module Praxis
 
         def self.where_lt(query, attr, value)
           # TODO: common for AR/Sequel? Seems we could use Arel and more-specific Sequel things
+          # query.where(query.table[attr].lt(value))  TODO   Use this (when fixed)
           query.where("#{attr} < ?", value)
         end
         
         def self.where_gt(query, attr, value)
+          #query.where(query.table[attr].gt(value)) TODO    Use this (when fixed)
           query.where("#{attr} > ?", value)
         end
 
@@ -107,10 +112,10 @@ module Praxis
         def self.activerecord_order(query, order)
           return query unless order
           query = query.reorder('')
-
+          
           order.each do |spec_hash|
             direction, name = spec_hash.first
-            query = query.order(format("%s %s", name, direction))
+            query = query.order(name => direction)
           end
           query
         end

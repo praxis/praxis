@@ -38,7 +38,7 @@ module Praxis
         # One can limit the total maximum of items of the requested page size from the client can ask for:
         #  * max_items <integer> (there is a static upper limit to thie value set by the MAX_ITEMS constant)
         # One can set the default amount of items to return when not specified by the client
-        #  * page_size <integer> (less or equal than max_items)
+        #  * page_size <integer> (less or equal than max_items, if the max is set)
         # One can expicitly disallow either paging or cursor based pagination (by default both are allowed)
         # * disallow :paging | :cursor
         # One can set the default pagination mode when no :page, :by/:from parameters are passed in.
@@ -84,7 +84,6 @@ module Praxis
               if default_mode == :by
                 raise "Cannot disallow cursor-based pagination if you define a default pagination of:   by: #{default_value}"
               end
-
               target.defaults[:disallow_cursor] = true
             end
           end
@@ -117,7 +116,7 @@ module Praxis
           end
         end
 
-        @max_items = 500
+        @max_items = nil # Unlimited by default (since it's not possible to set it to nil for now from the app)
         @default_page_size = 100
         @paging_default_mode = { page: 1 }
         @disallow_paging_by_default = false
@@ -234,7 +233,7 @@ module Praxis
         end
 
         def self.load(paginator, _context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
-          return paginator if paginator.is_a?(native_type)
+          return paginator if paginator.is_a?(native_type) || paginator.nil?
 
           parsed = {}
           unless paginator.nil?
@@ -331,7 +330,7 @@ module Praxis
             errors << "Page parameter cannot be zero or negative! (got: #{parsed.page})"
           end
 
-          if items && (items <= 0 || items > self.class.defaults[:max_items])
+          if items && (items <= 0 || ( self.class.defaults[:max_items] && items > self.class.defaults[:max_items]) )
             errors << "Value of 'items' is invalid (got: #{items}). It must be positive, and smaller than the maximum amount of items per request (set to #{self.class.defaults[:max_items]})"
           end
 
@@ -339,7 +338,7 @@ module Praxis
             errors << "Cannot specify the field to use and its start value to paginate from when using a fix pager (i.e., `by` and/or `from` params are not compabible with `page`)"
           end
 
-          if by && !self.class.fields_allowed.include?(by.to_sym)
+          if by && self.class.fields_allowed && !self.class.fields_allowed.include?(by.to_sym)
             errors << if self.class.media_type.attributes.key?(by.to_sym)
                         "Paginating by field \'#{by}\' is disallowed"
                       else

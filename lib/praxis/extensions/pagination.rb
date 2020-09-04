@@ -5,6 +5,7 @@ rescue LoadError
        "Please make sure it's in your Gemfile or installed in your system."
 end
 require 'praxis/extensions/pagination/pagination_params'
+require 'praxis/extensions/pagination/ordering_params'
 require 'praxis/extensions/pagination/pagination_handler'
 require 'praxis/extensions/pagination/header_generator'
 
@@ -46,9 +47,8 @@ module Praxis
             # If this action has the pagination parameter defined,
             # calculate and set the pagination headers (Link header and possibly Total-Count)
             if controller._pagination.paginator
-              pagination = controller._pagination
               headers = controller.build_pagination_headers(
-                pagination: pagination,
+                pagination: controller._pagination,
                 current_url: controller.request.path,
                 current_query_params: controller.request.query
               )

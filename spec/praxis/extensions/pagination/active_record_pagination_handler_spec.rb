@@ -53,7 +53,7 @@ describe Praxis::Extensions::Pagination::PaginationHandler do
 
   
   context '.paginate' do
-    subject {described_class.paginate(query, table, pagination) }
+    subject {described_class.paginate(query, pagination) }
     
     context 'empty struct' do
       let(:paginator_params) { nil }

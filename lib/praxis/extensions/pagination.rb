@@ -20,7 +20,7 @@ module Praxis
       # can be easily applied to other chainable query proxies.
       #
       # Here's a simple example on how to use it for a fake Items controller
-      # class Items < V1::Controllers::BaseApiController
+      # class Items < V1::Controllers::BaseController
       #   include Praxis::Controller
       #   include Praxis::Extensions::Rendering
       #   implements V1::Endpoints::Items
@@ -29,7 +29,7 @@ module Praxis
       #
       #   def index(filters: nil, pagination: nil, order: nil,  **_args)
       #     items = current_user.items.all
-      #     items = handle_pagination( query: items, table: :items)
+      #     items = handle_pagination( query: items)
       #
       #     display(items)
       #   end
@@ -76,7 +76,7 @@ module Praxis
       # * the query to build from and the table
       # * the request (for link header generation)
       # * requires the _pagination variable to be there (set by this module) to return the pagination struct
-      def handle_pagination(query:, table: nil)
+      def handle_pagination(query:)
         # Gather and save the count if required
         if _pagination.paginator&.total_count
           _pagination.total_count = PaginationHandler.count(query.dup)
@@ -85,7 +85,7 @@ module Praxis
         query = PaginationHandler.order(query, _pagination.order)
         # Maybe this is a class instance instead of a class method?...(of the appropriate AR/Sequel type)...
         # self.class.paginate(query, table, _pagination)
-        PaginationHandler.paginate(query, table, _pagination)
+        PaginationHandler.paginate(query, _pagination)
       end
 
       def build_pagination_headers(pagination:, current_url:, current_query_params:)

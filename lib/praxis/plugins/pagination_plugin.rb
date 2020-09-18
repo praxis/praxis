@@ -4,6 +4,16 @@ require 'praxis/extensions/pagination'
 # Initial Proof Of Concept, for using this instead of the individual `include Praxis::Extensions::Pagination`
 # This would allow to provide some config...(which is better than setting class methods)
 # ...but it is not clear how to "synchronize that"
+# Example configuration for this plugin
+# Praxis::Application.configure do |application|
+#   application.bootloader.use Praxis::Plugins::PaginationPlugin, {
+#     max_items: 500,  # Unlimited by default,
+#     default_page_size: 100,
+#     disallow_paging_by_default: false,
+#     # See all available options below
+#   end
+# end
+
 module Praxis
   module Plugins
     module PaginationPlugin
@@ -17,16 +27,33 @@ module Praxis
         end
 
         def load_config!
-          {} # override the default one, since we don't necessarily want to configure it via a yaml file.
+          @options || {}
         end
 
         def prepare_config!(node)
-          # FIXME: We might need a better way to expose the config from here, but in a way
-          # that we could set it back to the Pagination classes...
           node.attributes do
-            # attribute :???, Attributor::Boolean, default: false,
-            #   description: '???'
+            attribute :max_items, Integer # Defaults to unlimited
+            attribute :default_page_size, Integer, default: Praxis::Types::PaginationParams.default_page_size
+            attribute :paging_default_mode, Hash, default: Praxis::Types::PaginationParams.paging_default_mode
+            attribute :disallow_paging_by_default, Attributor::Boolean, default: Praxis::Types::PaginationParams.disallow_paging_by_default
+            attribute :disallow_cursor_by_default, Attributor::Boolean, default: Praxis::Types::PaginationParams.disallow_cursor_by_default
+            attribute :disallow_cursor_by_default, Attributor::Boolean, default: Praxis::Types::PaginationParams.disallow_cursor_by_default
+            attribute :sorting do
+              attribute :enforce_all_fields, Attributor::Boolean, default: Praxis::Types::OrderingParams.enforce_all_fields
+            end
           end
+        end
+
+        def setup!
+          self.config.each do |name, val|
+            if name == :sorting
+              val.each do |ordername, orderval|
+                Praxis::Types::OrderingParams.send(ordername, orderval)
+              end
+            else
+              Praxis::Types::PaginationParams.send(name, val)
+            end
+          end      
         end
       end
 

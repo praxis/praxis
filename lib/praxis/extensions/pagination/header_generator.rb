@@ -54,7 +54,7 @@ module Praxis
           mapped = links.map do |(rel, info)|
             # Make sure to encode it our way (with comma-separated args, as it is our own syntax, and not a query string one)
             pagination_param = info.map { |(k, v)| "#{k}=#{v}" }.join(",")
-            new_url = current_url + "?" + current_query_params.dup.merge("pagination" => pagination_param).to_query
+            new_url = current_url + "?" + current_query_params.dup.merge(pagination:  pagination_param).to_query
 
             LinkHeader::Link.new(new_url, [["rel", rel.to_s]])
           end

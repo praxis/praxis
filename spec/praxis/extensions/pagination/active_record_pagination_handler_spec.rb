@@ -11,22 +11,22 @@ class Book < Praxis::MediaType
   end
 end
 Book.finalize!
-BookPaginationParams = Praxis::Types::PaginationParams.for(Book) do
-  by_fields :all
+BookPaginationParamsAttribute = Attributor::Attribute.new(Praxis::Types::PaginationParams.for(Book)) do
+  #by_fields :* TODO: This shouldn't be required...and nil default should mean all
   max_items 3
   page_size 2
   #   disallow :paging
-  #   default by: :id  
+  default by: :id  
 end
 
-BookOrderingParams = Praxis::Types::OrderingParams.for(Book) do
-  by_fields :all
+BookOrderingParamsAttribute = Attributor::Attribute.new(Praxis::Types::OrderingParams.for(Book)) do
+  #by_fields :all # TODO!!! same as above
   enforce_for :all
 end
-
+ActiveRecord::Base.logger = Logger.new(STDOUT)
 describe Praxis::Extensions::Pagination::PaginationHandler do
   shared_examples 'sorts_the_same' do |op, expected|
-    let(:order_params) { BookOrderingParams.load(op) }
+    let(:order_params) { BookOrderingParamsAttribute.load(op) }
     it do
       loaded_ids = subject.all.map(&:id)
       expected_ids = expected.all.map(&:id)
@@ -35,7 +35,7 @@ describe Praxis::Extensions::Pagination::PaginationHandler do
   end
 
   shared_examples 'paginates_the_same' do |par, expected|
-    let(:paginator_params) { BookPaginationParams.load(par) }
+    let(:paginator_params) { BookPaginationParamsAttribute.load(par) }
     it do
       loaded_ids = subject.all.map(&:id)
       expected_ids = expected.all.map(&:id)
@@ -70,7 +70,12 @@ describe Praxis::Extensions::Pagination::PaginationHandler do
         ::ActiveBook.offset(3).limit(3)
     end
 
-    context 'page-based with defaults' 
+    context 'page-based with defaults' do
+      it_behaves_like 'paginates_the_same', '',
+        ::ActiveBook.offset(0).limit(2)
+      it_behaves_like 'paginates_the_same', 'page=2',
+        ::ActiveBook.offset(2).limit(2)
+    end
 
     context 'cursor-based' do
       it_behaves_like 'paginates_the_same', 'by=id,items=3',
@@ -81,8 +86,15 @@ describe Praxis::Extensions::Pagination::PaginationHandler do
         ::ActiveBook.where("simple_name > 'Book1000'").limit(3).order(simple_name: :asc)
     end
 
+    context 'cursor-based with defaults' do
+      it_behaves_like 'paginates_the_same', '',
+        ::ActiveBook.limit(2).order(id: :asc)
+      it_behaves_like 'paginates_the_same', 'by=id,from=1000',
+        ::ActiveBook.where("id > 1000").limit(2).order(id: :asc)
+    end
+
     context 'including order' do
-      let(:order_params) { BookOrderingParams.load(op_string) }
+      let(:order_params) { BookOrderingParamsAttribute.load(op_string) }
 
       context 'when compatible with cursor' do
         let(:op_string){ 'id'}
@@ -93,7 +105,7 @@ describe Praxis::Extensions::Pagination::PaginationHandler do
   
       context 'when incompatible with cursor' do
         let(:op_string){ 'id'}
-        let(:paginator_params) { BookPaginationParams.load('by=simple_name,items=3') }
+        let(:paginator_params) { BookPaginationParamsAttribute.load('by=simple_name,items=3') }
         it do          
           expect{subject.all}.to raise_error(described_class::PaginationException, /is incompatible with pagination/)
         end

@@ -34,7 +34,7 @@ module Praxis
         #
         # One can limit which fields the pagination (by cursor) can be allowed. Typically only indexed fields should
         # be allowed for performance reasons:
-        #  * by_fields <Array of field names>  (this is a required field)
+        #  * by_fields <Array of field names>  (if not provided, all fields are allowed)
         # One can limit the total maximum of items of the requested page size from the client can ask for:
         #  * max_items <integer> (there is a static upper limit to thie value set by the MAX_ITEMS constant)
         # One can set the default amount of items to return when not specified by the client
@@ -45,7 +45,7 @@ module Praxis
         # * default  <mode>: <value>  where mode can be :page or :by (and the value is an integer or a field name respectively)
         #
         # Here's a full example:
-        # attribute :pagination, Types::PaginationParams.for(MediaTypes::Bar) do
+        # attribute :pagination, Types::PaginationParams.for(MediaTypes::Book) do
         #   by_fields :id, :name
         #   max_items 500
         #   page_size 50
@@ -96,7 +96,7 @@ module Praxis
             mode, value = spec.first
             def_mode = case mode
                        when :by
-                         unless target.fields_allowed&.include?(value)
+                         if target.fields_allowed && !target.fields_allowed&.include?(value)
                            raise "Error setting default pagination. Field #{value} is not amongst the allowed fields."
                          end
                          if target.defaults[:disallow_cursor]
@@ -234,7 +234,6 @@ module Praxis
 
         def self.load(paginator, _context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           return paginator if paginator.is_a?(native_type) || paginator.nil?
-
           parsed = {}
           unless paginator.nil?
             parsed = paginator.split(',').each_with_object({}) do |paginator_string, hash|

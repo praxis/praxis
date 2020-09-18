@@ -77,8 +77,6 @@ module Praxis
       # * the request (for link header generation)
       # * requires the _pagination variable to be there (set by this module) to return the pagination struct
       def handle_pagination(query:, type: :active_record)
-        # NOTE: the app needs to properly require the right type of handler:
-        # require 'praxis/extensions/pagination/active_record' ... or same for sequel
         handler_klass = \
           case type
           when :active_record

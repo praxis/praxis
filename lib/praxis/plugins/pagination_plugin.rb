@@ -1,9 +1,7 @@
 require 'singleton'
 require 'praxis/extensions/pagination'
 
-# Initial Proof Of Concept, for using this instead of the individual `include Praxis::Extensions::Pagination`
-# This would allow to provide some config...(which is better than setting class methods)
-# ...but it is not clear how to "synchronize that"
+# Simple plugin concept
 # Example configuration for this plugin
 # Praxis::Application.configure do |application|
 #   application.bootloader.use Praxis::Plugins::PaginationPlugin, {
@@ -13,6 +11,10 @@ require 'praxis/extensions/pagination'
 #     # See all available options below
 #   end
 # end
+#
+# This would be applied to all controllers etc...so if one does not that
+# It can easily add the `include Praxis::Extensions::Pagination` for every controller
+# and use the class `Praxis::Types::PaginationParams.xxx yyy` stanzas to configure defaults
 
 module Praxis
   module Plugins

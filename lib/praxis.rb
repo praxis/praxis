@@ -90,6 +90,8 @@ module Praxis
     autoload :ActiveRecordFilterQueryBuilder, 'praxis/extensions/attribute_filtering/active_record_filter_query_builder'
     autoload :SequelFilterQueryBuilder, 'praxis/extensions/attribute_filtering/sequel_filter_query_builder'
     autoload :Pagination, 'praxis/extensions/pagination'
+    autoload :ActiveRecordPaginationHandler, 'praxis/extensions/pagination/active_record_pagination_handler'
+    autoload :SequelPaginationHandler, 'praxis/extensions/pagination/sequel_pagination_handler'
   end
 
   module Handlers

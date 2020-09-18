@@ -2,7 +2,6 @@ require 'spec_helper'
 
 require_relative '../support/spec_resources_active_model.rb'
 require 'praxis/extensions/pagination'
-require 'praxis/extensions/pagination/active_record'
 
 class Book < Praxis::MediaType
   attributes do

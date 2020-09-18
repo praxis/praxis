@@ -141,7 +141,7 @@ module Praxis
 
         def self.paging_default_mode(newval = nil)
           if newval
-            unless newval.is_a?(Hash) && newval.keys.size == 1 && [:by, :page].include?(newval.keys.first)
+            unless newval.respond_to?(:keys) && newval.keys.size == 1 && [:by, :page].include?(newval.keys.first)
               raise "Error setting paging_default_mode, value must be a hash with :by or :page keys"
             end
             @paging_default_mode = newval

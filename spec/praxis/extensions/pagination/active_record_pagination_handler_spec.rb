@@ -2,6 +2,7 @@ require 'spec_helper'
 
 require_relative '../support/spec_resources_active_model.rb'
 require 'praxis/extensions/pagination'
+require 'praxis/extensions/pagination/active_record'
 
 class Book < Praxis::MediaType
   attributes do
@@ -12,7 +13,6 @@ class Book < Praxis::MediaType
 end
 Book.finalize!
 BookPaginationParamsAttribute = Attributor::Attribute.new(Praxis::Types::PaginationParams.for(Book)) do
-  #by_fields :* TODO: This shouldn't be required...and nil default should mean all
   max_items 3
   page_size 2
   #   disallow :paging
@@ -20,11 +20,10 @@ BookPaginationParamsAttribute = Attributor::Attribute.new(Praxis::Types::Paginat
 end
 
 BookOrderingParamsAttribute = Attributor::Attribute.new(Praxis::Types::OrderingParams.for(Book)) do
-  #by_fields :all # TODO!!! same as above
   enforce_for :all
 end
-ActiveRecord::Base.logger = Logger.new(STDOUT)
-describe Praxis::Extensions::Pagination::PaginationHandler do
+
+describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
   shared_examples 'sorts_the_same' do |op, expected|
     let(:order_params) { BookOrderingParamsAttribute.load(op) }
     it do

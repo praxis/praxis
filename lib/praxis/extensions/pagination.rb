@@ -76,16 +76,28 @@ module Praxis
       # * the query to build from and the table
       # * the request (for link header generation)
       # * requires the _pagination variable to be there (set by this module) to return the pagination struct
-      def handle_pagination(query:)
+      def handle_pagination(query:, type: :active_record)
+        # NOTE: the app needs to properly require the right type of handler:
+        # require 'praxis/extensions/pagination/active_record' ... or same for sequel
+        handler_klass = \
+          case type
+          when :active_record
+            ActiveRecordPaginationHandler
+          when :sequel
+            raise "TODO!"
+          else
+            raise "Attempting to use pagination but Active Record or Sequel gems found"
+          end
+ 
         # Gather and save the count if required
         if _pagination.paginator&.total_count
-          _pagination.total_count = PaginationHandler.count(query.dup)
+          _pagination.total_count = handler_klass.count(query.dup)
         end
         
-        query = PaginationHandler.order(query, _pagination.order)
+        query = handler_klass.order(query, _pagination.order)
         # Maybe this is a class instance instead of a class method?...(of the appropriate AR/Sequel type)...
         # self.class.paginate(query, table, _pagination)
-        PaginationHandler.paginate(query, _pagination)
+        handler_klass.paginate(query, _pagination)
       end
 
       def build_pagination_headers(pagination:, current_url:, current_query_params:)

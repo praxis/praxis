@@ -40,6 +40,7 @@ module Praxis
           end
         end
 
+        # Configurable DEFAULTS
         @enforce_all_fields = false
 
         def self.enforce_all_fields(newval = nil)

@@ -116,12 +116,12 @@ module Praxis
           end
         end
 
+        # Configurable DEFAULTS
         @max_items = nil # Unlimited by default (since it's not possible to set it to nil for now from the app)
         @default_page_size = 100
         @paging_default_mode = { page: 1 }
         @disallow_paging_by_default = false
         @disallow_cursor_by_default = false
-        CLAUSE_REGEX = /(?<type>[^=]+)=(?<value>.+)$/
 
         def self.max_items(newval = nil)
           newval ? @max_items = newval : @max_items
@@ -232,6 +232,7 @@ module Praxis
           instance.validate(context)
         end
 
+        CLAUSE_REGEX = /(?<type>[^=]+)=(?<value>.+)$/
         def self.load(paginator, _context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           return paginator if paginator.is_a?(native_type) || paginator.nil?
           parsed = {}

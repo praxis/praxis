@@ -5,7 +5,6 @@ module Praxis
         class PaginationException < Exception; end
 
         def self.paginate(query, pagination)
-          # TODO: rethink how/if table is necessary for AR/Sequel...
           return query unless pagination.paginator
 
           paginator = pagination.paginator
@@ -26,7 +25,6 @@ module Praxis
                             dir, name = h.first
                             "#{name} #{dir}"
                           }.join(',')
-                          # FIXME: What to return here?
                           raise PaginationException,
                                 "Ordering clause [#{string_clause}] is incompatible with pagination by field '#{pagination.paginator.by}'. " \
                                 "When paginating by a field value, one cannot specify the 'order' clause " \

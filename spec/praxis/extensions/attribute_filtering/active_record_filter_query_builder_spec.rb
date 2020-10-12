@@ -71,15 +71,18 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
     end
 
     context 'with a field mapping using a proc' do
+      let(:filters_string) { 'name_is_not=Book1' }
+      it_behaves_like 'subject_equivalent_to', ActiveBook.where.not(simple_name: 'Book1')
     end
 
     context 'by multiple fields' do
       context 'adds the where clauses for the top model if fields belong to it' do
         let(:filters_string) { 'category_uuid=deadbeef1&name=Book1' }
-        ActiveRecord::Base.logger = Logger.new(STDOUT)
         it_behaves_like 'subject_equivalent_to', ActiveBook.where(category_uuid: 'deadbeef1',  simple_name: 'Book1')
       end
-      context 'adds the where clauses for same nested relationship' do
+      context 'adds multiple where clauses for same nested relationship join (instead of multiple joins with 1 clause each)' do
+        let(:filters_string) { 'taggings.label=primary&taggings.tag_id=2' }
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:taggings).where('active_taggings.label' => 'primary', 'active_taggings.tag_id' => 2)
       end
     end
   end

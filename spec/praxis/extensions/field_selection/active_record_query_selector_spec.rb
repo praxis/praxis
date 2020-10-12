@@ -86,7 +86,7 @@ describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
       expect(book1.author.books.size).to eq 1
       expect(book1.author.books.map(&:simple_name)).to eq(['Book1'])
       expect(book1.category.name).to eq 'cat1'
-      expect(book1.tags.map(&:name)).to match_array(['blue','red'])
+      expect(book1.tags.map(&:name)).to match_array(['blue','red','green'])
 
       expect(book2.author.id).to eq 22
       expect(book2.author.books.size).to eq 1

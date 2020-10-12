@@ -62,7 +62,7 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
         let(:filters_string) { 'taggings.label=primary' }
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:taggings).where('active_taggings.label' => 'primary')
       end
-      context 'for a has_many through association', focus: true do
+      context 'for a has_many through association' do
         let(:filters_string) { 'tags.name=blue' }
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:tags).where('active_tags.name' => 'blue')
       end
@@ -72,6 +72,17 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       let(:filters_string) { 'name_is_not=Book1' }
       it_behaves_like 'subject_equivalent_to', ActiveBook.where.not(simple_name: 'Book1')
     end
+
+    # context 'with a deeply nested chain' do
+    #   let(:filters_string) { 'category.books.name=Book*' }
+    #   it 'asdfa' do
+    #     subject
+    #     puts "HEREEEEEEEE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    #     #binding.pry
+    #     puts "asdfasd"
+    #   end
+    #   #it_behaves_like 'subject_equivalent_to', ActiveBook.joins(category: :books).where('active_categories': {'active_books': 'Book*'})
+    # end
 
     context 'by multiple fields' do
       context 'adds the where clauses for the top model if fields belong to it' do

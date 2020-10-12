@@ -15,7 +15,7 @@ module Praxis
           filters.each do |item|
             spec = item[:specs]
             column_name = attr_to_column[item[:name]]
-            raise "Filtering by #{attr} not allowed (no mapping found)" unless column_name
+            raise "Filtering by #{item[:name]} not allowed (no mapping found)" unless column_name
             bindings = \
               if column_name.is_a?(Proc)
                 column_name.call(spec)
@@ -25,6 +25,7 @@ module Praxis
 
             bindings.each do|filter_segments,filter_value|
               first_segment, *rest = filter_segments.to_s.split('.')
+              #path = [first_segment]
               expand_binding(first_segment: first_segment, rest: rest, op: spec[:op], value: filter_value, use_this_name_for_clause: self.table)
             end
           end
@@ -97,12 +98,17 @@ module Praxis
         end
 
         def expand_binding(first_segment:, rest: , op:, value:, use_this_name_for_clause:)
+          #puts "EXPAND FOR: first_segment: #{first_segment} USE: #{use_this_name_for_clause}"
           if rest.empty?
+            #puts "ADDING CLAUSE"
             expanded_column_name = "#{use_this_name_for_clause}.#{first_segment}"
             add_clause(column_name: expanded_column_name, op: op, value: value)
           else # Join and continue with more segments
             @query = do_join(query, first_segment, use_this_name_for_clause, first_segment)
+            puts "JOINING: #{first_segment} Q: #{self.query.all.to_sql}"
+            puts "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
             new_first_segment, *new_rest = rest
+            # TODO: Should the use_this_name_for_clause be new_first_segment rather than first_segment? ... fails it if is...look into it, maybe its fine
             expand_binding(first_segment: new_first_segment, rest: new_rest, op: op, value: value, use_this_name_for_clause: first_segment)
           end
         end

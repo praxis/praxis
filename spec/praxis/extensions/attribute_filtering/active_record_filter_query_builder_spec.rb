@@ -62,7 +62,7 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
         let(:filters_string) { 'taggings.label=primary' }
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:taggings).where('active_taggings.label' => 'primary')
       end
-      context 'for a has_many through association' do
+      context 'for a has_many through association', focus: true do
         let(:filters_string) { 'tags.name=blue' }
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:tags).where('active_tags.name' => 'blue')
       end

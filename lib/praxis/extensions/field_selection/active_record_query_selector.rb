@@ -43,6 +43,8 @@ module Praxis
           ActiveRecord::Base.logger.debug(" ActiveRecord query: #{selector.resource.model}.includes(#{eager_hash})")
           query.explain
           ActiveRecord::Base.logger.debug("Query plan end")
+          # TODO!!!! make sure we do not set it to "nil" as this is a singleton that can be change by other threads...
+          # TODO ... maybe rethink the setting of logger and just spit it out to whatever the logger is...or just to it to STDOUT
           ActiveRecord::Base.logger = prev
         end
       end

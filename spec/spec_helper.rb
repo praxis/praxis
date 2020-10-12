@@ -7,6 +7,12 @@ $:.unshift File.expand_path('support',__dir__)
 
 require 'bundler'
 Bundler.setup :default, :test
+
+RSpec.configure do |config|
+  config.filter_run focus: true
+  config.run_all_when_everything_filtered = true
+end
+
 require 'simplecov'
 SimpleCov.start 'praxis'
 

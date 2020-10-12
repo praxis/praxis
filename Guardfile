@@ -1,4 +1,5 @@
-guard 'rspec', cmd: 'bundle exec rspec' do
+guard :rspec, cmd: 'bundle exec rspec --format=Fuubar', \
+              all_after_pass: false, all_on_start: false, failed_mode: :focus do
   watch(%r{^spec/.+_spec\.rb$})
   watch(%r{^lib/(.+)\.rb$})     { |m| "spec/#{m[1]}_spec.rb" }
   watch('spec/spec_helper.rb')  { "spec/" }

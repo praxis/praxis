@@ -36,6 +36,7 @@ def create_tables
       create_table :active_taggings do |table|
         table.column :book_id, :integer
         table.column :tag_id, :integer
+        table.column :label, :string, null: true
       end
     end
   end
@@ -94,6 +95,15 @@ end
 class ActiveBookResource < ActiveBaseResource
   model ActiveBook
 
+  filters_mapping(
+    id: :id,
+    category_uuid: :category_uuid,
+    'fake_nested.name': 'simple_name',
+    'name': 'simple_name',
+    'author.name': 'author.name',
+    'taggings.label': 'taggings.label',
+    'tags.name': 'tags.name',
+  )
   # Forces to add an extra column (added_column)...and yet another (author_id) that will serve
   # to check that if that's already automatically added due to an association, it won't interfere or duplicate
   property :author, dependencies: [:author, :added_column, :author_id]
@@ -116,7 +126,7 @@ def seed_data
   book1.author = author1
   book1.category = cat1
   book1.save
-  ActiveTagging.create(book: book1, tag: tag_blue)
+  ActiveTagging.create(book: book1, tag: tag_blue, label: 'primary')
   ActiveTagging.create(book: book1, tag: tag_red)
   
 
@@ -124,13 +134,14 @@ def seed_data
   book2.author = author2
   book2.category = cat2
   book2.save
-  ActiveTagging.create(book: book2, tag: tag_red)
+  ActiveTagging.create(book: book2, tag: tag_red, label: 'primary')
 
 
   # More stuff
 
   10.times do |i|
-    ActiveBook.create( id: 1000+i , simple_name: "Book#{i}")
+    bid = 1000+i
+    ActiveBook.create( id: bid , simple_name: "Book#{bid}")
   end
 
 end

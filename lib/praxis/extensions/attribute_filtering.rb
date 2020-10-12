@@ -1,0 +1,1 @@
+require 'praxis/extensions/attribute_filtering/filtering_params'

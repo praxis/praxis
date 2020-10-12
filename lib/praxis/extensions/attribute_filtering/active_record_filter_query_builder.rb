@@ -28,6 +28,7 @@ module Praxis
             if column_name.is_a?(Proc)
               bindings = column_name.call(spec)
               # A hash of bindings, consisting of a key with column name and a value to the query value
+              # TODO: just get the bindings here...and use a single 2 liner at the end of the build clause ... since it's repeated
               bindings.each do|col,val|
                 assoc_or_field, *rest = col.to_s.split('.')
                 expand_binding(column_name: assoc_or_field, rest: rest, op: spec[:op], value: val, use_this_name_for_clause: @last_join_alias)

@@ -100,9 +100,15 @@ class ActiveBookResource < ActiveBaseResource
     category_uuid: :category_uuid,
     'fake_nested.name': 'simple_name',
     'name': 'simple_name',
+    'name_is_not': lambda do |spec| # Silly way to use a proc, but good enough for testing
+      spec[:op] = '!='
+      { simple_name: spec[:value] }
+      end,
     'author.name': 'author.name',
     'taggings.label': 'taggings.label',
+    'taggings.tag_id': 'taggings.tag_id',
     'tags.name': 'tags.name',
+    'category.name': 'category.name'
   )
   # Forces to add an extra column (added_column)...and yet another (author_id) that will serve
   # to check that if that's already automatically added due to an association, it won't interfere or duplicate
@@ -121,6 +127,7 @@ def seed_data
   
   tag_blue = ActiveTag.create(id: 1 , name: 'blue' )
   tag_red = ActiveTag.create(id: 2 , name: 'red' )
+  tag_green = ActiveTag.create(id: 3 , name: 'green' )
 
   book1 = ActiveBook.create( id: 1 , simple_name: 'Book1', category_uuid: 'deadbeef1')
   book1.author = author1
@@ -128,6 +135,7 @@ def seed_data
   book1.save
   ActiveTagging.create(book: book1, tag: tag_blue, label: 'primary')
   ActiveTagging.create(book: book1, tag: tag_red)
+  ActiveTagging.create(book: book1, tag: tag_green, label: 'primary')
   
 
   book2 = ActiveBook.create( id: 2 , simple_name: 'Book2', category_uuid: 'deadbeef1')

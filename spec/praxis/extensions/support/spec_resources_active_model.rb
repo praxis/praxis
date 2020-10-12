@@ -108,7 +108,8 @@ class ActiveBookResource < ActiveBaseResource
     'taggings.label': 'taggings.label',
     'taggings.tag_id': 'taggings.tag_id',
     'tags.name': 'tags.name',
-    'category.name': 'category.name'
+    'category.name': 'category.name',
+    #'category.books.name': 'category.books.name',
   )
   # Forces to add an extra column (added_column)...and yet another (author_id) that will serve
   # to check that if that's already automatically added due to an association, it won't interfere or duplicate

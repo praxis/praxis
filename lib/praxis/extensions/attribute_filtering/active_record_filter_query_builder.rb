@@ -8,15 +8,7 @@ module Praxis
         def initialize(query: , model:, filters_map:)
           @query = query
           @table = model.table_name
-          @last_join_alias = model.table_name
-          @alias_counter = 0
           @attr_to_column = filters_map
-        end
-
-        def pick_alias( name )
-          # @alias_counter += 1
-          # "#{name}#{@alias_counter}"
-          name
         end
 
         def build_clause(filters)
@@ -31,11 +23,12 @@ module Praxis
               # TODO: just get the bindings here...and use a single 2 liner at the end of the build clause ... since it's repeated
               bindings.each do|col,val|
                 assoc_or_field, *rest = col.to_s.split('.')
-                expand_binding(column_name: assoc_or_field, rest: rest, op: spec[:op], value: val, use_this_name_for_clause: @last_join_alias)
+                expand_binding(first_segment: assoc_or_field, rest: rest, op: spec[:op], value: val, use_this_name_for_clause: self.table)
               end
             else
               assoc_or_field, *rest = column_name.to_s.split('.')
-              expand_binding(column_name: assoc_or_field, rest: rest, **spec, use_this_name_for_clause: @last_join_alias)
+              puts "FILTERING FOR: #{assoc_or_field}"
+              expand_binding(first_segment: assoc_or_field, rest: rest, **spec, use_this_name_for_clause: self.table)
             end
           end
           query
@@ -85,8 +78,7 @@ module Praxis
             end
             query.joins(join_clause)
           when ActiveRecord::Reflection::ThroughReflection
-            #puts "TODO: choose different alias (based on matching table type...)"
-            talias = pick_alias(reflection.through_reflection.table_name)
+            talias = reflection.through_reflection.table_name
             salias = source_alias
 
             query = do_join_reflection(query, reflection.through_reflection, salias, talias)
@@ -103,20 +95,15 @@ module Praxis
           end
         end
 
-        def expand_binding(column_name:,rest: , op:,value:, use_this_name_for_clause: column_name)
+        def expand_binding(first_segment:, rest: , op:, value:, use_this_name_for_clause:)
           unless rest.empty?
-            puts "EXPAND EMPTY REST"
-            joined_alias = pick_alias(column_name)
-            @query = do_join(query, column_name, @last_join_alias, joined_alias)
-            saved_join_alias = @last_join_alias
-            @last_join_alias = joined_alias
-            new_column_name, *new_rest = rest
-            expand_binding(column_name: new_column_name, rest: new_rest, op: op, value: value, use_this_name_for_clause: joined_alias)
-            @last_join_alias = saved_join_alias          
+            @query = do_join(query, first_segment, use_this_name_for_clause, first_segment)
+            new_first_segment, *new_rest = rest
+            expand_binding(first_segment: new_first_segment, rest: new_rest, op: op, value: value, use_this_name_for_clause: first_segment)
           else
-            column_name = "#{use_this_name_for_clause}.#{column_name}"
-            puts "EXPAND FOR: #{column_name} [join alias: #{use_this_name_for_clause}]"
-            add_clause(column_name: column_name, op: op, value: value)
+            new_first_segment = "#{use_this_name_for_clause}.#{first_segment}"
+            puts "EXPAND FOR: #{first_segment} [join alias: #{use_this_name_for_clause}]"
+            add_clause(column_name: new_first_segment, op: op, value: value)
           end
         end
 

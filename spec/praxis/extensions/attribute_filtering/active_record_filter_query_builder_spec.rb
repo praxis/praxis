@@ -26,8 +26,6 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       expect(instance.query).to eq(base_query)
       expect(instance.table).to eq(base_model.table_name)
       expect(instance.attr_to_column).to eq(filters_map)
-      expect(instance.instance_variable_get(:@last_join_alias)).to eq(base_model.table_name)
-      expect(instance.instance_variable_get(:@alias_counter)).to eq(0)      
     end
   end
   context 'build_clause' do

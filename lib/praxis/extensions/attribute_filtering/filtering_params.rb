@@ -26,33 +26,33 @@ module Praxis
         include Attributor::Type
         include Attributor::Dumpable
   
-        class FilterTreeNode
-          attr_reader :conditions, :children
-          # parsed_filters is an Array of {name: X, specs: {...} } ... exactly the format of the FilteringParams.load method
-          def initialize(parsed_filters)
-            @conditions = []
-            children_data = {} # Hash with keys as names of the first level component of the children nodes (and values as array of matching filters)
-            parsed_filters.select do |hash|
-              *components = hash[:name].to_s.split('.')
-              if components.empty?
-                return
-              elsif components.size == 1
-                @conditions << hash[:specs]
-              else
-                children_data[components.first] ||= []
-                children_data[components.first] << hash
-              end
-            end
-            # An array of FilterTreeNodes corresponding to each children
-            @children = children_data.each_with_object({}) do |(name, arr), hash|
-              sub_filters = arr.map do |item|
-                _parent, *rest = item[:name].to_s.split('.')
-                {name: rest.join('.'), specs: item[:specs]}
-              end
-              hash[name] = self.class.new(sub_filters)
-            end
-          end
-        end
+        # class FilterTreeNode
+        #   attr_reader :conditions, :children
+        #   # parsed_filters is an Array of {name: X, op: , value: } ... exactly the format of the FilteringParams.load method
+        #   def initialize(parsed_filters)
+        #     @conditions = []
+        #     children_data = {} # Hash with keys as names of the first level component of the children nodes (and values as array of matching filters)
+        #     parsed_filters.select do |hash|
+        #       *components = hash[:name].to_s.split('.')
+        #       if components.empty?
+        #         return
+        #       elsif components.size == 1
+        #         @conditions << hash.slice(:name, :op, :value)
+        #       else
+        #         children_data[components.first] ||= []
+        #         children_data[components.first] << hash
+        #       end
+        #     end
+        #     # An array of FilterTreeNodes corresponding to each children
+        #     @children = children_data.each_with_object({}) do |(name, arr), hash|
+        #       sub_filters = arr.map do |item|
+        #         _parent, *rest = item[:name].to_s.split('.')
+        #         item.merge(name: rest.join('.'))
+        #       end
+        #       hash[name] = self.class.new(sub_filters)
+        #     end
+        #   end
+        # end
         # This DSL allows to define which attributes are allowed in the filters, and with which operators
         class DSLCompiler < Attributor::DSLCompiler
           # "account.id": { operators: ["=", "!="] },
@@ -207,7 +207,7 @@ module Praxis
             else
               value
             end
-            arr.push(name: attr_name, specs: { op: match[:operator], value: coerced } )
+            arr.push(name: attr_name, op: match[:operator], value: coerced )
           end
           new(parsed)
         end
@@ -235,28 +235,27 @@ module Praxis
         def validate(_context = Attributor::DEFAULT_ROOT_CONTEXT)
           parsed_array.each_with_object([]) do |item, errors|
             attr_name = item[:name]
-            specs = item[:specs]
             attr_filters = allowed_filters[attr_name]
             unless attr_filters
               errors << "Filtering by #{attr_name} is not allowed. You can filter by #{allowed_filters.keys.map(&:to_s).join(', ')}"
               next
             end
             allowed_operators = attr_filters[:operators]
-            unless allowed_operators.include?(specs[:op])
-              errors << "Operator #{specs[:op]} not allowed for filter #{attr_name}"
+            unless allowed_operators.include?(item[:op])
+              errors << "Operator #{item[:op]} not allowed for filter #{attr_name}"
             end
             value_type = attr_filters[:value_type]
-            value = specs[:value]
+            value = item[:value]
             if value_type && !value_type.valid_type?(value)
               # Allow a collection of values of the right type for multimatch (if operators are = or !=)
-              if ['=','!='].include?(specs[:op])
+              if ['=','!='].include?(item[:op])
                 coll_type = Attributor::Collection.of(value_type)
                 if !coll_type.valid_type?(value)
                   errors << "Invalid type in filter/s value for #{attr_name} " +\
                             "(one or more of the multiple matches in #{value} are not  a #{value_type.name.split('::').last})"
                 end
               else
-                errors << "Invalid type in filter value for #{attr_name} (#{value} using '#{specs[:op]}' is not a #{value_type.name.split('::').last})"
+                errors << "Invalid type in filter value for #{attr_name} (#{value} using '#{item[:op]}' is not a #{value_type.name.split('::').last})"
               end
             end
   
@@ -274,8 +273,7 @@ module Praxis
         def dump
           parsed_array.each_with_object([]) do |item, arr|
             field = item[:name]
-            spec = item[:specs]
-            arr << "#{field}#{spec[:op]}#{spec[:value]}"
+            arr << "#{field}#{item[:op]}#{item[:value]}"
           end.join('&')
         end
   

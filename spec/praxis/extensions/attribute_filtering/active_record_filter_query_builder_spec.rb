@@ -24,7 +24,7 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
     it 'sets the right things to the instance' do
       instance
       expect(instance.query).to eq(base_query)
-      expect(instance.table).to eq(base_model.table_name)
+      expect(instance.model).to eq(base_model)
       expect(instance.attr_to_column).to eq(filters_map)
     end
   end
@@ -78,16 +78,10 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
         let(:filters_string) { 'category.books.name=Book2' }
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(category: :books).where('books_active_categories.simple_name': 'Book2')
       end
-      context '???' do
+      context 'multiple conditions on a nested relationship' do
         let(:filters_string) { 'category.books.taggings.tag_id=1&category.books.taggings.label=primary' }
-        it 'debugs' do
-          subject
-          binding.pry
-          puts "ASdfa"
-        end
         it_behaves_like 'subject_equivalent_to', 
-          ActiveBook.joins(category: { books: :taggings })
-            .where('active_taggings.tag_id': 1).where('active_taggings.label': 'primary')
+          ActiveBook.joins(category: { books: :taggings }).where('active_taggings.tag_id': 1).where('active_taggings.label': 'primary')
       end
     end
 

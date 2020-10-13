@@ -3,6 +3,7 @@
 require 'active_support/concern'
 
 require 'praxis/extensions/field_selection/active_record_query_selector'
+require 'praxis/extensions/attribute_filtering/active_record_filter_query_builder'
 
 module Praxis
   module Mapper
@@ -15,7 +16,7 @@ module Praxis
 
       module ClassMethods
         def _filter_query_builder_class
-          Praxis::Extensions::ActiveRecordFilterQueryBuilder
+          Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder
         end
 
         def _field_selector_query_builder_class

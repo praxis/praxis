@@ -35,6 +35,7 @@ module Praxis
       # By default we'll simply use the incoming op and value, and will map
       # the attribute based on what's on the `attr_to_column` hash
       def build_clause(filters)
+        raise "Not refactored yet!"
         seen_associations = Set.new
         filters.each do |(attr, spec)|
           column_name = attr_to_column[attr]

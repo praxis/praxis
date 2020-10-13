@@ -87,6 +87,7 @@ module Praxis
     autoload :MapperSelectors, 'praxis/extensions/mapper_selectors'
     autoload :Rendering, 'praxis/extensions/rendering'
     autoload :FieldExpansion, 'praxis/extensions/field_expansion'
+    autoload :AttributeFiltering, 'praxis/extensions/attribute_filtering'
     autoload :ActiveRecordFilterQueryBuilder, 'praxis/extensions/attribute_filtering/active_record_filter_query_builder'
     autoload :SequelFilterQueryBuilder, 'praxis/extensions/attribute_filtering/sequel_filter_query_builder'
     autoload :Pagination, 'praxis/extensions/pagination'

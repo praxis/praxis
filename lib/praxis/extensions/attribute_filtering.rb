@@ -1,1 +1,2 @@
 require 'praxis/extensions/attribute_filtering/filtering_params'
+require 'praxis/extensions/attribute_filtering/filter_tree_node'

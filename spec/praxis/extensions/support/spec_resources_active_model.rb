@@ -101,15 +101,16 @@ class ActiveBookResource < ActiveBaseResource
     'fake_nested.name': 'simple_name',
     'name': 'simple_name',
     'name_is_not': lambda do |spec| # Silly way to use a proc, but good enough for testing
-      spec[:op] = '!='
-      { simple_name: spec[:value] }
+      { name: :simple_name, value: spec[:value] , op: '!=' } # Can be an array for multiple conditions as well
       end,
     'author.name': 'author.name',
     'taggings.label': 'taggings.label',
     'taggings.tag_id': 'taggings.tag_id',
     'tags.name': 'tags.name',
     'category.name': 'category.name',
-    #'category.books.name': 'category.books.name',
+    'category.books.name': 'category.books.simple_name',
+    'category.books.taggings.tag_id': 'category.books.taggings.tag_id',
+    'category.books.taggings.label': 'category.books.taggings.label',
   )
   # Forces to add an extra column (added_column)...and yet another (author_id) that will serve
   # to check that if that's already automatically added due to an association, it won't interfere or duplicate

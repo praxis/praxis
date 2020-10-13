@@ -11,7 +11,30 @@ module Praxis
           @attr_to_column = filters_map
         end
 
+        def new_build(nodetree)
+          nodetree.children.each do |name, child|
+            source_alias = nodetree.path.join('/')
+            table_alias = (nodetree.path + [name]).join('/')
+            puts "JOINING #{name}: #{source_alias} as #{table_alias}"
+            @query = do_join(query, name, source_alias, table_alias)
+            new_build(child)
+          end
+          nodetree.conditions.each do |condition|
+            value = condition[:value] # TODO Proc
+            expanded_column_name = "#{nodetree.path.join('/')}.#{condition[:name]}"
+            puts "ADDING condition: #{expanded_column_name} #{condition[:op]} #{value}"
+            add_clause(column_name: expanded_column_name, op: condition[:op], value: value)
+          end
+        end
+
         def build_clause(filters)
+          # Resolve the names first, based on filters_map
+          resolved_array = filters.parsed_array.map do |hash|
+            hash.merge(name: attr_to_column[hash[:name]])
+          end
+          root_node = FilterTreeNode.new(resolved_array, path: [self.table])
+          new_build(root_node)
+          return query
           filters.each do |item|
             spec = item[:specs]
             column_name = attr_to_column[item[:name]]

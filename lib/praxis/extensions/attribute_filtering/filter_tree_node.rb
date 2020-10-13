@@ -8,12 +8,12 @@ module Praxis
           @path = path # Array that marks the tree 'path' to this node (with respect to the absolute root)
           @conditions = [] # Conditions to apply directly to this node
           children_data = {} # Hash with keys as names of the first level component of the children nodes (and values as array of matching filters)
-          parsed_filters.select do |hash|
+          parsed_filters.map do |hash|
             *components = hash[:name].to_s.split('.')
             if components.empty?
               return
             elsif components.size == 1
-              @conditions << hash[:specs]
+              @conditions << {name: hash[:name], op: hash[:specs][:op], value: hash[:specs][:value]}
             else
               children_data[components.first] ||= []
               children_data[components.first] << hash

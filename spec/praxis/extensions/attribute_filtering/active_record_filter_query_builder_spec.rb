@@ -68,6 +68,12 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       end
     end
 
+    context 'by using all supported operators' do
+      context '>' do
+        let(:filters_string) { 'author.id>1'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id > 1')
+      end
+    end
     context 'with a field mapping using a proc' do
       let(:filters_string) { 'name_is_not=Book1' }
       it_behaves_like 'subject_equivalent_to', ActiveBook.where.not(simple_name: 'Book1')

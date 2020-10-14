@@ -12,7 +12,7 @@ module Praxis
         end
         
         def debug(msg)
-          puts msg
+          #puts msg
         end
 
         def build_clause(filters)
@@ -131,24 +131,26 @@ module Praxis
           @query =  case op
                     when '='
                       if likeval
-                        query.where("#{quote_column_path(column_prefix, column_object)} LIKE ?", likeval)
+                        add_safe_where(tab: column_prefix, col: column_object, op: 'LIKE', value: likeval)
                       else
-                         query.where("#{column_prefix}.#{column_object.name}" =>  value) # Automatically quoted by AR
+                        quoted_right = quote_right_part(value: value, column_object: column_object, negative: false)
+                        query.where("#{quote_column_path(column_prefix, column_object)} #{quoted_right}")
                       end
                     when '!='
                       if likeval
-                        query.where("#{quote_column_path(column_prefix, column_object)} NOT LIKE ?", likeval)
+                        add_safe_where(tab: column_prefix, col: column_object, op: 'NOT LIKE', value: likeval)
                       else
-                        query.where.not("#{column_prefix}.#{column_object.name}" => value) # Automatically quoted by AR
+                        quoted_right = quote_right_part(value: value, column_object: column_object, negative: true)
+                        query.where("#{quote_column_path(column_prefix, column_object)} #{quoted_right}")
                       end
                     when '>'
-                      add_safe_where(tab: column_prefix, col: column_object, op: '>', value: value, )
+                      add_safe_where(tab: column_prefix, col: column_object, op: '>', value: value)
                     when '<'
-                      query.where("#{quote_column_path(column_prefix, column_object)} < ?", value)
+                      add_safe_where(tab: column_prefix, col: column_object, op: '<', value: value)
                     when '>='
-                      query.where("#{quote_column_path(column_prefix, column_object)} >= ?", value)
+                      add_safe_where(tab: column_prefix, col: column_object, op: '>=', value: value)
                     when '<='
-                      query.where("#{quote_column_path(column_prefix, column_object)} <= ?", value)
+                      add_safe_where(tab: column_prefix, col: column_object, op: '<=', value: value)
                     else
                       raise "Unsupported Operator!!! #{op}"
                     end
@@ -167,6 +169,23 @@ module Praxis
             "#{quoted_table}.#{quoted_column}"
           else
             quoted_column
+          end
+        end
+
+        def quote_right_part(value:, column_object:, negative:)
+          conn = query.connection
+          if value.nil?
+            no = negative ? ' NOT' : ''
+            "IS#{no} #{conn.quote_default_expression(value,column_object)}"
+          elsif value.is_a?(Array)
+            no = negative ? 'NOT ' : ''
+            list = value.map{|v| conn.quote_default_expression(v,column_object)}
+            "#{no}IN (#{list.join(',')})"
+          elsif value && value.is_a?(Range)
+            raise "TODO!"
+          else
+            op = negative ? '<>' : '='
+            "#{op} #{conn.quote_default_expression(value,column_object)}"
           end
         end
 

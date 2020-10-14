@@ -12,7 +12,7 @@ module Praxis
         end
         
         def debug(msg)
-          # puts msg
+          puts msg
         end
 
         def build_clause(filters)
@@ -34,10 +34,12 @@ module Praxis
           end
           root_node = FilterTreeNode.new(resolved_array, path: [self.model.table_name])
           craft_filter_query(root_node, for_model: @model)
+          debug("FILTERS QUERY: #{@query.all.to_sql}")
           @query
         end
 
         def craft_filter_query(nodetree, for_model:)
+          #nodetree.custom_data = { model: for_model }
           nodetree.children.each do |name, child|
             source_alias = nodetree.path.join('/')
             table_alias = (nodetree.path + [name]).join('/')
@@ -59,7 +61,8 @@ module Praxis
             bindings.each do |filter_name,filter_value|
               expanded_column_name = "#{name_prefix}.#{filter_name}"
               debug("ADDING condition: #{expanded_column_name} #{condition[:op]} #{filter_value}")
-              add_clause(column_name: expanded_column_name, op: condition[:op], value: filter_value)
+              colo = for_model.columns_hash[filter_name.to_s]
+              add_clause(column_name: expanded_column_name, op: condition[:op], value: filter_value, column_object: colo)
             end
           end
         end
@@ -123,34 +126,50 @@ module Praxis
 
         # Private to try to funnel all column names through `build_clause` that restricts
         # the attribute names better (to allow more difficult SQL injections )
-        private def add_clause(column_name:, op:, value:)
+        private def add_clause(column_name:, op:, value:, column_object: )
           likeval = get_like_value(value)
           @query =  case op
                     when '='
                       if likeval
-                        query.where("#{column_name} LIKE ?", likeval)
+                        query.where("#{quote_column_path(column_name)} LIKE ?", likeval)
                       else
-                         query.where(column_name =>  value)
+                         query.where(column_name =>  value) # Automatically quoted by AR
                       end
                     when '!='
                       if likeval
-                        query.where("#{column_name} NOT LIKE ?", likeval)
+                        query.where("#{quote_column_path(column_name)} NOT LIKE ?", likeval)
                       else
-                        query.where.not(column_name => value)
+                        query.where.not(column_name => value) # Automatically quoted by AR
                       end
                     when '>'
-                      query.where("#{column_name} > ?", value)
+                      add_safe_where(column_path:column_name, op: '>', value: value, column_object: column_object)
                     when '<'
-                      query.where("#{column_name} < ?", value)
+                      query.where("#{quote_column_path(column_name)} < ?", value)
                     when '>='
-                      query.where("#{column_name} >= ?", value)
+                      query.where("#{quote_column_path(column_name)} >= ?", value)
                     when '<='
-                      query.where("#{column_name} <= ?", value)
+                      query.where("#{quote_column_path(column_name)} <= ?", value)
                     else
                       raise "Unsupported Operator!!! #{op}"
                     end
         end
+        #TODO!!!! maybe pass the col prefix separate (instead of column path) and just construct the quoting here as well (with the help of the column_object)
+        def add_safe_where(column_path:, op:, value:, column_object: )
+          quoted_value = query.connection.quote_default_expression(value,column_object)
+          query.where("#{quote_column_path(column_path)} #{op} #{quoted_value}")
+        end
 
+        def quote_column_path(column_path)
+          c = query.connection
+          table_name, column_name = column_path.split('.')
+          quoted_column = c.quote_column_name(column_name)
+          if table_name
+            quoted_table = c.quote_table_name(table_name)
+            "#{quoted_table}.#{quoted_column}"
+          else
+            quoted_column
+          end
+        end
         # Returns nil if the value was not a fuzzzy pattern
         def get_like_value(value)
           if value.is_a?(String) && (value[-1] == '*' || value[0] == '*')

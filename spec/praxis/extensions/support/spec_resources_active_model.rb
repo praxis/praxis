@@ -103,6 +103,7 @@ class ActiveBookResource < ActiveBaseResource
     'name_is_not': lambda do |spec| # Silly way to use a proc, but good enough for testing
       { name: :simple_name, value: spec[:value] , op: '!=' } # Can be an array for multiple conditions as well
       end,
+    'author.id': 'author.id',
     'author.name': 'author.name',
     'taggings.label': 'taggings.label',
     'taggings.tag_id': 'taggings.tag_id',

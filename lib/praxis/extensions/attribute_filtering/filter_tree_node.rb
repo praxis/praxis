@@ -7,6 +7,7 @@ module Praxis
         def initialize(parsed_filters, path: [])
           @path = path # Array that marks the tree 'path' to this node (with respect to the absolute root)
           @conditions = [] # Conditions to apply directly to this node
+          @children = {} # Hash with a new NodeTree object value, keyed by name
           children_data = {} # Hash with keys as names of the first level component of the children nodes (and values as array of matching filters)
           parsed_filters.map do |hash|
             *components = hash[:name].to_s.split('.')

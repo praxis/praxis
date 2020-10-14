@@ -20,6 +20,20 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
     end
   end
 
+  # Poorman's way to compare SQL queries...
+  shared_examples 'subject_matches_sql' do |expected_sql|
+    it do
+       # Remove parenthesis as our queries have WHERE clauses using them...
+      gen_sql = subject.all.to_sql.gsub(/[()]/,'')
+      # Strip blank at the beggining (and end) of every line
+      # ...and recompose it by adding an extra space at the beginning of each one instead
+      exp = expected_sql.split(/\n/).map do |line|
+        " " + line.strip.gsub(/[()]/,'')
+      end.join.strip
+      expect(gen_sql).to eq(exp)
+    end
+  end
+
   context 'initialize' do
     it 'sets the right things to the instance' do
       instance
@@ -69,11 +83,85 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
     end
 
     context 'by using all supported operators' do
+      COMMON_SQL_PREFIX = <<~SQL
+            SELECT "active_books".* FROM "active_books"
+            INNER JOIN 
+              "active_authors" as "active_books/author" ON "active_books/author"."id" = "active_books"."author_id"
+          SQL
+      context '=' do
+        let(:filters_string) { 'author.id=11'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id = 11')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."id" = 11
+          SQL
+      end
+      context '= (with array)' do
+        let(:filters_string) { 'author.id=11,22'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id IN (11,22)')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."id" IN (11,22)
+          SQL
+      end      
+      context '!=' do
+        let(:filters_string) { 'author.id!=11'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id <> 11')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."id" <> 11
+          SQL
+      end
+      context '!= (with array)' do
+        let(:filters_string) { 'author.id!=11,888'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id NOT IN (11,888)')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."id" NOT IN (11,888)
+          SQL
+      end
       context '>' do
         let(:filters_string) { 'author.id>1'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id > 1')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."id" > 1
+          SQL
+      end
+      context '<' do
+        let(:filters_string) { 'author.id<22'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id < 22')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."id" < 22
+          SQL
+      end
+      context '>=' do
+        let(:filters_string) { 'author.id>=22'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id >= 22')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."id" >= 22
+          SQL
+      end
+      context '<=' do
+        let(:filters_string) { 'author.id<=22'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id <= 22')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."id" <= 22
+          SQL
+      end
+      context 'including LIKE fuzzy queries' do
+        context 'LIKE' do
+          let(:filters_string) { 'author.name=author*'}
+          it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.name LIKE "author%"')
+          it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."name" LIKE 'author%'
+          SQL
+        end
+        context 'NOT LIKE' do
+          let(:filters_string) { 'author.name!=foobar*'}
+          it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.name NOT LIKE "foobar%"')
+          it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."name" NOT LIKE 'foobar%'
+          SQL
+        end
       end
     end
+
     context 'with a field mapping using a proc' do
       let(:filters_string) { 'name_is_not=Book1' }
       it_behaves_like 'subject_equivalent_to', ActiveBook.where.not(simple_name: 'Book1')

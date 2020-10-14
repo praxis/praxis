@@ -26,34 +26,6 @@ module Praxis
         include Attributor::Type
         include Attributor::Dumpable
   
-        # class FilterTreeNode
-        #   attr_reader :conditions, :children
-        #   # parsed_filters is an Array of {name: X, op: , value: } ... exactly the format of the FilteringParams.load method
-        #   def initialize(parsed_filters)
-        #     @conditions = []
-        #     children_data = {} # Hash with keys as names of the first level component of the children nodes (and values as array of matching filters)
-        #     parsed_filters.select do |hash|
-        #       *components = hash[:name].to_s.split('.')
-        #       if components.empty?
-        #         return
-        #       elsif components.size == 1
-        #         @conditions << hash.slice(:name, :op, :value)
-        #       else
-        #         children_data[components.first] ||= []
-        #         children_data[components.first] << hash
-        #       end
-        #     end
-        #     # An array of FilterTreeNodes corresponding to each children
-        #     @children = children_data.each_with_object({}) do |(name, arr), hash|
-        #       sub_filters = arr.map do |item|
-        #         _parent, *rest = item[:name].to_s.split('.')
-        #         item.merge(name: rest.join('.'))
-        #       end
-        #       hash[name] = self.class.new(sub_filters)
-        #     end
-        #   end
-        # end
-        # This DSL allows to define which attributes are allowed in the filters, and with which operators
         class DSLCompiler < Attributor::DSLCompiler
           # "account.id": { operators: ["=", "!="] },
           # name:         { operators: ["=", "!="], fuzzy_match: true },

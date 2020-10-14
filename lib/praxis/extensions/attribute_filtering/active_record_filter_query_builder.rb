@@ -50,7 +50,7 @@ module Praxis
 
             craft_filter_query(child, for_model: reflection.klass)
           end
-          name_prefix = nodetree.path.join('/')
+          column_prefix = nodetree.path.join('/')
           nodetree.conditions.each do |condition|
             bindings = \
               if condition[:name].is_a?(Proc)
@@ -59,10 +59,9 @@ module Praxis
                 {condition[:name] => condition[:value] } # For non-procs there's only 1 filter and 1 value
               end
             bindings.each do |filter_name,filter_value|
-              expanded_column_name = "#{name_prefix}.#{filter_name}"
-              debug("ADDING condition: #{expanded_column_name} #{condition[:op]} #{filter_value}")
+              debug("ADDING condition: #{column_prefix}.#{filter_name} #{condition[:op]} #{filter_value}")
               colo = for_model.columns_hash[filter_name.to_s]
-              add_clause(column_name: expanded_column_name, op: condition[:op], value: filter_value, column_object: colo)
+              add_clause(column_prefix: column_prefix,  column_object: colo, op: condition[:op], value: filter_value, column_object: colo)
             end
           end
         end
@@ -75,6 +74,7 @@ module Praxis
 
         def do_join_reflection( query, reflection, source_alias, table_alias )
           c = query.connection
+          # TODO: apply scopes!!!! or maybe try to use ARel instead?
           case reflection
           when ActiveRecord::Reflection::BelongsToReflection
             join_clause = "INNER JOIN %s as %s ON %s.%s = %s.%s " % \
@@ -126,50 +126,50 @@ module Praxis
 
         # Private to try to funnel all column names through `build_clause` that restricts
         # the attribute names better (to allow more difficult SQL injections )
-        private def add_clause(column_name:, op:, value:, column_object: )
+        private def add_clause(column_prefix:, column_object:, op:, value:)
           likeval = get_like_value(value)
           @query =  case op
                     when '='
                       if likeval
-                        query.where("#{quote_column_path(column_name)} LIKE ?", likeval)
+                        query.where("#{quote_column_path(column_prefix, column_object)} LIKE ?", likeval)
                       else
-                         query.where(column_name =>  value) # Automatically quoted by AR
+                         query.where("#{column_prefix}.#{column_object.name}" =>  value) # Automatically quoted by AR
                       end
                     when '!='
                       if likeval
-                        query.where("#{quote_column_path(column_name)} NOT LIKE ?", likeval)
+                        query.where("#{quote_column_path(column_prefix, column_object)} NOT LIKE ?", likeval)
                       else
-                        query.where.not(column_name => value) # Automatically quoted by AR
+                        query.where.not("#{column_prefix}.#{column_object.name}" => value) # Automatically quoted by AR
                       end
                     when '>'
-                      add_safe_where(column_path:column_name, op: '>', value: value, column_object: column_object)
+                      add_safe_where(tab: column_prefix, col: column_object, op: '>', value: value, )
                     when '<'
-                      query.where("#{quote_column_path(column_name)} < ?", value)
+                      query.where("#{quote_column_path(column_prefix, column_object)} < ?", value)
                     when '>='
-                      query.where("#{quote_column_path(column_name)} >= ?", value)
+                      query.where("#{quote_column_path(column_prefix, column_object)} >= ?", value)
                     when '<='
-                      query.where("#{quote_column_path(column_name)} <= ?", value)
+                      query.where("#{quote_column_path(column_prefix, column_object)} <= ?", value)
                     else
                       raise "Unsupported Operator!!! #{op}"
                     end
         end
-        #TODO!!!! maybe pass the col prefix separate (instead of column path) and just construct the quoting here as well (with the help of the column_object)
-        def add_safe_where(column_path:, op:, value:, column_object: )
-          quoted_value = query.connection.quote_default_expression(value,column_object)
-          query.where("#{quote_column_path(column_path)} #{op} #{quoted_value}")
+
+        def add_safe_where(tab:, col:, op:, value:)
+          quoted_value = query.connection.quote_default_expression(value,col)
+          query.where("#{quote_column_path(tab, col)} #{op} #{quoted_value}")
         end
 
-        def quote_column_path(column_path)
+        def quote_column_path(prefix, column_object)
           c = query.connection
-          table_name, column_name = column_path.split('.')
-          quoted_column = c.quote_column_name(column_name)
-          if table_name
-            quoted_table = c.quote_table_name(table_name)
+          quoted_column = c.quote_column_name(column_object.name)
+          if prefix
+            quoted_table = c.quote_table_name(prefix)
             "#{quoted_table}.#{quoted_column}"
           else
             quoted_column
           end
         end
+
         # Returns nil if the value was not a fuzzzy pattern
         def get_like_value(value)
           if value.is_a?(String) && (value[-1] == '*' || value[0] == '*')

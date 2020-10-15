@@ -144,6 +144,20 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
             WHERE "active_books/author"."id" <= 22
           SQL
       end
+      context '!' do
+        let(:filters_string) { 'author.id!'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id IS NOT NULL')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."id" IS NOT NULL
+          SQL
+      end
+      context '!!' do
+        let(:filters_string) { 'author.name!!'}
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.name IS NULL')
+        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+            WHERE "active_books/author"."name" IS NULL
+          SQL
+      end      
       context 'including LIKE fuzzy queries' do
         context 'LIKE' do
           let(:filters_string) { 'author.name=author*'}

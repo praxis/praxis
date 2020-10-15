@@ -37,8 +37,8 @@ module Praxis
         end
   
         VALUE_REGEX = /[^,&]*/
-        AVAILABLE_OPERATORS = Set.new(['!=', '>=', '<=', '=', '<', '>']).freeze
-        FILTER_REGEX = /(?<attribute>([^=!><])+)(?<operator>!=|>=|<=|=|<|>)(?<value>#{VALUE_REGEX}(,#{VALUE_REGEX})*)/
+        AVAILABLE_OPERATORS = Set.new(['!=', '>=', '<=', '=', '<', '>','!','!!']).freeze
+        FILTER_REGEX = /(?<attribute>([^=!><])+)(?<operator>!=|>=|<=|!!|=|<|>|!)(?<value>#{VALUE_REGEX}(,#{VALUE_REGEX})*)/
   
         # Abstract class, which needs to be used by subclassing it through the .for method, to set the allowed filters
         # definition should be a hash, keyed by field name, which contains a hash that can have two pieces of metadata

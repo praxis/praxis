@@ -127,6 +127,7 @@ def seed_data
   
   author1 = ActiveAuthor.create(  id: 11, name: 'author1' )
   author2 = ActiveAuthor.create(  id: 22, name: 'author2' )
+  author3 = ActiveAuthor.create(  id: 33, name: nil )
   
   tag_blue = ActiveTag.create(id: 1 , name: 'blue' )
   tag_red = ActiveTag.create(id: 2 , name: 'red' )
@@ -147,6 +148,10 @@ def seed_data
   book2.save
   ActiveTagging.create(book: book2, tag: tag_red, label: 'primary')
 
+  book3 = ActiveBook.create( id: 3 , simple_name: 'Book3', category_uuid: 'deadbeef1')
+  book3.author = author3
+  book3.save
+  ActiveTagging.create(book: book3, tag: tag_red, label: 'primary')
 
   # More stuff
 

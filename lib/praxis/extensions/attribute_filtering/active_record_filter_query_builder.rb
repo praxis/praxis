@@ -61,7 +61,7 @@ module Praxis
             bindings.each do |filter_name,filter_value|
               debug("ADDING condition: #{column_prefix}.#{filter_name} #{condition[:op]} #{filter_value}")
               colo = for_model.columns_hash[filter_name.to_s]
-              add_clause(column_prefix: column_prefix,  column_object: colo, op: condition[:op], value: filter_value, column_object: colo)
+              add_clause(column_prefix: column_prefix,  column_object: colo, op: condition[:op], value: filter_value)
             end
           end
         end
@@ -128,6 +128,14 @@ module Praxis
         # the attribute names better (to allow more difficult SQL injections )
         private def add_clause(column_prefix:, column_object:, op:, value:)
           likeval = get_like_value(value)
+          case op
+            when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
+              op = '!='
+              value = nil # Enforce it is indeed nil (should be)
+            when '!!'
+              op = '='
+              value = nil # Enforce it is indeed nil (should be)
+            end
           @query =  case op
                     when '='
                       if likeval

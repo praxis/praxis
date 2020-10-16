@@ -46,6 +46,7 @@ module Praxis
             debug( "JOINING #{name}: #{source_alias} as #{table_alias}" )
 
             reflection = for_model.reflections[name.to_s]
+            raise "Cannot find an association named: #{name.to_s} for model #{for_model.name}" unless reflection
             @query = do_join_reflection( query, reflection, source_alias, table_alias )
 
             craft_filter_query(child, for_model: reflection.klass)
@@ -69,6 +70,7 @@ module Praxis
         # TODO: Support more relationship types (including things like polymorphic..etc)
         def do_join(query, assoc , source_alias, table_alias, source_model:)
           reflection = source_model.reflections[assoc.to_s]
+          raise "Cannot find an association named: #{assoc.to_s} for model #{source_model.name}" unless reflection
           do_join_reflection( query, reflection, source_alias, table_alias )
         end
 

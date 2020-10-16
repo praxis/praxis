@@ -49,8 +49,12 @@ class ActiveBook < ActiveRecord::Base
 
   belongs_to :category, class_name: 'ActiveCategory', foreign_key: :category_uuid, primary_key: :uuid
   belongs_to :author, class_name: 'ActiveAuthor'
+
   has_many :taggings, class_name: 'ActiveTagging', foreign_key: :book_id
+  has_many :primary_taggings, lambda { where(label: 'primary')}, class_name: 'ActiveTagging', foreign_key: :book_id
+
   has_many :tags, class_name: 'ActiveTag', through: :taggings
+  has_many :primary_tags, class_name: 'ActiveTag', through: :primary_taggings, source: :tag
 end
 
 class ActiveAuthor < ActiveRecord::Base
@@ -108,6 +112,7 @@ class ActiveBookResource < ActiveBaseResource
     'taggings.label': 'taggings.label',
     'taggings.tag_id': 'taggings.tag_id',
     'tags.name': 'tags.name',
+    'primary_tags.name': 'primary_tags.name',
     'category.name': 'category.name',
     'category.books.name': 'category.books.simple_name',
     'category.books.taggings.tag_id': 'category.books.taggings.tag_id',

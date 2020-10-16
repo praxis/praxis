@@ -203,5 +203,27 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:taggings).where('active_taggings.label' => 'primary', 'active_taggings.tag_id' => 2)
       end
     end
+
+    context 'respecting scopes' do
+      context 'for a has_many through association' do
+        let(:filters_string) { 'primary_tags.name=red' }
+        it do
+          ActiveRecord::Base.logger = Logger.new(STDOUT)
+          ref = ActiveBook.joins(category: { books: :taggings }).all
+          atrack = ref.alias_tracker
+          ref = ref.joins(:taggings).all          
+          atrack2 = ref.alias_tracker
+          binding.pry
+          ref.to_sql
+          ref.to_a
+          binding.pry
+          ref.alias_candidate
+          ref.to_a
+          #subject.to_a
+          puts "ASdfa"
+        end
+        #it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:primary_tags).where('active_tags.name' => 'blue')
+      end
+    end
   end
 end

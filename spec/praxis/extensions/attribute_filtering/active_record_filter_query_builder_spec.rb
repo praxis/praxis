@@ -207,21 +207,48 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
     context 'respecting scopes' do
       context 'for a has_many through association' do
         let(:filters_string) { 'primary_tags.name=red' }
-        it do
-          ActiveRecord::Base.logger = Logger.new(STDOUT)
-          ref = ActiveBook.joins(category: { books: :taggings }).all
-          atrack = ref.alias_tracker
-          ref = ref.joins(:taggings).all          
-          atrack2 = ref.alias_tracker
-          binding.pry
-          ref.to_sql
-          ref.to_a
-          binding.pry
-          ref.alias_candidate
-          ref.to_a
-          #subject.to_a
-          puts "ASdfa"
-        end
+        #it do
+        #   ActiveRecord::Base.logger = Logger.new(STDOUT)
+        #   #ActiveBook.joins(:primary_taggings).all.to_a
+        #   #ActiveBook.includes(:category).where(uuid: 'asdf').references('category').to_a
+        #   binding.pry
+        #   #ActiveBook.joins(category: { books: :taggings }).where('/category/books.simple_name' => 'boo').to_a
+        #   join_cond = ActiveBook.arel_table.alias('joins:/category/books')[:simple_name].eq('boo')
+        #   # DO THIS IN THE FILTER CODE (i.e., create the alias table and arel condition)
+        #   ActiveBook.joins(category: { books: :taggings })
+        #     .where(join_cond).references('joins:/category/books').to_a
+        #   binding.pry
+        #   #ref = ActiveBook.joins(category: { books: :taggings }).all
+        #   incoming_q = ActiveBook.all
+        #   incoming_q = incoming_q.joins(:tags)
+
+        #   # LEt's look at the tracker result?
+        #   aliases = nil
+        #   begin
+        #     arel = incoming_q.__send__(:build_arel,aliases)
+        #   rescue => e
+        #     binding.pry
+        #     puts "ASdfa"
+        #   end
+        #   binding.pry
+        #   ActiveRecord::Base.connection.to_sql(arel)
+          
+        #   exit 0
+        #   added_chain = joins(category: { books: :taggings }).all
+        #   ref.to_sql
+        #   binding.pry
+        #   atrack = ref.alias_tracker
+        #   ref = ref.joins(:taggings).all          
+        #   atrack2 = ref.alias_tracker
+        #   binding.pry
+        #   ref.to_sql
+        #   ref.to_a
+        #   binding.pry
+        #   ref.alias_candidate
+        #   ref.to_a
+        #   #subject.to_a
+        #   puts "ASdfa"
+        # end
         #it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:primary_tags).where('active_tags.name' => 'blue')
       end
     end

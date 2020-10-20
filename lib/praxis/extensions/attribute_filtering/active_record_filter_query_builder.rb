@@ -77,6 +77,8 @@ module Praxis
         def do_join_reflection( query, reflection, source_alias, table_alias )
           c = query.connection
           # TODO: apply scopes!!!! or maybe try to use ARel instead?
+          join_primary_key = self.model._join_primary_key_for(reflection)
+          join_foreign_key = self.model._join_foreign_key_for(reflection)
           case reflection
           when ActiveRecord::Reflection::BelongsToReflection
             join_clause = "INNER JOIN %s as %s ON %s.%s = %s.%s " % \
@@ -84,9 +86,9 @@ module Praxis
                     c.quote_table_name(reflection.klass.table_name),
                     c.quote_table_name(table_alias),
                     c.quote_table_name(table_alias),
-                    c.quote_column_name(reflection.join_keys.key),
+                    c.quote_column_name(join_primary_key),
                     c.quote_table_name(source_alias),
-                    c.quote_column_name(reflection.join_keys.foreign_key)
+                    c.quote_column_name(join_foreign_key)
                   ]
             query.joins(join_clause)
           when ActiveRecord::Reflection::HasManyReflection
@@ -94,9 +96,9 @@ module Praxis
                   [c.quote_table_name(reflection.klass.table_name),
                     c.quote_table_name(table_alias),
                     c.quote_table_name(source_alias),
-                    c.quote_column_name(reflection.join_keys.foreign_key),
+                    c.quote_column_name(join_foreign_key),
                     c.quote_table_name(table_alias),
-                    c.quote_column_name(reflection.join_keys.key)
+                    c.quote_column_name(join_primary_key)
                   ]
 
             # Polymorphic type, add the appropriate condition to restrict the result to the right type

@@ -1,3 +1,4 @@
+require_relative 'active_record_patching_for_filtering.rb'
 module Praxis
   module Extensions
     module AttributeFiltering
@@ -32,27 +33,36 @@ module Praxis
               end
             resolved_array = resolved_array + bindings_array
           end
-          root_node = FilterTreeNode.new(resolved_array, path: [self.model.table_name])
+          #root_node = FilterTreeNode.new(resolved_array, path: [self.model.table_name])
+          root_node = FilterTreeNode.new(resolved_array, path: ['joins:'])
           craft_filter_query(root_node, for_model: @model)
           debug("FILTERS QUERY: #{@query.all.to_sql}")
           @query
         end
 
-        def craft_filter_query(nodetree, for_model:)
-          #nodetree.custom_data = { model: for_model }
+        # Calculate join tree and conditions array for the nodetree object and its children
+        def compute_joins_and_conditions(nodetree, model:)
+          h = {}
+          conditions = []
           nodetree.children.each do |name, child|
-            source_alias = nodetree.path.join('/')
-            table_alias = (nodetree.path + [name]).join('/')
-            debug( "JOINING #{name}: #{source_alias} as #{table_alias}" )
-
-            reflection = for_model.reflections[name.to_s]
-            raise "Cannot find an association named: #{name.to_s} for model #{for_model.name}" unless reflection
-            @query = do_join_reflection( query, reflection, source_alias, table_alias )
-
-            craft_filter_query(child, for_model: reflection.klass)
+            child_model = model.reflections[name.to_s].klass
+            result = compute_joins_and_conditions(child, model: child_model)
+            h[name] = result[:associations_hash] 
+            conditions += result[:conditions]
           end
-          column_prefix = nodetree.path.join('/')
+          column_prefix = nodetree.path == ['joins:'] ? nil : nodetree.path.join('/')
           nodetree.conditions.each do |condition|
+            conditions += [condition.merge(column_prefix: column_prefix, model: model)]
+          end
+          {associations_hash: h, conditions: conditions}
+        end
+
+
+        def craft_filter_query(nodetree, for_model:)
+          result = compute_joins_and_conditions(nodetree, model: for_model)
+          @query = query.joins(result[:associations_hash]) unless result[:associations_hash].empty?
+
+          result[:conditions].each do |condition|
             bindings = \
               if condition[:name].is_a?(Proc)
                 condition[:name].call(condition)
@@ -60,77 +70,19 @@ module Praxis
                 {condition[:name] => condition[:value] } # For non-procs there's only 1 filter and 1 value
               end
             bindings.each do |filter_name,filter_value|
+              column_prefix = condition[:column_prefix]
               debug("ADDING condition: #{column_prefix}.#{filter_name} #{condition[:op]} #{filter_value}")
-              colo = for_model.columns_hash[filter_name.to_s]
+
+              colo = condition[:model].columns_hash[filter_name.to_s]
               add_clause(column_prefix: column_prefix,  column_object: colo, op: condition[:op], value: filter_value)
             end
-          end
-        end
-
-        # TODO: Support more relationship types (including things like polymorphic..etc)
-        def do_join(query, assoc , source_alias, table_alias, source_model:)
-          reflection = source_model.reflections[assoc.to_s]
-          raise "Cannot find an association named: #{assoc.to_s} for model #{source_model.name}" unless reflection
-          do_join_reflection( query, reflection, source_alias, table_alias )
-        end
-
-        def do_join_reflection( query, reflection, source_alias, table_alias )
-          c = query.connection
-          # TODO: apply scopes!!!! or maybe try to use ARel instead?
-          join_primary_key = self.model._join_primary_key_for(reflection)
-          join_foreign_key = self.model._join_foreign_key_for(reflection)
-          case reflection
-          when ActiveRecord::Reflection::BelongsToReflection
-            join_clause = "INNER JOIN %s as %s ON %s.%s = %s.%s " % \
-                  [
-                    c.quote_table_name(reflection.klass.table_name),
-                    c.quote_table_name(table_alias),
-                    c.quote_table_name(table_alias),
-                    c.quote_column_name(join_primary_key),
-                    c.quote_table_name(source_alias),
-                    c.quote_column_name(join_foreign_key)
-                  ]
-            query.joins(join_clause)
-          when ActiveRecord::Reflection::HasManyReflection
-            join_clause = "INNER JOIN %s as %s ON %s.%s = %s.%s " % \
-                  [c.quote_table_name(reflection.klass.table_name),
-                    c.quote_table_name(table_alias),
-                    c.quote_table_name(source_alias),
-                    c.quote_column_name(join_foreign_key),
-                    c.quote_table_name(table_alias),
-                    c.quote_column_name(join_primary_key)
-                  ]
-
-            # Polymorphic type, add the appropriate condition to restrict the result to the right type
-            if reflection.type
-              addition = " AND %s.%s = %s" % \
-              [ c.quote_table_name(table_alias),
-                c.quote_table_name(reflection.type),
-                c.quote(reflection.active_record.class_name)]
-
-              join_clause += addition
-            end
-            query.joins(join_clause)
-
-          when ActiveRecord::Reflection::ThroughReflection
-            talias = reflection.through_reflection.table_name
-            salias = source_alias
-
-            query = do_join_reflection(query, reflection.through_reflection, salias, talias)
-            salias = talias
-
-            through_model = reflection.through_reflection.klass
-            through_assoc = reflection.name
-            final_reflection = reflection.source_reflection
-            do_join_reflection(query, final_reflection, salias, table_alias)
-          else
-            raise "Joins for this association type are currently UNSUPPORTED: #{reflection.inspect}"
           end
         end
 
         # Private to try to funnel all column names through `build_clause` that restricts
         # the attribute names better (to allow more difficult SQL injections )
         private def add_clause(column_prefix:, column_object:, op:, value:)
+          @query = @query.references(column_prefix) #Mark where clause referencing the appropriate alias
           likeval = get_like_value(value)
           case op
             when '!' # name! means => name IS NOT NULL (and the incoming value is nil)

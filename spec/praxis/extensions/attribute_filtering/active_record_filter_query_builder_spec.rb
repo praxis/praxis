@@ -83,79 +83,80 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
     end
 
     context 'by using all supported operators' do
+      PREF = Praxis::Extensions::AttributeFiltering::ALIAS_TABLE_PREFIX
       COMMON_SQL_PREFIX = <<~SQL
             SELECT "active_books".* FROM "active_books"
-            INNER JOIN 
-              "active_authors" as "active_books/author" ON "active_books/author"."id" = "active_books"."author_id"
+            INNER JOIN
+              "active_authors" "#{PREF}/author" ON "#{PREF}/author"."id" = "active_books"."author_id"
           SQL
       context '=' do
         let(:filters_string) { 'author.id=11'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id = 11')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."id" = 11
+            WHERE "#{PREF}/author"."id" = 11
           SQL
       end
       context '= (with array)' do
         let(:filters_string) { 'author.id=11,22'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id IN (11,22)')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."id" IN (11,22)
+            WHERE "#{PREF}/author"."id" IN (11,22)
           SQL
       end      
       context '!=' do
         let(:filters_string) { 'author.id!=11'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id <> 11')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."id" <> 11
+            WHERE "#{PREF}/author"."id" <> 11
           SQL
       end
       context '!= (with array)' do
         let(:filters_string) { 'author.id!=11,888'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id NOT IN (11,888)')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."id" NOT IN (11,888)
+            WHERE "#{PREF}/author"."id" NOT IN (11,888)
           SQL
       end
       context '>' do
         let(:filters_string) { 'author.id>1'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id > 1')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."id" > 1
+            WHERE "#{PREF}/author"."id" > 1
           SQL
       end
       context '<' do
         let(:filters_string) { 'author.id<22'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id < 22')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."id" < 22
+            WHERE "#{PREF}/author"."id" < 22
           SQL
       end
       context '>=' do
         let(:filters_string) { 'author.id>=22'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id >= 22')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."id" >= 22
+            WHERE "#{PREF}/author"."id" >= 22
           SQL
       end
       context '<=' do
         let(:filters_string) { 'author.id<=22'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id <= 22')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."id" <= 22
+            WHERE "#{PREF}/author"."id" <= 22
           SQL
       end
       context '!' do
         let(:filters_string) { 'author.id!'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id IS NOT NULL')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."id" IS NOT NULL
+            WHERE "#{PREF}/author"."id" IS NOT NULL
           SQL
       end
       context '!!' do
         let(:filters_string) { 'author.name!!'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.name IS NULL')
         it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."name" IS NULL
+            WHERE "#{PREF}/author"."name" IS NULL
           SQL
       end      
       context 'including LIKE fuzzy queries' do
@@ -163,14 +164,14 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
           let(:filters_string) { 'author.name=author*'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.name LIKE "author%"')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."name" LIKE 'author%'
+            WHERE "#{PREF}/author"."name" LIKE 'author%'
           SQL
         end
         context 'NOT LIKE' do
           let(:filters_string) { 'author.name!=foobar*'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.name NOT LIKE "foobar%"')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-            WHERE "active_books/author"."name" NOT LIKE 'foobar%'
+            WHERE "#{PREF}/author"."name" NOT LIKE 'foobar%'
           SQL
         end
       end
@@ -190,6 +191,14 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
         let(:filters_string) { 'category.books.taggings.tag_id=1&category.books.taggings.label=primary' }
         it_behaves_like 'subject_equivalent_to', 
           ActiveBook.joins(category: { books: :taggings }).where('active_taggings.tag_id': 1).where('active_taggings.label': 'primary')
+        it_behaves_like 'subject_matches_sql', <<~SQL
+            SELECT "active_books".* FROM "active_books"
+              INNER JOIN "active_categories" ON "active_categories"."uuid" = "active_books"."category_uuid"
+              INNER JOIN "active_books" "books_active_categories" ON "books_active_categories"."category_uuid" = "active_categories"."uuid"
+              INNER JOIN "active_taggings" "#{PREF}/category/books/taggings" ON "/category/books/taggings"."book_id" = "books_active_categories"."id"
+              WHERE ("#{PREF}/category/books/taggings"."tag_id" = 1)
+              AND ("#{PREF}/category/books/taggings"."label" = 'primary')
+          SQL
       end
     end
 

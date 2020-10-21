@@ -1,7 +1,11 @@
-require_relative 'active_record_patching_for_filtering.rb'
+
+
 module Praxis
   module Extensions
     module AttributeFiltering
+      ALIAS_TABLE_PREFIX = ''
+      require_relative 'active_record_patches'
+
       class ActiveRecordFilterQueryBuilder
       attr_reader :query, :model, :attr_to_column
 
@@ -34,7 +38,7 @@ module Praxis
             resolved_array = resolved_array + bindings_array
           end
           #root_node = FilterTreeNode.new(resolved_array, path: [self.model.table_name])
-          root_node = FilterTreeNode.new(resolved_array, path: ['joins:'])
+          root_node = FilterTreeNode.new(resolved_array, path: [ALIAS_TABLE_PREFIX])
           craft_filter_query(root_node, for_model: @model)
           debug("FILTERS QUERY: #{@query.all.to_sql}")
           @query
@@ -50,7 +54,7 @@ module Praxis
             h[name] = result[:associations_hash] 
             conditions += result[:conditions]
           end
-          column_prefix = nodetree.path == ['joins:'] ? nil : nodetree.path.join('/')
+          column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? nil : nodetree.path.join('/')
           nodetree.conditions.each do |condition|
             conditions += [condition.merge(column_prefix: column_prefix, model: model)]
           end

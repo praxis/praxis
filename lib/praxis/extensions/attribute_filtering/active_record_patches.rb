@@ -8,7 +8,7 @@ elsif maj == 6
   if min == 0
     require_relative 'active_record_patches/6_0.rb'
   else
-    raise "not sure..."
+    require_relative 'active_record_patches/6_1_plus.rb'
   end
 else
   raise "Filtering only supported for ActiveRecord >= 5 && <= 6"  

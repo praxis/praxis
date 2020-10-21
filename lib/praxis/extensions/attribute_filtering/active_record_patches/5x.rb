@@ -3,6 +3,14 @@ require 'active_record'
 module ActiveRecord
   PRAXIS_JOIN_ALIAS_PREFIX = Praxis::Extensions::AttributeFiltering::ALIAS_TABLE_PREFIX
   class Relation
+    def construct_join_dependency
+      including = eager_load_values + includes_values
+       # Praxis: inject references into the join dependency
+      ActiveRecord::Associations::JoinDependency.new(
+        klass, table, including, references: references_values
+      )
+    end
+
     def build_join_query(manager, buckets, join_type, aliases)
       buckets.default = []
 
@@ -42,9 +50,16 @@ module ActiveRecord
       def table_aliases_for(parent, node)
         last_reflection, *rest = node.reflection.chain
         
-        last_table = Arel::Table.new(last_reflection.table_name, type_caster: last_reflection.klass.type_caster)
+        last_table = alias_tracker.aliased_table_for(
+          last_reflection.table_name,
+          table_alias_for(last_reflection, parent, last_reflection != node.reflection),
+          last_reflection.klass.type_caster
+        )
         # Praxis: Alias a joined table IF it "path" is in the list of references (i.e., explicitly requested)
-        last_table = last_table.alias(node.alias_path.join('/')) if node.alias_path
+        if node.alias_path
+          last_table = last_table.left if last_table.is_a?(Arel::Nodes::TableAlias) #un-alias it if necessary
+          last_table = last_table.alias(node.alias_path.join('/')) 
+        end
 
         # through tables do not need aliasing
         rest_tables = rest.map { |reflection|

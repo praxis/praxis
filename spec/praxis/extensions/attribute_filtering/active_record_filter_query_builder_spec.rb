@@ -204,13 +204,6 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
         let(:filters_string) { 'taggings.tag.taggings.tag_id=1' }
         it_behaves_like 'subject_equivalent_to', 
           ActiveBook.joins(taggings: {tag: :taggings}).where('taggings_active_tags.tag_id=1')
-        # it_behaves_like 'subject_matches_sql', <<~SQL
-        #   SELECT "active_books".* FROM "active_books"
-        #     INNER JOIN "active_taggings" ON "active_taggings"."book_id" = "active_books"."id" 
-        #     INNER JOIN "active_tags" ON "active_tags"."id" = "active_taggings"."tag_id" 
-        #     INNER JOIN "active_taggings" "taggings_active_tags" ON "taggings_active_tags"."tag_id" = "active_tags"."id" 
-        #     WHERE ( taggings_active_tags.tag_id = 1 ) 
-        # SQL
       end
     end
 
@@ -284,52 +277,19 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       end
     end
 
-    context 'respecting scopes' do
+    context 'respects scopes' do
       context 'for a has_many through association' do
-        let(:filters_string) { 'primary_tags.name=red' }
-        #it do
-        #   ActiveRecord::Base.logger = Logger.new(STDOUT)
-        #   #ActiveBook.joins(:primary_taggings).all.to_a
-        #   #ActiveBook.includes(:category).where(uuid: 'asdf').references('category').to_a
-        #   binding.pry
-        #   #ActiveBook.joins(category: { books: :taggings }).where('/category/books.simple_name' => 'boo').to_a
-        #   join_cond = ActiveBook.arel_table.alias('joins:/category/books')[:simple_name].eq('boo')
-        #   # DO THIS IN THE FILTER CODE (i.e., create the alias table and arel condition)
-        #   ActiveBook.joins(category: { books: :taggings })
-        #     .where(join_cond).references('joins:/category/books').to_a
-        #   binding.pry
-        #   #ref = ActiveBook.joins(category: { books: :taggings }).all
-        #   incoming_q = ActiveBook.all
-        #   incoming_q = incoming_q.joins(:tags)
-
-        #   # LEt's look at the tracker result?
-        #   aliases = nil
-        #   begin
-        #     arel = incoming_q.__send__(:build_arel,aliases)
-        #   rescue => e
-        #     binding.pry
-        #     puts "ASdfa"
-        #   end
-        #   binding.pry
-        #   ActiveRecord::Base.connection.to_sql(arel)
-          
-        #   exit 0
-        #   added_chain = joins(category: { books: :taggings }).all
-        #   ref.to_sql
-        #   binding.pry
-        #   atrack = ref.alias_tracker
-        #   ref = ref.joins(:taggings).all          
-        #   atrack2 = ref.alias_tracker
-        #   binding.pry
-        #   ref.to_sql
-        #   ref.to_a
-        #   binding.pry
-        #   ref.alias_candidate
-        #   ref.to_a
-        #   #subject.to_a
-        #   puts "ASdfa"
-        # end
-        #it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:primary_tags).where('active_tags.name' => 'blue')
+        let(:filters_string) { 'primary_tags.name=blue' }
+        it 'adds the association scope clause to the join' do
+          expect(subject.to_sql).to match(/ON "active_taggings"."label" = 'primary'/)
+        end
+        it_behaves_like 'subject_matches_sql', <<~SQL
+          SELECT "active_books".* FROM "active_books"
+            INNER JOIN "active_taggings" ON "active_taggings"."label" = 'primary'
+                        AND "active_taggings"."book_id" = "active_books"."id"
+            INNER JOIN "active_tags" "/primary_tags" ON "/primary_tags"."id" = "active_taggings"."tag_id"
+            WHERE ("/primary_tags"."name" = 'blue')
+        SQL
       end
     end
   end

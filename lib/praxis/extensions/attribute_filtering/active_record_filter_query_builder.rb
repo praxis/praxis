@@ -17,10 +17,37 @@ module Praxis
         end
         
         def debug(msg)
+          # TODO: User the mapper config? ...
           #puts msg
         end
 
         def build_clause(filters)
+          # Resolve the names and values first, based on filters_map
+          root_node = _convert_to_treenode(filters)
+          craft_filter_query(root_node, for_model: @model)
+          debug("FILTERS QUERY: #{@query.all.to_sql}")
+          @query
+        end
+
+        def craft_filter_query(nodetree, for_model:)
+          result = _compute_joins_and_conditions_data(nodetree, model: for_model)
+          @query = query.joins(result[:associations_hash]) unless result[:associations_hash].empty?
+
+          result[:conditions].each do |condition|
+            filter_name = condition[:name]
+            filter_value = condition[:value]
+            column_prefix = condition[:column_prefix]
+            debug("ADDING condition: #{column_prefix}.#{filter_name} #{condition[:op]} #{filter_value}")
+
+            colo = condition[:model].columns_hash[filter_name.to_s]
+            add_clause(column_prefix: column_prefix,  column_object: colo, op: condition[:op], value: filter_value)
+          end
+        end
+
+        private
+
+        # Resolve and convert from filters, to a more manageable and param-type-independent structure
+        def _convert_to_treenode(filters)
           # Resolve the names and values first, based on filters_map
           resolved_array = []
           filters.parsed_array.each do |filter|
@@ -37,55 +64,28 @@ module Praxis
               end
             resolved_array = resolved_array + bindings_array
           end
-          #root_node = FilterTreeNode.new(resolved_array, path: [self.model.table_name])
-          root_node = FilterTreeNode.new(resolved_array, path: [ALIAS_TABLE_PREFIX])
-          craft_filter_query(root_node, for_model: @model)
-          debug("FILTERS QUERY: #{@query.all.to_sql}")
-          @query
+          FilterTreeNode.new(resolved_array, path: [ALIAS_TABLE_PREFIX])
         end
 
         # Calculate join tree and conditions array for the nodetree object and its children
-        def compute_joins_and_conditions(nodetree, model:)
+        def _compute_joins_and_conditions_data(nodetree, model:)
           h = {}
           conditions = []
           nodetree.children.each do |name, child|
             child_model = model.reflections[name.to_s].klass
-            result = compute_joins_and_conditions(child, model: child_model)
+            result = _compute_joins_and_conditions_data(child, model: child_model)
             h[name] = result[:associations_hash] 
             conditions += result[:conditions]
           end
-          column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? nil : nodetree.path.join('/')
+          column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? model.table_name : nodetree.path.join('/')
+          #column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? nil : nodetree.path.join('/')
           nodetree.conditions.each do |condition|
             conditions += [condition.merge(column_prefix: column_prefix, model: model)]
           end
           {associations_hash: h, conditions: conditions}
         end
 
-
-        def craft_filter_query(nodetree, for_model:)
-          result = compute_joins_and_conditions(nodetree, model: for_model)
-          @query = query.joins(result[:associations_hash]) unless result[:associations_hash].empty?
-
-          result[:conditions].each do |condition|
-            bindings = \
-              if condition[:name].is_a?(Proc)
-                condition[:name].call(condition)
-              else
-                {condition[:name] => condition[:value] } # For non-procs there's only 1 filter and 1 value
-              end
-            bindings.each do |filter_name,filter_value|
-              column_prefix = condition[:column_prefix]
-              debug("ADDING condition: #{column_prefix}.#{filter_name} #{condition[:op]} #{filter_value}")
-
-              colo = condition[:model].columns_hash[filter_name.to_s]
-              add_clause(column_prefix: column_prefix,  column_object: colo, op: condition[:op], value: filter_value)
-            end
-          end
-        end
-
-        # Private to try to funnel all column names through `build_clause` that restricts
-        # the attribute names better (to allow more difficult SQL injections )
-        private def add_clause(column_prefix:, column_object:, op:, value:)
+        def add_clause(column_prefix:, column_object:, op:, value:)
           @query = @query.references(column_prefix) #Mark where clause referencing the appropriate alias
           likeval = get_like_value(value)
           case op

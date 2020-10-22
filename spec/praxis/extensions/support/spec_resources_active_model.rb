@@ -69,6 +69,8 @@ end
 
 class ActiveTag < ActiveRecord::Base
   include Praxis::Mapper::ActiveModelCompat
+  has_many :taggings, class_name: 'ActiveTagging', foreign_key: :tag_id
+  has_many :books, class_name: 'ActiveBook', through: :taggings, source: :book
 end
 
 class ActiveTagging < ActiveRecord::Base
@@ -111,6 +113,7 @@ class ActiveBookResource < ActiveBaseResource
     'author.name': 'author.name',
     'taggings.label': 'taggings.label',
     'taggings.tag_id': 'taggings.tag_id',
+    'taggings.tag.taggings.tag_id': 'taggings.tag.taggings.tag_id',
     'tags.name': 'tags.name',
     'primary_tags.name': 'primary_tags.name',
     'category.name': 'category.name',

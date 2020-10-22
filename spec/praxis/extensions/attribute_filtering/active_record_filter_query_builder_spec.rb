@@ -280,16 +280,24 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
     context 'respects scopes' do
       context 'for a has_many through association' do
         let(:filters_string) { 'primary_tags.name=blue' }
+        it_behaves_like 'subject_equivalent_to', 
+          ActiveBook.joins(:primary_tags).where('active_tags.name="blue"')
+
         it 'adds the association scope clause to the join' do
-          expect(subject.to_sql).to match(/ON "active_taggings"."label" = 'primary'/)
+          inner_join_pieces = subject.to_sql.split('INNER')
+          found = inner_join_pieces.any? do |line|
+            line =~ /\s+JOIN "active_taggings".+ON.+\."label" = 'primary'/
+          end
+          expect(found).to be_truthy
         end
-        it_behaves_like 'subject_matches_sql', <<~SQL
-          SELECT "active_books".* FROM "active_books"
-            INNER JOIN "active_taggings" ON "active_taggings"."label" = 'primary'
-                        AND "active_taggings"."book_id" = "active_books"."id"
-            INNER JOIN "active_tags" "/primary_tags" ON "/primary_tags"."id" = "active_taggings"."tag_id"
-            WHERE ("/primary_tags"."name" = 'blue')
-        SQL
+        # This is slightly incorrect in AR 6.1+ (since the picked aliases for active_taggings tables vary)
+        # it_behaves_like 'subject_matches_sql', <<~SQL
+        #   SELECT "active_books".* FROM "active_books"
+        #     INNER JOIN "active_taggings" ON "active_taggings"."label" = 'primary'
+        #                 AND "active_taggings"."book_id" = "active_books"."id"
+        #     INNER JOIN "active_tags" "/primary_tags" ON "/primary_tags"."id" = "active_taggings"."tag_id"
+        #     WHERE ("/primary_tags"."name" = 'blue')
+        # SQL
       end
     end
   end

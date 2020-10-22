@@ -200,6 +200,18 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
               AND ("#{PREF}/category/books/taggings"."label" = 'primary')
           SQL
       end
+      context 'that contain multiple joins to the same table' do
+        let(:filters_string) { 'taggings.tag.taggings.tag_id=1' }
+        it_behaves_like 'subject_equivalent_to', 
+          ActiveBook.joins(taggings: {tag: :taggings}).where('taggings_active_tags.tag_id=1')
+        # it_behaves_like 'subject_matches_sql', <<~SQL
+        #   SELECT "active_books".* FROM "active_books"
+        #     INNER JOIN "active_taggings" ON "active_taggings"."book_id" = "active_books"."id" 
+        #     INNER JOIN "active_tags" ON "active_tags"."id" = "active_taggings"."tag_id" 
+        #     INNER JOIN "active_taggings" "taggings_active_tags" ON "taggings_active_tags"."tag_id" = "active_tags"."id" 
+        #     WHERE ( taggings_active_tags.tag_id = 1 ) 
+        # SQL
+      end
     end
 
     context 'by multiple fields' do
@@ -238,6 +250,38 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
           SQL
       end
 
+    end
+
+    context 'ActiveRecord continues to work as expected (with our patches)' do
+      context 'using a deep join with repeated tables' do
+        subject{ ActiveBook.joins(taggings: {tag: :taggings}).where('taggings_active_tags.tag_id=1') }
+        it 'performs query' do
+          expect(subject.to_a).to_not be_empty 
+        end
+        it_behaves_like 'subject_matches_sql', <<~SQL
+          SELECT "active_books".* FROM "active_books"
+            INNER JOIN "active_taggings" ON "active_taggings"."book_id" = "active_books"."id"
+            INNER JOIN "active_tags" ON "active_tags"."id" = "active_taggings"."tag_id"
+            INNER JOIN "active_taggings" "taggings_active_tags" ON "taggings_active_tags"."tag_id" = "active_tags"."id"
+            WHERE (taggings_active_tags.tag_id=1)
+        SQL
+      end
+      context 'a deep join with repeated tables with the root AND the join, along with :through joins as well' do
+        subject!{ ActiveBook.joins(tags: {books: {taggings: :book}}).where('books_active_taggings.simple_name="Book2"') }
+        it 'performs query' do
+          expect(subject.to_a).to_not be_empty 
+        end
+        it_behaves_like 'subject_matches_sql', <<~SQL
+          SELECT "active_books".* FROM "active_books" 
+               INNER JOIN "active_taggings" ON "active_taggings"."book_id" = "active_books"."id"
+               INNER JOIN "active_tags" ON "active_tags"."id" = "active_taggings"."tag_id"
+               INNER JOIN "active_taggings" "taggings_active_tags_join" ON "taggings_active_tags_join"."tag_id" = "active_tags"."id" 
+               INNER JOIN "active_books" "books_active_tags" ON "books_active_tags"."id" = "taggings_active_tags_join"."book_id" 
+               INNER JOIN "active_taggings" "taggings_active_books" ON "taggings_active_books"."book_id" = "books_active_tags"."id" 
+               INNER JOIN "active_books" "books_active_taggings" ON "books_active_taggings"."id" = "taggings_active_books"."book_id"
+               WHERE (books_active_taggings.simple_name="Book2")             
+        SQL
+      end
     end
 
     context 'respecting scopes' do

@@ -1,5 +1,25 @@
 # Praxis Changelog
 
+## next
+
+- Removed the explicit `links` helpers from a `MediaType`. There was too much magic and assumptions built into it. Things can still be built in a custom basis (or through a plugin) if necessary.
+- Removed documentation `linked_builder` annotations.
+- Leave the `x-www-form-urlencoded` handler in place, but do not automatically register it for a Praxis app. To include the handler in your app register it by requiring the file `require 'praxis/handlers/www_form'` and then though `application.handler('x-www-form-urlencoded',Praxis::Handlers::WWWForm)`
+- Remove the `primary_route` (and name) concept from routes.
+- Added a pagination (and sotring) extension (and a Pagination Plugin for easier use)
+  - New pagination and ordering query string type (with simple syntax, borrowing from JSON api pagination ). Page-based and cursor-based options:
+    - examples for pagination: `page=5,items=50` or `by=email,from=joe@example.com,items=100`
+    - examples for ordering: `name,last_name,-birth_date`
+  - New DSL for defining the pagination and sorting parameters in Endpoint definitions
+  - Support for pagination header (as per draft spec http://tools.ietf.org/id/draft-nottingham-http-link-header-06.txt)
+  - Pagination/ordering implementation for controllers through an easy Plugin inclusion.
+  - ActiveRecord and Sequel DBs supported
+  - Reimplemented and enhanced Query Filtering Extensions
+    - introduced support for 'is NULL' and 'is NOT NULL' in filter syntax (`!` and `!!` operators without value). example: `name!` means (name IS NOT NULL) while `name!!` means (name IS NULL)
+    - support for nested join conditions (grouping where conditions in same join)
+    - support for respecting association scopes when filtering in joins
+    - ActiveRecord supported (Sequel support not done yet)
+
 ## 2.0.pre.5
 
 - Added support for OpenAPI 3.x document generation. Consider this in Beta state, although it is fairly close to feature complete.

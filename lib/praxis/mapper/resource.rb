@@ -212,7 +212,8 @@ module Praxis::Mapper
     def self.craft_filter_query(base_query, filters:) # rubocop:disable Metrics/AbcSize
       if filters 
         raise "Must define the mapping of filters if want to use Filtering for resource: #{self}" unless @_filters_map
-        base_query = model._filter_query_builder_class.new(query: base_query, model: model, filters_map: @_filters_map).build_clause(filters)
+        debug = Praxis::Application.instance.config.mapper.debug_queries
+        base_query = model._filter_query_builder_class.new(query: base_query, model: model, filters_map: @_filters_map, debug: debug).generate(filters)
       end
       
       base_query
@@ -221,7 +222,7 @@ module Praxis::Mapper
     def self.craft_field_selection_query(base_query, selectors:) # rubocop:disable Metrics/AbcSize
       if selectors && model._field_selector_query_builder_class
         debug = Praxis::Application.instance.config.mapper.debug_queries
-        base_query = model._field_selector_query_builder_class.new(query: base_query, selectors: selectors).generate(debug: debug)
+        base_query = model._field_selector_query_builder_class.new(query: base_query, selectors: selectors, debug: debug).generate
       end
       
       base_query

@@ -34,7 +34,7 @@ module Praxis
 
       # By default we'll simply use the incoming op and value, and will map
       # the attribute based on what's on the `attr_to_column` hash
-      def build_clause(filters)
+      def generate(filters)
         raise "Not refactored yet!"
         seen_associations = Set.new
         filters.each do |(attr, spec)|
@@ -69,7 +69,7 @@ module Praxis
         self.class.attr_to_column
       end
 
-      # Private to try to funnel all column names through `build_clause` that restricts
+      # Private to try to funnel all column names through `generate` that restricts
       # the attribute names better (to allow more difficult SQL injections )
       private def add_clause(attr:, op:, value:)
         # TODO: partial matching

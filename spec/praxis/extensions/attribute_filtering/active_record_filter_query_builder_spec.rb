@@ -42,8 +42,8 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       expect(instance.attr_to_column).to eq(filters_map)
     end
   end
-  context 'build_clause' do
-    subject { instance.build_clause(filters) }
+  context 'generate' do
+    subject { instance.generate(filters) }
     let(:filters) { Praxis::Types::FilteringParams.load(filters_string)}
 
     context 'with no filters' do

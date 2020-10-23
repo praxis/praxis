@@ -10,22 +10,22 @@ module Praxis
       attr_reader :query, :model, :attr_to_column
 
         # Base query to build upon
-        def initialize(query: , model:, filters_map:)
+        def initialize(query: , model:, filters_map:, debug: false)
           @query = query
           @model = model
           @attr_to_column = filters_map
+          @logger = debug ? Logger.new(STDOUT) : nil
         end
         
         def debug(msg)
-          # TODO: User the mapper config? ...
-          #puts msg
+          @logger && @logger.puts(msg)
         end
 
-        def build_clause(filters)
+        def generate(filters)
           # Resolve the names and values first, based on filters_map
           root_node = _convert_to_treenode(filters)
           craft_filter_query(root_node, for_model: @model)
-          debug("FILTERS QUERY: #{@query.all.to_sql}")
+          debug("SQL due to filters: #{@query.all.to_sql}")
           @query
         end
 
@@ -37,7 +37,6 @@ module Praxis
             filter_name = condition[:name]
             filter_value = condition[:value]
             column_prefix = condition[:column_prefix]
-            debug("ADDING condition: #{column_prefix}.#{filter_name} #{condition[:op]} #{filter_value}")
 
             colo = condition[:model].columns_hash[filter_name.to_s]
             add_clause(column_prefix: column_prefix,  column_object: colo, op: condition[:op], value: filter_value)

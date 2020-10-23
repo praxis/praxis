@@ -15,7 +15,7 @@
   - Pagination/ordering implementation for controllers through an easy Plugin inclusion.
   - ActiveRecord and Sequel DBs supported
   - Reimplemented and enhanced Query Filtering Extensions
-    - introduced support for 'is NULL' and 'is NOT NULL' in filter syntax (`!` and `!!` operators without value). example: `name!` means (name IS NOT NULL) while `name!!` means (name IS NULL)
+    - introduced support for 'is NULL' and 'is NOT NULL' for column values in filter syntax (`!` and `!!` operators without value). example: `name!` means (name IS NOT NULL) while `name!!` means (name IS NULL). Null (or not null) relationship conditions not supported.
     - support for nested join conditions (grouping where conditions in same join)
     - support for respecting association scopes when filtering in joins
     - ActiveRecord supported (Sequel support not done yet)

@@ -65,9 +65,10 @@ describe Praxis::Extensions::FieldSelection::SequelQuerySelector do
   end
 
   let(:selector_node) { Praxis::Mapper::SelectorGenerator.new.add(SequelSimpleResource,selector_fields)  }
-  subject {described_class.new(query: query, selectors: selector_node) }
+  subject {described_class.new(query: query, selectors: selector_node, debug: debug) }
 
   context 'generate' do
+    let(:debug) { false }
     context 'using the real models and DB' do
       let(:query) { SequelSimpleModel }
 
@@ -109,7 +110,7 @@ describe Praxis::Extensions::FieldSelection::SequelQuerySelector do
       it 'calls the explain debug method if enabled' do
         suppress_output do
           # Actually make it run all the way...but suppressing the output
-          subject.generate(debug: true)
+          subject.generate
         end
       end 
     end

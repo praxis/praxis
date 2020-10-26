@@ -27,7 +27,7 @@ namespace :praxis do
           implementation: method_name,
         }
 
-        if action.routes.empty?
+        unless action.route
           warn "Warning: No routes defined for #{resource_definition.name}##{name}."
           rows << row
         else

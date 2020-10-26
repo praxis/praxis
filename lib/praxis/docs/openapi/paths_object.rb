@@ -31,21 +31,18 @@ module Praxis
           # fill in the paths hash with a key for each path for each action/route
           resource.actions.each do |action_name, action|
             params_example =  action.params ? action.params.example(nil) : nil
-            urls = action.route.collect do |route|
-              ActionDefinition.url_description(route: route, params: action.params, params_example: params_example)
-            end.compact
-            urls.each do |url|
-              verb = url[:verb].downcase
-              templetized_path = OpenApiGenerator.templatize_url(url[:path])
-              path_entry = paths[templetized_path]
-              # Let's fill in verb stuff within the working hash
-              raise "VERB #{_verb} already defined for #{id}!?!?!" if path_entry[verb]
-              
-              action_uid = "action-#{action_name}-#{id}"
-              # Add a tag matching the resource name (hoping all actions of a resource are grouped)
-              action_tags = [resource.display_name]
-              path_entry[verb] = OperationObject.new( id: action_uid, url: url, action: action, tags: action_tags).dump
-            end
+            url = ActionDefinition.url_description(route: action.route, params: action.params, params_example: params_example)
+
+            verb = url[:verb].downcase
+            templetized_path = OpenApiGenerator.templatize_url(url[:path])
+            path_entry = paths[templetized_path]
+            # Let's fill in verb stuff within the working hash
+            raise "VERB #{_verb} already defined for #{id}!?!?!" if path_entry[verb]
+            
+            action_uid = "action-#{action_name}-#{id}"
+            # Add a tag matching the resource name (hoping all actions of a resource are grouped)
+            action_tags = [resource.display_name]
+            path_entry[verb] = OperationObject.new( id: action_uid, url: url, action: action, tags: action_tags).dump
           end
           # For each path, we can further annotate with 
           # servers

@@ -31,7 +31,7 @@ module Praxis
           # fill in the paths hash with a key for each path for each action/route
           resource.actions.each do |action_name, action|
             params_example =  action.params ? action.params.example(nil) : nil
-            urls = action.routes.collect do |route|
+            urls = action.route.collect do |route|
               ActionDefinition.url_description(route: route, params: action.params, params_example: params_example)
             end.compact
             urls.each do |url|

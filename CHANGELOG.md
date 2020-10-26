@@ -2,6 +2,8 @@
 
 ## next
 
+## 2.0.pre.6
+
 - Removed the explicit `links` helpers from a `MediaType`. There was too much magic and assumptions built into it. Things can still be built in a custom basis (or through a plugin) if necessary.
 - Removed documentation `linked_builder` annotations.
 - Leave the `x-www-form-urlencoded` handler in place, but do not automatically register it for a Praxis app. To include the handler in your app register it by requiring the file `require 'praxis/handlers/www_form'` and then though `application.handler('x-www-form-urlencoded',Praxis::Handlers::WWWForm)`

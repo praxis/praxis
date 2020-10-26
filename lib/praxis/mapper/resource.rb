@@ -196,17 +196,24 @@ module Praxis::Mapper
     end
 
     # TODO: this shouldn't be needed if we incorporate it with the properties of the mapper...
-    def self.filters_mapping(hash)
-      @_filter_query_builder_class = model._filter_query_builder_class.for(**hash)
-    end
-    
-    def self._filter_query_builder_class
-      @_filter_query_builder_class
+    # ...maybe what this means is that we can change it for a better DSL in the resource?
+    def self.filters_mapping(definition)
+      @_filters_map = \
+        case definition
+        when Hash
+          definition
+        when Array
+          definition.each_with_object({}) { |item, hash| hash[item.to_sym] = item }
+        else
+          raise "Resource.filters_mapping only allows a hash or an array"
+        end
     end
 
     def self.craft_filter_query(base_query, filters:) # rubocop:disable Metrics/AbcSize
-      if filters && _filter_query_builder_class
-        base_query = _filter_query_builder_class.new(query: base_query, model: model).build_clause(filters)
+      if filters 
+        raise "Must define the mapping of filters if want to use Filtering for resource: #{self}" unless @_filters_map
+        debug = Praxis::Application.instance.config.mapper.debug_queries
+        base_query = model._filter_query_builder_class.new(query: base_query, model: model, filters_map: @_filters_map, debug: debug).generate(filters)
       end
       
       base_query
@@ -215,7 +222,7 @@ module Praxis::Mapper
     def self.craft_field_selection_query(base_query, selectors:) # rubocop:disable Metrics/AbcSize
       if selectors && model._field_selector_query_builder_class
         debug = Praxis::Application.instance.config.mapper.debug_queries
-        base_query = model._field_selector_query_builder_class.new(query: base_query, selectors: selectors).generate(debug: debug)
+        base_query = model._field_selector_query_builder_class.new(query: base_query, selectors: selectors, debug: debug).generate
       end
       
       base_query

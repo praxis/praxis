@@ -3,6 +3,7 @@
 require 'active_support/concern'
 
 require 'praxis/extensions/field_selection/active_record_query_selector'
+require 'praxis/extensions/attribute_filtering/active_record_filter_query_builder'
 
 module Praxis
   module Mapper
@@ -15,7 +16,7 @@ module Praxis
 
       module ClassMethods
         def _filter_query_builder_class
-          Praxis::Extensions::ActiveRecordFilterQueryBuilder
+          Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder
         end
 
         def _field_selector_query_builder_class
@@ -57,19 +58,36 @@ module Praxis
           end
         end
 
+        def _join_foreign_key_for(assoc_reflection)
+          maj, min, _ = ActiveRecord.gem_version.segments
+          if maj >= 6 && min >=1
+            assoc_reflection.join_foreign_key.to_sym
+          else
+            assoc_reflection.join_keys.foreign_key.to_sym
+          end
+        end
+
+        def _join_primary_key_for(assoc_reflection)
+          maj, min, _ = ActiveRecord.gem_version.segments
+          if maj >= 6 && min >=1
+            assoc_reflection.join_primary_key.to_sym
+          else
+            assoc_reflection.join_keys.key.to_sym
+          end
+        end
         private
         def local_columns_used_for_the_association(type, assoc_reflection)
           case type
           when :one_to_many
             # The associated table  will point to us by key (usually the PK, but not always)
-            [assoc_reflection.join_keys.foreign_key.to_sym]
+            [_join_foreign_key_for(assoc_reflection)]
           when :many_to_one
             # We have the FKs to the associated model
-            [assoc_reflection.join_keys.foreign_key.to_sym]
+            [_join_foreign_key_for(assoc_reflection)]
           when :many_to_many
             ref = resolve_closest_through_reflection(assoc_reflection)
             # The associated middle table will point to us by key (usually the PK, but not always)
-            [ref.join_keys.foreign_key.to_sym] # The foreign key that the last through table points to
+            [_join_foreign_key_for(ref)] # The foreign key that the last through table points to
           else 
             raise "association type #{type} not supported"
           end
@@ -80,7 +98,7 @@ module Praxis
           # will always get us the right column
           case type
           when :one_to_many, :many_to_one, :many_to_many
-            [assoc_reflection.join_keys.key.to_sym]
+            [_join_primary_key_for(assoc_reflection)]
           else 
             raise "association type #{type} not supported"
           end

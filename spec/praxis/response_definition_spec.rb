@@ -523,12 +523,9 @@ describe Praxis::ResponseDefinition do
       context 'examples' do
         subject(:examples) { payload[:examples] }
         its(['json', :content_type]) { should eq('application/vnd.acme.instance+json') }
-        its(['xml', :content_type]) { should eq('application/vnd.acme.instance+xml') }
 
         it 'properly encodes the example bodies' do
-          json = Praxis::Application.instance.handlers['json'].parse(examples['json'][:body])
-          xml = Praxis::Application.instance.handlers['xml'].parse(examples['xml'][:body])
-          expect(json).to eq xml
+          expect(JSON.parse(examples['json'][:body])).to be_kind_of(Hash)
         end
 
       end
@@ -541,7 +538,6 @@ describe Praxis::ResponseDefinition do
 
         it 'still renders examples but as pure handler types for contents' do
           expect(subject['json'][:content_type]).to eq('application/json')
-          expect(subject['xml'][:content_type]).to eq('application/xml')
         end
       end
 

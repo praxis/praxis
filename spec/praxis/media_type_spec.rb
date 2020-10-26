@@ -1,9 +1,9 @@
 require 'spec_helper'
 
 describe Praxis::MediaType do
-  let(:owner_resource) { instance_double(Person, id: 100, name: /[:name:]/.gen, href: '/', links: ['one','two']) }
-  let(:manager_resource) { instance_double(Person, id: 101, name: /[:name:]/.gen, href: '/', links: []) }
-  let(:custodian_resource) { instance_double(Person, id: 102, name: /[:name:]/.gen, href: '/', links: []) }
+  let(:owner_resource) { instance_double(Person, id: 100, name: /[:name:]/.gen, href: '/') }
+  let(:manager_resource) { instance_double(Person, id: 101, name: /[:name:]/.gen, href: '/') }
+  let(:custodian_resource) { instance_double(Person, id: 102, name: /[:name:]/.gen, href: '/') }
   let(:residents_summary_resource) do
     instance_double(Person::CollectionSummary, href: "/people", size: 2)
   end
@@ -27,15 +27,6 @@ describe Praxis::MediaType do
     its(:id)    { should eq(1) }
     its(:name)  { should eq('Home') }
     its(:owner) { should be_instance_of(Person) }
-
-    context 'links' do
-      it 'respects using' do
-        expect(address.links.super).to be_kind_of(Person)
-        expect(address.links.super.object).to be(resource.manager)
-        expect(address.links.caretaker.object).to be(resource.custodian)
-      end
-
-    end
   end
 
 
@@ -62,36 +53,6 @@ describe Praxis::MediaType do
 
     its(:description) { should be_kind_of(String) }
 
-    context 'links' do
-      context 'with a custom links attribute' do
-        subject(:person) { Person.new(owner_resource) }
-
-        its(:links)  { should be_kind_of(Array) }
-        its(:links)  { should eq(owner_resource.links) }
-      end
-
-      context 'using the links DSL' do
-        subject(:address) { Address.new(resource) }
-        its(:links)  { should be_kind_of(Address::Links) }
-
-        it 'inherits types appropriately' do
-          links_attribute = Address::Links.attributes
-          expect(links_attribute[:owner].type).to be(Person)
-          expect(links_attribute[:super].type).to be(Person)
-          expect(links_attribute[:caretaker].type).to be(Person)
-        end
-
-        context 'loading returned values' do
-          subject(:residents) { address.links.residents }
-          let(:residents_summary_resource) do
-            {href: "/people", size: 2}
-          end
-
-          its(:href) { should eq('/people') }
-          its(:size) { should eq(2) }
-        end
-      end
-    end
   end
 
   context "rendering" do
@@ -102,42 +63,7 @@ describe Praxis::MediaType do
     its([:owner]) { should eq(Person.dump(owner_resource, view: :default)) }
     its([:fields]) { should eq(address.fields.dump ) }
 
-    context 'links' do
-      subject(:links) { output[:links] }
-
-      its([:owner]) { should eq(Person.dump(owner_resource, view: :link)) }
-      its([:super]) { should eq(Person.dump(manager_resource, view: :link)) }
-
-      context 'for a collection summary' do
-        let(:volume) { Volume.example }
-        let(:snapshots_summary) { volume.snapshots_summary }
-        let(:output) { volume.render(view: :default) }
-        subject { links[:snapshots] }
-
-        its([:name]) { should eq(snapshots_summary.name) }
-        its([:size]) { should eq(snapshots_summary.size) }
-        its([:href]) { should eq(snapshots_summary.href) }
-      end
-    end
-
-
   end
-
-  context '.example' do
-    subject(:example) { Address.example }
-
-    its('links.owner') { should be(example.owner) }
-    its('links.super') { should be(example.object.manager) }
-
-    it 'does not respond to non-top-level attributes from links' do
-      expect { example.super }.to raise_error(NoMethodError)
-    end
-
-    it 'responds to non-top-level attributes from links on its inner Struct' do
-      expect(example.links.super).to be(example.object.manager)
-    end
-  end
-
 
   context 'describing' do
 
@@ -161,10 +87,10 @@ describe Praxis::MediaType do
     its([:name]) { should eq(Address.name) }
     its([:identifier]) { should eq(Address.identifier.to_s) }
     it 'should include the defined views' do
-      expect( subject[:views].keys ).to match_array([:default, :master, :link])
+      expect( subject[:views].keys ).to match_array([:default, :master])
     end
     it 'should include the defined attributes' do
-      expect( subject[:attributes].keys ).to match_array([:id, :name, :owner, :custodian, :residents, :residents_summary, :links, :fields])
+      expect( subject[:attributes].keys ).to match_array([:id, :name, :owner, :custodian, :residents, :residents_summary, :fields])
     end
   end
 
@@ -181,56 +107,6 @@ describe Praxis::MediaType do
     let(:field_resolver) { Praxis::MediaType::FieldResolver }
 
     subject(:output) { field_resolver.resolve(User,fields) }
-
-
-    it 'merges link stuff in properly' do
-      expect(output).to_not have_key(:links)
-      expect(output).to have_key(:primary_blog)
-
-      expect(output[:primary_blog]).to eq({href: true})
-    end
-
-    it 'resolves link aliases (from link ... using:)' do
-      expect(output).to have_key(:posts_summary)
-      expect(output[:posts_summary]).to eq({href: true})
-    end
-
-    context 'merging top-level attributes with those from links' do
-      let(:user_view) { User.views[:extended] }
-
-      subject(:primary_blog_output) { output[:primary_blog] }
-      it 'merges them' do
-        expected = {
-          href: true,
-          id: true,
-          name: true,
-          description: true
-        }
-        expect(primary_blog_output).to eq(expected)
-      end
-    end
-
-    context 'deep-merging fields' do
-      let(:fields) do
-        {
-          primary_blog: {
-            owner: { first: true, last: true }
-          },
-          links: {
-            primary_blog: {
-              owner: { href: true }
-            }
-          }
-        }
-      end
-
-      it 'does a deep-merge for sub-attributes' do
-        expected = {
-          owner: {first: true, last: true, href: true}
-        }
-        expect(output[:primary_blog]).to eq(expected)
-      end
-    end
 
     context 'resolving collections' do
       let(:fields) { {:id=>true, :posts=>[{:href=>true}]}}

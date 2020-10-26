@@ -23,10 +23,8 @@ module Praxis
       def execute
         application.controllers.each do |controller|
           controller.definition.actions.each do |action_name, action|
-            action.routes.each do |route|
-              target = target_factory(controller, action_name)
-              application.router.add_route target, route
-            end
+            target = target_factory(controller, action_name)
+            application.router.add_route target, action.route
           end
         end
       end

@@ -44,7 +44,6 @@ module ApiResources
     action :show do
       routing do
         get '/:id'
-        get '/something/:id', name: :alternate
       end
 
       response :ok, media_type: 'application/json'
@@ -144,7 +143,7 @@ module ApiResources
         attribute :id
       end
 
-      payload do
+      payload required: false do
         attribute :when, DateTime
       end
 

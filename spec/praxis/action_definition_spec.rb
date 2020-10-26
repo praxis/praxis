@@ -115,7 +115,7 @@ describe Praxis::ActionDefinition do
     end
 
     its('params.attributes.keys') { should eq [:inherited, :app_name, :name, :one]}
-    its('routes.first.path.to_s') { should eq '/api/foobars/hello_world/test_trait/:app_name/:one' }
+    its('route.path.to_s') { should eq '/api/foobars/hello_world/test_trait/:app_name/:one' }
     its(:traits) { should eq [:test] }
 
     it 'is reflected in the describe output' do
@@ -231,7 +231,7 @@ describe Praxis::ActionDefinition do
       let(:parent_param) { ApiResources::Volumes.actions[:show].params.attributes[:id] }
 
       it 'has the right path' do
-        expect(action.primary_route.path.to_s).to eq '/api/clouds/:cloud_id/volumes/:volume_id/snapshots/:id'
+        expect(action.route.path.to_s).to eq '/api/clouds/:cloud_id/volumes/:volume_id/snapshots/:id'
       end
 
       its('params.attributes'){ should have_key(:cloud_id) }
@@ -281,20 +281,8 @@ describe Praxis::ActionDefinition do
     subject(:action) { resource_definition.actions[:show] }
 
     it 'works' do
-      expansion = action.primary_route.path.expand(cloud_id:'232', id: '2')
+      expansion = action.route.path.expand(cloud_id:232, id: 2)
       expect(expansion).to eq "/api/clouds/232/instances/2"
-    end
-
-    context '#primary_route' do
-      it 'is the first-defined route' do
-        expect(action.primary_route).to be(action.routes.first)
-      end
-    end
-
-    context '#named_routes' do
-      subject(:named_routes) { action.named_routes }
-
-      its([:alternate]) { should be(action.routes[1]) }
     end
 
   end
@@ -339,7 +327,7 @@ describe Praxis::ActionDefinition do
       allow(Praxis::ApiDefinition).to receive(:instance).and_return(non_singleton_api)
     end
 
-    its('routes.first.path.to_s') { should eq '/apps/:app_name/foobars/hello_world/:one' }
+    its('route.path.to_s') { should eq '/apps/:app_name/foobars/hello_world/:one' }
     its('params.attributes.keys') { should match_array [:inherited, :app_name, :one]}
 
     context 'where the action overrides a base_param' do

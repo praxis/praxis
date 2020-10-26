@@ -95,14 +95,6 @@ module Praxis
         @on_finalize
       end
 
-      # FIXME: this is inconsistent with the rest of the magic DSL convention.
-      def routing(&block)
-        warn "DEPRECATED: ResourceDefinition.routing is deprecated use prefix directly instead."
-
-        # eval this assuming it will only call #prefix
-        self.instance_eval(&block)
-      end
-
       def prefix(prefix=nil)
         return @prefix if prefix.nil?
         @routing_prefix = nil # reset routing_prefix
@@ -125,7 +117,7 @@ module Praxis
         @routing_prefix = nil # reset routing_prefix
 
         parent_action = parent.canonical_path
-        parent_route = parent_action.primary_route.path
+        parent_route = parent_action.route.path
 
         # if a mapping is passed, it *must* resolve any param name conflicts
         unless mapping.any?
@@ -146,7 +138,7 @@ module Praxis
           if mapping.key?(name)
             param = mapping[name]
             # FIXME: this won't handle URI Template type paths, ie '/{parent_id}'
-            prefixed_path = parent_action.primary_route.prefixed_path
+            prefixed_path = parent_action.route.prefixed_path
             @parent_prefix = prefixed_path.gsub(/(:)(#{name})(\W+|$)/, "\\1#{param.to_s}\\3")
           else
             mapping[name] = name
@@ -221,14 +213,14 @@ module Praxis
       end
 
       def to_href( params )
-        canonical_path.primary_route.path.expand(params.transform_values(&:to_s))
+        canonical_path.route.path.expand(params)
       end
 
       def parse_href(path)
         if path.kind_of?(::URI::Generic)
           path = path.path
         end
-        param_values = canonical_path.primary_route.path.params(path)
+        param_values = canonical_path.route.path.params(path)
         attrs = canonical_path.params.attributes
         param_values.each_with_object({}) do |(key,value),hash|
           hash[key.to_sym] = attrs[key.to_sym].load(value,[key])

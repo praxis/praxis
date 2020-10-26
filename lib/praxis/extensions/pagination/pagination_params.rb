@@ -175,6 +175,10 @@ module Praxis
           end
         end
 
+        def self.json_schema_type
+          :string
+        end
+
         def self.native_type
           self
         end

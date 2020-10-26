@@ -48,11 +48,11 @@ module Praxis
   
           if action.params
             route_params = \
-              if action.primary_route.nil?
+              unless action.route
                 warn "Warning: No routes defined for action #{action.name}"
                 []
               else
-                action.primary_route.path.named_captures.keys.collect(&:to_sym)
+                action.route.path.named_captures.keys.collect(&:to_sym)
               end
             (action.params.attributes||{}).each_with_object(output) do |(name, info), out|
               in_type = route_params.include?(name) ? :path : :query

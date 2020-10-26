@@ -125,6 +125,14 @@ def seed_data
   book2.category = cat2
   book2.save
   ActiveTagging.create(book: book2, tag: tag_red)
+
+
+  # More stuff
+
+  10.times do |i|
+    ActiveBook.create( id: 1000+i , simple_name: "Book#{i}")
+  end
+
 end
 
 seed_data

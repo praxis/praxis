@@ -41,8 +41,6 @@ namespace :praxis do
         end
       end
     end
-  end
-
     case args[:format] || "table"
     when "json"
       puts JSON.pretty_generate(rows)
@@ -58,6 +56,5 @@ namespace :praxis do
     else
       raise "unknown output format: #{args[:format]}"
     end
-
   end
 end

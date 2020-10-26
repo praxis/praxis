@@ -17,6 +17,8 @@ module Praxis
       # @param [String] document
       # @return [Hash,Array] the structured-data representation of the document
       def parse(document)
+        # Try to be nice and accept an empty string as an empty payload (seems nice to do for dumb http clients)
+        return nil if (document.nil? || document == '')
         ::JSON.parse(document)
       end
 

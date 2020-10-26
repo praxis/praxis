@@ -30,8 +30,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'terminal-table', '~> 1.4'
 
   spec.add_development_dependency 'bundler'
-  spec.add_development_dependency 'rake', '~> 0.9'
-  spec.add_development_dependency 'rake-notes', '~> 0'
+  spec.add_development_dependency 'rake', '>= 12.3.3'
+  
   if RUBY_PLATFORM !~ /java/
     spec.add_development_dependency 'pry'
     spec.add_development_dependency 'pry-byebug'
@@ -49,7 +49,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rack-test', '~> 0'
   spec.add_development_dependency 'simplecov', '~> 0'
   spec.add_development_dependency 'fuubar', '~> 2'
-  spec.add_development_dependency 'yard', ">= 0.9.20"
   spec.add_development_dependency 'coveralls'
   # Just for the query selector extensions etc...
   spec.add_development_dependency 'sequel', '~> 5'

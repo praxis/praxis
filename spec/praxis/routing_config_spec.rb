@@ -43,26 +43,17 @@ describe Praxis::RoutingConfig do
     let(:options) { {} }
     let(:base_path){ '/api' }
     let(:route) { routing_config.add_route 'GET', path, **options}
-
+    
     it 'returns a corresponding Praxis::Route' do
       expect(route).to be_kind_of(Praxis::Route)
     end
 
-    it 'appends the Route to the set of routes' do
-      expect(routing_config.routes).to include(route)
+    it 'sets the Route to its route' do
+      expect(route).to eq(routing_config.route)
     end
 
     context 'passing  options' do
-      let(:options){ {name: 'alternative', except: '/special' } }
-
-      it 'uses :name to name the route' do
-        expect(route.name).to eq('alternative')
-      end
-
-      it 'does NOT pass the name option down to mustermann' do
-        expect(Mustermann).to receive(:new).with(base_path + path, hash_excluding({name: 'alternative'}))
-        expect(route.name).to eq('alternative')
-      end
+      let(:options){ { except: '/special' } }
 
       it 'passes them through the underlying mustermann object (telling it to ignore unknown ones)' do
         expect(Mustermann).to receive(:new).with(base_path + path, hash_including(ignore_unknown_options: true, except: '/special'))

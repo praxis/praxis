@@ -17,8 +17,8 @@ describe Praxis::ApiGeneralInfo do
       endpoint 'api.example.com'
       base_path "/base"
 
-      consumes 'xml', 'x-www-form-urlencoded'
-      produces 'json', 'x-www-form-urlencoded'
+      consumes 'json'
+      produces 'json'
 
       base_params do
         attribute :name, String
@@ -40,8 +40,8 @@ describe Praxis::ApiGeneralInfo do
     end
 
     its(:name) { should eq 'Name' }
-    its(:consumes) { should eq ['xml', 'x-www-form-urlencoded']}
-    its(:produces) { should eq ['json', 'x-www-form-urlencoded']}
+    its(:consumes) { should eq ['json']}
+    its(:produces) { should eq ['json']}
   end
 
   context '.describe' do
@@ -59,8 +59,8 @@ describe Praxis::ApiGeneralInfo do
     its([:base_params, :name, :type, :name]) { should eq 'String' }
     its([:version_with]) { should eq([:header, :params]) }
     its([:endpoint]) { should eq 'api.example.com' }
-    its([:consumes]) { should eq ['xml', 'x-www-form-urlencoded'] }
-    its([:produces]) { should eq ['json', 'x-www-form-urlencoded'] }
+    its([:consumes]) { should eq ['json'] }
+    its([:produces]) { should eq ['json'] }
   end
 
   context 'base_path with versioning' do

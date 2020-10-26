@@ -14,16 +14,11 @@ class Instance < Praxis::MediaType
 
     attribute :volumes, Volume::Collection
     
-    links do
-      link :root_volume
-      link :other_volume, Volume, using: :data_volume
-    end
   end
 
   view :default do
     attribute :id
     attribute :root_volume
-    attribute :links
   end
 
   view :link do
@@ -40,9 +35,6 @@ class Instance < Praxis::MediaType
     attribute :id
     attribute :name
     attribute :root_volume
-    attribute :links do
-      attribute :root_volume
-    end
   end
 
 

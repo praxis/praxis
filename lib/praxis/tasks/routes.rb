@@ -7,7 +7,7 @@ namespace :praxis do
     table = Terminal::Table.new title: "Routes",
     headings:  [
       "Version", "Path", "Verb",
-      "Resource", "Action", "Implementation", "Name", "Primary", "Options"
+      "Resource", "Action", "Implementation", "Options"
     ]
 
     rows = []
@@ -31,15 +31,13 @@ namespace :praxis do
           warn "Warning: No routes defined for #{resource_definition.name}##{name}."
           rows << row
         else
-          action.routes.each do |route|
-            rows << row.merge({
-              version: route.version,
-              verb: route.verb,
-              path: route.path,
-              name: route.name,
-              primary: (action.primary_route == route ? 'yes' : ''),
-              options: route.options
-            })
+          route = action.route
+          rows << row.merge({
+            version: route.version,
+            verb: route.verb,
+            path: route.path,
+            options: route.options
+          })
         end
       end
     end
@@ -52,7 +50,7 @@ namespace :praxis do
       rows.each do |row|
         formatted_options = row[:options].map{|(k,v)| "#{k}:#{v.to_s}"}.join("\n")
         row_data = row.values_at(:version, :path, :verb, :resource,
-                                    :action, :implementation, :name, :primary)
+                                    :action, :implementation)
         row_data << formatted_options
         table.add_row(row_data)
       end

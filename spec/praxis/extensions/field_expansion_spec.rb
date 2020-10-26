@@ -47,15 +47,10 @@ describe Praxis::Extensions::FieldExpansion do
 
       context 'and no fields provided' do
         it 'returns the fields for the default view' do
-          expect(expansion).to eq({id: true, name: true, links: [true]})
+          expect(expansion).to eq({id: true, name: true})
         end
 
-        context 'and a view' do
-          let(:view) { :link }
-          it 'expands the fields on the view' do
-            expect(expansion).to eq({id: true, name: true, href: true})
-          end
-        end
+        pending 'and a view'
       end
 
       context 'with a set of fields provided' do
@@ -65,15 +60,7 @@ describe Praxis::Extensions::FieldExpansion do
           expect(expansion).to eq expected
         end
 
-        context 'and a view' do
-          let(:view) { :link }
-          let(:fields) { 'id,href' }
-
-          it 'returns the subset of fields that exist for the view' do
-            expected = {id: true, href: true }
-            expect(expansion).to eq expected
-          end
-        end
+        pending 'and a view'
       end
     end
 
@@ -81,15 +68,10 @@ describe Praxis::Extensions::FieldExpansion do
       let(:test_attributes) { {view: true}  }
 
       it 'returns the fields for the default view' do
-        expect(expansion).to eq({id: true, name: true, links: [true]})
+        expect(expansion).to eq({id: true, name: true})
       end
 
-      context 'and a view' do
-        let(:view) { :link }
-        it 'expands the fields on the view' do
-          expect(expansion).to eq({id: true, name: true, href: true})
-        end
-      end
+      pending 'and a view'
     end
 
 
@@ -98,7 +80,7 @@ describe Praxis::Extensions::FieldExpansion do
       let(:fields){ nil }
       let(:view){ nil }
       it 'ignores incoming parameters and expands for the default view' do
-        expect(expansion).to eq({id: true, name: true, links: [true]})
+        expect(expansion).to eq({id: true, name: true})
       end
     end
   end

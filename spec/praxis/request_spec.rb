@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe Praxis::Request do
   let(:path) { '/instances/1?junk=foo&api_version=1.0' } 
-  let(:rack_input) { StringIO.new('something=given') }
-  let(:env_content_type){ 'application/x-www-form-urlencoded' }
+  let(:rack_input) { StringIO.new('{"something": "given"}') }
+  let(:env_content_type){ 'application/json' }
   let(:env) do
     env = Rack::MockRequest.env_for(path)
     env['rack.input'] = rack_input
@@ -192,7 +192,7 @@ describe Praxis::Request do
     end
 
     context '#validate_payload' do
-      before { request.load_payload('') }
+      before { request.load_payload('{}') }
       it 'should validate payload' do
         expect(request.payload).to receive(:validate).and_return([])
         request.validate_payload(context[:payload])
@@ -208,20 +208,9 @@ describe Praxis::Request do
       let(:load_context){ context[:payload] }
       let(:parsed_result){ double("parsed") }
 
-      before do
-        Praxis::Application.instance.handler 'xml', Praxis::Handlers::XML
-      end
-
       after do
         expect(request.action.payload).to receive(:load).with(parsed_result, load_context, content_type: request.content_type.to_s )
         request.load_payload( load_context )
-      end
-
-      context 'that is url-encoded' do
-        let(:env_content_type){ 'application/x-www-form-urlencoded' }
-        let(:parsed_result) { {"something" => "given"} }
-
-        it 'decodes it the www-form handler' do end
       end
 
       context 'that is json encoded' do
@@ -231,14 +220,6 @@ describe Praxis::Request do
 
         it 'decodes using the JSON handler' do end
       end
-      context 'that is xml encoded' do
-        let(:rack_input) { StringIO.new('<hash><one type="integer">1</one><sub_hash><first>hello</first></sub_hash></hash>') }
-        let(:env_content_type) { 'application/xml' }
-        let(:parsed_result) { Praxis::Handlers::XML.new.parse(request.raw_payload) }
-
-        it 'decodes using the XML handler' do end
-      end
-
     end
   end
 end

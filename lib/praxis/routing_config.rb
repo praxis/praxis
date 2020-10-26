@@ -1,7 +1,7 @@
 module Praxis
   class RoutingConfig
 
-    attr_reader :routes
+    attr_reader :route
     attr_reader :version
     attr_reader :base
 
@@ -10,7 +10,7 @@ module Praxis
       @base = base
       @prefix_segments = Array(prefix)
 
-      @routes = []
+      @route = nil
 
       if block_given?
         instance_eval(&block)
@@ -53,12 +53,8 @@ module Praxis
       end
       prefixed_path = path.gsub('//','/')
       path = (base + path).gsub('//','/')
-      # Reject our own options
-      route_name = options.delete(:name);
-      pattern = Mustermann.new(path, **{ignore_unknown_options: true}.merge( options ))
-      route = Route.new(verb, pattern, version, name: route_name, prefixed_path: prefixed_path, **options)
-      @routes << route
-      route
+      pattern = Mustermann.new(path, {ignore_unknown_options: true}.merge( options ))
+      @route = Route.new(verb, pattern, version, prefixed_path: prefixed_path, **options)
     end
 
   end

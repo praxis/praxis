@@ -6,32 +6,18 @@ class Person < Praxis::MediaType
     attribute :id, Integer
     attribute :name, String, example: /[:name:]/
     attribute :href, String, example: proc { |person| "/people/#{person.id}" }
-    attribute :links, Attributor::Collection.of(String),
-      description: 'Here to ensure an explicit links attribute works'
-
   end
 
   view :default do
     attribute :id
     attribute :name
-    attribute :links
   end
 
-  view :link do
-    attribute :id
-    attribute :name
-    attribute :href
-  end
 
   class CollectionSummary < Praxis::MediaType
     attributes do
       attribute :href, String
       attribute :size, Integer
-    end
-
-    view :link do
-      attribute :href
-      attribute :size
     end
 
     view :default do
@@ -59,14 +45,6 @@ class Address < Praxis::MediaType
     attribute :residents_summary, Person::CollectionSummary
 
     attribute :fields, Praxis::Types::FieldSelector.for(Person)
-
-    links do
-      link :owner
-      link :super, Person, using: :manager
-      link :caretaker, using: :custodian
-      link :residents, using: :residents_summary
-    end
-
   end
 
   view :default do
@@ -74,15 +52,7 @@ class Address < Praxis::MediaType
     attribute :name
     attribute :owner
     attribute :fields
-
-    attribute :links
   end
-
-  view :link do
-    attribute :id
-    attribute :name
-  end
-
 end
 
 
@@ -123,10 +93,6 @@ class Blog < Praxis::MediaType
       example: proc { |blog,ctx| Post::CollectionSummary.example(ctx, href: "#{blog.href}/posts") },
       description: "Summary of information from related Post resources"
 
-    links do
-      link :posts, using: :posts_summary
-      link :owner
-    end
   end
 
   view :default do
@@ -138,7 +104,6 @@ class Blog < Praxis::MediaType
     attribute :timestamps
 
     attribute :owner
-    attribute :links
   end
 
   view :overview do
@@ -146,11 +111,6 @@ class Blog < Praxis::MediaType
     attribute :name
     attribute :description
   end
-
-  view :link do
-    attribute :href
-  end
-
 end
 
 
@@ -185,11 +145,6 @@ class Post < Praxis::MediaType
       attribute :created_at, DateTime
       attribute :updated_at, DateTime
     end
-
-    links do
-      link :author
-      link :blog
-    end
   end
 
   view :default do
@@ -202,22 +157,12 @@ class Post < Praxis::MediaType
     attribute :author
 
     attribute :timestamps
-    attribute :links
   end
-
-  view :link do
-    attribute :href
-  end
-
 
   class CollectionSummary < Praxis::MediaType
     attributes do
       attribute :href, String
       attribute :count, Integer
-    end
-
-    view :link do
-      attribute :href
     end
   end
 end
@@ -251,12 +196,6 @@ class User < Praxis::MediaType
 
     attribute :posts_summary, Post::CollectionSummary,
       example: proc { |user,ctx| Post::CollectionSummary.example(ctx, href: "#{user.href}/posts") }
-
-    links do
-      link :posts, using: :posts_summary
-      link :primary_blog
-    end
-
   end
 
   view :default do
@@ -265,8 +204,6 @@ class User < Praxis::MediaType
 
     attribute :first
     attribute :last
-
-    attribute :links
   end
 
   view :extended do
@@ -276,20 +213,10 @@ class User < Praxis::MediaType
     attribute :first
     attribute :last
     attribute :primary_blog, view: :overview
-
-    attribute :links
   end
 
   view :with_post_links do
     attribute :id
     attribute :posts, view: :link
-  end
-
-  view :link do
-    attribute :href
-  end
-
-  view :summary do
-    attribute :links
   end
 end

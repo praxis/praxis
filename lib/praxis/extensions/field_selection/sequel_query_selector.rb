@@ -8,19 +8,20 @@ module Praxis
       class SequelQuerySelector
         attr_reader :selector, :query
         # Gets a dataset, a selector...and should return a dataset with the selector definition applied.
-        def initialize(query:, selectors:)
+        def initialize(query:, selectors:, debug: false)
           @selector = selectors
           @query = query
+          @logger = debug ? Logger.new(STDOUT) : nil
         end
 
-        def generate(debug: false)
+        def generate
           @query = add_select(query: query, selector_node: @selector)
           
           @query = @selector.tracks.inject(@query) do |ds, (track_name, track_node)|
             ds.eager(track_name => _eager(track_node) )
           end
 
-          explain_query(query) if debug
+          explain_query(query) if @logger
           @query
         end
 
@@ -47,13 +48,9 @@ module Praxis
         end
 
         def explain_query(ds)
-          prev_loggers = Sequel::Model.db.loggers
-          stdout_logger = Logger.new($stdout)
-          Sequel::Model.db.loggers = [stdout_logger]
-          stdout_logger.debug("Query plan for ...#{selector.resource.model} with selectors: #{JSON.generate(selector.dump)}")
+          @logger.debug("Query plan for ...#{selector.resource.model} with selectors: #{JSON.generate(selector.dump)}")
           ds.all
-          stdout_logger.debug("Query plan end")
-          Sequel::Model.db.loggers = prev_loggers
+          @logger.debug("Query plan end")
         end
       end
     end

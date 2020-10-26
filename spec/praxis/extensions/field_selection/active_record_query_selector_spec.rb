@@ -30,8 +30,9 @@ describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
     ]
   end
   let(:selector_node) { Praxis::Mapper::SelectorGenerator.new.add(ActiveBookResource,selector_fields)  }
+  let(:debug){ false }
 
-  subject(:selector) {described_class.new(query: query, selectors: selector_node) }
+  subject(:selector) {described_class.new(query: query, selectors: selector_node, debug: debug) }
   context '#generate with a mocked' do
     let(:query) { double("Query") }
     it 'calls the select columns for the top level, and includes the right association hashes' do      
@@ -49,12 +50,15 @@ describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
       expect(subject).to_not receive(:explain_query)
       subject.generate
     end 
-    it 'calls the explain debug method if enabled' do
-      expect(query).to receive(:select).and_return(query)
-      expect(query).to receive(:includes).and_return(query)
-      expect(subject).to receive(:explain_query)
-      subject.generate(debug: true)      
-    end 
+    context 'when debug is enabled' do
+      let(:debug){ true }
+      it 'calls the explain method' do
+        expect(query).to receive(:select).and_return(query)
+        expect(query).to receive(:includes).and_return(query)
+        expect(subject).to receive(:explain_query)
+        subject.generate
+      end
+    end
   end
 
   context '#generate with a real AR model' do
@@ -86,7 +90,7 @@ describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
       expect(book1.author.books.size).to eq 1
       expect(book1.author.books.map(&:simple_name)).to eq(['Book1'])
       expect(book1.category.name).to eq 'cat1'
-      expect(book1.tags.map(&:name)).to match_array(['blue','red'])
+      expect(book1.tags.map(&:name)).to match_array(['blue','red','green'])
 
       expect(book2.author.id).to eq 22
       expect(book2.author.books.size).to eq 1
@@ -98,7 +102,7 @@ describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
     it 'calls the explain debug method if enabled' do
       suppress_output do
         # Actually make it run all the way...but suppressing the output
-        subject.generate(debug: true)
+        subject.generate
       end
     end 
   end

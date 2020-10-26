@@ -11,6 +11,7 @@ module Praxis::Mapper
 
     module ClassMethods
       def _filter_query_builder_class
+        # TODO: refactor the query builder, and add the explicit require in this file
         Praxis::Extensions::SequelFilterQueryBuilder
       end
 

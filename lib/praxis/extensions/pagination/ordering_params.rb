@@ -1,11 +1,15 @@
+require 'forwardable'
+
 module Praxis
   module Extensions
     module Pagination
       class OrderingParams
         include Attributor::Type
         include Attributor::Dumpable
+        extend Forwardable
 
-        delegate :empty?, to: :items
+        def_delegators :items, :empty?
+
         # DSL for restricting how to order.
         # It allows the concrete list of the fields one can use (through 'by_fields')
         # It also allows to enforce that list for all positions of the ordering definition (through 'enforce_for :all|:first')

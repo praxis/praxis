@@ -5,19 +5,20 @@ module Praxis
       class ActiveRecordQuerySelector
         attr_reader :selector, :query
         # Gets a dataset, a selector...and should return a dataset with the selector definition applied.
-        def initialize(query:, selectors:)
+        def initialize(query:, selectors:, debug: false)
           @selector = selectors
           @query = query
+          @logger = debug ? Logger.new(STDOUT) : nil
         end
 
-        def generate(debug: false)
+        def generate
           # TODO: unfortunately, I think we can only control the select clauses for the top model 
           # (as I'm not sure ActiveRecord supports expressing it in the join...)
           @query = add_select(query: query, selector_node: selector)
           eager_hash = _eager(selector)
 
           @query = @query.includes(eager_hash)          
-          explain_query(query, eager_hash) if debug
+          explain_query(query, eager_hash) if @logger
 
           @query
         end
@@ -37,13 +38,10 @@ module Praxis
         end
 
         def explain_query(query, eager_hash)
-          prev = ActiveRecord::Base.logger
-          ActiveRecord::Base.logger = Logger.new(STDOUT)
-          ActiveRecord::Base.logger.debug("Query plan for ...#{selector.resource.model} with selectors: #{JSON.generate(selector.dump)}")
-          ActiveRecord::Base.logger.debug(" ActiveRecord query: #{selector.resource.model}.includes(#{eager_hash})")
+          @logger.debug("Query plan for ...#{selector.resource.model} with selectors: #{JSON.generate(selector.dump)}")
+          @logger.debug(" ActiveRecord query: #{selector.resource.model}.includes(#{eager_hash})")
           query.explain
-          ActiveRecord::Base.logger.debug("Query plan end")
-          ActiveRecord::Base.logger = prev
+          @logger.debug("Query plan end")
         end
       end
     end

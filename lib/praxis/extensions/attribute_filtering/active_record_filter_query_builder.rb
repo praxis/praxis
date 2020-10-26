@@ -1,178 +1,169 @@
+
+
 module Praxis
   module Extensions
-    class ActiveRecordFilterQueryBuilder
-    attr_reader :query, :table, :model
+    module AttributeFiltering
+      ALIAS_TABLE_PREFIX = ''
+      require_relative 'active_record_patches'
 
-    # Abstract class, which needs to be used by subclassing it through the .for method, to set the mapping of attributes
-    class << self
-      def for(definition)
-        Class.new(self) do
-          @attr_to_column = case definition
-                            when Hash
-                                definition
-                              when Array
-                                definition.each_with_object({}) { |item, hash| hash[item.to_sym] = item }
-                              else
-                                raise "Cannot use FilterQueryBuilder.of without passing an array or a hash (Got: #{definition.class.name})"
-                              end
-            class << self
-              attr_reader :attr_to_column
-            end
+      class ActiveRecordFilterQueryBuilder
+      attr_reader :query, :model, :attr_to_column
+
+        # Base query to build upon
+        def initialize(query: , model:, filters_map:, debug: false)
+          @query = query
+          @model = model
+          @attr_to_column = filters_map
+          @logger = debug ? Logger.new(STDOUT) : nil
+        end
+        
+        def debug(msg)
+          @logger && @logger.puts(msg)
+        end
+
+        def generate(filters)
+          # Resolve the names and values first, based on filters_map
+          root_node = _convert_to_treenode(filters)
+          craft_filter_query(root_node, for_model: @model)
+          debug("SQL due to filters: #{@query.all.to_sql}")
+          @query
+        end
+
+        def craft_filter_query(nodetree, for_model:)
+          result = _compute_joins_and_conditions_data(nodetree, model: for_model)
+          @query = query.joins(result[:associations_hash]) unless result[:associations_hash].empty?
+
+          result[:conditions].each do |condition|
+            filter_name = condition[:name]
+            filter_value = condition[:value]
+            column_prefix = condition[:column_prefix]
+
+            colo = condition[:model].columns_hash[filter_name.to_s]
+            add_clause(column_prefix: column_prefix,  column_object: colo, op: condition[:op], value: filter_value)
           end
         end
-      end
 
-      # Base query to build upon
-      def initialize(query: , model:)
-        @query = query
-        @table = model.table_name
-        @last_join_alias = model.table_name
-        @alias_counter = 0;
-      end
+        private
 
-      def pick_alias( name )
-        @alias_counter += 1
-        "#{name}#{@alias_counter}"
-      end
+        # Resolve and convert from filters, to a more manageable and param-type-independent structure
+        def _convert_to_treenode(filters)
+          # Resolve the names and values first, based on filters_map
+          resolved_array = []
+          filters.parsed_array.each do |filter|
+            mapped_value = attr_to_column[filter[:name]]
+            raise "Filtering by #{filter[:name]} not allowed (no mapping found)" unless mapped_value
+            bindings_array = \
+              if mapped_value.is_a?(Proc)
+                result = mapped_value.call(filter)
+                # Result could be an array of hashes (each hash has name/op/value to identify a condition)
+                result.is_a?(Array) ? result : [result]
+              else
+                # For non-procs there's only 1 filter and 1 value (we're just overriding the mapped value)
+                [filter.merge( name: mapped_value)]
+              end
+            resolved_array = resolved_array + bindings_array
+          end
+          FilterTreeNode.new(resolved_array, path: [ALIAS_TABLE_PREFIX])
+        end
 
-      def build_clause(filters)
-        filters.each do |item|
-          attr = item[:name]
-          spec = item[:specs]
-          column_name = attr_to_column[attr]
-          raise "Filtering by #{attr} not allowed (no mapping found)" unless column_name
-          if column_name.is_a?(Proc)
-            bindings = column_name.call(spec)
-            # A hash of bindings, consisting of a key with column name and a value to the query value
-            bindings.each do|col,val|
-              assoc_or_field, *rest = col.to_s.split('.')
-              expand_binding(column_name: assoc_or_field, rest: rest, op: spec[:op], value: val, use_this_name_for_clause: @last_join_alias)
+        # Calculate join tree and conditions array for the nodetree object and its children
+        def _compute_joins_and_conditions_data(nodetree, model:)
+          h = {}
+          conditions = []
+          nodetree.children.each do |name, child|
+            child_model = model.reflections[name.to_s].klass
+            result = _compute_joins_and_conditions_data(child, model: child_model)
+            h[name] = result[:associations_hash] 
+            conditions += result[:conditions]
+          end
+          column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? model.table_name : nodetree.path.join('/')
+          #column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? nil : nodetree.path.join('/')
+          nodetree.conditions.each do |condition|
+            conditions += [condition.merge(column_prefix: column_prefix, model: model)]
+          end
+          {associations_hash: h, conditions: conditions}
+        end
+
+        def add_clause(column_prefix:, column_object:, op:, value:)
+          @query = @query.references(column_prefix) #Mark where clause referencing the appropriate alias
+          likeval = get_like_value(value)
+          case op
+            when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
+              op = '!='
+              value = nil # Enforce it is indeed nil (should be)
+            when '!!'
+              op = '='
+              value = nil # Enforce it is indeed nil (should be)
             end
+          @query =  case op
+                    when '='
+                      if likeval
+                        add_safe_where(tab: column_prefix, col: column_object, op: 'LIKE', value: likeval)
+                      else
+                        quoted_right = quote_right_part(value: value, column_object: column_object, negative: false)
+                        query.where("#{quote_column_path(column_prefix, column_object)} #{quoted_right}")
+                      end
+                    when '!='
+                      if likeval
+                        add_safe_where(tab: column_prefix, col: column_object, op: 'NOT LIKE', value: likeval)
+                      else
+                        quoted_right = quote_right_part(value: value, column_object: column_object, negative: true)
+                        query.where("#{quote_column_path(column_prefix, column_object)} #{quoted_right}")
+                      end
+                    when '>'
+                      add_safe_where(tab: column_prefix, col: column_object, op: '>', value: value)
+                    when '<'
+                      add_safe_where(tab: column_prefix, col: column_object, op: '<', value: value)
+                    when '>='
+                      add_safe_where(tab: column_prefix, col: column_object, op: '>=', value: value)
+                    when '<='
+                      add_safe_where(tab: column_prefix, col: column_object, op: '<=', value: value)
+                    else
+                      raise "Unsupported Operator!!! #{op}"
+                    end
+        end
+
+        def add_safe_where(tab:, col:, op:, value:)
+          quoted_value = query.connection.quote_default_expression(value,col)
+          query.where("#{quote_column_path(tab, col)} #{op} #{quoted_value}")
+        end
+
+        def quote_column_path(prefix, column_object)
+          c = query.connection
+          quoted_column = c.quote_column_name(column_object.name)
+          if prefix
+            quoted_table = c.quote_table_name(prefix)
+            "#{quoted_table}.#{quoted_column}"
           else
-            assoc_or_field, *rest = column_name.to_s.split('.')
-            expand_binding(column_name: assoc_or_field, rest: rest, **spec, use_this_name_for_clause: @last_join_alias)
+            quoted_column
           end
         end
-        query
-      end
 
-      # TODO: Support more relationship types (including things like polymorphic..etc)
-      def do_join(query, assoc , source_alias, table_alias)
-        reflection = query.reflections[assoc.to_s]
-         do_join_reflection( query, reflection, source_alias, table_alias )
-      end
-
-      def do_join_reflection( query, reflection, source_alias, table_alias )
-        c = query.connection
-        case reflection
-        when ActiveRecord::Reflection::BelongsToReflection
-          join_clause = "INNER JOIN %s as %s ON %s.%s = %s.%s " % \
-                [c.quote_table_name(reflection.klass.table_name),
-                  c.quote_table_name(table_alias),
-                  c.quote_table_name(table_alias),
-                  c.quote_column_name(reflection.association_primary_key),
-                  c.quote_table_name(source_alias),
-                  c.quote_column_name(reflection.association_foreign_key)
-                 ]
-          query.joins(join_clause)
-        when ActiveRecord::Reflection::HasManyReflection
-    #        join_clause = "INNER JOIN #{reflection.klass.table_name} as #{table_alias} ON"  + \
-    #              " \"#{source_alias}\".\"id\" = \"#{table_alias}\".\"#{reflection.foreign_key}\" "
-          join_clause = "INNER JOIN %s as %s ON %s.%s = %s.%s " % \
-                [c.quote_table_name(reflection.klass.table_name),
-                  c.quote_table_name(table_alias),
-                  c.quote_table_name(source_alias),
-                  c.quote_column_name(reflection.active_record.primary_key),
-                  c.quote_table_name(table_alias),
-                  c.quote_column_name(reflection.foreign_key)
-                 ]
-
-          if reflection.type # && reflection.options[:as]....
-    #          addition = " AND \"#{table_alias}\".\"#{reflection.type}\" = \'#{reflection.active_record.class_name}\'"
-            addition = " AND %s.%s = %s" % \
-            [ c.quote_table_name(table_alias),
-              c.quote_table_name(reflection.type),
-              c.quote(reflection.active_record.class_name)]
-
-            join_clause += addition
+        def quote_right_part(value:, column_object:, negative:)
+          conn = query.connection
+          if value.nil?
+            no = negative ? ' NOT' : ''
+            "IS#{no} #{conn.quote_default_expression(value,column_object)}"
+          elsif value.is_a?(Array)
+            no = negative ? 'NOT ' : ''
+            list = value.map{|v| conn.quote_default_expression(v,column_object)}
+            "#{no}IN (#{list.join(',')})"
+          elsif value && value.is_a?(Range)
+            raise "TODO!"
+          else
+            op = negative ? '<>' : '='
+            "#{op} #{conn.quote_default_expression(value,column_object)}"
           end
-          query.joins(join_clause)
-        when ActiveRecord::Reflection::ThroughReflection
-          #puts "TODO: choose different alias (based on matching table type...)"
-          talias = pick_alias(reflection.through_reflection.table_name)
-          salias = source_alias
-
-          query = do_join_reflection(query, reflection.through_reflection, salias, talias)
-          #puts "TODO: choose different alias ?????????"
-          salias = talias
-
-          through_model = reflection.through_reflection.klass
-          through_assoc = reflection.name
-          final_reflection = reflection.source_reflection
-
-          do_join_reflection(query, final_reflection, salias, table_alias)
-        else
-          raise "Joins for this association type are currently UNSUPPORTED: #{reflection.inspect}"
         end
-      end
 
-      def expand_binding(column_name:,rest: , op:,value:, use_this_name_for_clause: column_name)
-        unless rest.empty?
-          joined_alias = pick_alias(column_name)
-          @query = do_join(query, column_name, @last_join_alias, joined_alias)
-          saved_join_alias = @last_join_alias
-          @last_join_alias = joined_alias
-          new_column_name, *new_rest = rest
-          expand_binding(column_name: new_column_name, rest: new_rest, op: op, value: value, use_this_name_for_clause: joined_alias)
-          @last_join_alias = saved_join_alias          
-        else
-          column_name = "#{use_this_name_for_clause}.#{column_name}"
-          add_clause(column_name: column_name, op: op, value: value)
-        end
-      end
-
-      def attr_to_column
-        # Class method defined by the subclassing Class (using .for)
-        self.class.attr_to_column
-      end
-
-      # Private to try to funnel all column names through `build_clause` that restricts
-      # the attribute names better (to allow more difficult SQL injections )
-      private def add_clause(column_name:, op:, value:)
-        likeval = get_like_value(value)
-        @query =  case op
-                  when '='
-                    if likeval
-                      query.where("#{column_name} LIKE ?", likeval)
-                    else
-                      query.where(column_name => value)
-                    end
-                  when '!='
-                    if likeval
-                      query.where("#{column_name} NOT LIKE ?", likeval)
-                    else
-                      query.where.not(column_name => value)
-                    end
-                  when '>'
-                    query.where("#{column_name} > ?", value)
-                  when '<'
-                    query.where("#{column_name} < ?", value)
-                  when '>='
-                    query.where("#{column_name} >= ?", value)
-                  when '<='
-                    query.where("#{column_name} <= ?", value)
-                  else
-                    raise "Unsupported Operator!!! #{op}"
-                  end
-      end
-
-      # Returns nil if the value was not a fuzzzy pattern
-      def get_like_value(value)
-        if value.is_a?(String) && (value[-1] == '*' || value[0] == '*')
-          likeval = value.dup
-          likeval[-1] = '%' if value[-1] == '*'
-          likeval[0] = '%' if value[0] == '*'
-          likeval
+        # Returns nil if the value was not a fuzzzy pattern
+        def get_like_value(value)
+          if value.is_a?(String) && (value[-1] == '*' || value[0] == '*')
+            likeval = value.dup
+            likeval[-1] = '%' if value[-1] == '*'
+            likeval[0] = '%' if value[0] == '*'
+            likeval
+          end
         end
       end
     end

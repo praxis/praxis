@@ -36,6 +36,7 @@ def create_tables
       create_table :active_taggings do |table|
         table.column :book_id, :integer
         table.column :tag_id, :integer
+        table.column :label, :string, null: true
       end
     end
   end
@@ -48,8 +49,12 @@ class ActiveBook < ActiveRecord::Base
 
   belongs_to :category, class_name: 'ActiveCategory', foreign_key: :category_uuid, primary_key: :uuid
   belongs_to :author, class_name: 'ActiveAuthor'
+
   has_many :taggings, class_name: 'ActiveTagging', foreign_key: :book_id
+  has_many :primary_taggings, lambda { where(label: 'primary')}, class_name: 'ActiveTagging', foreign_key: :book_id
+
   has_many :tags, class_name: 'ActiveTag', through: :taggings
+  has_many :primary_tags, class_name: 'ActiveTag', through: :primary_taggings, source: :tag
 end
 
 class ActiveAuthor < ActiveRecord::Base
@@ -64,6 +69,8 @@ end
 
 class ActiveTag < ActiveRecord::Base
   include Praxis::Mapper::ActiveModelCompat
+  has_many :taggings, class_name: 'ActiveTagging', foreign_key: :tag_id
+  has_many :books, class_name: 'ActiveBook', through: :taggings, source: :book
 end
 
 class ActiveTagging < ActiveRecord::Base
@@ -94,6 +101,26 @@ end
 class ActiveBookResource < ActiveBaseResource
   model ActiveBook
 
+  filters_mapping(
+    id: :id,
+    category_uuid: :category_uuid,
+    'fake_nested.name': 'simple_name',
+    'name': 'simple_name',
+    'name_is_not': lambda do |spec| # Silly way to use a proc, but good enough for testing
+      { name: :simple_name, value: spec[:value] , op: '!=' } # Can be an array for multiple conditions as well
+      end,
+    'author.id': 'author.id',
+    'author.name': 'author.name',
+    'taggings.label': 'taggings.label',
+    'taggings.tag_id': 'taggings.tag_id',
+    'taggings.tag.taggings.tag_id': 'taggings.tag.taggings.tag_id',
+    'tags.name': 'tags.name',
+    'primary_tags.name': 'primary_tags.name',
+    'category.name': 'category.name',
+    'category.books.name': 'category.books.simple_name',
+    'category.books.taggings.tag_id': 'category.books.taggings.tag_id',
+    'category.books.taggings.label': 'category.books.taggings.label',
+  )
   # Forces to add an extra column (added_column)...and yet another (author_id) that will serve
   # to check that if that's already automatically added due to an association, it won't interfere or duplicate
   property :author, dependencies: [:author, :added_column, :author_id]
@@ -108,29 +135,37 @@ def seed_data
   
   author1 = ActiveAuthor.create(  id: 11, name: 'author1' )
   author2 = ActiveAuthor.create(  id: 22, name: 'author2' )
+  author3 = ActiveAuthor.create(  id: 33, name: nil )
   
   tag_blue = ActiveTag.create(id: 1 , name: 'blue' )
   tag_red = ActiveTag.create(id: 2 , name: 'red' )
+  tag_green = ActiveTag.create(id: 3 , name: 'green' )
 
   book1 = ActiveBook.create( id: 1 , simple_name: 'Book1', category_uuid: 'deadbeef1')
   book1.author = author1
   book1.category = cat1
   book1.save
-  ActiveTagging.create(book: book1, tag: tag_blue)
+  ActiveTagging.create(book: book1, tag: tag_blue, label: 'primary')
   ActiveTagging.create(book: book1, tag: tag_red)
+  ActiveTagging.create(book: book1, tag: tag_green, label: 'primary')
   
 
   book2 = ActiveBook.create( id: 2 , simple_name: 'Book2', category_uuid: 'deadbeef1')
   book2.author = author2
   book2.category = cat2
   book2.save
-  ActiveTagging.create(book: book2, tag: tag_red)
+  ActiveTagging.create(book: book2, tag: tag_red, label: 'primary')
 
+  book3 = ActiveBook.create( id: 3 , simple_name: 'Book3', category_uuid: 'deadbeef1')
+  book3.author = author3
+  book3.save
+  ActiveTagging.create(book: book3, tag: tag_red, label: 'primary')
 
   # More stuff
 
   10.times do |i|
-    ActiveBook.create( id: 1000+i , simple_name: "Book#{i}")
+    bid = 1000+i
+    ActiveBook.create( id: bid , simple_name: "Book#{bid}")
   end
 
 end

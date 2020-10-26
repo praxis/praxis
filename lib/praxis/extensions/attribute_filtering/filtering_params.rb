@@ -26,7 +26,6 @@ module Praxis
         include Attributor::Type
         include Attributor::Dumpable
   
-        # This DSL allows to define which attributes are allowed in the filters, and with which operators
         class DSLCompiler < Attributor::DSLCompiler
           # "account.id": { operators: ["=", "!="] },
           # name:         { operators: ["=", "!="], fuzzy_match: true },
@@ -38,8 +37,8 @@ module Praxis
         end
   
         VALUE_REGEX = /[^,&]*/
-        AVAILABLE_OPERATORS = Set.new(['!=', '>=', '<=', '=', '<', '>']).freeze
-        FILTER_REGEX = /(?<attribute>([^=!><])+)(?<operator>!=|>=|<=|=|<|>)(?<value>#{VALUE_REGEX}(,#{VALUE_REGEX})*)/
+        AVAILABLE_OPERATORS = Set.new(['!=', '>=', '<=', '=', '<', '>','!','!!']).freeze
+        FILTER_REGEX = /(?<attribute>([^=!><])+)(?<operator>!=|>=|<=|!!|=|<|>|!)(?<value>#{VALUE_REGEX}(,#{VALUE_REGEX})*)/
   
         # Abstract class, which needs to be used by subclassing it through the .for method, to set the allowed filters
         # definition should be a hash, keyed by field name, which contains a hash that can have two pieces of metadata
@@ -180,7 +179,7 @@ module Praxis
             else
               value
             end
-            arr.push(name: attr_name, specs: { op: match[:operator], value: coerced } )
+            arr.push(name: attr_name, op: match[:operator], value: coerced )
           end
           new(parsed)
         end
@@ -208,28 +207,27 @@ module Praxis
         def validate(_context = Attributor::DEFAULT_ROOT_CONTEXT)
           parsed_array.each_with_object([]) do |item, errors|
             attr_name = item[:name]
-            specs = item[:specs]
             attr_filters = allowed_filters[attr_name]
             unless attr_filters
               errors << "Filtering by #{attr_name} is not allowed. You can filter by #{allowed_filters.keys.map(&:to_s).join(', ')}"
               next
             end
             allowed_operators = attr_filters[:operators]
-            unless allowed_operators.include?(specs[:op])
-              errors << "Operator #{specs[:op]} not allowed for filter #{attr_name}"
+            unless allowed_operators.include?(item[:op])
+              errors << "Operator #{item[:op]} not allowed for filter #{attr_name}"
             end
             value_type = attr_filters[:value_type]
-            value = specs[:value]
+            value = item[:value]
             if value_type && !value_type.valid_type?(value)
               # Allow a collection of values of the right type for multimatch (if operators are = or !=)
-              if ['=','!='].include?(specs[:op])
+              if ['=','!='].include?(item[:op])
                 coll_type = Attributor::Collection.of(value_type)
                 if !coll_type.valid_type?(value)
                   errors << "Invalid type in filter/s value for #{attr_name} " +\
                             "(one or more of the multiple matches in #{value} are not  a #{value_type.name.split('::').last})"
                 end
               else
-                errors << "Invalid type in filter value for #{attr_name} (#{value} using '#{specs[:op]}' is not a #{value_type.name.split('::').last})"
+                errors << "Invalid type in filter value for #{attr_name} (#{value} using '#{item[:op]}' is not a #{value_type.name.split('::').last})"
               end
             end
   
@@ -247,8 +245,7 @@ module Praxis
         def dump
           parsed_array.each_with_object([]) do |item, arr|
             field = item[:name]
-            spec = item[:specs]
-            arr << "#{field}#{spec[:op]}#{spec[:value]}"
+            arr << "#{field}#{item[:op]}#{item[:value]}"
           end.join('&')
         end
   

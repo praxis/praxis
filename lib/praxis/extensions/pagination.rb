@@ -82,7 +82,7 @@ module Praxis
           when :active_record
             ActiveRecordPaginationHandler
           when :sequel
-            raise "TODO!"
+            SequelPaginationHandler
           else
             raise "Attempting to use pagination but Active Record or Sequel gems found"
           end

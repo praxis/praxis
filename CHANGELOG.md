@@ -2,6 +2,8 @@
 
 ## next
 
+- Refined OpenAPI doc generation to output only non-null attributes in the InfoObject.
+
 ## 2.0.pre.6
 
 - Removed the explicit `links` helpers from a `MediaType`. There was too much magic and assumptions built into it. Things can still be built in a custom basis (or through a plugin) if necessary.

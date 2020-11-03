@@ -10,20 +10,28 @@ module Praxis
         end
 
         def dump
-          data ={
-            title: info.title,
-            description: info.description,
-            termsOfService: info.termsOfService,
-            contact: info.contact,
-            license: info.license,
-            version: version,
-            :'x-name' => info.name,
-            :'x-logo' => {
+          data = { version: version }
+          [
+            :title,
+            :description,
+            :termsOfService,
+            :contact,
+            :license
+          ].each do |attr|
+            val = info.send(attr)
+            data[attr] = val if val
+          end
+
+          # Special attributes
+          data[:'x-name'] = info.name
+          if info.logo_url
+            data[:'x-logo'] = {
               url: info.logo_url,
               backgroundColor: "#FFFFFF",
               altText: info.title
             }
-          }
+          end
+          data
         end
       end
     end

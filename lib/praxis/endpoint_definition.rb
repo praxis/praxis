@@ -176,21 +176,10 @@ module Praxis
       end
 
 
-      def version(version=nil, options=nil)
+      def version(version=nil)
         return @version unless version
 
         @version = version
-
-        unless options.nil?
-          warn 'DEPRECATED: EndpointDefinition.version with options is no longer supported. Define in api global info instead.'
-
-          @version_options = options
-          version_using = Array(@version_options[:using])
-          if version_using.include?(:path)
-            @version_prefix = "#{Praxis::Request::path_version_prefix}#{self.version}"
-          end
-        end
-
         @action_defaults.instance_eval &EndpointDefinition.generate_defaults_block( version: version )
       end
 

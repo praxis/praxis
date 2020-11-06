@@ -14,8 +14,7 @@ module Praxis
         klass.member_type type
         type.const_set :Collection, klass
       else
-        warn "DEPRECATION: Praxis::Collection.of() for non-MediaTypes will be unsupported in 1.0. Use Attributor::Collection.of() instead."
-        Attributor::Collection.of(type)
+        raise "Praxis::Collection.of() for non-MediaTypes is unsupported. Use Attributor::Collection.of() instead."
       end
 
     end

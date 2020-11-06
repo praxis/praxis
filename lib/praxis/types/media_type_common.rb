@@ -38,8 +38,6 @@ module Praxis
 
         # Get or set the identifier of this media type.
         #
-        # @deprecated this method is not deprecated, but its return type will change to MediaTypeIdentifier in Praxis 1.0
-        #
         # @return [MediaTypeIdentifier] the string-representation of this type's identifier
         def identifier(identifier=nil)
           return @identifier unless identifier

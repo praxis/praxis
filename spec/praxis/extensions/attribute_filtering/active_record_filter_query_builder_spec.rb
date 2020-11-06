@@ -220,16 +220,14 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
 
     context 'uses fully qualified names for conditions (disambiguate fields)' do
       context 'when we have a join table condition that has the same field' do
-        COMMON_SQL_PREFIX = <<~SQL
-        SELECT "active_books".* FROM "active_books"
-          INNER JOIN "active_categories" ON "active_categories"."uuid" = "active_books"."category_uuid"
-          INNER JOIN "active_books" "#{PREF}/category/books" ON "#{PREF}/category/books"."category_uuid" = "active_categories"."uuid"    
-        SQL
         let(:filters_string) { 'name=Book1&category.books.name=Book3' }
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(category: :books)
                                                   .where('simple_name': 'Book1')
                                                   .where('books_active_categories.simple_name': 'Book3')
-        it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
+        it_behaves_like 'subject_matches_sql', <<~SQL
+            SELECT "active_books".* FROM "active_books"
+              INNER JOIN "active_categories" ON "active_categories"."uuid" = "active_books"."category_uuid"
+              INNER JOIN "active_books" "#{PREF}/category/books" ON "#{PREF}/category/books"."category_uuid" = "active_categories"."uuid"    
             WHERE ("#{PREF}/category/books"."simple_name" = 'Book3')
             AND ("active_books"."simple_name" = 'Book1')
           SQL

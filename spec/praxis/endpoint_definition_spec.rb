@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Praxis::ResourceDefinition do
-  subject(:resource_definition) { PeopleResource }
+describe Praxis::EndpointDefinition do
+  subject(:endpoint_definition) { PeopleResource }
 
   its(:description) { should eq('People resource') }
   its(:media_type) { should eq(Person) }
@@ -14,10 +14,10 @@ describe Praxis::ResourceDefinition do
   its(:metadata) { should_not have_key(:doc_visibility) }
 
   context '.describe' do
-    subject(:describe) { resource_definition.describe }
+    subject(:describe) { endpoint_definition.describe }
 
-    its([:description]) { should eq(resource_definition.description) }
-    its([:media_type]) { should eq(resource_definition.media_type.describe(true)) }
+    its([:description]) { should eq(endpoint_definition.description) }
+    its([:media_type]) { should eq(endpoint_definition.media_type.describe(true)) }
 
     its([:actions]) { should have(2).items }
     its([:metadata]) { should be_kind_of(Hash) }
@@ -25,7 +25,7 @@ describe Praxis::ResourceDefinition do
     it { should_not have_key(:parent)}
 
     context 'for a resource with a parent' do
-      let(:resource_definition) { ApiResources::VolumeSnapshots}
+      let(:endpoint_definition) { ApiResources::VolumeSnapshots}
 
       its([:parent]) { should eq ApiResources::Volumes.id }
     end
@@ -34,29 +34,29 @@ describe Praxis::ResourceDefinition do
 
 
   context '.routing_prefix' do
-    subject(:resource_definition) { ApiResources::VolumeSnapshots }
+    subject(:endpoint_definition) { ApiResources::VolumeSnapshots }
     it do
-      expect(resource_definition.routing_prefix).to eq('/clouds/:cloud_id/volumes/:volume_id/snapshots')
+      expect(endpoint_definition.routing_prefix).to eq('/clouds/:cloud_id/volumes/:volume_id/snapshots')
     end
   end
 
   context '.parent_prefix' do
-    subject(:resource_definition) { ApiResources::VolumeSnapshots }
+    subject(:endpoint_definition) { ApiResources::VolumeSnapshots }
     let(:base_path){ Praxis::ApiDefinition.instance.info.base_path }
     its(:parent_prefix){ should eq('/clouds/:cloud_id/volumes/:volume_id') }
     it do
-      expect(resource_definition.parent_prefix).to_not match(/^#{base_path}/)
+      expect(endpoint_definition.parent_prefix).to_not match(/^#{base_path}/)
     end
   end
 
 
   context '.action' do
     it 'requires a block' do
-      expect { resource_definition.action(:something)
+      expect { endpoint_definition.action(:something)
                }.to raise_error(ArgumentError)
     end
     it 'creates an ActionDefinition for actions' do
-      index = resource_definition.actions[:index]
+      index = endpoint_definition.actions[:index]
       expect(index).to be_kind_of(Praxis::ActionDefinition)
       expect(index.description).to eq("index description")
     end
@@ -64,7 +64,7 @@ describe Praxis::ResourceDefinition do
     it 'complains if action names are not symbols' do
       expect do
         Class.new do
-          include Praxis::ResourceDefinition
+          include Praxis::EndpointDefinition
           action "foo" do
           end
         end
@@ -73,9 +73,9 @@ describe Praxis::ResourceDefinition do
   end
 
   context 'action_defaults' do
-    let(:resource_definition) do
+    let(:endpoint_definition) do
       Class.new do
-        include Praxis::ResourceDefinition
+        include Praxis::EndpointDefinition
         media_type Person
 
         version '1.0'
@@ -135,13 +135,13 @@ describe Praxis::ResourceDefinition do
     end
 
     it 'are applied to actions' do
-      action = resource_definition.actions[:show]
+      action = endpoint_definition.actions[:show]
       expect(action.params.attributes).to have_key(:id)
       expect(action.route.path.to_s).to eq '/api/:base_param/people/:id'
     end
 
     context 'includes base_params from the APIDefinition' do
-      let(:show_action_params){ resource_definition.actions[:show].params }
+      let(:show_action_params){ endpoint_definition.actions[:show].params }
 
       it 'including globally defined' do
         expect(show_action_params.attributes).to have_key(:base_param)
@@ -159,15 +159,15 @@ describe Praxis::ResourceDefinition do
   end
 
   context 'setting other values' do
-    subject(:resource_definition) { Class.new {include Praxis::ResourceDefinition } }
+    subject(:endpoint_definition) { Class.new {include Praxis::EndpointDefinition } }
 
     let(:some_proc) { Proc.new {} }
     let(:some_hash) { Hash.new }
 
     it 'accepts a string as media_type' do
-      resource_definition.media_type('Something')
-      expect(resource_definition.media_type).to be_kind_of(Praxis::SimpleMediaType)
-      expect(resource_definition.media_type.identifier).to eq('Something')
+      endpoint_definition.media_type('Something')
+      expect(endpoint_definition.media_type).to be_kind_of(Praxis::SimpleMediaType)
+      expect(endpoint_definition.media_type.identifier).to eq('Something')
     end
 
     its(:version_options){ should be_kind_of(Hash) }
@@ -176,18 +176,18 @@ describe Praxis::ResourceDefinition do
 
 
   context '.trait' do
-    subject(:resource_definition) { Class.new {include Praxis::ResourceDefinition } }
+    subject(:endpoint_definition) { Class.new {include Praxis::EndpointDefinition } }
     it 'raises an error for missing traits' do
-      expect { resource_definition.use(:stuff) }.to raise_error(Praxis::Exceptions::InvalidTrait)
+      expect { endpoint_definition.use(:stuff) }.to raise_error(Praxis::Exceptions::InvalidTrait)
     end
     it 'has a spec for actually using a trait'
   end
 
 
   context 'deprecated action methods' do
-    subject(:resource_definition) do
+    subject(:endpoint_definition) do
       Class.new do
-        include Praxis::ResourceDefinition
+        include Praxis::EndpointDefinition
 
         def self.name
           'FooBar'
@@ -205,7 +205,7 @@ describe Praxis::ResourceDefinition do
       end
     end
 
-    let(:action) { resource_definition.actions[:index] }
+    let(:action) { endpoint_definition.actions[:index] }
 
     it 'are applied to the action' do
       expect(action.payload.attributes).to have_key(:inherited_payload)
@@ -218,15 +218,15 @@ describe Praxis::ResourceDefinition do
 
   context 'with nodoc! called' do
     before do
-      resource_definition.nodoc!
+      endpoint_definition.nodoc!
     end
 
     it 'has the :doc_visibility option set' do
-      expect(resource_definition.metadata[:doc_visibility]).to be(:none)
+      expect(endpoint_definition.metadata[:doc_visibility]).to be(:none)
     end
 
     it 'is exposed in the describe' do
-      expect(resource_definition.describe[:metadata][:doc_visibility]).to be(:none)
+      expect(endpoint_definition.describe[:metadata][:doc_visibility]).to be(:none)
     end
 
   end
@@ -238,14 +238,14 @@ describe Praxis::ResourceDefinition do
       end
       it 'cannot be done if already been defined' do
         expect{
-          resource_definition.canonical_path :reset
+          endpoint_definition.canonical_path :reset
         }.to raise_error(/'canonical_path' can only be defined once./)
       end
     end
     context 'if none specified' do
-      subject(:resource_definition) do
+      subject(:endpoint_definition) do
         Class.new do
-          include Praxis::ResourceDefinition
+          include Praxis::EndpointDefinition
           action :show do
           end
         end
@@ -255,9 +255,9 @@ describe Praxis::ResourceDefinition do
       end
     end
     context 'with an undefined action' do
-      subject(:resource_definition) do
+      subject(:endpoint_definition) do
         Class.new do
-          include Praxis::ResourceDefinition
+          include Praxis::EndpointDefinition
           canonical_path :non_existent
         end
       end
@@ -275,7 +275,7 @@ describe Praxis::ResourceDefinition do
     end
   end
   context '#parse_href' do
-    let(:parsed){ resource_definition.parse_href("/people/1") }
+    let(:parsed){ endpoint_definition.parse_href("/people/1") }
     it 'accesses the path expansion functions of the primary route' do
       expect(parsed).to have_key(:id)
     end

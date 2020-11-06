@@ -1,6 +1,6 @@
 module ApiResources
   class Volumes
-    include Praxis::ResourceDefinition
+    include Praxis::EndpointDefinition
 
     media_type Volume
     version '1.0'

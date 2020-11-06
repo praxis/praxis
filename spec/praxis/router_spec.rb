@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe Praxis::Router do
   describe Praxis::Router::VersionMatcher do
-    let(:resource_definition){ double("resource_definition", version_options: { using: [:header, :params] }) }
-    let(:action){ double("action", resource_definition: resource_definition ) }
+    let(:endpoint_definition){ double("endpoint_definition", version_options: { using: [:header, :params] }) }
+    let(:action){ double("action", endpoint_definition: endpoint_definition ) }
     let(:target){ double("target", action: action ) }
     let(:args){ {version: "1.0"} }
     subject(:matcher){ Praxis::Router::VersionMatcher.new(target,**args) }
@@ -80,8 +80,8 @@ describe Praxis::Router do
     let(:target){ double('target') }
     let(:verb_router){ double('verb_router') }
 
-    let(:resource_definition) { double('resource_definition', version_options: {using: [:header, :params]} ) }
-    let(:action) { double('action', resource_definition: resource_definition) }
+    let(:endpoint_definition) { double('endpoint_definition', version_options: {using: [:header, :params]} ) }
+    let(:action) { double('action', endpoint_definition: endpoint_definition) }
     let(:target) { double('target', action: action) }
 
 
@@ -111,8 +111,8 @@ describe Praxis::Router do
     let(:post_target_router){ double("POST target", call: router_response_for_post) }
     let(:any_target_router){ double("ANY target", call: router_response_for_wildcard) }
 
-    let(:resource_definition) { double('resource_definition', version_options: {using: [:header, :params]} ) }
-    let(:action) { double('action', resource_definition: resource_definition) }
+    let(:endpoint_definition) { double('endpoint_definition', version_options: {using: [:header, :params]} ) }
+    let(:action) { double('action', endpoint_definition: endpoint_definition) }
     let(:target) { double('target', action: action) }
 
     before do
@@ -142,8 +142,8 @@ describe Praxis::Router do
     end
 
     context 'for routes with wildcards (a POST and a * route)' do
-      let(:resource_definition) { double('resource_definition', version_options: {using: [:header, :params]} ) }
-      let(:action) { double('action', resource_definition: resource_definition) }
+      let(:endpoint_definition) { double('endpoint_definition', version_options: {using: [:header, :params]} ) }
+      let(:action) { double('action', endpoint_definition: endpoint_definition) }
       let(:target) { double('target', action: action) }
 
       before do

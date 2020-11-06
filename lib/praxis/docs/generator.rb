@@ -58,7 +58,7 @@ module Praxis
 
       def collect_resources
         # load all resource definitions registered with Praxis
-        Praxis::Application.instance.resource_definitions.map do |resource|
+        Praxis::Application.instance.endpoint_definitions.map do |resource|
           # skip resources with doc_visibility of :none
           next if resource.metadata[:doc_visibility] == :none
           version = resource.version

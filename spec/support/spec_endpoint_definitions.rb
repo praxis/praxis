@@ -7,7 +7,7 @@ Praxis::ApiDefinition.define do
 end
 
 class PeopleResource
-  include Praxis::ResourceDefinition
+  include Praxis::EndpointDefinition
 
   description 'People resource'
 
@@ -42,7 +42,7 @@ end
 
 
 class AddressResource
-  include Praxis::ResourceDefinition
+  include Praxis::EndpointDefinition
 
   description 'Address resource'
 

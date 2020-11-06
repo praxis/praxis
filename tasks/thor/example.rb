@@ -194,7 +194,7 @@ RUBY
 module V1
   module ApiResources
     class Hello
-      include Praxis::ResourceDefinition
+      include Praxis::EndpointDefinition
 
       media_type V1::MediaTypes::Hello
       version '1.0'

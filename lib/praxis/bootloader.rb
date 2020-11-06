@@ -48,7 +48,7 @@ module Praxis
 
       after(:app) do
         Praxis::Blueprint.finalize!
-        Praxis::ResourceDefinition.finalize!
+        Praxis::EndpointDefinition.finalize!
       end
 
     end

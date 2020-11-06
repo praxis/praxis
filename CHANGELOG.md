@@ -6,6 +6,7 @@
 
 - Refined OpenAPI doc generation to output only non-null attributes in the InfoObject.
 - Fixed filtering params validation to properly allow null values for the "!" and "!!" operators
+- Simple, but pervasive breaking change: Rename `ResourceDefinition` to `EndpointDefinition` (but same functionality).
 
 ## 2.0.pre.6
 

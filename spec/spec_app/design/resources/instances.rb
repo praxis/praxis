@@ -1,6 +1,6 @@
 module ApiResources
   class Instances
-    include Praxis::ResourceDefinition
+    include Praxis::EndpointDefinition
 
     media_type Instance
     version '1.0'

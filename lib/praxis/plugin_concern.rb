@@ -11,7 +11,7 @@ module Praxis
       PLUGIN_CLASSES = [
         :Request,
         :Controller,
-        :ResourceDefinition,
+        :EndpointDefinition,
         :ActionDefinition,
         :Response,
         :ApiGeneralInfo

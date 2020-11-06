@@ -33,7 +33,8 @@ module Praxis
   autoload :Plugin, 'praxis/plugin'
   autoload :PluginConcern, 'praxis/plugin_concern'
   autoload :Request, 'praxis/request'
-  autoload :ResourceDefinition, 'praxis/resource_definition'
+  autoload :ResourceDefinition, 'praxis/resource_definition' # Deprecated: this is to support an easier transition
+  autoload :EndpointDefinition, 'praxis/endpoint_definition'
   autoload :Response, 'praxis/response'
   autoload :ResponseDefinition, 'praxis/response_definition'
   autoload :ResponseTemplate, 'praxis/response_template'

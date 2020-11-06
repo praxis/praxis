@@ -13,9 +13,9 @@ describe Praxis::ActionDefinition do
     end
   end
 
-  let(:resource_definition) do
+  let(:endpoint_definition) do
     Class.new do
-      include Praxis::ResourceDefinition
+      include Praxis::EndpointDefinition
 
       def self.name
         'FooBar'
@@ -43,7 +43,7 @@ describe Praxis::ActionDefinition do
         headers headers if headers
       end
     end
-    Praxis::ActionDefinition.new(:foo, resource_definition) do
+    Praxis::ActionDefinition.new(:foo, endpoint_definition) do
       routing { get '/:one' }
       payload { attribute :two, String }
       headers { header "X_REQUESTED_WITH", 'XMLHttpRequest' }
@@ -54,7 +54,7 @@ describe Praxis::ActionDefinition do
 
   context '#initialize' do
     its('name')                { should eq :foo }
-    its('resource_definition') { should be resource_definition }
+    its('endpoint_definition') { should be endpoint_definition }
     its('params.attributes')   { should have_key :one }
     its('params.attributes')   { should have_key :inherited }
     its('payload.attributes')  { should have_key :two }
@@ -88,7 +88,7 @@ describe Praxis::ActionDefinition do
 
   describe 'when a trait is used' do
     subject(:action) do
-      Praxis::ActionDefinition.new(:bar, resource_definition) do
+      Praxis::ActionDefinition.new(:bar, endpoint_definition) do
         trait :test
         routing { get '/:one' }
         params  { attribute :one, String }
@@ -277,8 +277,8 @@ describe Praxis::ActionDefinition do
   end
 
   context 'href generation' do
-    let(:resource_definition) { ApiResources::Instances }
-    subject(:action) { resource_definition.actions[:show] }
+    let(:endpoint_definition) { ApiResources::Instances }
+    subject(:action) { endpoint_definition.actions[:show] }
 
     it 'works' do
       expansion = action.route.path.expand(cloud_id:232, id: 2)
@@ -332,9 +332,9 @@ describe Praxis::ActionDefinition do
 
     context 'where the action overrides a base_param' do
 
-      let(:resource_definition) do
+      let(:endpoint_definition) do
         Class.new do
-          include Praxis::ResourceDefinition
+          include Praxis::EndpointDefinition
 
           def self.name
             'FooBar'
@@ -349,7 +349,7 @@ describe Praxis::ActionDefinition do
       end
 
       let(:action) do
-        Praxis::ActionDefinition.new(:foo, resource_definition) do
+        Praxis::ActionDefinition.new(:foo, endpoint_definition) do
           routing { get '' }
           params  { attribute :app_name, Integer }
         end

@@ -82,7 +82,7 @@ module Praxis
       PATH_VERSION_PREFIX
     end
 
-    # DEPRECATED: remove with ResourceDefinition.version using: :path
+    # DEPRECATED: remove with EndpointDefinition.version using: :path
     PATH_VERSION_MATCHER = %r{^#{self.path_version_prefix}(?<version>[^\/]+)\/}.freeze
 
     def path_version_matcher

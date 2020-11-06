@@ -1,0 +1,19 @@
+source "https://rubygems.org"
+
+gem 'praxis', path: '/Users/blanquer/dev/praxis/praxis'
+gem 'rack'
+gem 'sqlite3'
+gem 'activerecord'
+gem 'puma' # A much better web server than the default webrick
+gem 'parslet' # For field selection extension
+gem 'link_header' # For pagination extensions
+
+group :development, :test do
+  gem 'rake'
+  gem 'rack-test'
+  gem "rspec" # needed for rake task
+  gem 'database_cleaner' # For transactional DB tests
+
+  gem 'pry'
+  gem 'pry-byebug'
+end

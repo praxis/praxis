@@ -1,4 +1,4 @@
-Sample Blog Application
+Example Application
 =======================
 
 

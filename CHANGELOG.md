@@ -10,6 +10,8 @@
 - Remove all deprecated features (and raise error describing it's not supported yet)
 - Remove `Links` and `LinkBuilder`. Those seem unnecessary from a Framework point of view as they aren't clear most
 applications would benefit from it. Applications can choose to add that functionality on their own if so desire.
+- Rebuilt app generators: for new empty app, and example app.
+- Updated default layout to match new naming structure and more concepts commonly necessary for normal applications.
 
 
 ## 2.0.pre.6

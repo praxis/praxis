@@ -70,12 +70,16 @@ class PraxisGenerator < Thor
 
   desc_for "new APP_NAME", ::PraxisGen::App, :new
   def new(app_name)
-    ::PraxisGen::App.start(['new' , app_name])
+    gen = ::PraxisGen::App.new([app_name])
+    gen.destination_root = app_name
+    gen.invoke_all
   end
 
-  desc_for "example APP_NAME", ::PraxisGen::Example, :new
+  desc_for "example APP_NAME", ::PraxisGen::Example, :example
   def example(app_name)
-    ::PraxisGen::Example.start(['new', app_name])
+    gen = ::PraxisGen::Example.new([app_name])
+    gen.destination_root = app_name
+    gen.invoke(:example)
   end  
 end
     

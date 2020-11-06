@@ -205,12 +205,10 @@ describe 'Functional specs' do
       its(['destination_path']) { should eq '/etc/defaults' }
 
       context 'response["file"]' do
-        subject(:file) { response['file'] }
-
         its(['filename']) { should eq('docker') }
         its(['type']) { should eq('text/plain') }
         its(['name']) { should eq('file') }
-        its(['tempfile']) { should eq('DOCKER_HOST=tcp://127.0.0.1:2375') }
+        its(['contents']) { should eq('DOCKER_HOST=tcp://127.0.0.1:2375') }
       end
     end
 
@@ -231,7 +229,7 @@ describe 'Functional specs' do
         response = JSON.parse(last_response.body)
 
         expect(response['name']).to eq('ValidationError')
-        expect(response['errors']).to eq(["Attribute $.payload.key(\"destination_path\") is required"])
+        expect(response['errors']).to eq(["Attribute $.payload.destination_path is required"])
       end
 
     end
@@ -259,7 +257,7 @@ describe 'Functional specs' do
       before do
         post '/api/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
       end
-      its(:keys){ should eq(['destination_path','file','options'])}
+      its(:keys){ should eq(['destination_path','name','filename','type','contents','options'])}
       its(['options']){ should eq({"extra_thing"=>"I am extra"})}
     end
 

@@ -63,7 +63,6 @@ module Praxis
 
   autoload :MediaType, 'praxis/media_type'
   autoload :MediaTypeIdentifier, 'praxis/media_type_identifier'
-  autoload :Multipart, 'praxis/types/multipart'
   autoload :Collection, 'praxis/collection'
 
   autoload :MultipartParser, 'praxis/multipart/parser'

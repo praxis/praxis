@@ -26,7 +26,6 @@ if ["routes","docs","console"].include? ARGV[0]
       when 'package'
         'praxis:docs:build'        
       end
-#      task_name = ARGV[1] == 'browser' ? 'praxis:doc_browser' : 'praxis:api_docs' 
       Rake::Task[task_name].invoke
     when "console"
       Rake::Task['praxis:console'].invoke
@@ -77,13 +76,7 @@ class PraxisGenerator < Thor
   desc_for "example APP_NAME", ::PraxisGen::Example, :new
   def example(app_name)
     ::PraxisGen::Example.start(['new', app_name])
-  end
-  
-  desc_for "generate APP_NAME", ::PraxisGen::Example, :new, "DEPRECATED!: "
-  def generate(app_name)
-    warn "This is a deprecated method.\nTo generate a hello world example, please use:\n  praxis example #{app_name} "
-  end
-  
+  end  
 end
     
 PraxisGenerator.start(ARGV)

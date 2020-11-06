@@ -246,34 +246,6 @@ module Praxis
         @action_defaults
       end
 
-      def params(type=Attributor::Struct, **opts, &block)
-        warn 'DEPRECATED: EndpointDefinition.params is deprecated. Use it in action_defaults instead.'
-        action_defaults do
-          params type, **opts, &block
-        end
-      end
-
-      def payload(type=Attributor::Struct, **opts, &block)
-        warn 'DEPRECATED: EndpointDefinition.payload is deprecated. Use action_defaults instead.'
-        action_defaults do
-          payload type, **opts, &block
-        end
-      end
-
-      def headers(**opts, &block)
-        warn 'DEPRECATED: EndpointDefinition.headers is deprecated. Use action_defaults instead.'
-        action_defaults do
-          headers **opts, &block
-        end
-      end
-
-      def response(name, **args)
-        warn 'DEPRECATED: EndpointDefinition.response is deprecated. Use action_defaults instead.'
-        action_defaults do
-          response name, **args
-        end
-      end
-
       def action(name, &block)
         raise ArgumentError, "can not create ActionDefinition without block" unless block_given?
         raise ArgumentError, "Action names must be defined using symbols (Got: #{name} (of type #{name.class}))" unless name.is_a? Symbol

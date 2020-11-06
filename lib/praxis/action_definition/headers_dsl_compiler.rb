@@ -27,13 +27,6 @@ module Praxis
         end
         key name , String, **options
       end
-
-      # Override the attribute to really call "key" in the hash (for temporary backwards compat)      
-      def attribute(name, attr_type=nil, **opts, &block)
-        warn "[DEPRECATION] `attribute` is deprecated when defining headers.  Please use `key` instead."
-        key(name, attr_type, **opts, &block)
-      end
-
     end
   end
 end

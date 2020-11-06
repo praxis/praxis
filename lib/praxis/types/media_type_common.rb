@@ -40,7 +40,7 @@ module Praxis
         #
         # @deprecated this method is not deprecated, but its return type will change to MediaTypeIdentifier in Praxis 1.0
         #
-        # @return [String] the string-representation of this type's identifier
+        # @return [MediaTypeIdentifier] the string-representation of this type's identifier
         def identifier(identifier=nil)
           return @identifier unless identifier
           @identifier = MediaTypeIdentifier.load(identifier)

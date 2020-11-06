@@ -183,39 +183,6 @@ describe Praxis::EndpointDefinition do
     it 'has a spec for actually using a trait'
   end
 
-
-  context 'deprecated action methods' do
-    subject(:endpoint_definition) do
-      Class.new do
-        include Praxis::EndpointDefinition
-
-        def self.name
-          'FooBar'
-        end
-
-        silence_warnings do
-          payload { attribute :inherited_payload, String }
-          headers { key "Inherited-Header", String }
-          params  { attribute :inherited_params, String }
-          response :not_found
-        end
-
-        action :index do
-        end
-      end
-    end
-
-    let(:action) { endpoint_definition.actions[:index] }
-
-    it 'are applied to the action' do
-      expect(action.payload.attributes).to have_key(:inherited_payload)
-      expect(action.headers.attributes).to have_key("Inherited-Header")
-      expect(action.params.attributes).to have_key(:inherited_params)
-      expect(action.responses).to have_key(:not_found)
-    end
-
-  end
-
   context 'with nodoc! called' do
     before do
       endpoint_definition.nodoc!

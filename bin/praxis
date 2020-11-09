@@ -24,7 +24,7 @@ if ["routes","docs","console"].include? ARGV[0]
       when 'generate'
         'praxis:docs:generate'
       when 'package'
-        'praxis:docs:build'        
+        'praxis:docs:package'        
       end
       Rake::Task[task_name].invoke
     when "console"

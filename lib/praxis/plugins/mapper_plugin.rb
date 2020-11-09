@@ -1,5 +1,4 @@
 require 'singleton'
-require 'praxis/extensions/attribute_filtering'
 
 module Praxis
   module Plugins

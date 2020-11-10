@@ -9,8 +9,7 @@ module V1
       implements V1::Endpoints::Users
 
       def index
-        query1 = build_query(::User)
-        objects = handle_pagination(query: query1, type: :active_record).all
+        objects = build_query(::User)
         display(objects)
       end
     end

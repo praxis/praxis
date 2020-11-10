@@ -39,16 +39,18 @@ module Praxis
           selector_generator.add(self.media_type.domain_model, resolved)
         end
 
-        def build_query(base_query) # rubocop:disable Metrics/AbcSize
+        def build_query(base_query, type: :active_record) # rubocop:disable Metrics/AbcSize
           domain_model = self.media_type&.domain_model
           raise "No domain model defined for #{self.name}. Cannot use the attribute filtering helpers without it" unless domain_model
           
           filters = request.params.filters if request.params&.respond_to?(:filters)
+          # Handle filters
           base_query = domain_model.craft_filter_query( base_query , filters: filters )
-
+          # Handle field and nested field selection
           base_query = domain_model.craft_field_selection_query(base_query, selectors: selector_generator.selectors)
+          # handle pagination and ordering
+          base_query = _craft_pagination_query(query: base_query, type: type) if self.respond_to?(:_pagination)
 
-          # TODO: handle pagination and ordering
           base_query
         end
 

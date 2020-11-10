@@ -13,7 +13,8 @@ if ["routes","docs","console"].include? ARGV[0]
   require 'rake'
   require 'praxis'
   require 'praxis/tasks'
-  
+  load 'Rakefile' # Ensure that we read the App's Rakefile, to pickup any definitions etc.
+
   case ARGV[0]
     when "routes"
       Rake::Task['praxis:routes'].invoke(ARGV[1])

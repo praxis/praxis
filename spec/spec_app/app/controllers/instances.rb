@@ -68,7 +68,7 @@ class Instances < BaseClass
 
       part_body = {
         key: instance_id,
-        value: instance.render(view: :create)
+        value: instance.render(fields: {id: true, name: true})
       }
 
       headers = {
@@ -78,7 +78,6 @@ class Instances < BaseClass
       }
 
       part = Praxis::MultipartPart.new(part_body, headers, name: instance_id)
-
       response.body.push(part)
     end
 

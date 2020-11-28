@@ -11,11 +11,6 @@ class VolumeSnapshot < Praxis::MediaType
     attribute :name
   end
 
-  view :link do
-    attribute :id
-  end
-
-
   class CollectionSummary < Praxis::MediaType
     identifier 'application/json'
 
@@ -30,13 +25,6 @@ class VolumeSnapshot < Praxis::MediaType
       attribute :size
       attribute :href
     end
-
-    view :link do
-      attribute :name
-      attribute :size
-      attribute :href
-    end
-
   end
 
 end

@@ -51,19 +51,6 @@ describe Praxis::Collection do
     its(:identifier) { should eq Person.identifier + "; type=collection" }
   end
 
-  context '.views' do
-    subject(:views) { collection.views }
-    its(:keys) { should match_array(member_type.views.keys)}
-
-    it 'generates CollectionViews from the member views' do
-      collection.views.each do |name, view|
-        expect(view.name).to be name
-        expect(view.schema).to be member_type
-        expect(view.contents).to eq member_type.views[name].contents
-      end
-    end
-  end
-
   context '.load' do
     let(:volume_data) do
       {

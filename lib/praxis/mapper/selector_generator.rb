@@ -48,7 +48,7 @@ module Praxis::Mapper
         new_fields_as_hash = association[:remote_key_columns].each_with_object({}) do|name, hash|
           hash[name] = true
         end
-        fields.merge!(new_fields_as_hash) 
+        fields = fields.merge(new_fields_as_hash) 
       end
 
       node.add(fields) unless fields == true

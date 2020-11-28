@@ -22,19 +22,10 @@ module Praxis
     def self.member_type(type=nil)
       unless type.nil?
         @member_type = type
-        @views = nil
         self.identifier(type.identifier + ';type=collection') unless type.identifier.nil?
       end
 
       @member_type
-    end
-
-    def self.views
-      @views ||= begin
-        @member_type.views.each_with_object(Hash.new) do |(name, view), hash|
-          hash[name] = Praxis::CollectionView.new(name, @member_type, view)
-        end
-      end
     end
 
     def self.domain_model

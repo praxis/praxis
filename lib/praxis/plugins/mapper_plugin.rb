@@ -1,6 +1,6 @@
 require 'singleton'
 
-module Praxis
+module Praxis  
   module Plugins
     module MapperPlugin
       include Praxis::PluginConcern
@@ -35,8 +35,7 @@ module Praxis
           return unless self.media_type.respond_to?(:domain_model) &&
             self.media_type.domain_model < Praxis::Mapper::Resource
 
-          resolved = Praxis::MediaType::FieldResolver.resolve(self.media_type, self.expanded_fields)
-          selector_generator.add(self.media_type.domain_model, resolved)
+          selector_generator.add(self.media_type.domain_model, self.expanded_fields)
         end
 
         def build_query(base_query, type: :active_record) # rubocop:disable Metrics/AbcSize

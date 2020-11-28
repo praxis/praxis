@@ -105,12 +105,6 @@ class Blog < Praxis::MediaType
 
     attribute :owner
   end
-
-  view :overview do
-    attribute :id
-    attribute :name
-    attribute :description
-  end
 end
 
 
@@ -204,19 +198,5 @@ class User < Praxis::MediaType
 
     attribute :first
     attribute :last
-  end
-
-  view :extended do
-    attribute :id
-    attribute :href
-
-    attribute :first
-    attribute :last
-    attribute :primary_blog, view: :overview
-  end
-
-  view :with_post_links do
-    attribute :id
-    attribute :posts, view: :link
   end
 end

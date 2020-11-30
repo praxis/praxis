@@ -166,7 +166,6 @@ module Praxis
             end
   
             attr_name = match[:attribute].to_sym
-            # TODO: we should coerce values if there's a mediatype defined?
             coerced = if media_type
               filter_components = attr_name.to_s.split('.').map(&:to_sym)
               attr, _enclosing_type = find_filter_attribute(filter_components, media_type)
@@ -217,21 +216,9 @@ module Praxis
               errors << "Operator #{item[:op]} not allowed for filter #{attr_name}"
             end
             value_type = attr_filters[:value_type]
-            value = item[:value]
-            if value_type && !value_type.valid_type?(value)
-              # Allow a collection of values of the right type for multimatch (if operators are = or !=)
-              if ['=','!='].include?(item[:op])
-                coll_type = Attributor::Collection.of(value_type)
-                if !coll_type.valid_type?(value)
-                  errors << "Invalid type in filter/s value for #{attr_name} " +\
-                            "(one or more of the multiple matches in #{value} are not  a #{value_type.name.split('::').last})"
-                end
-              else
-                errors << "Invalid type in filter value for #{attr_name} (#{value} using '#{item[:op]}' is not a #{value_type.name.split('::').last})"
-              end
-            end
-  
             next unless value_type == Attributor::String
+
+            value = item[:value]
             unless value.empty?
               fuzzy_match = attr_filters[:fuzzy_match]
               if (value[-1] == '*' || value[0] == '*') && !fuzzy_match

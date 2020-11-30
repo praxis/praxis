@@ -2,6 +2,8 @@
 
 ## next
 
+## 2.0.pre.9
+
 - Refined OpenAPI doc generation to output only non-null attributes in the InfoObject.
 - Fixed filtering params validation to properly allow null values for the "!" and "!!" operators
 

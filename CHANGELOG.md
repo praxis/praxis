@@ -2,10 +2,6 @@
 
 ## next
 
-## 2.0.pre.9
-
-- Refined OpenAPI doc generation to output only non-null attributes in the InfoObject.
-- Fixed filtering params validation to properly allow null values for the "!" and "!!" operators
 - Simple, but pervasive breaking change: Rename `ResourceDefinition` to `EndpointDefinition` (but same functionality).
 - Remove all deprecated features (and raise error describing it's not supported yet)
 - Remove `Links` and `LinkBuilder`. Those seem unnecessary from a Framework point of view as they aren't clear most
@@ -13,6 +9,11 @@ applications would benefit from it. Applications can choose to add that function
 - Rebuilt app generators: for new empty app, and example app.
 - Updated default layout to match new naming structure and more concepts commonly necessary for normal applications.
 - Completely removed the native Praxis API document browser in lieu of OpenAPI 3.x standards, and reDoc.
+
+## 2.0.pre.9
+
+- Refined OpenAPI doc generation to output only non-null attributes in the InfoObject.
+- Fixed filtering params validation to properly allow null values for the "!" and "!!" operators
 
 ## 2.0.pre.6
 

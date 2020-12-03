@@ -29,7 +29,7 @@ module Praxis
       #
       #   def index(filters: nil, pagination: nil, order: nil,  **_args)
       #     items = current_user.items.all
-      #     items = handle_pagination( query: items)
+      #     items = _craft_pagination_query( query: items)
       #
       #     display(items)
       #   end

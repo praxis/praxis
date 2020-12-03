@@ -8,7 +8,7 @@ class Person < Praxis::MediaType
     attribute :href, String, example: proc { |person| "/people/#{person.id}" }
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :name
   end
@@ -20,7 +20,7 @@ class Person < Praxis::MediaType
       attribute :size, Integer
     end
 
-    view :default do
+    default_fieldset do
       attribute :href
     end
 
@@ -47,7 +47,7 @@ class Address < Praxis::MediaType
     attribute :fields, Praxis::Types::FieldSelector.for(Person)
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :name
     attribute :owner

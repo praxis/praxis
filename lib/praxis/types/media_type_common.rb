@@ -6,14 +6,6 @@ module Praxis
       extend ::ActiveSupport::Concern
 
       module ClassMethods
-        def describe(shallow = false, **opts)
-          hash = super
-          unless shallow
-            hash.merge!(identifier: @identifier.to_s, description: @description, display_name: self.display_name)
-          end
-          hash
-        end
-
         def as_json_schema(**args)
           the_type = @attribute && @attribute.type || member_type
           the_type.as_json_schema(args)

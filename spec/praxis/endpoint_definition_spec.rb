@@ -178,9 +178,15 @@ describe Praxis::EndpointDefinition do
   context '.trait' do
     subject(:endpoint_definition) { Class.new {include Praxis::EndpointDefinition } }
     it 'raises an error for missing traits' do
-      expect { endpoint_definition.use(:stuff) }.to raise_error(Praxis::Exceptions::InvalidTrait)
+      expect { endpoint_definition.trait(:stuff) }.to raise_error(Praxis::Exceptions::InvalidTrait)
     end
-    it 'has a spec for actually using a trait'
+    it 'adds it to its list when it is available in the APIDefinition instance' do
+      trait_name = :test
+      expect(endpoint_definition.traits).to_not include(trait_name)
+
+      endpoint_definition.trait(trait_name)
+      expect(endpoint_definition.traits).to include(trait_name)
+    end
   end
 
   context 'with nodoc! called' do

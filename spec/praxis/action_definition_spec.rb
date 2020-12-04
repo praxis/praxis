@@ -78,14 +78,6 @@ describe Praxis::ActionDefinition do
     it { should include :created }
   end
 
-  describe '#allowed_responses' do
-    it 'has some tests after we stop using ApiDefinition.instance'
-  end
-
-  describe '#use' do
-    it 'has some tests after we stop using ApiDefinition.instance'
-  end
-
   describe 'when a trait is used' do
     subject(:action) do
       Praxis::ActionDefinition.new(:bar, endpoint_definition) do

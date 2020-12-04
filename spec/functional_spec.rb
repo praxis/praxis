@@ -332,8 +332,6 @@ describe 'Functional specs' do
     let(:content_type){ 'application/json' }
     it 'can terminate instances with POST' do
       post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'CONTENT_TYPE' => content_type, 'global_session' => session
-      puts last_response.body
-      #binding.pry
       expect(last_response.status).to eq(200)
     end
     it 'can terminate instances with DELETE' do

@@ -71,7 +71,6 @@ module Praxis
       trait.apply!(self)
       traits << trait_name
     end
-    alias_method :use, :trait
 
     def update_attribute(attribute, options, block)
       attribute.options.merge!(options)

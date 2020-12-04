@@ -8,7 +8,10 @@
 applications would benefit from it. Applications can choose to add that functionality on their own if so desire.
 - Rebuilt app generators: for new empty app, and example app.
 - Updated default layout to match new naming structure and more concepts commonly necessary for normal applications.
-- Completely removed the native Praxis API document browser in lieu of OpenAPI 3.x standards, and reDoc.
+- Completely removed the native Praxis API documentation browser in lieu of OpenAPI 3.x standards, and reDoc.
+- Remove dependency from praxis-blueprints, as simplified subset of its code has now been included in this repo:
+  - no more views for mediatypes. A default fieldset will be automatically defined which will be the default set of attributes to render with. This default fieldset will only contain simple direct attributes (i.e., non blueprint/mediatype attributes). One can override the default by explicitly defining one using the `default_fieldset` DSL, similar to how views were defined before.
+- Folded the pagination/ordering extensions to activate within the `build_query` method of the mapper plugin extension. This way all the field selection, filtering and pagination/ordering will kick in automatically when that plugin is included.
 
 ## 2.0.pre.9
 

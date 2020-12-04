@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem 'praxis', path: '/Users/blanquer/dev/praxis/praxis'
+gem 'praxis'
 gem 'rack'
 
 group :development, :test do

@@ -115,7 +115,7 @@ module Praxis
         def self.construct(pagination_definition, **options)
           return self if pagination_definition.nil?
 
-          DSLCompiler.new(self, options).parse(*pagination_definition)
+          DSLCompiler.new(self, **options).parse(*pagination_definition)
           self
         end
 

@@ -281,7 +281,7 @@ describe Praxis::ActionDefinition do
     subject(:action) { endpoint_definition.actions[:show] }
 
     it 'works' do
-      expansion = action.route.path.expand(cloud_id:232, id: 2)
+      expansion = action.route.path.expand(cloud_id: '232', id: '2')
       expect(expansion).to eq "/api/clouds/232/instances/2"
     end
 

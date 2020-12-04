@@ -122,7 +122,7 @@ module Praxis
         global_path = @global_info.base_path
         if version_with == :path
           global_pattern = Mustermann.new(global_path)
-          global_path = global_pattern.expand(Request::API_VERSION_PARAM_NAME => self.version)
+          global_path = global_pattern.expand(Request::API_VERSION_PARAM_NAME => self.version.to_s)
         end
 
         version_path = @data.fetch(:base_path,'')

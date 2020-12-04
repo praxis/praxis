@@ -202,7 +202,7 @@ module Praxis
       end
 
       def to_href( params )
-        canonical_path.route.path.expand(params)
+        canonical_path.route.path.expand(params.transform_values(&:to_s))
       end
 
       def parse_href(path)

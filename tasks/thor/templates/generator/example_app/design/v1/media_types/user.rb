@@ -17,7 +17,7 @@ module V1
         attribute :state, String, values: %i[pending active]
       end
 
-      view :default do
+      default_fieldset do
         attribute :uid
       end
     end

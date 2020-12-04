@@ -8,7 +8,7 @@ describe Praxis::ActionDefinition do
       attribute :one, String
       attribute :two, Integer
     end
-    view :default do
+    default_fieldset do
       attribute :one
     end
   end

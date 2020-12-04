@@ -16,7 +16,7 @@ class Instance < Praxis::MediaType
     
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :root_volume
   end

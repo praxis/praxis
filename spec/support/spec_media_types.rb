@@ -95,7 +95,7 @@ class Blog < Praxis::MediaType
 
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :href
     attribute :name
@@ -141,7 +141,7 @@ class Post < Praxis::MediaType
     end
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :href
 
@@ -192,7 +192,7 @@ class User < Praxis::MediaType
       example: proc { |user,ctx| Post::CollectionSummary.example(ctx, href: "#{user.href}/posts") }
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :href
 

@@ -34,8 +34,9 @@ module Praxis
   #         description: 'The factory in which this widget was produced'
   #     end
   #
-  #     # All resources should have a default view
-  #     view :default do
+  #     # All resources will be assigned a default_fieldset (with only non-blueprint attributes)
+  #     # But one can explicitly tailor that by using the `default_fieldset` DSL
+  #     default_fieldset do
   #       attribute :id
   #       attribute :color
   #       attribute :material

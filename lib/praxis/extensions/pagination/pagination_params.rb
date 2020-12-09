@@ -361,6 +361,7 @@ module Praxis
                 else
                   s = "by=#{@by}"
                   s += ",from=#{@from}" if @from
+                  s
                 end
           str += ",items=#{items}" if @items
           str += ",total_count=true" if @total_count

@@ -42,10 +42,11 @@ describe Praxis::MediaTypeIdentifier do
         expect(described_class.new(unquoted_example).parameters['encoding']).to eq('martian')
       end
 
-      it 'handles quoted semicolons in values' do
-        pending("need to stop using a regexp to do a context-free parser's job")
-        expect(described_class.new(tricky_example).parameters['sauce']).to eq('yes; absolutely')
-      end
+      # TODO: Maybe that's something we want to support in the future? seems a big hammer for such a thing
+      # it 'handles quoted semicolons in values' do
+      #   pending("need to stop using a regexp to do a context-free parser's job")
+      #   expect(described_class.new(tricky_example).parameters['sauce']).to eq('yes; absolutely')
+      # end
 
 
     end

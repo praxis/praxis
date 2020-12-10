@@ -13,7 +13,8 @@ if ["routes","docs","console"].include? ARGV[0]
   require 'rake'
   require 'praxis'
   require 'praxis/tasks'
-  
+  load 'Rakefile' # Ensure that we read the App's Rakefile, to pickup any definitions etc.
+
   case ARGV[0]
     when "routes"
       Rake::Task['praxis:routes'].invoke(ARGV[1])
@@ -24,9 +25,8 @@ if ["routes","docs","console"].include? ARGV[0]
       when 'generate'
         'praxis:docs:generate'
       when 'package'
-        'praxis:docs:build'        
+        'praxis:docs:package'        
       end
-#      task_name = ARGV[1] == 'browser' ? 'praxis:doc_browser' : 'praxis:api_docs' 
       Rake::Task[task_name].invoke
     when "console"
       Rake::Task['praxis:console'].invoke
@@ -71,19 +71,17 @@ class PraxisGenerator < Thor
 
   desc_for "new APP_NAME", ::PraxisGen::App, :new
   def new(app_name)
-    ::PraxisGen::App.start(['new' , app_name])
+    gen = ::PraxisGen::App.new([app_name])
+    gen.destination_root = app_name
+    gen.invoke_all
   end
 
-  desc_for "example APP_NAME", ::PraxisGen::Example, :new
+  desc_for "example APP_NAME", ::PraxisGen::Example, :example
   def example(app_name)
-    ::PraxisGen::Example.start(['new', app_name])
-  end
-  
-  desc_for "generate APP_NAME", ::PraxisGen::Example, :new, "DEPRECATED!: "
-  def generate(app_name)
-    warn "This is a deprecated method.\nTo generate a hello world example, please use:\n  praxis example #{app_name} "
-  end
-  
+    gen = ::PraxisGen::Example.new([app_name])
+    gen.destination_root = app_name
+    gen.invoke(:example)
+  end  
 end
     
 PraxisGenerator.start(ARGV)

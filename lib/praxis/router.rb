@@ -52,8 +52,8 @@ module Praxis
     def add_route(target, route)
       path_versioning = (Application.instance.versioning_scheme == :path)
 
-      # DEPRECATED: remove with ResourceDefinition.version using: :path
-      path_versioning ||= (target.action.resource_definition.version_options[:using] == :path)
+      # DEPRECATED: remove with EndpointDefinition.version using: :path
+      path_versioning ||= (target.action.endpoint_definition.version_options[:using] == :path)
 
       unless path_versioning
         target = VersionMatcher.new(target, version: route.version)

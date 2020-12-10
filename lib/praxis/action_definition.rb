@@ -11,7 +11,7 @@ module Praxis
   class ActionDefinition
 
     attr_reader :name
-    attr_reader :resource_definition
+    attr_reader :endpoint_definition
     attr_reader :api_definition
     attr_reader :route
     attr_reader :responses
@@ -31,33 +31,33 @@ module Praxis
       self.doc_decorations << callback
     end
 
-    def initialize(name, resource_definition, **opts, &block)
+    def initialize(name, endpoint_definition, **opts, &block)
       @name = name
-      @resource_definition = resource_definition
+      @endpoint_definition = endpoint_definition
       @responses = Hash.new
       @metadata = Hash.new
       @route = nil
       @traits = []
 
-      if (media_type = resource_definition.media_type)
+      if (media_type = endpoint_definition.media_type)
         if media_type.kind_of?(Class) && media_type < Praxis::Types::MediaTypeCommon
           @reference_media_type = media_type
         end
       end
 
-      version = resource_definition.version
-      api_info = ApiDefinition.instance.info(resource_definition.version)
+      version = endpoint_definition.version
+      api_info = ApiDefinition.instance.info(endpoint_definition.version)
 
-      route_base = "#{api_info.base_path}#{resource_definition.version_prefix}"
-      prefix = Array(resource_definition.routing_prefix)
+      route_base = "#{api_info.base_path}#{endpoint_definition.version_prefix}"
+      prefix = Array(endpoint_definition.routing_prefix)
 
       @routing_config = RoutingConfig.new(version: version, base: route_base, prefix: prefix)
 
-      resource_definition.traits.each do |trait|
+      endpoint_definition.traits.each do |trait|
         self.trait(trait)
       end
 
-      resource_definition.action_defaults.apply!(self)
+      endpoint_definition.action_defaults.apply!(self)
 
       self.instance_eval(&block) if block_given?
     end
@@ -71,7 +71,6 @@ module Praxis
       trait.apply!(self)
       traits << trait_name
     end
-    alias_method :use, :trait
 
     def update_attribute(attribute, options, block)
       attribute.options.merge!(options)
@@ -246,7 +245,7 @@ module Praxis
     def params_description(example:)
       route_params = []
       if route.nil?
-        warn "Warning: No route defined for #{resource_definition.name}##{name}."
+        warn "Warning: No route defined for #{endpoint_definition.name}##{name}."
       else
         route_params = route.path.
           named_captures.
@@ -343,6 +342,9 @@ module Praxis
       metadata[:doc_visibility] = :none
     end
 
-
+    # [DEPRECATED] - Warn of the change of method name for the transition 
+    def resource_definition
+      raise "Praxis::ActionDefinition does not use `resource_definition` any longer. Use `endpoint_definition` instead."
+    end
   end
 end

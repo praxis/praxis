@@ -311,16 +311,8 @@ module Praxis
     def validate_parts!(response)
       return unless parts
 
-      case response.body
-      when Praxis::Types::MultipartArray
-        response.body.each do |part|
-          parts.validate(part)
-        end
-      else
-        # TODO: remove with other Multipart deprecations.
-        response.parts.each do |name, part|
-          parts.validate(part)
-        end
+      response.body.each do |part|
+        parts.validate(part)
       end
     end
 

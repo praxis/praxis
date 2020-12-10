@@ -20,19 +20,21 @@ module Praxis
 
       def setup_default_layout!
         application.layout do
-          layout do
-            map :initializers, 'config/initializers/**/*'
-            map :lib, 'lib/**/*'
-            map :design, 'design/' do
-              map :api, 'api.rb'
-              map :media_types, '**/media_types/**/*'
-              map :resources, '**/resources/**/*'
-            end
-            map :app, 'app/' do
-              map :models, 'models/**/*'
-              map :controllers, '**/controllers/**/*'
-              map :responses, '**/responses/**/*'
-            end
+          map :initializers, 'config/initializers/**/*'
+          map :lib, 'lib/**/*'
+          map :design, 'design/' do
+            map :api, 'api.rb'
+            map :helpers, '**/helpers/**/*'
+            map :types, '**/types/**/*'
+            map :media_types, '**/media_types/**/*'
+            map :endpoints, '**/endpoints/**/*'
+          end
+          map :app, 'app/' do
+            map :models, 'models/**/*'
+            map :responses, '**/responses/**/*'
+            map :exceptions, '**/exceptions/**/*'
+            map :resources, '**/resources/**/*'
+            map :controllers, '**/controllers/**/*'
           end
         end
       end

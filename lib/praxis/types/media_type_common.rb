@@ -6,14 +6,6 @@ module Praxis
       extend ::ActiveSupport::Concern
 
       module ClassMethods
-        def describe(shallow = false, **opts)
-          hash = super
-          unless shallow
-            hash.merge!(identifier: @identifier.to_s, description: @description, display_name: self.display_name)
-          end
-          hash
-        end
-
         def as_json_schema(**args)
           the_type = @attribute && @attribute.type || member_type
           the_type.as_json_schema(args)
@@ -38,9 +30,7 @@ module Praxis
 
         # Get or set the identifier of this media type.
         #
-        # @deprecated this method is not deprecated, but its return type will change to MediaTypeIdentifier in Praxis 1.0
-        #
-        # @return [String] the string-representation of this type's identifier
+        # @return [MediaTypeIdentifier] the string-representation of this type's identifier
         def identifier(identifier=nil)
           return @identifier unless identifier
           @identifier = MediaTypeIdentifier.load(identifier)

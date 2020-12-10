@@ -1,0 +1,54 @@
+ENV['RACK_ENV'] = 'development'
+require 'rspec/core/rake_task'
+RSpec::Core::RakeTask.new(:spec)
+
+require 'praxis'
+require 'praxis/tasks'
+
+# Setup Activerecord migrations
+require 'active_record'
+db_dir = File.expand_path('../db', __dir__)
+ActiveRecord::Tasks::DatabaseTasks.env = ENV['RACK_ENV']
+ActiveRecord::Tasks::DatabaseTasks.db_dir = db_dir
+ActiveRecord::Tasks::DatabaseTasks.migrations_paths = File.join(db_dir, 'migrate')
+
+# Redefine the environment task to load our app
+Rake::Task['praxis:environment'].clear
+namespace :praxis do
+  task :environment do
+    FULL_APP = Rack::Builder.parse_file(File.expand_path('./config.ru', __dir__)).first
+  end
+end
+
+Dir['lib/tasks/**/*.rake'].each { |ext| load ext }
+
+# Inlined basic DB tasks to avoid packaging more files and directories
+namespace :db do
+  require 'active_record/tasks/database_tasks'
+
+  desc 'migrate'
+  task migrate: 'praxis:environment' do
+    ActiveRecord::Tasks::DatabaseTasks.migrate
+    puts "Database migrated."
+  end
+
+  desc 'seed with example data'
+  task seed: 'praxis:environment' do
+    require_relative 'spec/helpers/database_helper'
+    DatabaseHelper.seed!
+  end
+
+  desc 'drops current database'
+  task drop: 'praxis:environment' do
+    db_file = "development.sqlite3"
+    puts "Removing file #{db_file}"
+    `rm -f #{db_file}`
+  end
+
+  desc 'creates configured database'
+  task create: 'praxis:environment' do
+    puts "Creating file development.sqlite3"
+    ActiveRecord::Base.connection.execute("SELECT 1")
+  end
+end
+

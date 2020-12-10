@@ -8,7 +8,7 @@ module Praxis
 
     attr_reader :router
     attr_reader :controllers
-    attr_reader :resource_definitions
+    attr_reader :endpoint_definitions
     attr_reader :app
     attr_reader :builder
 
@@ -32,7 +32,7 @@ module Praxis
 
     def initialize
       @controllers = Set.new
-      @resource_definitions = Set.new
+      @endpoint_definitions = Set.new
 
       @error_handler = ErrorHandler.new
       @validation_handler = ValidationHandler.new
@@ -123,5 +123,9 @@ module Praxis
       @config.set(config)
     end
 
+    # [DEPRECATED] - Warn of the change of method name for the transition 
+    def resource_definitions
+      raise "Praxis::Application.instance does not use `resource_definitions` any longer. Use `endpoint_definitions` instead."
+    end
   end
 end

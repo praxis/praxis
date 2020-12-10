@@ -146,7 +146,7 @@ describe 'Functional specs' do
   context 'bulk_create multipart' do
 
     let(:instance) { Instance.example }
-    let(:instance_json) { JSON.pretty_generate(instance.render(view: :create)) }
+    let(:instance_json) { JSON.pretty_generate(instance.render(fields: {id: true, name: true})) }
 
     let(:form) do
       form_data = MIME::Multipart::FormData.new
@@ -174,7 +174,7 @@ describe 'Functional specs' do
 
       response_instance = JSON.parse(instance_part.body)
       expect(response_instance["key"]).to eq(instance.id)
-      expect(response_instance["value"].values).to eq(instance.render(view: :create).values)
+      expect(response_instance["value"].values).to eq(instance.render(fields: {id: true, name: true}).values)
     end
   end
 
@@ -205,12 +205,10 @@ describe 'Functional specs' do
       its(['destination_path']) { should eq '/etc/defaults' }
 
       context 'response["file"]' do
-        subject(:file) { response['file'] }
-
         its(['filename']) { should eq('docker') }
         its(['type']) { should eq('text/plain') }
         its(['name']) { should eq('file') }
-        its(['tempfile']) { should eq('DOCKER_HOST=tcp://127.0.0.1:2375') }
+        its(['contents']) { should eq('DOCKER_HOST=tcp://127.0.0.1:2375') }
       end
     end
 
@@ -231,7 +229,7 @@ describe 'Functional specs' do
         response = JSON.parse(last_response.body)
 
         expect(response['name']).to eq('ValidationError')
-        expect(response['errors']).to eq(["Attribute $.payload.key(\"destination_path\") is required"])
+        expect(response['errors']).to eq(["Attribute $.payload.destination_path is required"])
       end
 
     end
@@ -259,7 +257,7 @@ describe 'Functional specs' do
       before do
         post '/api/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
       end
-      its(:keys){ should eq(['destination_path','file','options'])}
+      its(:keys){ should eq(['destination_path','name','filename','type','contents','options'])}
       its(['options']){ should eq({"extra_thing"=>"I am extra"})}
     end
 
@@ -334,8 +332,6 @@ describe 'Functional specs' do
     let(:content_type){ 'application/json' }
     it 'can terminate instances with POST' do
       post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'CONTENT_TYPE' => content_type, 'global_session' => session
-      puts last_response.body
-      #binding.pry
       expect(last_response.status).to eq(200)
     end
     it 'can terminate instances with DELETE' do

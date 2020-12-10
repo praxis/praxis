@@ -68,7 +68,7 @@ class Instances < BaseClass
 
       part_body = {
         key: instance_id,
-        value: instance.render(view: :create)
+        value: instance.render(fields: {id: true, name: true})
       }
 
       headers = {
@@ -78,7 +78,6 @@ class Instances < BaseClass
       }
 
       part = Praxis::MultipartPart.new(part_body, headers, name: instance_id)
-
       response.body.push(part)
     end
 
@@ -89,13 +88,20 @@ class Instances < BaseClass
   def attach_file(id:, cloud_id:)
     response.headers['Content-Type'] = 'application/json'
 
-    destination_path = request.payload['destination_path']
-    file = request.payload['file']
-
+    destination_path = request.payload.part('destination_path').payload
+    file = request.payload.part('file')
+    file.payload.rewind # Ensure contents is at the beggining.
+    extra_part_names = request.payload.map(&:name) - ['destination_path', 'file']
+    extra_parts = extra_part_names.each_with_object({}) do |pname, hash|
+      hash[pname] = request.payload.part(pname).body
+    end
     result = {
       destination_path: destination_path,
-      file: file.dump,
-      options: request.payload['options'].dump
+      name: file.name,
+      filename: file.filename,
+      type: file.content_type.to_s,
+      contents: file.payload.read,
+      options: extra_parts
     }
 
     response.body = JSON.pretty_generate(result)

@@ -11,7 +11,7 @@ class Volume < Praxis::MediaType
     attribute :snapshots_summary, VolumeSnapshot::CollectionSummary
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :name
     attribute :source

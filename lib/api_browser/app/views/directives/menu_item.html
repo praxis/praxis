@@ -1,8 +1,0 @@
-<div class="menu-item" ng-if="shouldShow">
-  <a href="{{link.stateRef}}"
-     ng-class="{active: isActive, 'child-resource': link.parent, 'action': link.isAction, 'main': !link.isAction}">
-    {{ link.name }}
-  </a>
-  <menu-item ng-repeat="action in link.actions" link="action"></menu-item>
-  <menu-item ng-repeat="resource in link.childResources" link="resource"></menu-item>
-</div>

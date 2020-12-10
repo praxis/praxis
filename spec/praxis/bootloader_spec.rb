@@ -44,7 +44,11 @@ describe Praxis::Bootloader do
       expect(bootloader.before(stage.name)).to eq('before!')
     end
 
-    it "raises when given an invalid stage name"
+    it "raises when given an invalid stage name" do
+      expect{
+        bootloader.before('nope!')
+      }.to raise_error(Praxis::Exceptions::StageNotFound,/Error running a before block for stage nope!/)
+    end
   end
 
   context ".after" do
@@ -54,7 +58,11 @@ describe Praxis::Bootloader do
       expect(bootloader.after(stage.name)).to eq('after!')
     end
 
-    it "raises when given an invalid stage name"
+    it "raises when given an invalid stage name" do
+      expect{
+        bootloader.after('nope!')
+      }.to raise_error(Praxis::Exceptions::StageNotFound,/Error running an after block for stage nope!/)
+    end
   end
 
   context ".use" do

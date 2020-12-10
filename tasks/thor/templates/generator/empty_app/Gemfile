@@ -1,29 +1,13 @@
 source "https://rubygems.org"
 
-gem 'praxis', github: 'praxis/praxis'
-gem 'attributor', github: 'praxis/attributor'
-gem 'praxis-blueprints', github: 'praxis/praxis-blueprints'
-
-gem 'rainbows', require: false
-gem 'rake'
-gem 'pry'
-gem 'pry-byebug'
+gem 'praxis'
+gem 'rack'
 
 group :development, :test do
-  gem "rack-test", :require => "rack/test"
+  gem 'rack-test'
   gem "rspec" # needed for rake task
-  gem 'rspec-its'
-  gem 'rspec-collection_matchers'
 
-  gem 'foreman', :require => false
-
-  platform :mri_19, :mri_20 do
-    gem 'shotgun', :require => false
-    gem "guard"
-    gem "guard-rspec"
-  end
-end
-
-platform :jruby do
-  gem 'jruby-openssl'
+  gem 'rake'
+  gem 'pry'
+  gem 'pry-byebug'
 end

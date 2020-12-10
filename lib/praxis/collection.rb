@@ -14,8 +14,7 @@ module Praxis
         klass.member_type type
         type.const_set :Collection, klass
       else
-        warn "DEPRECATION: Praxis::Collection.of() for non-MediaTypes will be unsupported in 1.0. Use Attributor::Collection.of() instead."
-        Attributor::Collection.of(type)
+        raise "Praxis::Collection.of() for non-MediaTypes is unsupported. Use Attributor::Collection.of() instead."
       end
 
     end
@@ -23,19 +22,10 @@ module Praxis
     def self.member_type(type=nil)
       unless type.nil?
         @member_type = type
-        @views = nil
         self.identifier(type.identifier + ';type=collection') unless type.identifier.nil?
       end
 
       @member_type
-    end
-
-    def self.views
-      @views ||= begin
-        @member_type.views.each_with_object(Hash.new) do |(name, view), hash|
-          hash[name] = Praxis::CollectionView.new(name, @member_type, view)
-        end
-      end
     end
 
     def self.domain_model

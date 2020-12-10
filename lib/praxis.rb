@@ -1,6 +1,5 @@
 require 'rack'
 require 'attributor'
-require 'praxis-blueprints'
 
 require 'active_support/concern'
 require 'praxis/request_superclassing'
@@ -33,7 +32,8 @@ module Praxis
   autoload :Plugin, 'praxis/plugin'
   autoload :PluginConcern, 'praxis/plugin_concern'
   autoload :Request, 'praxis/request'
-  autoload :ResourceDefinition, 'praxis/resource_definition'
+  autoload :ResourceDefinition, 'praxis/resource_definition' # Deprecated: this is to support an easier transition
+  autoload :EndpointDefinition, 'praxis/endpoint_definition'
   autoload :Response, 'praxis/response'
   autoload :ResponseDefinition, 'praxis/response_definition'
   autoload :ResponseTemplate, 'praxis/response_template'
@@ -43,6 +43,14 @@ module Praxis
   autoload :SimpleMediaType, 'praxis/simple_media_type'
   autoload :Stage, 'praxis/stage'
   autoload :Trait, 'praxis/trait'
+  autoload :ConfigHash, 'praxis/config_hash'
+  autoload :Finalizable, 'praxis/finalizable'
+
+  # Sort of part of the old Blueprints gem...but they're really not scoped...
+  autoload :Blueprint, 'praxis/blueprint'
+  autoload :FieldExpander, 'praxis/field_expander'
+  autoload :Renderer, 'praxis/renderer'
+  
 
   autoload :Notifications, 'praxis/notifications'
   autoload :MiddlewareApp, 'praxis/middleware_app'
@@ -62,7 +70,6 @@ module Praxis
 
   autoload :MediaType, 'praxis/media_type'
   autoload :MediaTypeIdentifier, 'praxis/media_type_identifier'
-  autoload :Multipart, 'praxis/types/multipart'
   autoload :Collection, 'praxis/collection'
 
   autoload :MultipartParser, 'praxis/multipart/parser'

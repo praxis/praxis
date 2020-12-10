@@ -29,7 +29,7 @@ module Praxis
       #
       #   def index(filters: nil, pagination: nil, order: nil,  **_args)
       #     items = current_user.items.all
-      #     items = handle_pagination( query: items)
+      #     items = _craft_pagination_query( query: items)
       #
       #     display(items)
       #   end
@@ -76,7 +76,7 @@ module Praxis
       # * the query to build from and the table
       # * the request (for link header generation)
       # * requires the _pagination variable to be there (set by this module) to return the pagination struct
-      def handle_pagination(query:, type: :active_record)
+      def _craft_pagination_query(query:, type: :active_record)
         handler_klass = \
           case type
           when :active_record

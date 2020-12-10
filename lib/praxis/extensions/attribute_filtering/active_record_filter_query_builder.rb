@@ -18,7 +18,7 @@ module Praxis
         end
         
         def debug(msg)
-          @logger && @logger.puts(msg)
+          @logger && @logger.info(msg)
         end
 
         def generate(filters)

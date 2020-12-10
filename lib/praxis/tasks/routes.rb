@@ -11,7 +11,7 @@ namespace :praxis do
     ]
 
     rows = []
-    Praxis::Application.instance.resource_definitions.each do |resource_definition|
+    Praxis::Application.instance.endpoint_definitions.each do |resource_definition|
       resource_definition.actions.each do |name, action|
         method = begin
           m = resource_definition.controller.instance_method(name)

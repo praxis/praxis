@@ -8,7 +8,7 @@ class Person < Praxis::MediaType
     attribute :href, String, example: proc { |person| "/people/#{person.id}" }
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :name
   end
@@ -20,7 +20,7 @@ class Person < Praxis::MediaType
       attribute :size, Integer
     end
 
-    view :default do
+    default_fieldset do
       attribute :href
     end
 
@@ -47,7 +47,7 @@ class Address < Praxis::MediaType
     attribute :fields, Praxis::Types::FieldSelector.for(Person)
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :name
     attribute :owner
@@ -95,7 +95,7 @@ class Blog < Praxis::MediaType
 
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :href
     attribute :name
@@ -104,12 +104,6 @@ class Blog < Praxis::MediaType
     attribute :timestamps
 
     attribute :owner
-  end
-
-  view :overview do
-    attribute :id
-    attribute :name
-    attribute :description
   end
 end
 
@@ -147,7 +141,7 @@ class Post < Praxis::MediaType
     end
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :href
 
@@ -198,25 +192,11 @@ class User < Praxis::MediaType
       example: proc { |user,ctx| Post::CollectionSummary.example(ctx, href: "#{user.href}/posts") }
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :href
 
     attribute :first
     attribute :last
-  end
-
-  view :extended do
-    attribute :id
-    attribute :href
-
-    attribute :first
-    attribute :last
-    attribute :primary_blog, view: :overview
-  end
-
-  view :with_post_links do
-    attribute :id
-    attribute :posts, view: :link
   end
 end

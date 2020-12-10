@@ -68,7 +68,7 @@ module AuthorizationPlugin
     end
   end
 
-  module ResourceDefinition
+  module EndpointDefinition
 
   end
 

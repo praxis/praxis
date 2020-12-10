@@ -48,7 +48,7 @@ module Praxis
 
       after(:app) do
         Praxis::Blueprint.finalize!
-        Praxis::ResourceDefinition.finalize!
+        Praxis::EndpointDefinition.finalize!
       end
 
     end
@@ -66,12 +66,18 @@ module Praxis
 
     def before(*stage_path, &block)
       stage_name = stage_path.shift
-      stages.find { |stage| stage.name == stage_name }.before(*stage_path, &block)
+      the_stage = stages.find { |stage| stage.name == stage_name }
+      raise Exceptions::StageNotFound.new("Error running a before block for stage #{stage_name}") unless the_stage
+
+      the_stage.before(*stage_path, &block)
     end
 
     def after(*stage_path, &block)
       stage_name = stage_path.shift
-      stages.find { |stage| stage.name == stage_name }.after(*stage_path, &block)
+      the_stage = stages.find { |stage| stage.name == stage_name }
+      raise Exceptions::StageNotFound.new("Error running an after block for stage #{stage_name}") unless the_stage
+
+      the_stage.after(*stage_path, &block)
     end
 
     def use(plugin,**options, &block)

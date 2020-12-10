@@ -443,37 +443,6 @@ describe Praxis::ResponseDefinition do
           end
         end
       end
-
-      describe '#validate_parts!' do
-        context 'with legacy multipart response' do
-          subject(:response) { Praxis::Responses::Ok.new(status: response_status, headers: response_headers) }
-
-          let(:part) { Praxis::MultipartPart.new('done', {'Status' => 200, 'Content-Type' => 'application/special'},**{}) }
-
-          before do
-            response_definition.parts like: :ok, media_type: 'application/special'
-            response.add_part(part)
-          end
-
-          it 'validates each part' do
-            response_definition.parts
-            expect {
-              response_definition.validate_parts!(response)
-            }.to_not raise_error
-          end
-
-          context 'with invalid part' do
-            let(:part) { Praxis::MultipartPart.new('done', {'Status' => 200, "Location" => "somewhere"}) }
-
-            it 'validates' do
-              expect {
-                response_definition.validate_parts!(response)
-              }.to raise_error(Praxis::Exceptions::Validation)
-            end
-
-          end
-        end
-      end
     end
 
   end

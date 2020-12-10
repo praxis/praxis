@@ -2,16 +2,16 @@ require 'spec_helper'
 
 describe Praxis::RoutingConfig do
 
-  let(:resource_definition) do
+  let(:endpoint_definition) do
     Class.new do
-      include Praxis::ResourceDefinition
+      include Praxis::EndpointDefinition
       def self.name; 'MyResource'; end
     end
   end
 
   let(:routing_block) { Proc.new{} }
   let(:base_path){ '' }
-  let(:default_route_prefix) { "/" + resource_definition.name.split("::").last.underscore }
+  let(:default_route_prefix) { "/" + endpoint_definition.name.split("::").last.underscore }
 
   subject(:routing_config){ Praxis::RoutingConfig.new(base: base_path, &routing_block) }
 

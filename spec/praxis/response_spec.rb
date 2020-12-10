@@ -29,7 +29,7 @@ describe Praxis::Response do
   let(:action) do
     instance_double(
       Praxis::ActionDefinition,
-      :resource_definition => config_class
+      :endpoint_definition => config_class
     )
   end
 

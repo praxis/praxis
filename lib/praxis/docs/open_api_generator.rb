@@ -1,13 +1,31 @@
-require_relative 'openapi/info_object.rb'
-require_relative 'openapi/server_object.rb'
-require_relative 'openapi/paths_object.rb'
-require_relative 'openapi/tag_object.rb'
+require_relative 'open_api/info_object.rb'
+require_relative 'open_api/server_object.rb'
+require_relative 'open_api/paths_object.rb'
+require_relative 'open_api/tag_object.rb'
 
 module Praxis
   module Docs
 
-    class OpenApiGenerator < Generator
+    class OpenApiGenerator
+      require 'active_support/core_ext/enumerable' # For index_by
+
       API_DOCS_DIRNAME = 'docs/openapi' 
+      EXCLUDED_TYPES_FROM_OUTPUT = Set.new([
+        Attributor::Boolean,
+        Attributor::CSV,
+        Attributor::DateTime,
+        Attributor::Date,
+        Attributor::Float,
+        Attributor::Hash,
+        Attributor::Ids,
+        Attributor::Integer,
+        Attributor::Object,
+        Attributor::String,
+        Attributor::Symbol,
+        Attributor::URI,
+      ]).freeze
+
+      attr_reader :resources_by_version, :types_by_id, :infos_by_version, :doc_root_dir
 
       # substitutes ":params_like_so" for {params_like_so}
       def self.templatize_url( string )
@@ -37,8 +55,75 @@ module Praxis
 
       private
 
+      def collect_resources
+        # load all resource definitions registered with Praxis
+        Praxis::Application.instance.endpoint_definitions.map do |resource|
+          # skip resources with doc_visibility of :none
+          next if resource.metadata[:doc_visibility] == :none
+          version = resource.version
+          # TODO: it seems that we shouldn't hardcode n/a in Praxis
+          #  version = "unversioned" if version == "n/a"
+          @resources_by_version[version] << resource
+        end
+      end
+
+      def collect_types
+        @types_by_id = ObjectSpace.each_object( Class ).select do |obj|
+          obj < Attributor::Type
+        end.index_by(&:id)
+      end
+
       def write_index_file( for_versions: )
         # TODO. create a simple html file that can link to the individual versions available
+      end
+
+      def scan_types_for_version(version, dumped_resources)
+        found_media_types =  resources_by_version[version].select{|r| r.media_type}.collect {|r| r.media_type.describe }
+
+        # We'll start by processing the rendered mediatypes
+        processed_types = Set.new(resources_by_version[version].select do|r|
+          r.media_type && !r.media_type.is_a?(Praxis::SimpleMediaType)
+        end.collect(&:media_type))
+
+        newfound = Set.new
+        found_media_types.each do |mt|
+          newfound += scan_dump_for_types( { type: mt} , processed_types )
+        end
+        # Then will process the rendered resources (noting)
+        newfound += scan_dump_for_types( dumped_resources, Set.new )
+
+        # At this point we've done a scan of the dumped resources and mediatypes.
+        # In that scan we've discovered a bunch of types, however, many of those might have appeared in the JSON
+        # rendered in just shallow mode, so it is not guaranteed that we've seen all the available types.
+        # For that we'll do a (non-shallow) dump of all the types we found, and scan them until the scans do not
+        # yield types we haven't seen before
+        while !newfound.empty? do
+          dumped = newfound.collect(&:describe)
+          processed_types += newfound
+          newfound = scan_dump_for_types( dumped, processed_types )
+        end
+        processed_types
+      end
+
+      def scan_dump_for_types( data, processed_types )
+        newfound_types = Set.new
+        case data
+        when Array
+          data.collect{|item| newfound_types += scan_dump_for_types( item , processed_types ) }
+        when Hash
+          if data.key?(:type) && data[:type].kind_of?(Hash) && ( [:id,:name,:family] - data[:type].keys ).empty?
+            type_id = data[:type][:id]
+            unless type_id.nil? || type_id == Praxis::SimpleMediaType.id #SimpleTypes shouldn't be collected
+              unless types_by_id[type_id]
+                raise "Error! We have detected a reference to a 'Type' with id='#{type_id}' which is not derived from Attributor::Type" +
+                      " Document generation cannot proceed."
+              end
+              newfound_types << types_by_id[type_id] unless processed_types.include? types_by_id[type_id]
+            end
+          end
+          data.values.map{|item| newfound_types += scan_dump_for_types( item , processed_types)}
+        end
+        newfound_types
       end
 
       def write_version_file( version )

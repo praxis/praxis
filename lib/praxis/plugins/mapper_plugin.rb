@@ -1,7 +1,6 @@
 require 'singleton'
-require 'praxis/extensions/attribute_filtering'
 
-module Praxis
+module Praxis  
   module Plugins
     module MapperPlugin
       include Praxis::PluginConcern
@@ -36,20 +35,21 @@ module Praxis
           return unless self.media_type.respond_to?(:domain_model) &&
             self.media_type.domain_model < Praxis::Mapper::Resource
 
-          resolved = Praxis::MediaType::FieldResolver.resolve(self.media_type, self.expanded_fields)
-          selector_generator.add(self.media_type.domain_model, resolved)
+          selector_generator.add(self.media_type.domain_model, self.expanded_fields)
         end
 
-        def build_query(base_query) # rubocop:disable Metrics/AbcSize
+        def build_query(base_query, type: :active_record) # rubocop:disable Metrics/AbcSize
           domain_model = self.media_type&.domain_model
           raise "No domain model defined for #{self.name}. Cannot use the attribute filtering helpers without it" unless domain_model
           
           filters = request.params.filters if request.params&.respond_to?(:filters)
+          # Handle filters
           base_query = domain_model.craft_filter_query( base_query , filters: filters )
-
+          # Handle field and nested field selection
           base_query = domain_model.craft_field_selection_query(base_query, selectors: selector_generator.selectors)
+          # handle pagination and ordering
+          base_query = _craft_pagination_query(query: base_query, type: type) if self.respond_to?(:_pagination)
 
-          # TODO: handle pagination and ordering
           base_query
         end
 

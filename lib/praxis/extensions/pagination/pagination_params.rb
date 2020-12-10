@@ -202,7 +202,7 @@ module Praxis
         def self.construct(pagination_definition, **options)
           return self if pagination_definition.nil?
 
-          DSLCompiler.new(self, options).parse(*pagination_definition)
+          DSLCompiler.new(self, **options).parse(*pagination_definition)
           self
         end
 
@@ -221,10 +221,11 @@ module Praxis
 
                      selectable = mt_example.object.keys & simple_attrs.keys
                      by = selectable.sample(1).first
-                     from = media_type.attributes[by].example(parent: mt_example)
+                     from = media_type.attributes[by].example(parent: mt_example).to_s
                      # Make sure to encode the value of the from, as it can contain commas and such
-                     from = CGI.escape(from) if from.is_a? String
-                     "by=#{by},from=#{from},items=#{defaults[:page_size]}"
+                     # Only add the from parameter if it's not empty (an empty from is not allowed and it's gonna blow up in load)
+                     optional_from_component = (from && !from.empty?) ? ",from=#{CGI.escape(from)}" : ''
+                     "by=#{by}#{optional_from_component},items=#{defaults[:page_size]}"
                    else
                      "by=id,from=20,items=100"
                    end
@@ -360,6 +361,7 @@ module Praxis
                 else
                   s = "by=#{@by}"
                   s += ",from=#{@from}" if @from
+                  s
                 end
           str += ",items=#{items}" if @items
           str += ",total_count=true" if @total_count

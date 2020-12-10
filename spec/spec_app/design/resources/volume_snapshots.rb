@@ -2,7 +2,7 @@ require_relative 'volumes'
 
 module ApiResources
   class VolumeSnapshots
-    include Praxis::ResourceDefinition
+    include Praxis::EndpointDefinition
 
     media_type VolumeSnapshot
 

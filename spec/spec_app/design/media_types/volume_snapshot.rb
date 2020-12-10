@@ -6,15 +6,10 @@ class VolumeSnapshot < Praxis::MediaType
     attribute :name, String, regexp: /snapshot-(\w+)/
   end
 
-  view :default do
+  default_fieldset do
     attribute :id
     attribute :name
   end
-
-  view :link do
-    attribute :id
-  end
-
 
   class CollectionSummary < Praxis::MediaType
     identifier 'application/json'
@@ -25,18 +20,11 @@ class VolumeSnapshot < Praxis::MediaType
       attribute :href, String
     end
 
-    view :default do
+    default_fieldset do
       attribute :name
       attribute :size
       attribute :href
     end
-
-    view :link do
-      attribute :name
-      attribute :size
-      attribute :href
-    end
-
   end
 
 end

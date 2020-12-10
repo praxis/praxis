@@ -103,7 +103,7 @@ module Praxis
         def self.construct(definition, **options)
           return self if definition.nil?
   
-          DSLCompiler.new(self, options).parse(*definition)
+          DSLCompiler.new(self, **options).parse(*definition)
           self
         end
   

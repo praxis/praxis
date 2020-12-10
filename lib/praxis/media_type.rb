@@ -34,8 +34,9 @@ module Praxis
   #         description: 'The factory in which this widget was produced'
   #     end
   #
-  #     # All resources should have a default view
-  #     view :default do
+  #     # All resources will be assigned a default_fieldset (with only non-blueprint attributes)
+  #     # But one can explicitly tailor that by using the `default_fieldset` DSL
+  #     default_fieldset do
   #       attribute :id
   #       attribute :color
   #       attribute :material
@@ -44,72 +45,6 @@ module Praxis
   class MediaType < Praxis::Blueprint
 
     include Types::MediaTypeCommon
-
-    class FieldResolver
-      def self.resolve(type,fields)
-        self.new.resolve(type,fields)
-      end
-
-      attr_reader :history
-
-      def initialize
-        @history = Hash.new do |hash,key|
-          hash[key] = Hash.new
-        end
-      end
-
-      def resolve(type,fields)
-        history_key = fields
-        history_type = type
-        if fields.kind_of?(Array)
-          loop do
-            type = type.member_attribute.type
-            fields = fields.first
-            break unless fields.kind_of?(Array)
-          end
-        end
-
-        return true if fields == true
-
-        if history[history_type].include? history_key
-          return history[history_type][history_key]
-        end
-
-        result = history[history_type][history_key] = {}
-
-
-        fields.each do |name, sub_fields|
-
-          new_type = type.attributes[name].type
-          result[name] = resolve(new_type, sub_fields)
-        end
-
-        result
-      end
-
-      # perform a deep recursive *in place* merge
-      # form all values in +source+ onto +target+
-      #
-      # note: can not use ActiveSupport's Hash#deep_merge! because it does not
-      # properly do a recursive `deep_merge!`, but instead does `deep_merge`,
-      # which destroys the self-referential behavior of field hashes.
-      #
-      # note: unlike Hash#merge, doesn't take a block.
-      def deep_merge(target, source)
-        source.each do |current_key, source_value|
-          target_value = target[current_key]
-
-          target[current_key] = if target_value.is_a?(Hash) && source_value.is_a?(Hash)
-            deep_merge(target_value, source_value)
-          else
-            source_value
-          end
-        end
-        target
-      end
-
-    end
-
   end
 
 end

@@ -53,7 +53,7 @@ module Praxis
       end
       prefixed_path = path.gsub('//','/')
       path = (base + path).gsub('//','/')
-      pattern = Mustermann.new(path, {ignore_unknown_options: true}.merge( options ))
+      pattern = Mustermann.new(path, **{ignore_unknown_options: true}.merge( options ))
       @route = Route.new(verb, pattern, version, prefixed_path: prefixed_path, **options)
     end
 

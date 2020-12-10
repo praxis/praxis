@@ -1,6 +1,6 @@
 module ApiResources
   class Instances
-    include Praxis::ResourceDefinition
+    include Praxis::EndpointDefinition
 
     media_type Instance
     version '1.0'
@@ -119,13 +119,10 @@ module ApiResources
         attribute :id
       end
 
-      # TODO: move to something else when Multipart is fully deprecated
-      silence_warnings do
-        payload Praxis::Multipart, allow_extra: true do
-          key 'destination_path', String, required: true
-          key 'file', Attributor::FileUpload, required: false
-          extra 'options'
-        end
+      payload Praxis::Types::MultipartArray do
+        part 'destination_path', String, required: true
+        file 'file', Attributor::Tempfile, required: false
+        part(/.*/, String) # Allows extra parts
       end
 
       response :ok, media_type: 'application/json'

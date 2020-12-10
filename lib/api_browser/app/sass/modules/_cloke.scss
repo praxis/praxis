@@ -1,8 +1,0 @@
-_cloke.scss
-/*
- since the cloak css code is added by angular.js, which is at the bottom of the page, we lose all benefit of it.
- we add it here so that it is loaded at the beginning of the page
-*/
-[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
-  display: none !important;
-}

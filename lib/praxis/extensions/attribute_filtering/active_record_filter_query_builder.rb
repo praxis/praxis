@@ -5,6 +5,22 @@ module Praxis
     module AttributeFiltering
       ALIAS_TABLE_PREFIX = ''
       require_relative 'active_record_patches'
+      # Helper class that can present an SqlLiteral string which we have already quoted
+      # ... but! that can properly provide a "to_sym" that has the value unquoted
+      # This is necessary as (the latest AR code):
+      # * does not carry over "references" in joins if they are not SqlLiterals
+      # * but, at the same time, it indexes the references using the .to_sym value (which is really expected to be the normal string, without quotes)
+      # If we pass a normal SqlLiteral, instead of our wrapper, without quoting the table, the current AR code will never quote it to form the 
+      # SQL string, as it's already a literal...so our "/" type separators as names won't work without quoting.
+      class QuasiSqlLiteral < Arel::Nodes::SqlLiteral
+        def initialize(quoted:, symbolized:)
+          @symbolized = symbolized
+          super(quoted)
+        end
+        def to_sym
+          @symbolized
+        end
+      end
 
       class ActiveRecordFilterQueryBuilder
       attr_reader :query, :model, :attr_to_column
@@ -17,15 +33,15 @@ module Praxis
           @logger = debug ? Logger.new(STDOUT) : nil
         end
         
-        def debug(msg)
-          @logger && @logger.info(msg)
+        def debug_query(msg, query)
+          @logger.info(msg + query.to_sql) if @logger
         end
 
         def generate(filters)
           # Resolve the names and values first, based on filters_map
           root_node = _convert_to_treenode(filters)
           craft_filter_query(root_node, for_model: @model)
-          debug("SQL due to filters: #{@query.all.to_sql}")
+          debug_query("SQL due to filters: ", @query.all)
           @query
         end
 
@@ -85,7 +101,7 @@ module Praxis
         end
 
         def add_clause(column_prefix:, column_object:, op:, value:)
-          @query = @query.references(column_prefix) #Mark where clause referencing the appropriate alias
+          @query = @query.references(build_reference_value(column_prefix)) #Mark where clause referencing the appropriate alias
           likeval = get_like_value(value)
           case op
             when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
@@ -163,6 +179,22 @@ module Praxis
             likeval[-1] = '%' if value[-1] == '*'
             likeval[0] = '%' if value[0] == '*'
             likeval
+          end
+        end
+
+        # The value that we need to stick in the references method is different in the latest Rails
+        maj, min, _ = ActiveRecord.gem_version.segments
+        if maj == 5 || (maj == 6 && min == 0)
+          # In AR 6 (and 6.0) the references are simple strings
+          def build_reference_value(column_prefix)
+            column_prefix
+          end
+        else
+          # The latest AR versions discard passing references to joins when they're not SqlLiterals ... so let's wrap it
+          # with our class, so that it is a literal (already quoted), but that can still provide the expected "symbol" without quotes
+          # so that our aliasing code can match it.
+          def build_reference_value(column_prefix)
+            QuasiSqlLiteral.new(quoted: query.connection.quote_table_name(column_prefix), symbolized: column_prefix.to_sym)
           end
         end
       end

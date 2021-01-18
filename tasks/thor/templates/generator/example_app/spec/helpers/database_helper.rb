@@ -14,5 +14,6 @@ class DatabaseHelper
     user_data.each_with_index do |data, i|
       ::User.create(**data)
     end
+    puts "Database seeded."
   end
 end

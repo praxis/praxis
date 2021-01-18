@@ -81,7 +81,28 @@ class PraxisGenerator < Thor
     gen = ::PraxisGen::Example.new([app_name])
     gen.destination_root = app_name
     gen.invoke(:example)
-  end  
+  end
+
+  desc_for "g COLLECTION_NAME", ::PraxisGen::Scaffold, :g
+  # Cannot use the argument below or it will apply to all commands (the action in the class has it)
+  # argument :collection_name, required: false
+  # The options, however, since they're optional are fine
+  option :version, required: false, default: '1'
+  option :design, type: :boolean, default: true
+  option :implementation, type: :boolean,default: true
+  option :resource, type: :boolean, default: true
+  def g(*args)
+    # Because we cannot share the :collection_name argument, we need to do this check here, before
+    # we "parse" it and pass it to the g command
+    unless args.size == 1
+      ::PraxisGen::Scaffold.command_help(shell,:g)
+      exit 1
+    end
+
+    collection_name,_ = args
+    ::PraxisGen::Scaffold.new([collection_name],options).invoke(:g)
+  end
+
 end
     
 PraxisGenerator.start(ARGV)

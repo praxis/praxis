@@ -6,7 +6,8 @@ class DatabaseHelper
   def self.seed!
     user_data = [
       {id: 11, first_name: 'Peter', last_name: 'Praxis', uuid: 'deadbeef', email: 'peter@pan.com'},
-      {id: 12, first_name: 'Alice', last_name: 'Trellis', uuid: 'beefdead', email: 'alice@wonderland.com'}
+      {id: 12, first_name: 'Alice', last_name: 'Trellis', uuid: 'beefdead', email: 'alice@wonderland.com'},
+      {id: 13, first_name: 'Wellington', last_name: 'Lofty', uuid: 'beefbeef', email: 'well@lofty.com'},
     ]
     (100..199).each do |i|
       user_data.push id: i, first_name: "User-#{i}", last_name: "Last-#{i}", uuid: SecureRandom.hex(16).to_s

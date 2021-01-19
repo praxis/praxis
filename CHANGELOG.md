@@ -14,6 +14,7 @@ applications would benefit from it. Applications can choose to add that function
 - Folded the pagination/ordering extensions to activate within the `build_query` method of the mapper plugin extension. This way all the field selection, filtering and pagination/ordering will kick in automatically when that plugin is included.
 - Make MapperPlugin to automatically call `set_selectors` before an action, and ensure it includes the rendering extensions to the Controllers. Less things to configure if you opt into the Mapper way.
 - Built scaffolding generator for quickly creating a new API endpoint in the praxis binary (it builds endpoint+mediatype+controller+resource at one, with useful base code and comments)
+- Dropped support for Ruby 2.4 and 2.5 as some of the newest dependent gems are dropping it as well.
 
 ## 2.0.pre.9
 

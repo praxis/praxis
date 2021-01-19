@@ -4,7 +4,6 @@ module <%= version_module %>
   module Controllers
     class <%= plural_class %>
       include Praxis::Controller
-      include Praxis::Extensions::Rendering
 
       implements Endpoints::<%= plural_class %>
 

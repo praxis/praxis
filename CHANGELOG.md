@@ -12,6 +12,8 @@ applications would benefit from it. Applications can choose to add that function
 - Remove dependency from praxis-blueprints, as simplified subset of its code has now been included in this repo:
   - no more views for mediatypes. A default fieldset will be automatically defined which will be the default set of attributes to render with. This default fieldset will only contain simple direct attributes (i.e., non blueprint/mediatype attributes). One can override the default by explicitly defining one using the `default_fieldset` DSL, similar to how views were defined before.
 - Folded the pagination/ordering extensions to activate within the `build_query` method of the mapper plugin extension. This way all the field selection, filtering and pagination/ordering will kick in automatically when that plugin is included.
+- Make MapperPlugin to automatically call `set_selectors` before an action, and ensure it includes the rendering extensions to the Controllers. Less things to configure if you opt into the Mapper way.
+- Built scaffolding generator for quickly creating a new API endpoint in the praxis binary (it builds endpoint+mediatype+controller+resource at one, with useful base code and comments)
 
 ## 2.0.pre.9
 

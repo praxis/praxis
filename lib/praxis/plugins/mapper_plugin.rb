@@ -1,5 +1,7 @@
 require 'singleton'
 
+require 'praxis/extensions/field_selection'
+
 module Praxis  
   module Plugins
     module MapperPlugin
@@ -28,7 +30,13 @@ module Praxis
         extend ActiveSupport::Concern
 
         included do
+          include Praxis::Extensions::Rendering
           include Praxis::Extensions::FieldExpansion
+
+          before :action do |controller, _callee|
+            # Set the selectors, unless they're set already
+            controller.set_selectors unless controller.selector_generator.selectors
+          end
         end
 
         def set_selectors

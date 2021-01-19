@@ -67,7 +67,11 @@ module Praxis
           resolved_array = []
           filters.parsed_array.each do |filter|
             mapped_value = attr_to_column[filter[:name]]
-            raise "Filtering by #{filter[:name]} not allowed (no mapping found)" unless mapped_value
+            unless mapped_value
+              msg = "Filtering by #{filter[:name]} is not allowed as there is no implementation mapping defined for it.\n" \
+                "Please add a mapping for #{filter[:name]} in the `filters_mapping` method of the appropriate Resource class"
+              raise msg
+            end
             bindings_array = \
               if mapped_value.is_a?(Proc)
                 result = mapped_value.call(filter)

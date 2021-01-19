@@ -211,7 +211,9 @@ module Praxis::Mapper
 
     def self.craft_filter_query(base_query, filters:) # rubocop:disable Metrics/AbcSize
       if filters 
-        raise "Must define the mapping of filters if want to use Filtering for resource: #{self}" unless @_filters_map
+        unless @_filters_map
+          raise "To use API filtering, you must define the mapping of api-names to resource properties (using the `filters_mapping` method in #{self})"
+        end
         debug = Praxis::Application.instance.config.mapper.debug_queries
         base_query = model._filter_query_builder_class.new(query: base_query, model: model, filters_map: @_filters_map, debug: debug).generate(filters)
       end

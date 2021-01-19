@@ -13,7 +13,7 @@ describe V1::Controllers::Users do
 
   context 'index' do
     let(:filters_q) { '' }
-    let(:fields_q) { 'uid,uuid' }
+    let(:fields_q) { 'id' }
     let(:query_string) do
       "filters=#{CGI.escape(filters_q)}&fields=#{CGI.escape(fields_q)}"
     end
@@ -30,7 +30,7 @@ describe V1::Controllers::Users do
       it 'returns only peter' do
         expect(parsed_body.size).to eq(1)
         # Peter has id 11 from our seeds
-        expect(parsed_body.map{|u| u[:uid]}).to eq(['11'])
+        expect(parsed_body.map{|u| u[:id]}).to eq([11])
       end
     end
   end

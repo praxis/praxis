@@ -10,7 +10,7 @@ module <%= version_module %>
 
       attributes do
         # Define as many attributes with types as required
-        # attribute :id, String
+        # attribute :id, Integer
       end
     end
   end

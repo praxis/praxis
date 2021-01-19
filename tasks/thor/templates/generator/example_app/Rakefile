@@ -42,8 +42,7 @@ namespace :db do
 
   desc 'seed with example data'
   task seed: 'praxis:environment' do
-    require_relative 'spec/helpers/database_helper'
-    DatabaseHelper.seed!
+    require_relative 'db/seeds.rb'
   end
 
   desc 'drops current database'

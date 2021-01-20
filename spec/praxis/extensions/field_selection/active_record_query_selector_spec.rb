@@ -29,7 +29,7 @@ describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
       :id # We always load the primary keys
     ]
   end
-  let(:selector_node) { Praxis::Mapper::SelectorGenerator.new.add(ActiveBookResource,selector_fields)  }
+  let(:selector_node) { Praxis::Mapper::SelectorGenerator.new.add(ActiveBookResource,selector_fields).selectors  }
   let(:debug){ false }
 
   subject(:selector) {described_class.new(query: query, selectors: selector_node, debug: debug) }

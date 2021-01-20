@@ -32,18 +32,6 @@ module Praxis
         included do
           include Praxis::Extensions::Rendering
           include Praxis::Extensions::FieldExpansion
-
-          before :action do |controller, _callee|
-            # Set the selectors, unless they're set already
-            controller.set_selectors unless controller.selector_generator.selectors
-          end
-        end
-
-        def set_selectors
-          return unless self.media_type.respond_to?(:domain_model) &&
-            self.media_type.domain_model < Praxis::Mapper::Resource
-
-          selector_generator.add(self.media_type.domain_model, self.expanded_fields)
         end
 
         def build_query(base_query, type: :active_record) # rubocop:disable Metrics/AbcSize
@@ -62,7 +50,11 @@ module Praxis
         end
 
         def selector_generator
-          @selector_generator ||= Praxis::Mapper::SelectorGenerator.new
+          return unless self.media_type.respond_to?(:domain_model) &&
+            self.media_type.domain_model < Praxis::Mapper::Resource
+
+          @selector_generator ||= \
+            Praxis::Mapper::SelectorGenerator.new.add(self.media_type.domain_model, self.expanded_fields)
         end
 
       end

@@ -8,7 +8,7 @@ describe Praxis::Mapper::SelectorGenerator do
   context '#add' do
     let(:resource) { SimpleResource }
     shared_examples 'a proper selector' do
-      it { expect(generator.add(resource, fields).dump).to be_deep_equal selectors }
+      it { expect(generator.add(resource, fields).selectors.dump).to be_deep_equal selectors }
     end
     
     context 'basic combos' do

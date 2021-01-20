@@ -230,6 +230,19 @@ module Praxis::Mapper
       base_query
     end
 
+    def self.craft_pagination_query(base_query, pagination: ) # rubocop:disable Metrics/AbcSize
+      handler_klass = model._pagination_query_builder_class
+      return base_query unless (handler_klass && (pagination.paginator || pagination.order))
+
+      # Gather and save the count if required
+      if pagination.paginator&.total_count
+        pagination.total_count = handler_klass.count(base_query.dup)
+      end
+      
+      base_query = handler_klass.order(base_query, pagination.order)
+      handler_klass.paginate(base_query, pagination)
+    end
+
     def initialize(record)
       @record = record
     end

@@ -23,6 +23,10 @@ module Praxis
           Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector
         end
 
+        def _pagination_query_builder_class
+          Praxis::Extensions::Pagination::ActiveRecordPaginationHandler
+        end
+
         def _praxis_associations
           orig = self.reflections.clone
 

@@ -19,6 +19,10 @@ module Praxis::Mapper
         Praxis::Extensions::FieldSelection::SequelQuerySelector
       end
 
+      def _pagination_query_builder_class
+        Praxis::Extensions::Pagination::SequelPaginationHandler
+      end
+
       def _praxis_associations
         orig = self.association_reflections.clone
         orig.each do |k,v|

@@ -7,13 +7,16 @@ module <%= version_module %>
 
       implements Endpoints::<%= plural_class %>
 
+      <%- if action_enabled?(:index) -%>
       # Retrieve all <%= plural_class %> with the right necessary associations
       # and render them appropriately with the requested field selection
       def index
         objects = build_query(model_class).all
         display(objects)
       end
+      <%- end -%>
 
+      <%- if action_enabled?(:show) -%>
       # Retrieve a single <%= singular_class %> with the right necessary associations
       # and render them appropriately with the requested field selection
       def show(id:, **_args)
@@ -22,46 +25,49 @@ module <%= version_module %>
 
         display(model)
       end
+      <%- end -%>
 
-      # # Creates a new <%= singular_class %>
-      # def create
-      #   # A good pattern is to call the same name method on the corresponding resource, 
-      #   # passing the incoming payload, or massaging it first
-      #   created_resource = Resources::<%= singular_class%>.create(request.payload)
+      <%- if action_enabled?(:create) -%>
+      # Creates a new <%= singular_class %>
+      def create
+        # A good pattern is to call the same name method on the corresponding resource, 
+        # passing the incoming payload, or massaging it first
+        created_resource = Resources::<%= singular_class%>.create(request.payload)
 
-      #   # Respond with a created if it successfully finished
-      #   Praxis::Responses::Created.new(location: created.href)
-      # end
+        # Respond with a created if it successfully finished
+        Praxis::Responses::Created.new(location: created_resource.href)
+      end
+      <%- end -%>
 
-      # # Updates some of the information of a <%= singular_class %>
-      # def update(id:)
-      #   # Retrieve the model from the DB
-      #   model = model_class.find_by(id: id)
-      #   return Praxis::Responses::NotFound.new unless model
+      <%- if action_enabled?(:update) -%>
+      # Updates some of the information of a <%= singular_class %>
+      def update(id:)
+        # A good pattern is to call the same name method on the corresponding resource, 
+        # passing the incoming id and payload (or massaging it first)
+        updated_resource = Resources::<%= singular_class %>.update(
+          id: id,
+          payload: request.payload,
+        )
+        return Praxis::Responses::NotFound.new unless updated_resource
 
-      #   # A good pattern is to call the same name method on the corresponding resource, 
-      #   # passing the incoming payload, or massaging it first
-      #   Resources::<%= singular_class %>.update(
-      #     model: model,
-      #     payload: request.payload,
-      #   )
+        Praxis::Responses::NoContent.new
+      end
+      <%- end -%>
 
-      #   Praxis::Responses::NoContent.new
-      # end
+      <%- if action_enabled?(:delete) -%>
+      # Deletes an existing <%= singular_class %>
+      def delete(id:)
+        # A good pattern is to call the same name method on the corresponding resource,
+        # maybe passing the already loaded model
+        deleted_resource = Resources::<%= singular_class %>.delete(
+          id: id,
+          payload: request.payload,
+        )
+        return Praxis::Responses::NotFound.new unless deleted_resource
 
-
-      # # Deletes an existing <%= singular_class %>
-      # def delete(id:)
-      #   # Retrieve the model from the DB
-      #   model = model_class.find_by(id: id)
-      #   return Praxis::Responses::NotFound.new unless model
-
-      #   # A good pattern is to call the same name method on the corresponding resource,
-      #   # maybe passing the already loaded model
-      #   Resources::<%= singular_class %>.update(model: model)
-
-      #   Praxis::Responses::NoContent.new
-      # end
+        Praxis::Responses::NoContent.new
+      end
+      <%- end -%>
 
       # Use the model class as the base query but you might want to change that
       def model_class

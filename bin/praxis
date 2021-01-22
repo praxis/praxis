@@ -97,6 +97,8 @@ class PraxisGenerator < Thor
           desc: 'Disable (or enable) the creation of the Resource files when generating implementation'
   option :model, type: :string, enum: ['activerecord','sequel'],
           desc: 'It also generates a model for the given ORM. An empty --model flag will default to activerecord'
+  option :actions, type: :string, default: 'crud', enum: ['cr','cru','crud','u','ud','d'],
+          desc: 'Specifies the actions to generate for the API. cr=create, u=update, d=delete. Index and show actions are always generated'
   def g(*args)
     # Because we cannot share the :collection_name argument, we need to do this check here, before
     # we "parse" it and pass it to the g command

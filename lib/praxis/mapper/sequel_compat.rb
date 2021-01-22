@@ -7,6 +7,7 @@ module Praxis::Mapper
 
     included do
       attr_accessor :_resource
+      alias_method :find_by, :find # Easy way to be method compatible with AR
     end
 
     module ClassMethods

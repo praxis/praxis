@@ -9,8 +9,8 @@ module <%= version_module %>
       description 'Structural definition of a <%= singular_class %>'
 
       attributes do
-        # Define as many attributes with types as required
-        # attribute :id, Integer
+        attribute :id, Integer, description: '<%= singular_class %> identifier'
+        # Define as many attributes with types as required (and/or delete id above)
       end
     end
   end

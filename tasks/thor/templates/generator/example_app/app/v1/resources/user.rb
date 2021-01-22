@@ -2,7 +2,7 @@
 
 module V1
   module Resources
-    class User < Praxis::Mapper::Resource
+    class User < Base
       model ::User
 
       # Mappings for the allowed filters

@@ -10,6 +10,7 @@ module <%= version_module %>
 
       description 'Praxis-generated endpoint for managing <%= plural_class %>'
 
+      <%- if action_enabled?(:index) -%>
       action :index do
         description 'List <%= plural_class %>'
         routing { get '' }
@@ -30,7 +31,9 @@ module <%= version_module %>
         end
         response :ok, media_type: Praxis::Collection.of(MediaTypes::<%= singular_class %>)
       end
+      <%- end -%>
 
+      <%- if action_enabled?(:index) -%>
       action :show do
         description 'Retrieve details for a specific <%= singular_class %>'
         routing { get '/:id' }
@@ -42,44 +45,50 @@ module <%= version_module %>
         response :ok
         response :not_found
       end
+      <%- end -%>
 
+      <%- if action_enabled?(:create) -%>
+      action :create do
+        description 'Create a new <%= singular_class %>'
+        routing { post '' }
+        payload reference: MediaTypes::<%= singular_class %> do
+          # List the attributes you accept from the one existing in the <%= singular_class %> Mediatype
+          # and/or fully define any other ones you allow at creation time
+          # attribute :name
+        end
+        response :created
+        response :bad_request
+      end
+      <%- end -%>
 
-      # action :create do
-      #   description 'Create a new <%= singular_class %>'
-      #   routing { post '' }
-      #   payload reference: MediaTypes::<%= singular_class %> do
-      #     # List the attributes you accept from the one existing in the <%= singular_class %> Mediatype
-      #     # and/or fully define any other ones you allow at creation time
-      #     attribute :name
-      #   end
-      #   response :created
-      #   response :bad_request
-      # end
+      <%- if action_enabled?(:update) -%>
+      action :update do
+        description 'Update one or more attributes of an existing <%= singular_class %>'
+        routing { patch '/:id' }
+        params do
+          attribute :id, required: true
+        end
+        payload reference: MediaTypes::<%= singular_class %> do
+          # List the attributes you accept from the one existing in the <%= singular_class %> Mediatype
+          # and/or fully define any other ones you allow to change
+          # attribute :name
+        end
+        response :no_content
+        response :bad_request
+      end
+      <%- end -%>
 
-      # action :update do
-      #   description 'Update one or more attributes of an existing <%= singular_class %>'
-      #   routing { patch '/:id' }
-      #   params do
-      #     attribute :id, required: true
-      #   end
-      #   payload reference: MediaTypes::<%= singular_class %> do
-      #     # List the attributes you accept from the one existing in the <%= singular_class %> Mediatype
-      #     # and/or fully define any other ones you allow to change
-      #     attribute :name
-      #   end
-      #   response :no_content
-      #   response :bad_request
-      # end
-
-      # action :delete do
-      #   description 'Deletes a <%= singular_class %>'
-      #   routing { delete '/:id' }
-      #   params do
-      #     attribute :id, required: true
-      #   end
-      #   response :no_content
-      #   response :not_found
-      # end
+      <%- if action_enabled?(:update) -%>
+      action :delete do
+        description 'Deletes a <%= singular_class %>'
+        routing { delete '/:id' }
+        params do
+          attribute :id, required: true
+        end
+        response :no_content
+        response :not_found
+      end
+      <%- end -%>
     end
   end
 end

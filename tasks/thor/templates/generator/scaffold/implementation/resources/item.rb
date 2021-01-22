@@ -3,7 +3,7 @@
 module <%= version_module %>
   module Resources
     class <%= singular_class %> < Praxis::Mapper::Resource
-      model ::<%= singular_class %> #Change it to the appropriate DB model class
+      model ::<%= singular_class %> # Change it if it maps to a different DB model class
 
       # Define the name mapping from API filter params, to model attribute/associations
       # when they aren't 1:1

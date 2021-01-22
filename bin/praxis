@@ -46,7 +46,7 @@ class PraxisGenerator < Thor
   def routes
   end
 
-  desc "docs [generate|browser|package]", <<-EOF  
+  desc "docs [generate|browser|package]", <<~EOF
   Generates API documentation and a Web App to inspect it
     generate - Generates the JSON docs
     browser  - (default) Generates JSON docs, and automatically starts a Web app to browse them.
@@ -86,11 +86,17 @@ class PraxisGenerator < Thor
   desc_for "g COLLECTION_NAME", ::PraxisGen::Scaffold, :g
   # Cannot use the argument below or it will apply to all commands (the action in the class has it)
   # argument :collection_name, required: false
-  # The options, however, since they're optional are fine
-  option :version, required: false, default: '1'
-  option :design, type: :boolean, default: true
-  option :implementation, type: :boolean,default: true
-  option :resource, type: :boolean, default: true
+  # The options, however, since they're optional are fine (But need to be duplicated from the class :( )
+  option :version, required: false, default: '1',
+          desc: 'Version string for the API endpoint. This also dictates the directory structure (i.e., v1/endpoints/...))'
+  option :design, type: :boolean, default: true,
+          desc: 'Include the Endpoint and MediaType files for the collection'
+  option :implementation, type: :boolean, default: true,
+          desc: 'Include the Controller and (possibly the) Resource files for the collection (see --no-resource)'
+  option :resource, type: :boolean, default: true,
+          desc: 'Disable (or enable) the creation of the Resource files when generating implementation'
+  option :model, type: :string, enum: ['activerecord','sequel'],
+          desc: 'It also generates a model for the given ORM. An empty --model flag will default to activerecord'
   def g(*args)
     # Because we cannot share the :collection_name argument, we need to do this check here, before
     # we "parse" it and pass it to the g command
@@ -101,7 +107,35 @@ class PraxisGenerator < Thor
 
     collection_name,_ = args
     ::PraxisGen::Scaffold.new([collection_name],options).invoke(:g)
+    if options[:model]
+      # Make it easy to be able to both enable or not enable the creation of the model, by passing --model=...
+      # but also make it easy so that if there is no value for it, it default to activerecord
+      opts = {orm: options[:model] }
+      opts[:orm] = 'activerecord' if opts[:orm] == 'model' # value is model param passed by no value
+      ::PraxisGen::Model.new([collection_name.singularize],opts).invoke(:g)
+    end
   end
+
+  # Initially, the idea was to build some quick model generator, but I think it's better to keep it
+  # simple and just use the scaffold generator with `--no-implementation --no-design --model` instead
+  # Left here in case we want to rescue it
+  # desc_for "gmodel MODEL_NAME", ::PraxisGen::Model, :g
+  # # Cannot use the argument below or it will apply to all commands (the action in the class has it)
+  # # argument :collection_name, required: false
+  # # The options, however, since they're optional are fine (But need to be duplicated from the class :( )
+  # option :orm, required: false, default: 'activerecord', enum: ['activerecord','sequel'],
+  #         desc: 'Type of ORM model to create.'
+  # def gmodel(*args)
+  #   # Because we cannot share the :collection_name argument, we need to do this check here, before
+  #   # we "parse" it and pass it to the g command
+  #   unless args.size == 1
+  #     ::PraxisGen::Model.command_help(shell,:g)
+  #     exit 1
+  #   end
+
+  #   model_name,_ = args
+  #   ::PraxisGen::Model.new([model_name],options).invoke(:g)
+  # end
 
 end
     

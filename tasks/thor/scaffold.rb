@@ -11,10 +11,16 @@ module PraxisGen
 
     desc "g","Generates an API design and implementation scaffold for managing a collection of <collection_name>"
     argument :collection_name, required: true
-    option :version, required: false, default: '1'
-    option :design, type: :boolean, default: true
-    option :implementation, type: :boolean,default: true
-    option :resource, type: :boolean, default: true
+    option :version, required: false, default: '1',
+    desc: 'Version string for the API endpoint. This also dictates the directory structure (i.e., v1/endpoints/...))'
+    option :design, type: :boolean, default: true,
+        desc: 'Include the Endpoint and MediaType files for the collection'
+    option :implementation, type: :boolean, default: true,
+        desc: 'Include the Controller and (possibly the) Resource files for the collection (see --no-resource)'
+    option :resource, type: :boolean, default: true,
+        desc: 'Disable (or enable) the creation of the Resource files when generating implementation'
+    option :model, type: :string, enum: ['activerecord','sequel'],
+        desc: 'It also generates a model for the given ORM. An empty --model flag will default to activerecord'
     def g
       self.class.check_name(collection_name)
 
@@ -24,6 +30,7 @@ module PraxisGen
         template 'design/endpoints/collection.rb', "design/#{version_dir}/endpoints/#{collection_name}.rb"
       end
       if options[:implementation]
+        puts "Generating Implementation scaffold for #{plural_class}"
         if options[:resource]
           template 'implementation/resources/item.rb', "app/#{version_dir}/resources/#{collection_name.singularize}.rb"
         end

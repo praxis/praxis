@@ -4,7 +4,6 @@ module V1
   module Endpoints
     class Users
       include Praxis::EndpointDefinition
-      # include AuthenticatedEndpoint
 
       media_type MediaTypes::User
       version '1'

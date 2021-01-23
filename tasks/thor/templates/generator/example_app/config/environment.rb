@@ -3,7 +3,7 @@ Praxis::Application.configure do |application|
 
   # Configure the Mapper plugin (if we want to use all the filtering/field_selection extensions)
   application.bootloader.use Praxis::Plugins::MapperPlugin
-  # Cconfigure the Pagination plugin (if we want to use all the pagination/ordering extensions)
+  # Configure the Pagination plugin (if we want to use all the pagination/ordering extensions)
   application.bootloader.use Praxis::Plugins::PaginationPlugin, {
     # max_items: 500,  # Unlimited by default,
     # default_page_size: 100,

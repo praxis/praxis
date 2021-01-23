@@ -17,12 +17,15 @@ module <%= version_module %>
         params do
           attribute :fields, Praxis::Types::FieldSelector.for(MediaTypes::<%= singular_class %>),
                     description: 'Fields with which to render the result.'
-          attribute :pagination, Praxis::Types::PaginationParams.for(MediaTypes::<%= singular_class %>) do
-            # by_fields :uid, :name
-          end
-          attribute :order, Praxis::Extensions::Pagination::OrderingParams.for(MediaTypes::<%= singular_class %>) do
-            # by_fields :uid, :name
-          end
+<%- if !pagination_enabled? -%>
+=begin
+          # You can use pagination/ordering by enabling the PaginationPlugin, and uncommenting these lines
+<%- end -%>
+          attribute :pagination, Praxis::Types::PaginationParams.for(MediaTypes::<%= singular_class %>)
+          attribute :order, Praxis::Extensions::Pagination::OrderingParams.for(MediaTypes::<%= singular_class %>)
+<%- if !pagination_enabled? -%>
+=end
+<%- end -%>
           # # Filter by attributes. Add an allowed filter per line, with the allowed operators to use
           # # Also, remember to add a mapping for each in `filters_mapping` method of Resources::<%= singular_class %> class
           # attribute :filters, Praxis::Types::FilteringParams.for(MediaTypes::<%= singular_class %>) do

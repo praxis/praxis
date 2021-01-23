@@ -28,6 +28,8 @@ module PraxisGen
     def g
       self.class.check_name(collection_name)
       @actions_hash = self.class.compose_actions_hash(options[:actions])
+      env_rb = Pathname.new(destination_root)+Pathname.new("config/environment.rb")
+      @pagination_plugin_found = File.open(env_rb).grep(/Praxis::Plugins::PaginationPlugin.*/).reject{|l| l.strip[0] == '#'}.present?
       if options[:design]
         say_status 'Design', "Generating scaffold for #{plural_class}", :blue
         template 'design/media_types/item.rb', "design/#{version_dir}/media_types/#{collection_name.singularize}.rb"
@@ -77,6 +79,10 @@ module PraxisGen
 
       def action_enabled?(action)
         @actions_hash[action.to_sym]
+      end
+
+      def pagination_enabled?
+        @pagination_plugin_found
       end
     end
 

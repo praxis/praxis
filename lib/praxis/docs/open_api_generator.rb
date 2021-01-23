@@ -244,7 +244,7 @@ module Praxis
         resources_by_version.keys.each do |version|
           FileUtils.mkdir_p @doc_root_dir + '/' + version
         end
-        FileUtils.mkdir_p @doc_root_dir + '/unversioned'
+        FileUtils.mkdir_p @doc_root_dir + '/unversioned' if resources_by_version.keys.include?('n/a')
       end
 
       def normalize_media_types( mtis )

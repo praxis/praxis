@@ -10,7 +10,7 @@ module <%= version_module %>
 
       attributes do
         attribute :id, Integer, description: '<%= singular_class %> identifier'
-        # Define as many attributes with types as required (and/or delete id above)
+        # <INSERT MORE ATTRIBUTES HERE>
       end
     end
   end

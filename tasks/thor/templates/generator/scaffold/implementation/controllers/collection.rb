@@ -60,8 +60,7 @@ module <%= version_module %>
         # A good pattern is to call the same name method on the corresponding resource,
         # maybe passing the already loaded model
         deleted_resource = Resources::<%= singular_class %>.delete(
-          id: id,
-          payload: request.payload,
+          id: id
         )
         return Praxis::Responses::NotFound.new unless deleted_resource
 

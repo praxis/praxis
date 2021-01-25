@@ -28,16 +28,16 @@ module <%= version_module %>
         return nil unless record
         # Assuming the API field names directly map the the model attributes. Massage if appropriate.
         record.update(*payload.to_h)
-        record
+        self.new(record)
       end
       <%- end -%>
 
       <%- if action_enabled?(:delete) -%>
-      def self.delete(id:, payload:)
+      def self.delete(id:)
         record = model.find_by(id: id)
         return nil unless record
         record.destroy
-        record
+        self.new(record)
       end
       <%- end -%>  
     end

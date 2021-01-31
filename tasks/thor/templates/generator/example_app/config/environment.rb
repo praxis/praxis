@@ -33,6 +33,7 @@ Praxis::Application.configure do |application|
   #     map :models, 'models/**/*'
   #     map :responses, '**/responses/**/*'
   #     map :exceptions, '**/exceptions/**/*'
+  #     map :concerns, '**/concerns/**/*'
   #     map :resources, '**/resources/**/*'
   #     map :controllers, '**/controllers/**/*'
   #   end

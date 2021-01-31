@@ -4,7 +4,8 @@ module V1
   module Controllers
     class Users
       include Praxis::Controller
-      
+      include Concerns::ControllerBase
+
       implements V1::Endpoints::Users
 
       def index

@@ -23,13 +23,13 @@ module Praxis
       end
 
       class ActiveRecordFilterQueryBuilder
-      attr_reader :query, :model, :attr_to_column
+      attr_reader :query, :model, :filters_map
 
         # Base query to build upon
         def initialize(query: , model:, filters_map:, debug: false)
           @query = query
           @model = model
-          @attr_to_column = filters_map
+          @filters_map = filters_map
           @logger = debug ? Logger.new(STDOUT) : nil
         end
         
@@ -61,14 +61,27 @@ module Praxis
 
         private
 
+        def _mapped_filter(name)
+          target = @filters_map[name]
+          unless target
+            if @model.attribute_names.include?(name.to_s)
+              # Cache it in the filters mapping (to avoid later lookups), and return it.
+              @filters_map[name] = name
+              target = name
+            end
+          end
+          return target
+        end
+
         # Resolve and convert from filters, to a more manageable and param-type-independent structure
         def _convert_to_treenode(filters)
           # Resolve the names and values first, based on filters_map
           resolved_array = []
           filters.parsed_array.each do |filter|
-            mapped_value = attr_to_column[filter[:name]]
+            mapped_value = _mapped_filter(filter[:name])
             unless mapped_value
-              msg = "Filtering by #{filter[:name]} is not allowed as there is no implementation mapping defined for it.\n" \
+              msg = "Filtering by #{filter[:name]} is not allowed. No implementation mapping defined for it has been found \
+                and there is not a model attribute with this name either.\n" \
                 "Please add a mapping for #{filter[:name]} in the `filters_mapping` method of the appropriate Resource class"
               raise msg
             end

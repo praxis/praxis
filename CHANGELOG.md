@@ -15,6 +15,7 @@ applications would benefit from it. Applications can choose to add that function
 - Remove MapperPlugin's `set_selectors` (made `selector_generator` lazy instead), and ensure it includes the rendering extensions to the Controllers. Less things to configure if you opt into the Mapper way.
 - Built scaffolding generator for quickly creating a new API endpoint in the praxis binary (it builds endpoint+mediatype+controller+resource at one, with useful base code and comments)
 - Dropped support for Ruby 2.4 and 2.5 as some of the newest dependent gems are dropping it as well.
+- Simplify filters_mapping definition, by not requiring to define same-name mappings if the underlying model has an attribute with the same exact name. i.e., a `name: :name` entry is not necessary if the model has a `:name` attribute.
 
 ## 2.0.pre.9
 

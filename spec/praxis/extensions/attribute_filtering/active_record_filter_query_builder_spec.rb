@@ -39,7 +39,7 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       instance
       expect(instance.query).to eq(base_query)
       expect(instance.model).to eq(base_model)
-      expect(instance.attr_to_column).to eq(filters_map)
+      expect(instance.filters_map).to eq(filters_map)
     end
   end
   context 'generate' do
@@ -57,7 +57,20 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
         let(:filters_string) { 'category_uuid=deadbeef1' }
         it_behaves_like 'subject_equivalent_to', ActiveBook.where(category_uuid: 'deadbeef1')
       end
-      context 'that maps to a different name' do
+      context 'same-name filter mapping works' do
+        context 'even if ther was not a filter explicitly defined for it' do
+          let(:filters_string) { 'category_uuid=deadbeef1' }
+          it_behaves_like 'subject_equivalent_to', ActiveBook.where(category_uuid: 'deadbeef1')
+        end
+
+        context 'but if it is a field that does not exist in the model' do
+          let(:filters_string) { 'nonexisting=valuehere' }
+          it 'it blows up with the right error' do
+            expect{subject}.to raise_error(/Filtering by nonexisting is not allowed/)
+          end
+        end
+      end
+        context 'that maps to a different name' do
         let(:filters_string) { 'name=Book1'}
         it_behaves_like 'subject_equivalent_to', ActiveBook.where(simple_name: 'Book1')
       end

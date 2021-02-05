@@ -9,7 +9,7 @@ module Praxis
       class << self
         def for(definition)
           Class.new(self) do
-            @attr_to_column = case definition
+            @filters_map = case definition
                               when Hash
                                 definition
                               when Array
@@ -18,7 +18,7 @@ module Praxis
                                 raise "Cannot use FilterQueryBuilder.of without passing an array or a hash (Got: #{definition.class.name})"
                               end
             class << self
-              attr_reader :attr_to_column
+              attr_reader :filters_map
             end
           end
         end
@@ -33,13 +33,18 @@ module Praxis
       end
 
       # By default we'll simply use the incoming op and value, and will map
-      # the attribute based on what's on the `attr_to_column` hash
+      # the attribute based on what's on the `filters_map` definition
       def generate(filters)
         raise "Not refactored yet!"
         seen_associations = Set.new
         filters.each do |(attr, spec)|
-          column_name = attr_to_column[attr]
-          raise "Filtering by #{attr} not allowed (no mapping found)" unless column_name
+          column_name = _mapped_filter(attr)
+          unless column_name
+            msg = "Filtering by #{attr} is not allowed. No implementation mapping defined for it has been found \
+              and there is not a model attribute with this name either.\n" \
+              "Please add a mapping for #{attr} in the `filters_mapping` method of the appropriate Resource class"
+            raise msg
+          end          
           if column_name.is_a?(Proc)
             bindings = column_name.call(spec)
             # A hash of bindings, consisting of a key with column name and a value to the query value
@@ -64,9 +69,16 @@ module Praxis
         add_clause(attr: column_name, op: op, value: value)
       end
 
-      def attr_to_column
-        # Class method defined by the subclassing Class (using .for)
-        self.class.attr_to_column
+      def _mapped_filter(name)
+        target = self.class.filters_map[name]
+        unless target
+          if @model.attribute_names.include?(name.to_s)
+            # Cache it in the filters mapping (to avoid later lookups), and return it.
+            self.class.filters_map[name] = name
+            target = name
+          end
+        end
+        return target
       end
 
       # Private to try to funnel all column names through `generate` that restricts

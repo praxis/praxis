@@ -8,10 +8,9 @@ Bundler.require(:default, ENV['RACK_ENV'])
 # API field selection (a la GraphQL) - for querying and rendering
 # API filtering extensions (to add "where clauses") in listings
 # Views and partial rendering (for ActiveRecord models)
-
 require 'praxis/plugins/mapper_plugin'
 require 'praxis/mapper/active_model_compat'
-require 'praxis/extensions/field_selection'
+# Want to take advantage of the pagination and sorting extensions as well
 require 'praxis/plugins/pagination_plugin'
 
 # Start the sqlite DB

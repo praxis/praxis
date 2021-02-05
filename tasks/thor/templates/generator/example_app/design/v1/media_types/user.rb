@@ -9,16 +9,11 @@ module V1
       description 'A user in the system'
 
       attributes do
-        attribute :uid, String
+        attribute :id, Integer
         attribute :uuid, String
         attribute :email, String
         attribute :first_name, String
         attribute :last_name, String
-        attribute :state, String, values: %i[pending active]
-      end
-
-      default_fieldset do
-        attribute :uid
       end
     end
   end

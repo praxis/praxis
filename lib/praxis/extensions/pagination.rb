@@ -14,10 +14,9 @@ module Praxis
     module Pagination
       extend ActiveSupport::Concern
       # This PaginatedController concern should be added to controllers that have actions that define the
-      # pagination and order parameters so that calling `paginate( query: <base_query>, table: <main_table_name> )`
-      # would handle all the required logic for paginating, ordering and generating the Link and TotalCount headers.
-      # This assumes that the query object are chainable and based on ActiveRecord at the moment (although that logic)
-      # can be easily applied to other chainable query proxies.
+      # pagination and order parameters so that one can call the domain model to craft the query
+      # `domain_model.craft_pagination_query(base_query, pagination: _pagination)`
+      # This will handle all the required logic for paginating, ordering and generating the Link and TotalCount headers.
       #
       # Here's a simple example on how to use it for a fake Items controller
       # class Items < V1::Controllers::BaseController
@@ -29,7 +28,8 @@ module Praxis
       #
       #   def index(filters: nil, pagination: nil, order: nil,  **_args)
       #     items = current_user.items.all
-      #     items = _craft_pagination_query( query: items)
+      #     domain_model = self.media_type.domain_model
+      #     items = domain_model.craft_pagination_query( query: items, pagination: _pagination)
       #
       #     display(items)
       #   end
@@ -69,33 +69,6 @@ module Praxis
         pagination[:order] = request.params.order if attrs&.key? :order
 
         @_pagination = PaginationStruct.new(pagination[:paginator], pagination[:order])
-      end
-
-      # Main entrypoint: Handles all pagination pieces
-      # takes:
-      # * the query to build from and the table
-      # * the request (for link header generation)
-      # * requires the _pagination variable to be there (set by this module) to return the pagination struct
-      def _craft_pagination_query(query:, type: :active_record)
-        handler_klass = \
-          case type
-          when :active_record
-            ActiveRecordPaginationHandler
-          when :sequel
-            SequelPaginationHandler
-          else
-            raise "Attempting to use pagination but Active Record or Sequel gems found"
-          end
- 
-        # Gather and save the count if required
-        if _pagination.paginator&.total_count
-          _pagination.total_count = handler_klass.count(query.dup)
-        end
-        
-        query = handler_klass.order(query, _pagination.order)
-        # Maybe this is a class instance instead of a class method?...(of the appropriate AR/Sequel type)...
-        # self.class.paginate(query, table, _pagination)
-        handler_klass.paginate(query, _pagination)
       end
 
       def build_pagination_headers(pagination:, current_url:, current_query_params:)

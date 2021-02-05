@@ -11,10 +11,10 @@ rescue => e
 end
 
 # Migrate and seed the DB (only an empty in-memory DB)
-require_relative 'helpers/database_helper'
+
 ActiveRecord::Migration.verbose = false # ?? does not seem to work like this
 ActiveRecord::Tasks::DatabaseTasks.migrate
-DatabaseHelper.seed!
+require_relative '../db/seeds.rb'
 
 RSpec.configure do |config|
   config.include Rack::Test::Methods

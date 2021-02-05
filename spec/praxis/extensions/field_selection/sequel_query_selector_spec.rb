@@ -64,7 +64,7 @@ describe Praxis::Extensions::FieldSelection::SequelQuerySelector do
     ]
   end
 
-  let(:selector_node) { Praxis::Mapper::SelectorGenerator.new.add(SequelSimpleResource,selector_fields)  }
+  let(:selector_node) { Praxis::Mapper::SelectorGenerator.new.add(SequelSimpleResource,selector_fields).selectors  }
   subject {described_class.new(query: query, selectors: selector_node, debug: debug) }
 
   context 'generate' do

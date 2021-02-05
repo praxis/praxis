@@ -103,7 +103,7 @@ class ActiveBookResource < ActiveBaseResource
 
   filters_mapping(
     id: :id,
-    category_uuid: :category_uuid,
+    # category_uuid: :category_uuid  #NOTE: we do not need to define same-name-mappings if they exist
     'fake_nested.name': 'simple_name',
     'name': 'simple_name',
     'name_is_not': lambda do |spec| # Silly way to use a proc, but good enough for testing

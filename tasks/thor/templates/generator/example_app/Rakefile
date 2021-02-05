@@ -32,10 +32,17 @@ namespace :db do
     puts "Database migrated."
   end
 
+  desc 'Fully receate, migrate and seed the DB'
+  task :recreate do
+    Rake::Task['db:drop'].invoke rescue nil
+    Rake::Task['db:create'].invoke
+    Rake::Task['db:migrate'].invoke
+    Rake::Task['db:seed'].invoke
+  end
+
   desc 'seed with example data'
   task seed: 'praxis:environment' do
-    require_relative 'spec/helpers/database_helper'
-    DatabaseHelper.seed!
+    require_relative 'db/seeds.rb'
   end
 
   desc 'drops current database'

@@ -141,6 +141,7 @@ module Praxis::Mapper
     def add(resource, fields)
       @root = SelectorGeneratorNode.new(resource)
       @root.add(fields)
+      self
     end
 
     def selectors

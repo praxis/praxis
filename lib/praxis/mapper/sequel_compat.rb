@@ -7,6 +7,9 @@ module Praxis::Mapper
 
     included do
       attr_accessor :_resource
+      class <<self  
+        alias_method :find_by, :find # Easy way to be method compatible with AR
+      end       
     end
 
     module ClassMethods
@@ -17,6 +20,10 @@ module Praxis::Mapper
 
       def _field_selector_query_builder_class
         Praxis::Extensions::FieldSelection::SequelQuerySelector
+      end
+
+      def _pagination_query_builder_class
+        Praxis::Extensions::Pagination::SequelPaginationHandler
       end
 
       def _praxis_associations

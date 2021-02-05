@@ -33,16 +33,22 @@ module PraxisGen
       puts
       puts "  cd #{app_name}"
       puts "  bundle"
-      puts "  bundle exec rake db:create db:migrate db:seed  # To create/migrate/seed the dev DB"
-      puts "  bundle exec rackup                             # To start the web server"
+      puts "  bundle exec rake db:recreate   # To create/migrate/seed the dev DB"
+      puts "  bundle exec rackup             # To start the web server"
       puts  
       puts "From another terminal/app, use curl (or your favorite HTTP client) to retrieve data from the API"
       puts "  For example: "
-      puts "  Get all users without filters or limit, and display only uid, and last_name fields"
-      puts "  curl -H 'X-Api-Version: 1' http://localhost:9292/users?fields=uid,last_name"
+      puts "  Get all users without filters or limit, and display only id, and first_name fields"
+      puts "  curl -G -H 'X-Api-Version: 1' http://localhost:9292/users \\"
+      puts "    --data-urlencode \"fields=id,first_name\""
       puts
-      puts "  Get the last 5 users, ordered by last_name (descending),  and display only uid, and last_name fields"
-      puts "  curl -H 'X-Api-Version: 1' 'http://localhost:9292/users?fields=uid,last_name&order=-last_name&pagination=by%3Dlast_name,items%3D5' "
+      puts "  Get the last 5 users, with last_names starting with \"L\" ordered by first_name (descending)"
+      puts "  and display only id, first_name, last_name, and email fields"
+      puts "  curl -G -H 'X-Api-Version: 1' http://localhost:9292/users \\"
+      puts "    --data-urlencode \"filters=last_name=L*\" \\"
+      puts "    --data-urlencode \"pagination=by=first_name,items=5\" \\"
+      puts "    --data-urlencode \"order=-first_name\" \\"      
+      puts "    --data-urlencode \"fields=id,first_name,last_name,email\""
       puts "  (Note: To list all routes use: bundle exec rake praxis:routes)"
       puts
       nil

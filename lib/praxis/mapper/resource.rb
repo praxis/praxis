@@ -211,7 +211,9 @@ module Praxis::Mapper
 
     def self.craft_filter_query(base_query, filters:) # rubocop:disable Metrics/AbcSize
       if filters 
-        raise "Must define the mapping of filters if want to use Filtering for resource: #{self}" unless @_filters_map
+        unless @_filters_map
+          raise "To use API filtering, you must define the mapping of api-names to resource properties (using the `filters_mapping` method in #{self})"
+        end
         debug = Praxis::Application.instance.config.mapper.debug_queries
         base_query = model._filter_query_builder_class.new(query: base_query, model: model, filters_map: @_filters_map, debug: debug).generate(filters)
       end
@@ -226,6 +228,19 @@ module Praxis::Mapper
       end
       
       base_query
+    end
+
+    def self.craft_pagination_query(base_query, pagination: ) # rubocop:disable Metrics/AbcSize
+      handler_klass = model._pagination_query_builder_class
+      return base_query unless (handler_klass && (pagination.paginator || pagination.order))
+
+      # Gather and save the count if required
+      if pagination.paginator&.total_count
+        pagination.total_count = handler_klass.count(base_query.dup)
+      end
+      
+      base_query = handler_klass.order(base_query, pagination.order)
+      handler_klass.paginate(base_query, pagination)
     end
 
     def initialize(record)

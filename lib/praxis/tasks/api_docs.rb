@@ -21,7 +21,10 @@ namespace :praxis do
         trap('INT') { s.shutdown }
         s.start
       end
-      `open http://localhost:#{docs_port}/`
+      # If there is only 1 version we'll feature it and open the browser onto it
+      versions = Dir.children(root)
+      featured_version = (versions.size < 2) ? "#{versions.first}/" : ''
+      `open http://localhost:#{docs_port}/#{featured_version}`
       wb.join
     end
     desc "Generate and package all OpenApi Docs into a zip, ready for a Web server (like S3...) to present it"

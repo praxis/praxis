@@ -30,6 +30,7 @@ module Praxis::Mapper
         end
 
         @properties = self.superclass.properties.clone
+        @_filters_map = {}
       end
 
     end
@@ -197,7 +198,7 @@ module Praxis::Mapper
 
     # TODO: this shouldn't be needed if we incorporate it with the properties of the mapper...
     # ...maybe what this means is that we can change it for a better DSL in the resource?
-    def self.filters_mapping(definition)
+    def self.filters_mapping(definition={})
       @_filters_map = \
         case definition
         when Hash

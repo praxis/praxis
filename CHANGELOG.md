@@ -2,6 +2,15 @@
 
 ## next
 
+## 2.0.pre.11
+
+- Remove MapperPlugin's `set_selectors` (made `selector_generator` lazy instead), and ensure it includes the rendering extensions to the Controllers. Less things to configure if you opt into the Mapper way.
+- Built scaffolding generator for quickly creating a new API endpoint in the praxis binary (it builds endpoint+mediatype+controller+resource at one, with useful base code and comments)
+- Dropped support for Ruby 2.4 and 2.5 as some of the newest dependent gems are dropping it as well.
+- Simplify filters_mapping definition, by not requiring to define same-name mappings if the underlying model has an attribute with the same exact name. i.e., a `name: :name` entry is not necessary if the model has a `:name` attribute.
+
+## 2.0.pre.10
+
 - Simple, but pervasive breaking change: Rename `ResourceDefinition` to `EndpointDefinition` (but same functionality).
 - Remove all deprecated features (and raise error describing it's not supported yet)
 - Remove `Links` and `LinkBuilder`. Those seem unnecessary from a Framework point of view as they aren't clear most
@@ -12,10 +21,6 @@ applications would benefit from it. Applications can choose to add that function
 - Remove dependency from praxis-blueprints, as simplified subset of its code has now been included in this repo:
   - no more views for mediatypes. A default fieldset will be automatically defined which will be the default set of attributes to render with. This default fieldset will only contain simple direct attributes (i.e., non blueprint/mediatype attributes). One can override the default by explicitly defining one using the `default_fieldset` DSL, similar to how views were defined before.
 - Folded the pagination/ordering extensions to activate within the `build_query` method of the mapper plugin extension. This way all the field selection, filtering and pagination/ordering will kick in automatically when that plugin is included.
-- Remove MapperPlugin's `set_selectors` (made `selector_generator` lazy instead), and ensure it includes the rendering extensions to the Controllers. Less things to configure if you opt into the Mapper way.
-- Built scaffolding generator for quickly creating a new API endpoint in the praxis binary (it builds endpoint+mediatype+controller+resource at one, with useful base code and comments)
-- Dropped support for Ruby 2.4 and 2.5 as some of the newest dependent gems are dropping it as well.
-- Simplify filters_mapping definition, by not requiring to define same-name mappings if the underlying model has an attribute with the same exact name. i.e., a `name: :name` entry is not necessary if the model has a `:name` attribute.
 
 ## 2.0.pre.9
 

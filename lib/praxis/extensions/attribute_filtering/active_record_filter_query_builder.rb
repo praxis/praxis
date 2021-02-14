@@ -23,14 +23,16 @@ module Praxis
       end
 
       class ActiveRecordFilterQueryBuilder
-      attr_reader :query, :model, :filters_map
+      attr_reader :model, :filters_map
 
         # Base query to build upon
         def initialize(query: , model:, filters_map:, debug: false)
-          @query = query
+          # Note: Do not make the initial_query an attr reader to make sure we don't count/leak on modifying it. Easier to mostly use class methods
+          @initial_query = query
           @model = model
           @filters_map = filters_map
           @logger = debug ? Logger.new(STDOUT) : nil
+          @active_record_version_maj = ActiveRecord.gem_version.segments[0]
         end
         
         def debug_query(msg, query)
@@ -40,26 +42,102 @@ module Praxis
         def generate(filters)
           # Resolve the names and values first, based on filters_map
           root_node = _convert_to_treenode(filters)
-          craft_filter_query(root_node, for_model: @model)
-          debug_query("SQL due to filters: ", @query.all)
-          @query
+          crafted = craft_filter_query(root_node, for_model: @model)
+          debug_query("SQL due to filters: ", crafted.all)
+          crafted
         end
 
         def craft_filter_query(nodetree, for_model:)
           result = _compute_joins_and_conditions_data(nodetree, model: for_model)
-          @query = query.joins(result[:associations_hash]) unless result[:associations_hash].empty?
+          return @initial_query if result[:conditions].empty?
 
-          result[:conditions].each do |condition|
-            filter_name = condition[:name]
-            filter_value = condition[:value]
+          
+          # Find the root group (usually an AND group) but can be an OR group, or nil if there's only 1 condition
+          root_parent_group = result[:conditions].first[:node_object].parent_group || result[:conditions].first[:node_object]
+          while root_parent_group.parent_group != nil
+            root_parent_group = root_parent_group.parent_group
+          end
+
+          # Process the joins
+          query_with_joins = result[:associations_hash].empty? ? @initial_query : @initial_query.joins(result[:associations_hash])
+
+          # Proc to apply a single condition
+          apply_single_condition = Proc.new do |condition, associated_query|
+            colo = condition[:model].columns_hash[condition[:name].to_s]
             column_prefix = condition[:column_prefix]
+            #Mark where clause referencing the appropriate alias
+            associated_query = associated_query.references(build_reference_value(column_prefix, query: associated_query))
+            self.class.add_clause(
+              query: associated_query, 
+              column_prefix: column_prefix, 
+              column_object: colo, 
+              op: condition[:op], 
+              value: condition[:value]
+            )
+          end
 
-            colo = condition[:model].columns_hash[filter_name.to_s]
-            add_clause(column_prefix: column_prefix,  column_object: colo, op: condition[:op], value: filter_value)
+          if @active_record_version_maj < 6
+            # ActiveRecord < 6 does not support '.and' so no nested things can be done
+            # But we can still support the case of 1+ flat conditions of the same AND/OR type
+            if root_parent_group.is_a?(FilteringParams::Condition)
+              # A Single condition it is easy to handle
+              apply_single_condition.call(result[:conditions].first, query_with_joins)
+            elsif root_parent_group.items.all?{|i| i.is_a?(FilteringParams::Condition)}
+              # Only 1 top level root, with only with simple condition items
+              if root_parent_group.type == :and
+                result[:conditions].reverse.inject(query_with_joins) do |accum, condition|
+                  apply_single_condition.call(condition, accum)
+                end
+              else
+                # To do a flat OR, we need to apply the first condition to the incoming query
+                # and then apply any extra ORs to it. Otherwise Book.or(X).or(X) still matches all books
+                cond1, *rest = result[:conditions].reverse
+                start_query = apply_single_condition.call(cond1, query_with_joins)
+                rest.inject(start_query) do |accum, condition|
+                  accum.or(apply_single_condition.call(condition, query_with_joins))
+                end
+              end
+            else
+              raise "Mixing AND and OR conditions is not supported for ActiveRecord <6."
+            end
+          else #  ActiveRecord 6+
+            # Process the conditions in a depth-first order, and return the resulting query
+            _depth_first_traversal(
+              root_query: query_with_joins, 
+              root_node: root_parent_group, 
+              conditions: result[:conditions], 
+              &apply_single_condition
+            )
           end
         end
 
         private
+        def _depth_first_traversal(root_query:, root_node:, conditions:, &block)
+          # Save the associated query for non-leaves 
+          root_node.associated_query = root_query if root_node.is_a?(FilteringParams::ConditionGroup)
+          
+          if root_node.is_a?(FilteringParams::Condition)
+            matching_condition = conditions.find {|cond| cond[:node_object] == root_node }
+
+            # The simplified case of a single top level condition (without a wrapping group)
+            # will need to pass the root query itself
+            associated_query = root_node.parent_group ? root_node.parent_group.associated_query : root_query
+            return yield matching_condition, associated_query
+          else
+            first_query, *rest_queries = root_node.items.map do |child|
+              _depth_first_traversal(root_query: root_query, root_node: child, conditions: conditions, &block)
+            end
+
+            rest_queries.each.inject(first_query) do |q, a_query|
+              begin
+                root_node.type == :and ? q.and(a_query) : q.or(a_query)
+              rescue => e
+                binding.pry
+                puts "asdfa"
+              end
+            end
+          end
+        end
 
         def _mapped_filter(name)
           target = @filters_map[name]
@@ -89,7 +167,9 @@ module Praxis
               if mapped_value.is_a?(Proc)
                 result = mapped_value.call(filter)
                 # Result could be an array of hashes (each hash has name/op/value to identify a condition)
-                result.is_a?(Array) ? result : [result]
+                result_from_proc = result.is_a?(Array) ? result : [result]
+                # Make sure we tack on the node object associated with the filter
+                result_from_proc.map{|hash| hash.merge(node_object: filter[:node_object])}
               else
                 # For non-procs there's only 1 filter and 1 value (we're just overriding the mapped value)
                 [filter.merge( name: mapped_value)]
@@ -117,8 +197,7 @@ module Praxis
           {associations_hash: h, conditions: conditions}
         end
 
-        def add_clause(column_prefix:, column_object:, op:, value:)
-          @query = @query.references(build_reference_value(column_prefix)) #Mark where clause referencing the appropriate alias
+        def self.add_clause(query:, column_prefix:, column_object:, op:, value:)
           likeval = get_like_value(value)
           case op
             when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
@@ -128,40 +207,40 @@ module Praxis
               op = '='
               value = nil # Enforce it is indeed nil (should be)
             end
-          @query =  case op
+          query =  case op
                     when '='
                       if likeval
-                        add_safe_where(tab: column_prefix, col: column_object, op: 'LIKE', value: likeval)
+                        add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'LIKE', value: likeval)
                       else
-                        quoted_right = quote_right_part(value: value, column_object: column_object, negative: false)
-                        query.where("#{quote_column_path(column_prefix, column_object)} #{quoted_right}")
+                        quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: false)
+                        query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
                       end
                     when '!='
                       if likeval
-                        add_safe_where(tab: column_prefix, col: column_object, op: 'NOT LIKE', value: likeval)
+                        add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'NOT LIKE', value: likeval)
                       else
-                        quoted_right = quote_right_part(value: value, column_object: column_object, negative: true)
-                        query.where("#{quote_column_path(column_prefix, column_object)} #{quoted_right}")
+                        quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: true)
+                        query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
                       end
                     when '>'
-                      add_safe_where(tab: column_prefix, col: column_object, op: '>', value: value)
+                      add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>', value: value)
                     when '<'
-                      add_safe_where(tab: column_prefix, col: column_object, op: '<', value: value)
+                      add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<', value: value)
                     when '>='
-                      add_safe_where(tab: column_prefix, col: column_object, op: '>=', value: value)
+                      add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>=', value: value)
                     when '<='
-                      add_safe_where(tab: column_prefix, col: column_object, op: '<=', value: value)
+                      add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<=', value: value)
                     else
                       raise "Unsupported Operator!!! #{op}"
                     end
         end
 
-        def add_safe_where(tab:, col:, op:, value:)
+        def self.add_safe_where(query:, tab:, col:, op:, value:)
           quoted_value = query.connection.quote_default_expression(value,col)
-          query.where("#{quote_column_path(tab, col)} #{op} #{quoted_value}")
+          query.where("#{self.quote_column_path(query: query, prefix: tab, column_object: col)} #{op} #{quoted_value}")
         end
 
-        def quote_column_path(prefix, column_object)
+        def self.quote_column_path(query:, prefix:, column_object:)
           c = query.connection
           quoted_column = c.quote_column_name(column_object.name)
           if prefix
@@ -172,7 +251,7 @@ module Praxis
           end
         end
 
-        def quote_right_part(value:, column_object:, negative:)
+        def self.quote_right_part(query:, value:, column_object:, negative:)
           conn = query.connection
           if value.nil?
             no = negative ? ' NOT' : ''
@@ -190,7 +269,7 @@ module Praxis
         end
 
         # Returns nil if the value was not a fuzzzy pattern
-        def get_like_value(value)
+        def self.get_like_value(value)
           if value.is_a?(String) && (value[-1] == '*' || value[0] == '*')
             likeval = value.dup
             likeval[-1] = '%' if value[-1] == '*'
@@ -203,14 +282,14 @@ module Praxis
         maj, min, _ = ActiveRecord.gem_version.segments
         if maj == 5 || (maj == 6 && min == 0)
           # In AR 6 (and 6.0) the references are simple strings
-          def build_reference_value(column_prefix)
+          def build_reference_value(column_prefix, query: nil)
             column_prefix
           end
         else
           # The latest AR versions discard passing references to joins when they're not SqlLiterals ... so let's wrap it
           # with our class, so that it is a literal (already quoted), but that can still provide the expected "symbol" without quotes
           # so that our aliasing code can match it.
-          def build_reference_value(column_prefix)
+          def build_reference_value(column_prefix, query:)
             QuasiSqlLiteral.new(quoted: query.connection.quote_table_name(column_prefix), symbolized: column_prefix.to_sym)
           end
         end

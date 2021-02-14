@@ -1,7 +1,8 @@
 # frozen_string_literal: true
-# rubocop:disable all
+require 'praxis/extensions/attribute_filtering/filters_parser'
+
 #
-# Attributor type to define and handlea simple language to express filtering attributes in listings.
+# Attributor type to define and handle the language to express filtering attributes in listings.
 # Commonly used in a query string parameter value for listing calls.
 # 
 # The type allows you to restrict the allowable fields (and their types) based on an existing Mediatype.
@@ -14,7 +15,7 @@
 # attribute :filters,
 #           Types::FilteringParams.for(MediaTypes::MyType) do
 #   filter 'user.id', using: ['=', '!=']
-#   filter 'name', using: ['=', '!=']
+#   filter 'name', using: ['=', '!=', '!', '!!]
 #   filter 'children.created_at', using: ['>', '>=', '<', '<=']
 #   filter 'display_name', using: ['=', '!='], fuzzy: true
 # end
@@ -26,6 +27,8 @@ module Praxis
         include Attributor::Type
         include Attributor::Dumpable
   
+        attr_reader :parsed_array
+
         class DSLCompiler < Attributor::DSLCompiler
           # "account.id": { operators: ["=", "!="] },
           # name:         { operators: ["=", "!="], fuzzy_match: true },
@@ -36,9 +39,9 @@ module Praxis
           end
         end
   
-        VALUE_REGEX = /[^,&]*/
-        AVAILABLE_OPERATORS = Set.new(['!=', '>=', '<=', '=', '<', '>','!','!!']).freeze
-        FILTER_REGEX = /(?<attribute>([^=!><])+)(?<operator>!=|>=|<=|!!|=|<|>|!)(?<value>#{VALUE_REGEX}(,#{VALUE_REGEX})*)/
+        VALUE_OPERATORS = Set.new(['!=', '>=', '<=', '=', '<', '>']).freeze
+        NOVALUE_OPERATORS = Set.new(['!','!!']).freeze
+        AVAILABLE_OPERATORS = Set.new(VALUE_OPERATORS+NOVALUE_OPERATORS).freeze
   
         # Abstract class, which needs to be used by subclassing it through the .for method, to set the allowed filters
         # definition should be a hash, keyed by field name, which contains a hash that can have two pieces of metadata
@@ -52,7 +55,7 @@ module Praxis
           def for(media_type, **_opts)
             unless media_type < Praxis::MediaType
               raise ArgumentError, "Invalid type: #{media_type.name} for Filters. " \
-                'Must be a subclass of MediaType'
+                'Using the .for method for defining a filter, requires passing a subclass of a MediaType'
             end
   
             ::Class.new(self) do
@@ -77,9 +80,7 @@ module Praxis
             }
           end
         end
-  
-        attr_reader :parsed_array
-  
+    
         def self.native_type
           self
         end
@@ -134,11 +135,15 @@ module Praxis
                          raise "filter with name #{filter_name} does not correspond to an existing field inside " \
                                " MediaType #{media_type.name}"
                        end
-                       attr_example = filter_components.inject(mt_example) do |last, name|
-                         # we can safely do sends, since we've verified the components are valid
-                         last.send(name)
-                       end
-                       arr << "#{filter_name}#{op}#{attr_example}"
+                       if NOVALUE_OPERATORS.include?(op)
+                        arr << "#{filter_name}#{op}" # Do not add a value for the operators that don't take it
+                       else
+                        attr_example = filter_components.inject(mt_example) do |last, name|
+                          # we can safely do sends, since we've verified the components are valid
+                          last.send(name)
+                        end
+                        arr << "#{filter_name}#{op}#{attr_example}"
+                      end
                      end.join('&')
                    else
                      'name=Joe&date>2017-01-01'
@@ -153,34 +158,32 @@ module Praxis
   
         def self.load(filters, _context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           return filters if filters.is_a?(native_type)
-          return new if filters.nil?
-          parsed = filters.split('&').each_with_object([]) do |filter_string, arr|
-            match = FILTER_REGEX.match(filter_string)
-            values = CGI.unescape(match[:value]).split(',')
-            value = if values.size > 1
-              multimatch = true
-              values
-            else
-              multimatch = false
-              values.first
-            end
-  
-            attr_name = match[:attribute].to_sym
-            coerced = if media_type
-              filter_components = attr_name.to_s.split('.').map(&:to_sym)
-              attr, _enclosing_type = find_filter_attribute(filter_components, media_type)
-              if multimatch
-                attr_coll = Attributor::Collection.of(attr.type)
-                attr_coll.load(value)
+          return new if filters.nil? || filters.blank?
+
+          parsed = Parser.new.parse(CGI.unescape(filters))
+          tree = ConditionGroup.load(parsed)
+
+          rr = tree.flattened_conditions
+          accum = []
+          rr.each do |spec|
+            attr_name = spec[:name]
+            # TODO: Do we need to CGI.unescape things? here or even before??...
+            coerced = \
+              if media_type
+                filter_components = attr_name.to_s.split('.').map(&:to_sym)
+                attr, _enclosing_type = find_filter_attribute(filter_components, media_type)
+                if spec[:values].is_a?(Array)
+                  attr_coll = Attributor::Collection.of(attr.type)
+                  attr_coll.load(spec[:values])
+                else
+                  attr.load(spec[:values])
+                end
               else
-                attr.load(value)
+                spec[:values]
               end
-            else
-              value
-            end
-            arr.push(name: attr_name, op: match[:operator], value: coerced )
+            accum.push(name: attr_name, op: spec[:op], value: coerced , node_object: spec[:node_object])
           end
-          new(parsed)
+          new(accum)
         end
   
         def self.dump(value, **_opts)

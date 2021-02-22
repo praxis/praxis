@@ -24,7 +24,6 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
   # Poorman's way to compare SQL queries...
   shared_examples 'subject_matches_sql' do |expected_sql|
     it do
-       # Remove parenthesis as our queries have WHERE clauses using them...
       gen_sql = subject.all.to_sql
       # Strip blank at the beggining (and end) of every line
       # ...and recompose it by adding an extra space at the beginning of each one instead

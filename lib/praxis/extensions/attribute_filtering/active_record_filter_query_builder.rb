@@ -129,12 +129,7 @@ module Praxis
             end
 
             rest_queries.each.inject(first_query) do |q, a_query|
-              begin
-                root_node.type == :and ? q.and(a_query) : q.or(a_query)
-              rescue => e
-                binding.pry
-                puts "asdfa"
-              end
+              root_node.type == :and ? q.and(a_query) : q.or(a_query)
             end
           end
         end
@@ -200,39 +195,40 @@ module Praxis
         def self.add_clause(query:, column_prefix:, column_object:, op:, value:)
           likeval = get_like_value(value)
           case op
-            when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
-              op = '!='
-              value = nil # Enforce it is indeed nil (should be)
-            when '!!'
-              op = '='
-              value = nil # Enforce it is indeed nil (should be)
+          when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
+            op = '!='
+            value = nil # Enforce it is indeed nil (should be)
+          when '!!'
+            op = '='
+            value = nil # Enforce it is indeed nil (should be)
+          end
+
+          case op
+          when '='
+            if likeval
+              add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'LIKE', value: likeval)
+            else
+              quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: false)
+              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
             end
-          query =  case op
-                    when '='
-                      if likeval
-                        add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'LIKE', value: likeval)
-                      else
-                        quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: false)
-                        query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
-                      end
-                    when '!='
-                      if likeval
-                        add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'NOT LIKE', value: likeval)
-                      else
-                        quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: true)
-                        query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
-                      end
-                    when '>'
-                      add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>', value: value)
-                    when '<'
-                      add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<', value: value)
-                    when '>='
-                      add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>=', value: value)
-                    when '<='
-                      add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<=', value: value)
-                    else
-                      raise "Unsupported Operator!!! #{op}"
-                    end
+          when '!='
+            if likeval
+              add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'NOT LIKE', value: likeval)
+            else
+              quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: true)
+              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
+            end
+          when '>'
+            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>', value: value)
+          when '<'
+            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<', value: value)
+          when '>='
+            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>=', value: value)
+          when '<='
+            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<=', value: value)
+          else
+            raise "Unsupported Operator!!! #{op}"
+          end
         end
 
         def self.add_safe_where(query:, tab:, col:, op:, value:)

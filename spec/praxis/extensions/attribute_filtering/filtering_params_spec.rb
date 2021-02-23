@@ -6,46 +6,109 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
 
   context '.load' do
     subject { described_class.load(filters_string) }
+
+    it 'unescapes the URL encoded string' do
+        str = CGI.escape("one=fun!,Times,3&two>*|three<^%$#!st_uff")
+        parsed = [
+          { name: :one, op: '=', value: ["fun!","Times","3"]},
+          { name: :two, op: '>', value: "*"},
+          { name: :three, op: '<', value: "^%$#!st_uff"},
+        ]
+        expect(described_class.load(str).parsed_array.map{|i| i.slice(:name,:op,:value)}).to eq(parsed)
+    end
     context 'parses for operator' do
-      described_class::AVAILABLE_OPERATORS.each do |op|
+      described_class::VALUE_OPERATORS.each do |op|
         it "#{op}" do
           str = "thename#{op}thevalue"
           parsed = [{ name: :thename, op: op, value: 'thevalue'}]
-          expect(described_class.load(str).parsed_array).to eq(parsed)
+          expect(described_class.load(str).parsed_array.map{|i| i.slice(:name,:op,:value)}).to eq(parsed)
         end
       end
+      described_class::NOVALUE_OPERATORS.each do |op|
+        it "#{op}" do
+          str = "thename#{op}"
+          parsed = [{ name: :thename, op: op, value: nil}]
+          expect(described_class.load(str).parsed_array.map{|i| i.slice(:name,:op,:value)}).to eq(parsed)
+        end
+      end
+      it 'can parse multiple values for filter' do
+        str="filtername=1,2,3"
+        parsed = [{ name: :filtername, op: '=', value: ["1","2","3"]}]
+        expect(described_class.load(str).parsed_array.map{|i| i.slice(:name,:op,:value)}).to eq(parsed)
+      end
     end
-    context 'with all operators at once' do
-      let(:filters_string) { 'one=1&two!=2&three>=3&four<=4&five<5&six>6&seven!&eight!!'}
+    context 'with all value operators at once for the same AND group' do
+      let(:filters_string) { 'one=11&two!=22&three>=33&four<=4&five<5&six>6&seven!&eight!!'}
       it do
-        expect(subject.parsed_array).to eq([
-          { name: :one, op: '=', value: '1'},
-          { name: :two, op: '!=', value: '2'},
-          { name: :three, op: '>=', value: '3'},
+        expect(subject.parsed_array.map{|i| i.slice(:name,:op,:value)}).to eq([
+          { name: :one, op: '=', value: '11'},
+          { name: :two, op: '!=', value: '22'},
+          { name: :three, op: '>=', value: '33'},
           { name: :four, op: '<=', value: '4'},
           { name: :five, op: '<', value: '5'},
           { name: :six, op: '>', value: '6'},
           { name: :seven, op: '!', value: nil},
           { name: :eight, op: '!!', value: nil},          
         ])
+        # And all have the same parent, which is an AND group
+        parent = subject.parsed_array.map{|i|i[:node_object].parent_group}.uniq
+        expect(parent.size).to eq(1)
+        expect(parent.first.type).to eq(:and)
+        expect(parent.first.parent_group).to be_nil
       end
     end
 
-    context 'with an associated MediaType' do
-      let(:params_for_post_media_type) do
+    context 'with with nested precedence groups' do
+      let(:filters_string) { '(one=11)&(two!=22|three!!)&four<=4&five>5|six!'}
+      it do
+        parsed = subject.parsed_array
+        expect(parsed.map{|i| i.slice(:name,:op,:value)}).to eq([
+          { name: :one, op: '=', value: '11'},
+          { name: :two, op: '!=', value: '22'},
+          { name: :three, op: '!!', value: nil},
+          { name: :four, op: '<=', value: '4'},
+          { name: :five, op: '>', value: '5'},
+          { name: :six, op: '!', value: nil},
+        ])
+        # Grouped appropriately
+        parent_of = parsed.each_with_object({}) do |item, hash|
+          hash[item[:name]] = item[:node_object].parent_group
+        end
+        # This is the expected tree grouping result
+        # OR -- six
+        #  |--- AND --five
+        #        |--- four
+        #        |--- OR -- three
+        #        |     |--- two
+        #        |--- one
+        # two and 3 are grouped together by an OR
+        expect(parent_of[:two]).to be(parent_of[:three])
+        expect(parent_of[:two].type).to eq(:or)
+        
+        # one, two, four and the or from two/three are grouped together by an AND
+        expect([parent_of[:one],parent_of[:two].parent_group,parent_of[:four],parent_of[:five]]).to all(be(parent_of[:one]))
+        expect(parent_of[:one].type).to eq(:and)
+
+        # six and the whole group above are grouped together with an OR
+        expect(parent_of[:six]).to be(parent_of[:one].parent_group)
+        expect(parent_of[:six].type).to eq(:or)
+      end
+    end
+
+    context 'value coercing when associated to a MediaType' do
+      let(:parsed) do
         # Note wrap the filter_params (.for) type in an attribute (which then we discard), so it will 
         # construct it propertly by applying the block. Seems easier than creating the type alone, and 
         # then manually apply the block
         Attributor::Attribute.new(described_class.for(Post)) do
           filter 'id', using: ['=', '!=', '!']
-        end.type
+        end.type.load(str).parsed_array
       end
 
       context 'with a single value' do
         let(:str) { 'id=1' }
         it 'coerces its value to the associated mediatype attribute type' do
-          parsed = params_for_post_media_type.load(str).parsed_array
-          expect(parsed.first).to eq(:name=>:id, :op=>"=", :value=>1)
+          expect(parsed.first[:value]).to eq(1)
           expect(Post.attributes[:id].type.valid_type?(parsed.first[:value])).to be_truthy
         end
       end
@@ -53,8 +116,7 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
       context 'with multimatch' do
         let(:str) { 'id=1,2,3' }
         it 'coerces ALL csv values to the associated mediatype attribute type' do
-          parsed = params_for_post_media_type.load(str).parsed_array
-          expect(parsed.first).to eq(:name=>:id, :op=>"=", :value=>[1, 2, 3])
+          expect(parsed.first[:value]).to eq([1, 2, 3])
           parsed.first[:value].each do |val|
             expect(Post.attributes[:id].type.valid_type?(val)).to be_truthy
           end
@@ -64,8 +126,7 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
       context 'with a single value that is null' do
         let(:str) { 'id!' }
         it 'properly loads it as null' do
-          parsed = params_for_post_media_type.load(str).parsed_array
-          expect(parsed.first).to eq(:name=>:id, :op=>"!", :value=>nil)
+          expect(parsed.first[:value]).to be_nil
         end
       end
     end

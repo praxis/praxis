@@ -2,6 +2,8 @@
 
 ## next
 
+* Rebuilt API filters to support a much richer syntax. One can now use ANDs and ORs (with ANDs having order precedence), as well as group them with parenthesis. The same individual filter operands are supported. For example: 'email=*@gmail.com&(friends.first_name=Joe*,Patty|friends.last_name=Smith)
+
 ## 2.0.pre.11
 
 - Remove MapperPlugin's `set_selectors` (made `selector_generator` lazy instead), and ensure it includes the rendering extensions to the Controllers. Less things to configure if you opt into the Mapper way.

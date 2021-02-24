@@ -2,6 +2,8 @@
 
 ## next
 
+## 2.0.pre.13
+
 * Fix filters parser regression, which would incorrectly decode url-encoded values
 
 ## 2.0.pre.12

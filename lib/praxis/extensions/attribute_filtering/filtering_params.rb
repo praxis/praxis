@@ -160,7 +160,8 @@ module Praxis
           return filters if filters.is_a?(native_type)
           return new if filters.nil? || filters.blank?
 
-          parsed = Parser.new.parse(CGI.unescape(filters))
+          parsed = Parser.new.parse(filters)
+          
           tree = ConditionGroup.load(parsed)
 
           rr = tree.flattened_conditions

@@ -24,9 +24,9 @@ module Praxis
               @values = if values.empty?
                 ""
               elsif values.size == 1
-                values.first[:value].to_s
+                CGI.unescape(values.first[:value].to_s)
               else
-                values.map{|e| e[:value].to_s}
+                values.map{|e| CGI.unescape(e[:value].to_s)}
               end
             else # No values for the operand
               @name = triad[:name].to_sym
@@ -36,7 +36,7 @@ module Praxis
               else
                 # Value operand without value? => convert it to empty string
                 raise "Interesting, didn't know this could happen. Oops!" if triad[:value].is_a?(Array) && !triad[:value].empty?
-                @values = (triad[:value] == []) ? '' : triad[:value].to_s # TODO: could this be an array (or it always comes the other if)
+                @values = (triad[:value] == []) ? '' : CGI.unescape(triad[:value].to_s) # TODO: could this be an array (or it always comes the other if)
               end
             end
           end

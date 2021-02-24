@@ -7,14 +7,29 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
   context '.load' do
     subject { described_class.load(filters_string) }
 
-    it 'unescapes the URL encoded string' do
-        str = CGI.escape("one=fun!,Times,3&two>*|three<^%$#!st_uff")
+    context 'unescapes the URL encoded values' do
+      it 'for single values' do
+          str = "one=#{CGI.escape('*')}&two>#{CGI.escape('^%$#!st_uff')}|three<normal"
+          parsed = [
+            { name: :one, op: '=', value: '*'},
+            { name: :two, op: '>', value: '^%$#!st_uff'},
+            { name: :three, op: '<', value: 'normal'},
+          ]
+          expect(described_class.load(str).parsed_array.map{|i| i.slice(:name,:op,:value)}).to eq(parsed)
+      end
+      it 'each of the multi-values' do
+        escaped_one = [
+          CGI.escape('fun!'),
+          CGI.escape('Times'),
+          CGI.escape('~!@#$%^&*()_+-={}|[]\:";\'<>?,./`')
+        ].join(',')
+        str = "one=#{escaped_one}&two>normal"
         parsed = [
-          { name: :one, op: '=', value: ["fun!","Times","3"]},
-          { name: :two, op: '>', value: "*"},
-          { name: :three, op: '<', value: "^%$#!st_uff"},
+          { name: :one, op: '=', value: ['fun!','Times','~!@#$%^&*()_+-={}|[]\:";\'<>?,./`']},
+          { name: :two, op: '>', value: 'normal'},
         ]
         expect(described_class.load(str).parsed_array.map{|i| i.slice(:name,:op,:value)}).to eq(parsed)
+    end
     end
     context 'parses for operator' do
       described_class::VALUE_OPERATORS.each do |op|

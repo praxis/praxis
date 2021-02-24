@@ -2,6 +2,8 @@
 
 ## next
 
+* Fix filters parser regression, which would incorrectly decode url-encoded values
+
 ## 2.0.pre.12
 
 * Rebuilt API filters to support a much richer syntax. One can now use ANDs and ORs (with ANDs having order precedence), as well as group them with parenthesis. The same individual filter operands are supported. For example: 'email=*@gmail.com&(friends.first_name=Joe*,Patty|friends.last_name=Smith)

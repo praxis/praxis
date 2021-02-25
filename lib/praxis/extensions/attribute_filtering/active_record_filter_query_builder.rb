@@ -72,7 +72,8 @@ module Praxis
               column_prefix: column_prefix, 
               column_object: colo, 
               op: condition[:op], 
-              value: condition[:value]
+              value: condition[:value],
+              fuzzy: condition[:fuzzy]
             )
           end
 
@@ -192,8 +193,8 @@ module Praxis
           {associations_hash: h, conditions: conditions}
         end
 
-        def self.add_clause(query:, column_prefix:, column_object:, op:, value:)
-          likeval = get_like_value(value)
+        def self.add_clause(query:, column_prefix:, column_object:, op:, value:,fuzzy:)
+          likeval = get_like_value(value,fuzzy)
           case op
           when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
             op = '!='
@@ -265,12 +266,18 @@ module Praxis
         end
 
         # Returns nil if the value was not a fuzzzy pattern
-        def self.get_like_value(value)
-          if value.is_a?(String) && (value[-1] == '*' || value[0] == '*')
-            likeval = value.dup
-            likeval[-1] = '%' if value[-1] == '*'
-            likeval[0] = '%' if value[0] == '*'
-            likeval
+        def self.get_like_value(value,fuzzy)
+          if fuzzy && !fuzzy.empty? && value.is_a?(String)
+            case fuzzy
+            when :start_end
+              '%'+value+'%'
+            when :start
+              '%'+value
+            when :end
+              value+'%'
+            end
+          else
+            nil
           end
         end
 

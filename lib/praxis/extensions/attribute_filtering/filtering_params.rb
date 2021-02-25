@@ -182,7 +182,7 @@ module Praxis
               else
                 spec[:values]
               end
-            accum.push(name: attr_name, op: spec[:op], value: coerced , node_object: spec[:node_object])
+            accum.push(name: attr_name, op: spec[:op], value: coerced , fuzzy: spec[:fuzzies], node_object: spec[:node_object])
           end
           new(accum)
         end
@@ -225,7 +225,7 @@ module Praxis
             value = item[:value]
             unless value.empty?
               fuzzy_match = attr_filters[:fuzzy_match]
-              if (value[-1] == '*' || value[0] == '*') && !fuzzy_match
+              if item[:fuzzy] && !item[:fuzzy].empty? && !fuzzy_match
                 errors << "Fuzzy matching for #{attr_name} is not allowed (yet '*' was found in the value)"
               end
             end

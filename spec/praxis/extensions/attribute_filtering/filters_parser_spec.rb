@@ -1,6 +1,5 @@
 require 'praxis/extensions/attribute_filtering/filters_parser'
 
-
 describe Praxis::Extensions::AttributeFiltering::FilteringParams::Condition do
 end 
 
@@ -121,17 +120,26 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams::Parser do
     context 'supports everything (except &|(),) for values (even without encoding..not allowed, but just to ensure the parser does not bomb)' do
       it_behaves_like 'round-trip-properly', {
         'v=1123' => 'v=1123',
-        'v=*foo*' => 'v=*foo*',
-        'v=*^%$#@!foo' => 'v=*^%$#@!foo',
+        'v=*foo*' => 'v={*}foo{*}',
+        'v=*^%$#@!foo' => 'v={*}^%$#@!foo',
         'v=_-=\{}"?:><' => 'v=_-=\{}"?:><',
         'v=_-=\{}"?:><,another_value!' => 'v=[_-=\{}"?:><,another_value!]',
+      }
+    end
+    context 'properly detects and handles fuzzy matching encoded as {*} in the dump' do
+      it_behaves_like 'round-trip-properly', {
+        'v=*foo' => 'v={*}foo',
+        'v=*foo*' => 'v={*}foo{*}',
+        'v=foo*' => 'v=foo{*}',
+        'v=*start,end*,*both*' => 'v=[{*}start,end{*},{*}both{*}]',
+        "v=*#{CGI.escape('***')},#{CGI.escape('*')}" => 'v=[{*}***,*]', # Simple exact match on 2nd
       }
     end
     context 'properly handles url-encoded values' do
       it_behaves_like 'round-trip-properly', {
         "v=#{CGI.escape('1123')}" => 'v=1123',
-        "v=#{CGI.escape('*foo*')}" => 'v=*foo*',
-        "v=#{CGI.escape('*^%$#@!foo')}" => 'v=*^%$#@!foo',
+        "v=*#{CGI.escape('foo')}*" => 'v={*}foo{*}',
+        "v=*#{CGI.escape('^%$#@!foo')}" => 'v={*}^%$#@!foo',
         "v=#{CGI.escape('~!@#$%^&*()_+-={}|[]\:";\'<>?,./`')}" => 'v=~!@#$%^&*()_+-={}|[]\:";\'<>?,./`',
         "v=#{CGI.escape('_-+=\{}"?:><')},#{CGI.escape('another_value!')}" => 'v=[_-+=\{}"?:><,another_value!]',
       }

@@ -267,7 +267,11 @@ module Praxis
 
         # Returns nil if the value was not a fuzzzy pattern
         def self.get_like_value(value,fuzzy)
-          if fuzzy && !fuzzy.empty? && value.is_a?(String)
+          is_fuzzy = fuzzy.is_a?(Array) ? !fuzzy.compact.empty? : fuzzy
+          if is_fuzzy
+            unless value.is_a?(String)
+              raise MultiMatchWithFuzzyNotAllowedByAdapter.new
+            end
             case fuzzy
             when :start_end
               '%'+value+'%'

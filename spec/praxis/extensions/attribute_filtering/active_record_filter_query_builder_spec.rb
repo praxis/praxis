@@ -71,13 +71,30 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
             end
           end
         end
-          context 'that maps to a different name' do
+        context 'that maps to a different name' do
           let(:filters_string) { 'name=Book1'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.where(simple_name: 'Book1')
         end
         context 'that is mapped as a nested struct' do
           let(:filters_string) { 'fake_nested.name=Book1'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.where(simple_name: 'Book1')
+        end
+        context 'passing multiple values' do
+          context 'without fuzzy matching' do
+            let(:filters_string) { 'category_uuid=deadbeef1,deadbeef2' }
+            it_behaves_like 'subject_equivalent_to', ActiveBook.where(category_uuid: ['deadbeef1','deadbeef2'])
+          end
+          context 'with fuzzy matching' do
+            let(:filters_string) { 'category_uuid=*deadbeef1,deadbeef2*' }
+            it 'is not supported' do
+              expect{
+                subject
+              }.to raise_error(
+                Praxis::Extensions::AttributeFiltering::MultiMatchWithFuzzyNotAllowedByAdapter,
+                /Please use multiple OR clauses instead/
+              )
+            end
+          end
         end
       end
 

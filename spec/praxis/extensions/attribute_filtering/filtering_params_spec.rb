@@ -29,7 +29,14 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
           { name: :two, op: '>', value: 'normal'},
         ]
         expect(described_class.load(str).parsed_array.map{|i| i.slice(:name,:op,:value)}).to eq(parsed)
-    end
+      end
+      it 'does not handle badly escaped values that contain reserved chars ()|&,' do
+        badly_escaped = 'val('
+        str = "one=#{badly_escaped}&(two>normal|three!)"
+        expect{
+          described_class.load(str)
+        }.to raise_error(Parslet::ParseFailed)
+      end
     end
     context 'parses for operator' do
       described_class::VALUE_OPERATORS.each do |op|

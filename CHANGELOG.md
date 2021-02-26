@@ -2,6 +2,13 @@
 
 ## next
 
+* More encoding/decoding robustness for filters. 
+  * Specs for how to encode filters are now properly defined by:
+    * The "value" of the filters query string needs to be URI encoded (like any other query string value). This encoding is subject to the normal rules, and therefore "could" leave some of the URI unreserved characters (i.e., 'markers') unencoded depending on the client (Section 2.2 of https://tools.ietf.org/html/rfc2396).
+    * The "values" for any of the conditions in the contents of the filters, however, will need to be properly "escaped" as well (prior to URL-encoding the whole syntax string itself like described above). This means that any match value needs to ensure that it has (at least) "(",")","|","&" and "," escaped as they are reserved characters for the filter expression syntax. For example, if I want to search for a name with value "Rocket&(Pants)", I need to first compose the syntax by: "name=<escaped Rocket&(Pants)>, which is "name=Rocket%26%28Pants%29" and then, just URI encode that query string value for the filters parameter in the URL like any other. For example: "filters=name%3DRocket%2526%2528Pants%2529"
+    * When using a multi-match (csv-separated) list of values, you need to escape each of the values as well, leaving the 'comma' unescape, as that's part of the syntax. Then uri-encode it all for the filters query string parameter value like above.
+  * Now, one can properly differentiate between fuzzy query prefix/postfix, and the literal data to search for (which can be or include '*'). Report that multi-matches (i.e., csv separated values for a single field, which translate into "IN" clauses) is not allowed if fuzzy matches are received (need to use multiple OR clauses for it).
+
 ## 2.0.pre.13
 
 * Fix filters parser regression, which would incorrectly decode url-encoded values

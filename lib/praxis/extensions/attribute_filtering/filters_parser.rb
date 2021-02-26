@@ -15,41 +15,81 @@ module Praxis
           #   Example: [{:name=>"multi"@0, :op=>"="@5}, {:value=>"1"@6}, {:value=>"2"@8}]
           def initialize(triad:, parent_group:)
             @parent_group = parent_group
-
             if triad.is_a? Array # several values coming in
               spec, *values = triad
               @name = spec[:name].to_sym
               @op = spec[:op].to_s
 
-              @values = if values.empty?
-                ""
+              if values.empty?
+                @values = ""
+                @fuzzies = nil
               elsif values.size == 1
-                CGI.unescape(values.first[:value].to_s)
+                raw_val = values.first[:value].to_s
+                @values, @fuzzies = _compute_fuzzy(values.first[:value].to_s)
               else
-                values.map{|e| CGI.unescape(e[:value].to_s)}
+                @values = []
+                @fuzzies = []
+                results = values.each do|e| 
+                  val, fuz = _compute_fuzzy(e[:value].to_s)
+                  @values.push val
+                  @fuzzies.push fuz
+                end
               end
             else # No values for the operand
               @name = triad[:name].to_sym
               @op = triad[:op].to_s
               if ['!','!!'].include?(@op)
-                @values = nil
+                @values, @fuzzies = [nil, nil]
               else
                 # Value operand without value? => convert it to empty string
                 raise "Interesting, didn't know this could happen. Oops!" if triad[:value].is_a?(Array) && !triad[:value].empty?
-                @values = (triad[:value] == []) ? '' : CGI.unescape(triad[:value].to_s) # TODO: could this be an array (or it always comes the other if)
+                if triad[:value] == []
+                  @values, @fuzzies = ['', nil]
+                else
+                  @values, @fuzzies = _compute_fuzzy(triad[:value].to_s)
+                end
               end
             end
           end
-        
+          # Takes a raw val, and spits out the output val (unescaped), and the fuzzy definition
+          def _compute_fuzzy(raw_val)
+            starting = raw_val[0] == '*'
+            ending = raw_val[-1] == '*'
+            newval, fuzzy = if starting && ending
+              [raw_val[1..-2], :start_end]
+            elsif starting
+              [raw_val[1..-1], :start]
+            elsif ending
+              [raw_val[0..-2], :end]
+            else
+              [raw_val,nil]
+            end
+            newval = CGI.unescape(newval) if newval
+            [newval,fuzzy]
+          end
           def flattened_conditions
-            [{name: @name, op: @op, values: @values, node_object: self}]
+            [{name: @name, op: @op, values: @values, fuzzies: @fuzzies, node_object: self}]
           end
 
+          # Dumps the value, marking where the fuzzy might be, and removing the * to differentiate from literals
+          def _dump_value(val,fuzzy)
+            case fuzzy
+            when nil
+              val
+            when :start_end
+              '{*}' + val + '{*}'
+            when :start
+              '{*}' + val
+            when :end
+               val +'{*}'
+            end
+          end
           def dump
             vals = if values.is_a? Array
-              "[#{values.join(',')}]" # Purposedly enclose in brackets to make sure we differentiate
+              dumped = values.map.with_index{|val,i| _dump_value(val, @fuzzies[i])}
+              "[#{dumped.join(',')}]" # Purposedly enclose in brackets to make sure we differentiate
             else
-              (values == '') ? "\"#{values}\"" : values # Dump the empty string explicitly with quotes if we've converted no value to empty string
+              (values == '') ? '""' : _dump_value(values,@fuzzies) # Dump the empty string explicitly with quotes if we've converted no value to empty string
             end
             "#{name}#{op}#{vals}"
           end
@@ -134,7 +174,7 @@ module Praxis
           end
    
           rule(:name)    { match('[a-zA-Z0-9_\.]').repeat(1) } # TODO: are these the only characters that we allow for names?
-          rule(:chars) { match('[^&|),]').repeat(0).as(:value) }
+          rule(:chars) { match('[^&|(),]').repeat(0).as(:value) }
           rule(:value)    { chars >> (comma >> chars ).repeat }
 
           rule(:triad)  { 

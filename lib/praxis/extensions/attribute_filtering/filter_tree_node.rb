@@ -15,7 +15,7 @@ module Praxis
             if components.empty?
               return
             elsif components.size == 1
-              @conditions << hash.slice(:name, :op, :value, :node_object)
+              @conditions << hash.slice(:name, :op, :value, :fuzzy, :node_object)
             else
               children_data[components.first] ||= []
               children_data[components.first] << hash

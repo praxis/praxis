@@ -2,6 +2,8 @@
 
 ## next
 
+## 2.0.pre.14
+
 * More encoding/decoding robustness for filters. 
   * Specs for how to encode filters are now properly defined by:
     * The "value" of the filters query string needs to be URI encoded (like any other query string value). This encoding is subject to the normal rules, and therefore "could" leave some of the URI unreserved characters (i.e., 'markers') unencoded depending on the client (Section 2.2 of https://tools.ietf.org/html/rfc2396).

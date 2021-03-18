@@ -16,12 +16,27 @@ module Praxis
 
         def dump_response_headers_object( headers )
           headers.each_with_object({}) do |(name,data),accum|
-            # data is a hash with :value and :type keys
-            # How did we say in that must match a value in json schema again??
-            accum[name] = {
-              schema: SchemaObject.new(info: data[:type])
-              # allowed values:  [ data[:value] ] ??? is this the right json schema way?
-            }
+            # each header comes from Praxis::ResponseDefinition 
+            # the keys are the header names, and value can be:
+            #  "true"  => means it only needs to exist
+            #  String => which means that it has to fully match
+            #  Regex  => which means it has to regexp match it
+
+            # Get the schema from the type (defaulting to string in case the type doesn't have the as_json_schema defined)
+            schema = data[:attribute].type.as_json_schema rescue { type: :string }
+            hash = { description: data[:description] || '', schema: schema }
+            # Note, our Headers in response definition are not full types...they're basically only 
+            # strings, which can either match anything, match the exact word or match a regex
+            # they don't even have a description...
+            data_value = data[:value]
+            if data_value.is_a? String
+              hash[:pattern] = "^#{data_value}$" # Exact String match
+            elsif data_value.is_a? Regexp
+              sanitized_pattern = data_value.inspect[1..-2] #inspect returns enclosing '/' characters
+              hash[:pattern] = sanitized_pattern
+            end
+
+            accum[name] = hash
           end
         end
 

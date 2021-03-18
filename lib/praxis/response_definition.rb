@@ -55,14 +55,10 @@ module Praxis
       end
     end
 
-    def location(loc=nil)
-      return @spec[:location] if loc.nil?
-      unless ( loc.is_a?(Regexp) || loc.is_a?(String) )
-        raise Exceptions::InvalidConfiguration.new(
-          "Invalid location specification. Location in response must be either a regular expression or a string."
-        )
-      end
-      @spec[:location] = loc
+    def location(loc=nil, description: nil)
+      return  @spec[:headers].dig('Location',:value) if loc.nil?
+
+      header(name: 'Location', value: loc, description: description)
     end
 
     def headers(hdrs = nil)
@@ -70,11 +66,15 @@ module Praxis
 
       case hdrs
       when Array
-        hdrs.each {|header_name| header(header_name) }
+        hdrs.each {|h| 
+          headers(h)
+        }
       when Hash
-        header(hdrs)
+        hdrs.each {|(header_name, header_value)| 
+          header(name: header_name, value: header_value)
+        }
       when String
-        header(hdrs)
+        header(name: hdrs, value: nil)
       else
         raise Exceptions::InvalidConfiguration.new(
           "Invalid headers specification: Arrays, Hash, or String must be used. Received: #{hdrs.inspect}"
@@ -82,25 +82,30 @@ module Praxis
       end
     end
 
-    def header(hdr)
-      case hdr
-      when String
-        @spec[:headers][hdr] = true
-      when Hash
-        hdr.each do | k, v |
-          unless v.is_a?(Regexp) || v.is_a?(String)
-            raise Exceptions::InvalidConfiguration.new(
-              "Header definitions for #{k.inspect} can only match values of type String or Regexp. Received: #{v.inspect}"
-            )
-          end
-          @spec[:headers][k] = v
-        end
+    def get_header(name)
+      @spec[:headers][name]
+    end
+
+    # header setter
+    def header(name:, value: nil, description: nil)
+      the_type = case value
+      when nil,String
+        String
+      when Regexp
+        Regexp
       else
         raise Exceptions::InvalidConfiguration.new(
-          "A header definition can only take a String (to match the name) or" +
-          " a Hash (to match both the name and the value). Received: #{hdr.inspect}"
+          "A header definition for a response can only take String, Regexp or nil values (to match anything)." +
+          "Received the following value for header name #{name}: #{value}"
         )
       end
+
+      info = { 
+        value: value, 
+        attribute: Attributor::Attribute.new(the_type)
+      }
+      info[:description] = description if description
+      @spec[:headers][name] = info
     end
 
     def example(context=nil)
@@ -123,13 +128,14 @@ module Praxis
         :status => status,
         :headers => {}
       }
-      content[:location] = _describe_header(location) unless location == nil
 
       unless headers == nil
         headers.each do |name, value|
           content[:headers][name] = _describe_header(value)
         end
       end
+      content[:location] = content[:headers]['Location']
+
 
       if self.media_type
         payload = media_type.describe(true)
@@ -173,14 +179,14 @@ module Praxis
     end
 
     def _describe_header(data)
-      data_type = data.is_a?(Regexp) ? :regexp : :string
-      data_value = data.is_a?(Regexp) ? data.inspect : data
+
+      data_type = data[:value].is_a?(Regexp) ? :regexp : :string
+      data_value = data[:value].is_a?(Regexp) ? data[:value].inspect : data[:value]
       { :value => data_value, :type => data_type }
     end
 
     def validate(response, validate_body: false)
       validate_status!(response)
-      validate_location!(response)
       validate_headers!(response)
       validate_content_type!(response)
       validate_parts!(response)
@@ -222,17 +228,6 @@ module Praxis
       end
     end
 
-
-    # Validates 'Location' header
-    #
-    # @raise [Exceptions::Validation] When location header does not match to the defined one.
-    #
-    def validate_location!(response)
-      return if location.nil? || location === response.headers['Location']
-      raise Exceptions::Validation.new("LOCATION does not match #{location.inspect}")
-    end
-
-
     # Validates Headers
     #
     # @raise [Exceptions::Validation]  When there is a missing required header..
@@ -252,20 +247,25 @@ module Praxis
           )
         end
 
-        case value
-        when String
-          if response.headers[name] != value
-            raise Exceptions::Validation.new(
-              "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name]}."
-            )
-          end
-        when Regexp
-          if response.headers[name] !~ value
-            raise Exceptions::Validation.new(
-              "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name].inspect}."
-            )
-          end
+        errors = value[:attribute].validate(response.headers[name])
+
+        unless errors.empty? 
+          raise Exceptions::Validation.new("Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name]}.")
         end
+        # case value
+        # when String
+        #   if response.headers[name] != value
+        #     raise Exceptions::Validation.new(
+        #       "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name]}."
+        #     )
+        #   end
+        # when Regexp
+        #   if response.headers[name] !~ value
+        #     raise Exceptions::Validation.new(
+        #       "Header #{name.inspect}, with value #{value.inspect} does not match #{response.headers[name].inspect}."
+        #     )
+        #   end
+        # end
       end
     end
 

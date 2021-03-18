@@ -97,7 +97,7 @@ module Praxis
         description( description || 'Standard response for successful HTTP requests.' )
 
         media_type media_type
-        location location
+        location if location
         headers headers if headers
       end
 
@@ -106,7 +106,7 @@ module Praxis
         description( description || 'The request has been fulfilled and resulted in a new resource being created.' )
 
         media_type media_type if media_type
-        location location
+        location if location
         headers headers if headers
       end
     end

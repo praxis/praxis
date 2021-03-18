@@ -18,7 +18,7 @@ module <%= version_module %>
       <%- if action_enabled?(:create) -%>
       def self.create(payload)
         # Assuming the API field names directly map the the model attributes. Massage if appropriate.
-        self.new(model.create(*payload.to_h))
+        self.new(model.create(**payload.to_h))
       end
       <%- end -%>
 
@@ -27,7 +27,7 @@ module <%= version_module %>
         record = model.find_by(id: id)
         return nil unless record
         # Assuming the API field names directly map the the model attributes. Massage if appropriate.
-        record.update(*payload.to_h)
+        record.update(**payload.to_h)
         self.new(record)
       end
       <%- end -%>

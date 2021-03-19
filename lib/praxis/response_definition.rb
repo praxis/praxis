@@ -56,43 +56,22 @@ module Praxis
     end
 
     def location(loc=nil, description: nil)
-      return  @spec[:headers].dig('Location',:value) if loc.nil?
+      return  headers.dig('Location',:value) if loc.nil?
 
       header(name: 'Location', value: loc, description: description)
     end
 
-    def headers(hdrs = nil)
-      return @spec[:headers] if hdrs.nil?
-
-      case hdrs
-      when Array
-        hdrs.each {|h| 
-          headers(h)
-        }
-      when Hash
-        hdrs.each {|(header_name, header_value)| 
-          header(name: header_name, value: header_value)
-        }
-      when String
-        header(name: hdrs, value: nil)
-      else
-        raise Exceptions::InvalidConfiguration.new(
-          "Invalid headers specification: Arrays, Hash, or String must be used. Received: #{hdrs.inspect}"
-        )
-      end
+    def headers
+      @spec[:headers]
     end
 
-    def get_header(name)
-      @spec[:headers][name]
-    end
-
-    # header setter
     def header(name:, value: nil, description: nil)
-      the_type = case value
+      the_type, args = case value
       when nil,String
-        String
+        [String, {}]
       when Regexp
-        Regexp
+        # A regexp means it's gonna be a String typed, attached to a regexp
+        [String, { regexp: value }]
       else
         raise Exceptions::InvalidConfiguration.new(
           "A header definition for a response can only take String, Regexp or nil values (to match anything)." +
@@ -102,7 +81,7 @@ module Praxis
 
       info = { 
         value: value, 
-        attribute: Attributor::Attribute.new(the_type)
+        attribute: Attributor::Attribute.new(the_type, **args)
       }
       info[:description] = description if description
       @spec[:headers][name] = info
@@ -234,6 +213,7 @@ module Praxis
     #
     def validate_headers!(response)
       return unless headers
+
       headers.each do |name, value|
         if name.is_a? Symbol
           raise Exceptions::Validation.new(

@@ -98,7 +98,9 @@ module Praxis
 
         media_type media_type
         location if location
-        headers headers if headers
+        headers&.each do |(name, value)|
+          header(name: name, value: value)
+        end
       end
 
       api.response_template :created do |media_type: nil, location: nil, headers: nil, description: nil|
@@ -107,7 +109,9 @@ module Praxis
 
         media_type media_type if media_type
         location if location
-        headers headers if headers
+        headers&.each do |(name, value)|
+          header(name: name, value: value)
+        end
       end
     end
 

@@ -58,14 +58,14 @@ module Praxis
     def location(loc=nil, description: nil)
       return  headers.dig('Location',:value) if loc.nil?
 
-      header(name: 'Location', value: loc, description: description)
+      header('Location', loc, description: description)
     end
 
     def headers
       @spec[:headers]
     end
 
-    def header(name:, value: nil, description: nil)
+    def header(name, value, description: nil)
       the_type, args = case value
       when nil,String
         [String, {}]

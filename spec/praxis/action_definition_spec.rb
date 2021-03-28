@@ -41,7 +41,7 @@ describe Praxis::ActionDefinition do
         media_type media_type
         location location
         headers&.each do |(name, value)|
-          header(name: name, value: value)
+          header(name, value)
         end
       end
     end

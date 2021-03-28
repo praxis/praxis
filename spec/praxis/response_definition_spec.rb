@@ -8,8 +8,8 @@ describe Praxis::ResponseDefinition do
     Proc.new do
       status 200
       description 'test description'
-      header( name: "X-Header", value: "value", description: 'Very nais header')
-      header( name: "Content-Type", value: "application/some-type" )
+      header( "X-Header", "value", description: 'Very nais header')
+      header( "Content-Type", "application/some-type" )
     end
   end
 
@@ -252,7 +252,7 @@ describe Praxis::ResponseDefinition do
       describe "#validate_headers!" do
         context 'when there are missing headers' do
           it 'should raise error' do
-            response_definition.header(name: 'X-Unknown', value: 'test')
+            response_definition.header('X-Unknown', 'test')
             expect {
               response_definition.validate_headers!(response)
             }.to raise_error(Praxis::Exceptions::Validation)
@@ -260,25 +260,25 @@ describe Praxis::ResponseDefinition do
         end
         context 'when headers with same names are returned' do
           it 'a simply required header should not raise error just by being there' do
-            response_definition.header(name: 'X-Header', value: nil)
+            response_definition.header('X-Header', nil)
             expect {
               response_definition.validate_headers!(response)
             }.to_not raise_error
           end
           it 'an exact string header should not raise error if it fully matches' do
-            response_definition.header(name: 'X-Header', value: 'value')
+            response_definition.header('X-Header', 'value')
             expect {
               response_definition.validate_headers!(response)
             }.to_not raise_error
           end
           it 'a regexp header should not raise error if it matches the regexp' do
-            response_definition.header(name: 'X-Header', value: /value/)
+            response_definition.header('X-Header', /value/)
             expect {
               response_definition.validate_headers!(response)
             }.to_not raise_error
           end
           it 'a regexp header should raise error if it does not match the regexp' do
-            response_definition.header(name: 'X-Header', value: /anotherthing/)
+            response_definition.header('X-Header', /anotherthing/)
             expect {
               response_definition.validate_headers!(response)
             }.to raise_error(Praxis::Exceptions::Validation)
@@ -384,7 +384,7 @@ describe Praxis::ResponseDefinition do
       end
 
       headers&.each do |(name, value)|
-        response.header(name: name, value: value)
+        response.header(name, value)
       end
     end
 

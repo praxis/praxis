@@ -40,7 +40,9 @@ describe Praxis::ActionDefinition do
 
         media_type media_type
         location location
-        headers headers if headers
+        headers&.each do |(name, value)|
+          header(name, value)
+        end
       end
     end
     Praxis::ActionDefinition.new(:foo, endpoint_definition) do

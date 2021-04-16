@@ -8,7 +8,8 @@ describe Praxis::ResponseDefinition do
     Proc.new do
       status 200
       description 'test description'
-      headers({ "X-Header" => "value", "Content-Type" => "application/some-type" })
+      header( "X-Header", "value", description: 'Very nais header')
+      header( "Content-Type", "application/some-type" )
     end
   end
 
@@ -17,7 +18,7 @@ describe Praxis::ResponseDefinition do
   its(:parts) { should be(nil) }
   let(:response_status) { 200 }
   let(:response_content_type) { "application/some-type" }
-  let(:response_headers) { { "X-Header" => "value", "Content-Type" => response_content_type} }
+  let(:response_headers) { { "X-Header" => "value", "Content-Type" => response_content_type, "Location" => '/somewhere/over/the/rainbow'} }
 
   let(:response) { instance_double("Praxis::Response", status: response_status , headers: response_headers, content_type: response_content_type ) }
 
@@ -102,29 +103,6 @@ describe Praxis::ResponseDefinition do
 
     it 'should return an error when location is not a Regex or a String object' do
       expect { response_definition.location Object.new }.to raise_error(Praxis::Exceptions::InvalidConfiguration)
-    end
-  end
-
-  context '#headers' do
-    it 'accepts a Hash' do
-      response_definition.headers Hash["X-Header" => "value", "Content-Type" => "application/some-type"]
-      expect(response_definition.headers).to be_a(Hash)
-    end
-
-    it 'accepts an Array' do
-      response_definition.headers ["X-Header: value", "Content-Type: application/some-type"]
-      expect(response_definition.headers).to be_a(Hash)
-      expect(response_definition.headers.keys).to include("X-Header: value", "Content-Type: application/some-type")
-    end
-
-    it 'accepts a String' do
-      response_definition.headers "X-Header: value"
-      expect(response_definition.headers).to be_a(Hash)
-      expect(response_definition.headers.keys).to include("X-Header: value")
-    end
-
-    it 'should return an error when headers are not a Hash, Array or String object' do
-      expect{ response_definition.headers Object.new }. to raise_error(Praxis::Exceptions::InvalidConfiguration)
     end
   end
 
@@ -242,7 +220,6 @@ describe Praxis::ResponseDefinition do
 
       it "calls all the validation sub-functions" do
         expect(response_definition).to receive(:validate_status!).once
-        expect(response_definition).to receive(:validate_location!).once
         expect(response_definition).to receive(:validate_headers!).once
         expect(response_definition).to receive(:validate_content_type!).once
         response_definition.validate(response)
@@ -272,112 +249,39 @@ describe Praxis::ResponseDefinition do
 
       end
 
-      describe "#validate_location!" do
-        let(:block) { proc { status 200 } }
-
-        context 'checking location mismatches' do
-          before { response_definition.location(location) }
-
-          context 'for Regexp' do
-            let(:location) { /no_match/ }
-
-            it 'should raise an error' do
-              expect {
-                response_definition.validate_location!(response)
-              }.to raise_error(Praxis::Exceptions::Validation)
-            end
-          end
-
-          context 'for String' do
-            let(:location) { "no_match" }
-            it 'should raise error' do
-              expect {
-                response_definition.validate_location!(response)
-              }.to raise_error(Praxis::Exceptions::Validation)
-            end
-          end
-
-        end
-      end
-
       describe "#validate_headers!" do
-        before { response_definition.headers(headers) }
-        context 'checking headers are set' do
-          context 'when there are missing headers' do
-            let (:headers) { { 'X-some' => 'test' } }
-            it 'should raise error' do
-              expect {
-                response_definition.validate_headers!(response)
-              }.to raise_error(Praxis::Exceptions::Validation)
-            end
+        context 'when there are missing headers' do
+          it 'should raise error' do
+            response_definition.header('X-Unknown', 'test')
+            expect {
+              response_definition.validate_headers!(response)
+            }.to raise_error(Praxis::Exceptions::Validation)
           end
-
-          context "when headers specs are name strings" do
-            context "and is missing" do
-              let (:headers) { [ "X-Just-Key" ] }
-              it 'should raise error' do
-                expect {
-                  response_definition.validate_headers!(response)
-                }.to raise_error(Praxis::Exceptions::Validation)
-              end
-            end
-
-            context "and is not missing" do
-              let (:headers) { [ "X-Header" ] }
-              it 'should not raise error' do
-                expect {
-                  response_definition.validate_headers!(response)
-                }.not_to raise_error
-              end
-            end
+        end
+        context 'when headers with same names are returned' do
+          it 'a simply required header should not raise error just by being there' do
+            response_definition.header('X-Header', nil)
+            expect {
+              response_definition.validate_headers!(response)
+            }.to_not raise_error
           end
-
-          context "when header specs are hashes" do
-            context "and is missing" do
-              let (:headers) {
-                [ { "X-Just-Key" => "notfoodbar" } ]
-              }
-              it 'should raise error' do
-                expect {
-                  response_definition.validate_headers!(response)
-                }.to raise_error(Praxis::Exceptions::Validation)
-              end
-            end
-
-            context "and is not missing" do
-              let (:headers) {
-                [ { "X-Header" => "value" } ]
-              }
-              it 'should not raise error' do
-                expect {
-                  response_definition.validate_headers!(response)
-                }.not_to raise_error
-              end
-            end
+          it 'an exact string header should not raise error if it fully matches' do
+            response_definition.header('X-Header', 'value')
+            expect {
+              response_definition.validate_headers!(response)
+            }.to_not raise_error
           end
-
-          context "when header specs are of mixed type " do
-            context "and is missing" do
-              let (:headers) {
-                [ { "X-Header" => "value" }, "not-gonna-find-me" ]
-              }
-              it 'should raise error' do
-                expect {
-                  response_definition.validate_headers!(response)
-                }.to raise_error(Praxis::Exceptions::Validation)
-              end
-            end
-
-            context "and is not missing" do
-              let (:headers) {
-                [ { "X-Header" => "value" }, "Content-Type" ]
-              }
-              it 'should not raise error' do
-                expect {
-                  response_definition.validate_headers!(response)
-                }.not_to raise_error
-              end
-            end
+          it 'a regexp header should not raise error if it matches the regexp' do
+            response_definition.header('X-Header', /value/)
+            expect {
+              response_definition.validate_headers!(response)
+            }.to_not raise_error
+          end
+          it 'a regexp header should raise error if it does not match the regexp' do
+            response_definition.header('X-Header', /anotherthing/)
+            expect {
+              response_definition.validate_headers!(response)
+            }.to raise_error(Praxis::Exceptions::Validation)
           end
         end
       end
@@ -478,7 +382,10 @@ describe Praxis::ResponseDefinition do
       if parts || parts_block
         parts ? response.parts(nil, **parts, &parts_block) : response.parts(nil, &parts_block) 
       end
-      response.headers(headers) if headers
+
+      headers&.each do |(name, value)|
+        response.header(name, value)
+      end
     end
 
     context 'for a definition with a media type' do
@@ -520,8 +427,9 @@ describe Praxis::ResponseDefinition do
       its([:location]){ should == {value: location.inspect ,type: :regexp} }
 
       it 'should have a header defined with value and type keys' do
-        expect( output[:headers] ).to have(1).keys
+        expect( output[:headers] ).to have(2).keys
         expect( output[:headers]['Header1'] ).to eq({value: 'Value1' ,type: :string })
+        expect( output[:headers]['Location'] ).to eq({value: "/\\/my\\/url\\//" ,type: :regexp })        
       end
     end
 

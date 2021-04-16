@@ -7,14 +7,14 @@ namespace :praxis do
     table = Terminal::Table.new title: "Routes",
     headings:  [
       "Version", "Path", "Verb",
-      "Resource", "Action", "Implementation", "Options"
+      "Endpoint", "Action", "Implementation", "Options"
     ]
 
     rows = []
-    Praxis::Application.instance.endpoint_definitions.each do |resource_definition|
-      resource_definition.actions.each do |name, action|
+    Praxis::Application.instance.endpoint_definitions.each do |endpoint_definition|
+      endpoint_definition.actions.each do |name, action|
         method = begin
-          m = resource_definition.controller.instance_method(name)
+          m = endpoint_definition.controller.instance_method(name)
         rescue
           nil
         end
@@ -22,13 +22,13 @@ namespace :praxis do
         method_name = method ? "#{method.owner.name}##{method.name}" : 'n/a'
 
         row = {
-          resource: resource_definition.name,
+          resource: endpoint_definition.name,
           action: name,
           implementation: method_name,
         }
 
         unless action.route
-          warn "Warning: No routes defined for #{resource_definition.name}##{name}."
+          warn "Warning: No routes defined for #{endpoint_definition.name}##{name}."
           rows << row
         else
           route = action.route

@@ -97,8 +97,10 @@ module Praxis
         description( description || 'Standard response for successful HTTP requests.' )
 
         media_type media_type
-        location location
-        headers headers if headers
+        location if location
+        headers&.each do |(name, value)|
+          header(name: name, value: value)
+        end
       end
 
       api.response_template :created do |media_type: nil, location: nil, headers: nil, description: nil|
@@ -106,8 +108,10 @@ module Praxis
         description( description || 'The request has been fulfilled and resulted in a new resource being created.' )
 
         media_type media_type if media_type
-        location location
-        headers headers if headers
+        location if location
+        headers&.each do |(name, value)|
+          header(name: name, value: value)
+        end
       end
     end
 

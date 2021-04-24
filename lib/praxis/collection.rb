@@ -32,5 +32,16 @@ module Praxis
       @member_type.domain_model
     end
 
+    def self.json_schema_type
+      :array
+    end
+
+    def self.as_json_schema(**args)
+      the_type = @attribute && @attribute.type || member_type
+      {
+        type: json_schema_type,
+        items: { '$ref': "#/components/schemas/#{the_type.id}" }
+      }
+    end
   end
 end

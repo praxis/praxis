@@ -218,7 +218,21 @@ describe Praxis::MediaTypeIdentifier do
 
     it 'replaces suffix and parameters and adds new ones' do
       expect(complex_subject + 'json; nuts=false; cherry=true').to \
-      eq(described_class.new('application/vnd.icecream+json; cherry=true; nuts=false'))
+        eq(described_class.new('application/vnd.icecream+json; cherry=true; nuts=false'))
+    end
+
+    context 'does not add json for an already json identifier' do
+      it 'non-parameterized mediatypes simply ignore adding the suffix' do
+        plain_application_json = described_class.new('application/json')
+
+        expect(plain_application_json + 'json').to \
+          eq(plain_application_json)
+      end
+      it 'parameterized mediatypes still keeps them' do
+        parameterized_application_json = described_class.new('application/json; cherry=true; nuts=false')
+        expect(parameterized_application_json + 'json').to \
+          eq(parameterized_application_json)
+      end
     end
   end
 end

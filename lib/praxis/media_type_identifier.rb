@@ -198,10 +198,20 @@ module Praxis
       obj = self.class.new
       obj.type = self.type
       obj.subtype = self.subtype
-      obj.suffix = suffix || self.suffix || ''
+      target_suffix = suffix || self.suffix
+      obj.suffix = redundant_suffix(target_suffix) ? '' : target_suffix
       obj.parameters = self.parameters.merge(parameters)
 
       obj
+    end
+
+    def redundant_suffix(suffix)
+      # application/json does not need to be suffixed with +json (same for application/xml)
+      # we're supporting text/json and text/xml for older formats as well
+      if (self.type == 'application' || self.type == 'text') && self.subtype == suffix
+        return true
+      end
+      false
     end
   end
 end

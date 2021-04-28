@@ -255,14 +255,23 @@ module Praxis
 
       def reusable_schema_objects(types)
         types.each_with_object({}) do |(type), accum|
-          the_type = \
-            if type.respond_to? :as_json_schema
-              type
-            else # If it is a blueprint ... for now, it'd be through the attribute
-              type.attribute
-            end
-          accum[type.id] = the_type.as_json_schema(shallow: false)
+          #binding.pry
+          accum[type.id] = OpenApi::SchemaObject.new(info:type).dump_schema
         end
+
+        # types.each_with_object({}) do |(type), accum|
+        #   the_type = \
+        #     if type.respond_to? :as_json_schema
+        #       type
+        #     else # If it is a blueprint ... for now, it'd be through the attribute
+        #       type.attribute
+        #     end
+        #     binding.pry
+        #     the further properties of the types should be not shallow, BUT we somehow need to make the system do
+        #       references "if" they are pointing to a names MT....but not in Attributor though...maybe wrap them and add the ref?
+        #       ie. if they have a name, use shallow and then add the ref, otherwise add not-shallow
+        #   accum[type.id] = the_type.as_json_schema(shallow: false)
+        # end
       end
 
       def convert_to_parameter_object( params )

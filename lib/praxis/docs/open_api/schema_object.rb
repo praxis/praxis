@@ -24,11 +24,17 @@ module Praxis
         end
 
         def dump_schema
-          if attribute
-            attribute.as_json_schema(shallow: true, example: nil)
-          else
-            type.as_json_schema(shallow: true, example: nil)
-          end
+          target = attribute ? attribute : type
+
+          the_type = attribute ? attribute.type : type
+          # We will dump schemas for mediatypes by simply creating a reference to the components' section 
+          # if the_type < Praxis::MediaType
+          #   # TODO: Do we even need a description?
+          #   { 'description' => target.description, '$ref' => "#/components/schemas/#{target.id}" }
+          # else
+            target.as_json_schema(shallow: true, example: nil)
+          # end
+          
           # # TODO: FIXME: return a generic object type if the passed info was weird. 
           # return { type: :object } unless info
 

@@ -23,7 +23,8 @@ module Praxis
       end
 
       class ActiveRecordFilterQueryBuilder
-      attr_reader :model, :filters_map
+        REFERENCES_STRING_SEPARATOR = '/'
+        attr_reader :model, :filters_map
 
         # Base query to build upon
         def initialize(query: , model:, filters_map:, debug: false)
@@ -65,8 +66,13 @@ module Praxis
           apply_single_condition = Proc.new do |condition, associated_query|
             colo = condition[:model].columns_hash[condition[:name].to_s]
             column_prefix = condition[:column_prefix]
-            #Mark where clause referencing the appropriate alias
-            associated_query = associated_query.references(build_reference_value(column_prefix, query: associated_query))
+            
+            # Mark where clause referencing the appropriate alias IF it's not the root table, as there is no association to reference
+            # If we added root table as a reference, we better make sure it is not quoted, as it actually makes AR to see it as an 
+            # unmatched reference and eager loads the whole association (it means eager load ALL the things). Not good.
+            unless for_model.table_name == column_prefix
+              associated_query = associated_query.references(build_reference_value(column_prefix, query: associated_query))
+            end
             self.class.add_clause(
               query: associated_query, 
               column_prefix: column_prefix, 
@@ -185,8 +191,7 @@ module Praxis
             h[name] = result[:associations_hash] 
             conditions += result[:conditions]
           end
-          column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? model.table_name : nodetree.path.join('/')
-          #column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? nil : nodetree.path.join('/')
+          column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? model.table_name : nodetree.path.join(REFERENCES_STRING_SEPARATOR)
           nodetree.conditions.each do |condition|
             conditions += [condition.merge(column_prefix: column_prefix, model: model)]
           end

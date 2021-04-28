@@ -9,6 +9,12 @@ rescue Bundler::GemfileNotFound
   # no-op: we might be installed as a system gem
 end
 
+if ARGV[0] == "version"
+  require 'praxis/version'
+  puts "Praxis version #{Praxis::VERSION}"
+  exit 0
+end
+
 if ["routes","docs","console"].include? ARGV[0]
   require 'rake'
   require 'praxis'

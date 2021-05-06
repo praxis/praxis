@@ -2,6 +2,8 @@
 
 ## next
 
+* Updated `Resource.property` signature to only accept known named arguments (`dependencies` and `though` at this time) to spare anyone else from going insane wondering why their `depednencies` aren't working.
+
 ## 2.0.pre.14
 
 * More encoding/decoding robustness for filters. 

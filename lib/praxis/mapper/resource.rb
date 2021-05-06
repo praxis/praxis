@@ -46,8 +46,8 @@ module Praxis::Mapper
       end
     end
 
-    def self.property(name, **options)
-      self.properties[name] = options
+    def self.property(name, dependencies: nil, through: nil)
+      self.properties[name] = {dependencies: dependencies, through: through}
     end
 
     def self._finalize!

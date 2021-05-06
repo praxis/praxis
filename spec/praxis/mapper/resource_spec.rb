@@ -14,15 +14,15 @@ describe Praxis::Mapper::Resource do
       subject(:properties) { resource.properties }
 
       it 'includes directly-set properties' do
-        expect(properties[:other_resource]).to eq(dependencies: [:other_model])
+        expect(properties[:other_resource]).to eq(dependencies: [:other_model], through: nil)
       end
 
       it 'inherits from a superclass' do
-        expect(properties[:href]).to eq(dependencies: [:id])
+        expect(properties[:href]).to eq(dependencies: [:id], through: nil)
       end
 
       it 'properly overrides a property from the parent' do
-        expect(properties[:name]).to eq(dependencies: [:simple_name])
+        expect(properties[:name]).to eq(dependencies: [:simple_name], through: nil)
       end
     end
   end

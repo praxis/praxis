@@ -28,7 +28,7 @@ module Praxis
           the_schema = if type.anonymous? || ! (type < Praxis::MediaType) # Avoid referencing  custom/simple Types? (i.e., just MTs)
             SchemaObject.new(info: type).dump_schema
           else
-            { '$ref': "#/components/schemas/#{type.id}" }
+            { '$ref': "#/components/schemas/#{type.id}" } # TODO! NO, use Schema object with allow ref
           end
 
           if example_payload

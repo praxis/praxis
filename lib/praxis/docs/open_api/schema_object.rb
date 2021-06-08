@@ -3,37 +3,52 @@ module Praxis
     module OpenApi
       class SchemaObject
         # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#schema-object
-        attr_reader :type, :attribute
+        attr_reader :type #, :attribute
         def initialize(info:)
           #info could be an attribute ... or a type?
-          if info.is_a? Attributor::Attribute
-            @attribute = info
-          else
-            @type = info
-          end
+          @type =  info.is_a?(Attributor::Attribute) ? info.type : info
+          
+          @description = info.options[:description] if info.respond_to?(:options)
+          @collection = type.respond_to?(:member_type)
         end
 
         def dump_example
-          ex = \
-            if attribute
-              attribute.example
-            else
-              type.example
-            end
+          ex = type.example
           ex.respond_to?(:dump) ? ex.dump : ex
         end
 
-        def dump_schema
-          target = attribute ? attribute : type
-
-          the_type = attribute ? attribute.type : type
+        def dump_schema(shallow: false, allow_ref: false)
           # We will dump schemas for mediatypes by simply creating a reference to the components' section 
-          # if the_type < Praxis::MediaType
-          #   # TODO: Do we even need a description?
-          #   { 'description' => target.description, '$ref' => "#/components/schemas/#{target.id}" }
-          # else
-            target.as_json_schema(shallow: true, example: nil)
-          # end
+          if type < Attributor::Container
+            if (type < Praxis::Blueprint || type < Attributor::Model) && allow_ref && !type.anonymous?
+              # TODO: Do we even need a description?
+              h = @description ? { 'description' => @description } : {}
+              # TODO: why do get some empty descriptions?
+              if h.empty?
+                puts "No description for #{type}"
+                # require 'pry'
+                # binding.pry
+              end
+              h.merge('$ref' => "#/components/schemas/#{type.id}")
+            else
+              if @collection
+                items = OpenApi::SchemaObject.new(info: type.member_type).dump_schema(allow_ref: allow_ref, shallow: false)
+                h = @description ? { description: @description } : {}
+                h.merge(type: 'array' , items: items)
+              else
+                # Object
+                props = type.attributes.each_with_object({}) do |(name, definition), hash|
+                  hash[name] = OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
+                end
+                { type: :object, properties: props } # TODO: Example?
+              end
+            end
+          else
+            # OpenApi::SchemaObject.new(info:target).dump_schema(allow_ref: allow_ref, shallow: shallow)
+            # TODO...we need to make sure we can use refs in the underlying components after the first level...
+            # ... maybe we need to loop over the attributes if it's an object/struct?...
+            type.as_json_schema(shallow: shallow, example: nil)
+          end
           
           # # TODO: FIXME: return a generic object type if the passed info was weird. 
           # return { type: :object } unless info
@@ -58,7 +73,13 @@ module Praxis
           # end
           # h
         rescue => e
+          require 'pry'
+          binding.pry
           puts "Error dumping schema #{e}"
+        rescue SystemStackError => e
+          require 'pry'
+          binding.pry
+          puts "STACK #{e}"
         end
         
         def convert_family_to_json_type( praxis_type )

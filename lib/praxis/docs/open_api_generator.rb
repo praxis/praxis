@@ -168,8 +168,8 @@ module Praxis
           full_data[:tags] = full_data[:tags] + tags_for_traits
         end
 
-        # Include only MTs (i.e., not custom types or simple types...)
-        component_schemas = reusable_schema_objects(processed_types.select{|t| t < Praxis::MediaType})
+        # Include only MTs and Blueprints (i.e., no simple types...)
+        component_schemas = reusable_schema_objects(processed_types.select{|t| t < Praxis::Blueprint})
         
         # 3- Then adding all of the top level Mediatypes...so we can present them at the bottom, otherwise they don't show
         tags_for_mts = component_schemas.map do |(name, info)|
@@ -255,8 +255,8 @@ module Praxis
 
       def reusable_schema_objects(types)
         types.each_with_object({}) do |(type), accum|
-          #binding.pry
-          accum[type.id] = OpenApi::SchemaObject.new(info:type).dump_schema
+          # For components, we want the first level to be fully dumped (only references below that)
+          accum[type.id] = OpenApi::SchemaObject.new(info:type).dump_schema(allow_ref: false, shallow: false)
         end
 
         # types.each_with_object({}) do |(type), accum|

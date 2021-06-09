@@ -8,8 +8,14 @@ module Praxis
           #info could be an attribute ... or a type?
           @type =  info.is_a?(Attributor::Attribute) ? info.type : info
           
-          @description = info.options[:description] if info.respond_to?(:options)
+          # Mediatypes have the description method, lower types don't
+          @description = @type.description if @type.respond_to?(:description)
+          @description ||= info.options[:description] if info.respond_to?(:options)
           @collection = type.respond_to?(:member_type)
+        rescue => e
+          require 'pry'
+          binding.pry
+          puts "asf"
         end
 
         def dump_example
@@ -23,12 +29,8 @@ module Praxis
             if (type < Praxis::Blueprint || type < Attributor::Model) && allow_ref && !type.anonymous?
               # TODO: Do we even need a description?
               h = @description ? { 'description' => @description } : {}
-              # TODO: why do get some empty descriptions?
-              if h.empty?
-                puts "No description for #{type}"
-                # require 'pry'
-                # binding.pry
-              end
+
+              Praxis::Docs::OpenApiGenerator.instance.register_seen_component(type)
               h.merge('$ref' => "#/components/schemas/#{type.id}")
             else
               if @collection

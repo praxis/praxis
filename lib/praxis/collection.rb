@@ -40,7 +40,7 @@ module Praxis
       the_type = @attribute && @attribute.type || member_type
       {
         type: json_schema_type,
-        items: { '$ref': "#/components/schemas/#{the_type.id}" } # TODO: NO!!!!!
+        items: the_type.as_json_schema
       }
     end
   end

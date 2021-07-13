@@ -222,8 +222,7 @@ module Praxis
             value_type = attr_filters[:value_type]
             next unless value_type == Attributor::String
 
-            value = item[:value]
-            unless value.empty?
+            if item[:value].presence
               fuzzy_match = attr_filters[:fuzzy_match]
               if item[:fuzzy] && !item[:fuzzy].empty? && !fuzzy_match
                 errors << "Fuzzy matching for #{attr_name} is not allowed (yet '*' was found in the value)"

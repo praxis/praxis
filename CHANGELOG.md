@@ -2,6 +2,8 @@
 
 ## next
 
+## 2.0.pre.16
+
 * Updated `Resource.property` signature to only accept known named arguments (`dependencies` and `though` at this time) to spare anyone else from going insane wondering why their `depednencies` aren't working.
 * Fixed issue with Filtering Params, that occurred with using the ! or !! operators on String-typed fields.
 

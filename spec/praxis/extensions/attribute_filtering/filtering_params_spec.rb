@@ -161,9 +161,9 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
       # construct it propertly by applying the block. Seems easier than creating the type alone, and 
       # then manually apply the block
       Attributor::Attribute.new(described_class.for(Post)) do
-        filter 'id', using: ['=', '!=']
+        filter 'id', using: ['=', '!=', '!']
         filter 'title', using: ['=', '!='], fuzzy: true
-        filter 'content', using: ['=', '!=']
+        filter 'content', using: ['=', '!=', '!']
       end.type
     end
     let(:loaded_params) { filtering_params_type.load(filters_string) }
@@ -191,6 +191,21 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
         it 'raises an error' do
           expect(subject).to_not be_empty
           expect(subject.first).to match(/Operator > not allowed for filter title/)
+        end
+      end
+    end
+
+    context 'non-valued operators' do
+      context 'for string typed fields' do
+        let(:filters_string) { 'content!'}
+        it 'validates properly' do
+          expect(subject).to be_empty
+        end
+      end
+      context 'for non-string typed fields' do
+        let(:filters_string) { 'id!'}
+        it 'validates properly' do
+          expect(subject).to be_empty
         end
       end
     end

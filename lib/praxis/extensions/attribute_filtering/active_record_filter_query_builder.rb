@@ -49,9 +49,8 @@ module Praxis
         end
 
         def craft_filter_query(nodetree, for_model:)
-          result = _compute_joins_and_conditions_data(nodetree, model: for_model)
+          result = _compute_joins_and_conditions_data(nodetree, model: for_model, parent_reflection: nil)
           return @initial_query if result[:conditions].empty?
-
           
           # Find the root group (usually an AND group) but can be an OR group, or nil if there's only 1 condition
           root_parent_group = result[:conditions].first[:node_object].parent_group || result[:conditions].first[:node_object]
@@ -60,13 +59,21 @@ module Praxis
           end
 
           # Process the joins
-          query_with_joins = result[:associations_hash].empty? ? @initial_query : @initial_query.joins(result[:associations_hash])
+          query_with_joins = result[:associations_hash].empty? ? @initial_query : @initial_query.left_outer_joins(result[:associations_hash])
 
           # Proc to apply a single condition
           apply_single_condition = Proc.new do |condition, associated_query|
             colo = condition[:model].columns_hash[condition[:name].to_s]
             column_prefix = condition[:column_prefix]
-            
+            association_key_column = \
+              if ref = condition[:parent_reflection]
+                # get the target model of the association(where the assoc pk is)
+                target_model = condition[:parent_reflection].klass
+                target_model.columns_hash[condition[:parent_reflection].association_primary_key]
+              else
+                nil
+              end
+
             # Mark where clause referencing the appropriate alias IF it's not the root table, as there is no association to reference
             # If we added root table as a reference, we better make sure it is not quoted, as it actually makes AR to see it as an 
             # unmatched reference and eager loads the whole association (it means eager load ALL the things). Not good.
@@ -79,7 +86,8 @@ module Praxis
               column_object: colo, 
               op: condition[:op], 
               value: condition[:value],
-              fuzzy: condition[:fuzzy]
+              fuzzy: condition[:fuzzy],
+              association_key_column: association_key_column,
             )
           end
 
@@ -182,31 +190,64 @@ module Praxis
         end
 
         # Calculate join tree and conditions array for the nodetree object and its children
-        def _compute_joins_and_conditions_data(nodetree, model:)
+        def _compute_joins_and_conditions_data(nodetree, model:, parent_reflection:)
           h = {}
           conditions = []
           nodetree.children.each do |name, child|
-            child_model = model.reflections[name.to_s].klass
-            result = _compute_joins_and_conditions_data(child, model: child_model)
-            h[name] = result[:associations_hash] 
+            child_reflection = model.reflections[name.to_s]
+            result = _compute_joins_and_conditions_data(child, model: child_reflection.klass, parent_reflection: child_reflection)
+            h[name] = result[:associations_hash]
+            
             conditions += result[:conditions]
           end
+          
           column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? model.table_name : nodetree.path.join(REFERENCES_STRING_SEPARATOR)
           nodetree.conditions.each do |condition|
-            conditions += [condition.merge(column_prefix: column_prefix, model: model)]
+            # If it's a final ! or !! operation on an association from the parent, it means we need to add a condition
+            # on the existence (or lack of) of the whole associated table
+            ref = model.reflections[condition[:name].to_s]
+            if ref && ['!','!!'].include?(condition[:op])
+              cp = (nodetree.path + [condition[:name].to_s]).join(REFERENCES_STRING_SEPARATOR)
+              conditions += [condition.merge(column_prefix: cp, model: model, parent_reflection: ref)]
+              h[condition[:name]] = {}
+            else
+              # Save the parent reflection where the condition applies as well (used later to get assoc keys)
+              conditions += [condition.merge(column_prefix: column_prefix, model: model, parent_reflection: parent_reflection)]
+            end
+            
           end
           {associations_hash: h, conditions: conditions}
         end
 
-        def self.add_clause(query:, column_prefix:, column_object:, op:, value:,fuzzy:)
+        def self.add_clause(query:, column_prefix:, column_object:, op:, value:,fuzzy:, association_key_column:)
           likeval = get_like_value(value,fuzzy)
+
+          association_op = nil
           case op
           when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
             op = '!='
             value = nil # Enforce it is indeed nil (should be)
+            association_op = :not_null if association_key_column && !column_object
           when '!!'
             op = '='
             value = nil # Enforce it is indeed nil (should be)
+            association_op = :null if association_key_column && !column_object
+          end
+
+          if association_op
+            neg = association_op == :not_null ? true : false
+            qr = quote_right_part(query: query, value: nil, column_object: association_key_column, negative: neg)
+            return query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: association_key_column)} #{qr}")
+          end
+
+          # Add an AND along with the condition, which ensures the left outter join 'exists' for it
+          # Normally this wouldn't be necessary as a condition on a given value mathing would imply the related row was there
+          # but this is not the case for NULL conditions, as the foreign column would match a  NULL value, but not because the related column
+          # is NULL, but because the whole missing related row would appear with all fields null
+          # NOTE: we don't need to do it for conditions applying to the root of the tree (there isn't a join to it)
+          if association_key_column
+            qr = quote_right_part(query: query, value: nil, column_object: association_key_column, negative: true)
+            query = query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: association_key_column)} #{qr}")
           end
 
           case op

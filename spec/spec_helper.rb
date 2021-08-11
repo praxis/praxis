@@ -17,6 +17,7 @@ require 'simplecov'
 SimpleCov.start 'praxis'
 
 require 'pry'
+require 'pry-byebug'
 
 require 'praxis'
 

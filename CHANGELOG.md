@@ -2,6 +2,11 @@
 
 ## next
 
+## 2.0.pre.17
+* Changed the Parameter Filtering to use left outer joins (and extra conditions), to allow for the proper results when OR clauses are involved in certain configurations.
+* Built support for allowing filtering directly on associations using `!` and `!!` operators. This allows to filter results where 
+there are no associated rows (`!!`) or if there are some associated rows (`!`)
+* Allow implicit definition of `filters_mapping` for filter names that match top-level associations of the model (i.e., like we do for the columns)
 ## 2.0.pre.16
 
 * Updated `Resource.property` signature to only accept known named arguments (`dependencies` and `though` at this time) to spare anyone else from going insane wondering why their `depednencies` aren't working.

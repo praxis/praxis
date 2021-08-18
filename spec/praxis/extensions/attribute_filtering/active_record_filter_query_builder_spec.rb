@@ -111,6 +111,48 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
           let(:filters_string) { 'tags.name=blue' }
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:tags).where('active_tags.name' => 'blue')
         end
+
+        context 'by just an association filter condition' do
+          context 'for a belongs_to association with NO ROWS' do
+            let(:filters_string) { 'category!!'}
+            it_behaves_like 'subject_equivalent_to', ActiveBook.where.missing(:category)
+          end
+
+          context 'for a direct has_many association asking for missing rows' do
+            let(:filters_string) { 'primary_tags!!' }
+            it_behaves_like 'subject_equivalent_to', 
+              ActiveBook.where.missing(:primary_tags)
+          end
+          context 'for a direct has_many association asking for non-missing rows' do
+            let(:filters_string) { 'primary_tags!' }
+            it_behaves_like 'subject_equivalent_to', 
+              ActiveBook.left_outer_joins(:primary_tags).where.not('primary_tags.id' => nil)
+          end
+
+          context 'for a has_many through association with NO ROWS' do
+            let(:filters_string) { 'tags!!' }
+            it_behaves_like 'subject_equivalent_to', ActiveBook.where.missing(:tags)
+          end
+
+          context 'for a has_many through association with SOME ROWS' do
+            let(:filters_string) { 'tags!' }
+            it_behaves_like 'subject_equivalent_to', ActiveBook.left_outer_joins(:tags).where.not('tags.id' => nil)
+          end
+
+          context 'for a 3 levels deep has_many association with NO ROWS' do
+            let(:filters_string) { 'category.books.taggings!!' }
+            it_behaves_like 'subject_equivalent_to', 
+              ActiveBook.left_outer_joins(category: { books: :taggings }).where('category.books.taggings.id' => nil)
+          end
+          
+          context 'for a 3 levels deep has_many association WITH SIME ROWS' do
+            let(:filters_string) { 'category.books.taggings!' }
+            it_behaves_like 'subject_equivalent_to', 
+              ActiveBook.left_outer_joins(category: { books: :taggings }).where.not('category.books.taggings.id' => nil)
+          end
+          
+        end
+  
       end
 
       # NOTE: apparently AR when conditions are build with strings in the where clauses (instead of names, etc)
@@ -120,77 +162,77 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
         PREF = Praxis::Extensions::AttributeFiltering::ALIAS_TABLE_PREFIX
         COMMON_SQL_PREFIX = <<~SQL
               SELECT "active_books".* FROM "active_books"
-              INNER JOIN
+              LEFT OUTER JOIN
                 "active_authors" "#{PREF}/author" ON "#{PREF}/author"."id" = "active_books"."author_id"
             SQL
         context '=' do
           let(:filters_string) { 'author.id=11'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id = 11')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."id" = 11)
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."id" = 11)
             SQL
         end
         context '= (with array)' do
           let(:filters_string) { 'author.id=11,22'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id IN (11,22)')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."id" IN (11,22))
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."id" IN (11,22))
             SQL
         end      
         context '!=' do
           let(:filters_string) { 'author.id!=11'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id <> 11')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."id" <> 11)
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."id" <> 11)
             SQL
         end
         context '!= (with array)' do
           let(:filters_string) { 'author.id!=11,888'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id NOT IN (11,888)')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."id" NOT IN (11,888))
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."id" NOT IN (11,888))
             SQL
         end
         context '>' do
           let(:filters_string) { 'author.id>1'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id > 1')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."id" > 1)
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."id" > 1)
             SQL
         end
         context '<' do
           let(:filters_string) { 'author.id<22'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id < 22')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."id" < 22)
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."id" < 22)
             SQL
         end
         context '>=' do
           let(:filters_string) { 'author.id>=22'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id >= 22')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."id" >= 22)
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."id" >= 22)
             SQL
         end
         context '<=' do
           let(:filters_string) { 'author.id<=22'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id <= 22')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."id" <= 22)
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."id" <= 22)
             SQL
         end
         context '!' do
           let(:filters_string) { 'author.id!'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id IS NOT NULL')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."id" IS NOT NULL)
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."id" IS NOT NULL)
             SQL
         end
         context '!!' do
           let(:filters_string) { 'author.name!!'}
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.name IS NULL')
           it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."name" IS NULL)
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."name" IS NULL)
             SQL
         end      
         context 'including LIKE fuzzy queries' do
@@ -198,14 +240,14 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
             let(:filters_string) { 'author.name=author*'}
             it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.name LIKE "author%"')
             it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."name" LIKE 'author%')
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."name" LIKE 'author%')
             SQL
           end
           context 'NOT LIKE' do
             let(:filters_string) { 'author.name!=foobar*'}
             it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.name NOT LIKE "foobar%"')
             it_behaves_like 'subject_matches_sql', COMMON_SQL_PREFIX + <<~SQL
-              WHERE ("#{PREF}/author"."name" NOT LIKE 'foobar%')
+              WHERE ("#{PREF}/author"."id" IS NOT NULL) AND ("#{PREF}/author"."name" NOT LIKE 'foobar%')
             SQL
           end
         end
@@ -227,10 +269,10 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
             ActiveBook.joins(category: { books: :taggings }).where('active_taggings.tag_id': 1).where('active_taggings.label': 'primary')
           it_behaves_like 'subject_matches_sql', <<~SQL
               SELECT "active_books".* FROM "active_books"
-                INNER JOIN "active_categories" ON "active_categories"."uuid" = "active_books"."category_uuid"
-                INNER JOIN "active_books" "books_active_categories" ON "books_active_categories"."category_uuid" = "active_categories"."uuid"
-                INNER JOIN "active_taggings" "#{PREF}/category/books/taggings" ON "/category/books/taggings"."book_id" = "books_active_categories"."id"
-                WHERE ("#{PREF}/category/books/taggings"."tag_id" = 1)
+                LEFT OUTER JOIN "active_categories" ON "active_categories"."uuid" = "active_books"."category_uuid"
+                LEFT OUTER JOIN "active_books" "books_active_categories" ON "books_active_categories"."category_uuid" = "active_categories"."uuid"
+                LEFT OUTER JOIN "active_taggings" "#{PREF}/category/books/taggings" ON "/category/books/taggings"."book_id" = "books_active_categories"."id"
+                WHERE ("#{PREF}/category/books/taggings"."id" IS NOT NULL) AND ("#{PREF}/category/books/taggings"."tag_id" = 1)
                 AND ("#{PREF}/category/books/taggings"."label" = 'primary')
             SQL
         end
@@ -260,14 +302,14 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
                                                     .where('books_active_categories.simple_name': 'Book3')
           it_behaves_like 'subject_matches_sql', <<~SQL
               SELECT "active_books".* FROM "active_books"
-                INNER JOIN "active_categories" ON "active_categories"."uuid" = "active_books"."category_uuid"
-                INNER JOIN "active_books" "#{PREF}/category/books" ON "#{PREF}/category/books"."category_uuid" = "active_categories"."uuid"    
+                LEFT OUTER JOIN "active_categories" ON "active_categories"."uuid" = "active_books"."category_uuid"
+                LEFT OUTER JOIN "active_books" "#{PREF}/category/books" ON "#{PREF}/category/books"."category_uuid" = "active_categories"."uuid"    
               WHERE ("active_books"."simple_name" = 'Book1')
-              AND ("#{PREF}/category/books"."simple_name" = 'Book3')
+              AND ("#{PREF}/category/books"."id" IS NOT NULL) AND ("#{PREF}/category/books"."simple_name" = 'Book3')
             SQL
         end
 
-        context 'it qualifis them even if there are no joined tables/conditions at all' do
+        context 'it qualifies them even if there are no joined tables/conditions at all' do
           let(:filters_string) { 'id=11'}
           it_behaves_like 'subject_matches_sql', <<~SQL
             SELECT "active_books".* FROM "active_books"
@@ -310,20 +352,31 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
                                                 .or(ActiveBook.joins(:taggings).where('active_taggings.tag_id' => 2))
         it_behaves_like 'subject_matches_sql', <<~SQL
           SELECT "active_books".* FROM "active_books"
-            INNER JOIN "active_taggings" "/taggings" ON "/taggings"."book_id" = "active_books"."id"
-            WHERE ("/taggings"."label" = 'primary' OR "/taggings"."tag_id" = 2)
+            LEFT OUTER JOIN "active_taggings" "/taggings" ON "/taggings"."book_id" = "active_books"."id"
+            WHERE ("/taggings"."id" IS NOT NULL) AND ("/taggings"."label" = 'primary' OR "/taggings"."tag_id" = 2)
+        SQL
+      end
+
+      context 'works well with ORs at a parent table along with joined associations with no rows' do
+        let(:filters_string) { 'name=Book1005|category!!' }
+        it_behaves_like 'subject_equivalent_to', ActiveBook.where.missing(:category)
+                                                .or(ActiveBook.where.missing(:category).where(simple_name: "Book1005"))
+        it_behaves_like 'subject_matches_sql', <<~SQL
+          SELECT "active_books".* FROM "active_books"
+            LEFT OUTER JOIN "active_categories" "/category" ON "/category"."uuid" = "active_books"."category_uuid"
+            WHERE ("active_books"."simple_name" = 'Book1005' OR "/category"."uuid" IS NULL)
         SQL
       end
 
       context '3-deep AND and OR conditions' do
         let(:filters_string) { '(category.name=cat2|(taggings.label=primary&tags.name=red))&category_uuid=deadbeef1' }
         it_behaves_like('subject_equivalent_to', Proc.new do
-          base=ActiveBook.joins(:category,:taggings,:tags)
+          base=ActiveBook.left_outer_joins(:category,:taggings,:tags)
 
-          and1_or1 = base.where('category.name': 'cat2')
+          and1_or1 = base.where('category.name': 'cat2').where.not('category.uuid': nil)
 
-          and1_or2_and1 = base.where('taggings.label': 'primary')
-          and1_or2_and2 = base.where('tags.name': 'red')
+          and1_or2_and1 = base.where('taggings.label': 'primary').where.not('taggings.id': nil)
+          and1_or2_and2 = base.where('tags.name': 'red').where.not('tags.id': nil)
           and1_or2 = and1_or2_and1.and(and1_or2_and2)
 
           and1 = and1_or1.or(and1_or2)
@@ -334,11 +387,16 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
 
         it_behaves_like 'subject_matches_sql', <<~SQL
         SELECT "active_books".* FROM "active_books" 
-          INNER JOIN "active_categories" "/category" ON "/category"."uuid" = "active_books"."category_uuid" 
-          INNER JOIN "active_taggings" "/taggings" ON "/taggings"."book_id" = "active_books"."id" 
-          INNER JOIN "active_taggings" "taggings_active_books_join" ON "taggings_active_books_join"."book_id" = "active_books"."id" 
-          INNER JOIN "active_tags" "/tags" ON "/tags"."id" = "taggings_active_books_join"."tag_id"         
-          WHERE ("/category"."name" = 'cat2' OR ("/taggings"."label" = 'primary') AND ("/tags"."name" = 'red')) AND ("active_books"."category_uuid" = 'deadbeef1')
+          LEFT OUTER JOIN "active_categories" "/category" ON "/category"."uuid" = "active_books"."category_uuid" 
+          LEFT OUTER JOIN "active_taggings" "/taggings" ON "/taggings"."book_id" = "active_books"."id" 
+          LEFT OUTER JOIN "active_tags" "/tags" ON "/tags"."id" = "/taggings"."tag_id"         
+          WHERE (("/category"."uuid" IS NOT NULL)
+                AND ("/category"."name" = 'cat2')
+                  OR ("/taggings"."id" IS NOT NULL)
+                      AND ("/taggings"."label" = 'primary')
+                      AND ("/tags"."id" IS NOT NULL)
+                      AND ("/tags"."name" = 'red'))
+                AND ("active_books"."category_uuid" = 'deadbeef1') 
         SQL
       end
     end
@@ -391,9 +449,9 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
         # This is slightly incorrect in AR 6.1+ (since the picked aliases for active_taggings tables vary)
         # it_behaves_like 'subject_matches_sql', <<~SQL
         #   SELECT "active_books".* FROM "active_books"
-        #     INNER JOIN "active_taggings" ON "active_taggings"."label" = 'primary'
+        #     LEFT OUTER JOIN "active_taggings" ON "active_taggings"."label" = 'primary'
         #                 AND "active_taggings"."book_id" = "active_books"."id"
-        #     INNER JOIN "active_tags" "/primary_tags" ON "/primary_tags"."id" = "active_taggings"."tag_id"
+        #     LEFT OUTER JOIN "active_tags" "/primary_tags" ON "/primary_tags"."id" = "active_taggings"."tag_id"
         #     WHERE ("/primary_tags"."name" = 'blue')
         # SQL
       end

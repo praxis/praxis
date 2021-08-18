@@ -152,7 +152,8 @@ module Praxis
         def _mapped_filter(name)
           target = @filters_map[name]
           unless target
-            if @model.attribute_names.include?(name.to_s)
+            filter_name = name.to_s
+            if (@model.attribute_names + @model.reflections.keys).include?(filter_name)
               # Cache it in the filters mapping (to avoid later lookups), and return it.
               @filters_map[name] = name
               target = name

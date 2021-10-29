@@ -78,7 +78,7 @@ module Praxis
 
         if name.kind_of?(Regexp)
           raise 'part with regexp name may not take :multiple option' if multiple
-          raise 'part with regexp name may not be required' if opts[:required] == true
+          raise 'part with regexp name may not be required' if opts[:present] == true
         end
 
         self.multiple << name if multiple
@@ -264,7 +264,7 @@ module Praxis
             end
 
             if (payload_attribute = options.delete :payload_attribute)
-              if (required = payload_attribute.options[:required])
+              if (required = payload_attribute.options[:present])
                 sub_hash[:options][:required] = true
               end
             end
@@ -346,6 +346,10 @@ module Praxis
         end
       end
 
+      def part?(name)
+        self.any?{ |i| i.name == name }
+      end
+
       def validate(context=Attributor::DEFAULT_ROOT_CONTEXT)
         errors = self.each_with_index.each_with_object([]) do |(part, idx), errors|
           sub_context = if part.name
@@ -359,13 +363,20 @@ module Praxis
 
         self.class.attributes.each do |name, attribute|
           payload_attribute = attribute.options[:payload_attribute]
-          next unless payload_attribute.options[:required]
-          next if self.part(name)
 
-          sub_context = self.class.generate_subcontext(context, name)
-          errors.push *payload_attribute.validate_missing_value(sub_context)
+          if !self.part?(name)
+            if payload_attribute.options[:present]
+              sub_context = self.class.generate_subcontext(context, name)
+              errors.push "Attribute #{Attributor.humanize_context(sub_context)} is required"
+            end
+            return errors # Return, don't bother checking nullability as it hasn't been provided
+          end
+
+          if !self.part(name) && payload_attribute.options[:null] == false
+            sub_context = self.class.generate_subcontext(context, name)
+            errors.push "Attribute #{Attributor.humanize_context(sub_context)} is not nullable"
+          end
         end
-
         errors
       end
 

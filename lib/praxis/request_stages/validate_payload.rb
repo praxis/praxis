@@ -27,7 +27,6 @@ module Praxis
               stage: name
             )
           end
-          Attributor::AttributeResolver.current.register("payload",request.payload)
 
           errors = request.validate_payload(CONTEXT_FOR[:payload])
           if errors.any?

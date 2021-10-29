@@ -153,7 +153,7 @@ describe Praxis::ActionDefinition do
       it 'includes the requirements in the param struct type' do
         errors = action.params.load(value).validate
         expect(errors).to have(1).item
-        expect(errors.first).to match(/Key one is required/)
+        expect(errors.first).to match('Attribute $.key(:one) is required.')
       end
     end
 

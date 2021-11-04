@@ -9,8 +9,8 @@ class PersonBlueprint < Praxis::Blueprint
     attribute :full_name, FullName
     attribute :aliases, Attributor::Collection.of(FullName)
 
-    attribute :address, AddressBlueprint, example: proc { |person, context| AddressBlueprint.example(context, resident: person) }
-    attribute :work_address, AddressBlueprint
+    attribute :address, AddressBlueprint, null: true, example: proc { |person, context| AddressBlueprint.example(context, resident: person) }
+    attribute :work_address, AddressBlueprint, null: true
 
     attribute :prior_addresses, Attributor::Collection.of(AddressBlueprint)
     attribute :parents do
@@ -21,7 +21,7 @@ class PersonBlueprint < Praxis::Blueprint
     attribute :tags, Attributor::Collection.of(String)
     attribute :href, String
     attribute :alive, Attributor::Boolean, default: true
-    attribute :myself, PersonBlueprint
+    attribute :myself, PersonBlueprint, null: true
     attribute :friends, Attributor::Collection.of(PersonBlueprint)
     attribute :metadata, Attributor::Hash
   end

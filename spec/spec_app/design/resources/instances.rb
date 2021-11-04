@@ -17,7 +17,7 @@ module ApiResources
       requires_ability :read
 
       params do
-        attribute :cloud_id, Integer, required: true, min: 0
+        attribute :cloud_id, Integer, present: true, min: 0
       end
     end
 
@@ -30,7 +30,7 @@ module ApiResources
         # BOTH ARE EQUIVALENT
         #key "FOO", String, required: true
         header "FOO", /bar/
-        key 'Account-Id', Integer, required: false, min: 0
+        key 'Account-Id', Integer, present: false, min: 0
       end
 
       params do
@@ -57,7 +57,7 @@ module ApiResources
         attribute :create_identity_map, Attributor::Boolean, default: false
       end
 
-      payload required: false do
+      payload required: false, null: true do
         attribute :something, String
         attribute :optional, String, default: "not given"
       end
@@ -140,7 +140,7 @@ module ApiResources
         attribute :id
       end
 
-      payload required: false do
+      payload required: false, null: true do
         attribute :when, DateTime
       end
 

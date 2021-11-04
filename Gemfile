@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'attributor', path: '/Users/blanquer/dev/praxis/attributor'
+gem 'attributor', git: 'https://github.com/praxis/attributor.git', branch: 'nullableAttribute'
 group :test do
   gem 'builder'
 

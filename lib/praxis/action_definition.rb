@@ -126,7 +126,7 @@ module Praxis
       
       if opts.key?(:required)
         val = opts.delete(:required)
-        opts = val ? {present: true, null: true}.merge(opts) : {present: false}.merge(opts)
+        opts = val ? {present: true, null: false}.merge(opts) : {present: false}.merge(opts)
       end
 
       unless opts.key?(:present)

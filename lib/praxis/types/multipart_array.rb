@@ -372,7 +372,7 @@ module Praxis
             return errors # Return, don't bother checking nullability as it hasn't been provided
           end
 
-          if !self.part(name) && payload_attribute.options[:null] == false
+          if !self.part(name) && !Attribute.nullable_attribute?(payload_attribute.options)
             sub_context = self.class.generate_subcontext(context, name)
             errors.push "Attribute #{Attributor.humanize_context(sub_context)} is not nullable"
           end

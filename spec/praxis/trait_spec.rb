@@ -24,7 +24,7 @@ describe Praxis::Trait do
 
       headers do
         header "Authorization"
-        key "Header2", String, required: true
+        key "Header2", String, required: true, null: false
       end
 
     end
@@ -42,11 +42,11 @@ describe Praxis::Trait do
     its([:params, :order, :type, :name]) { should eq 'String' }
     its([:routing, :prefix]) { should eq '/:app_name'}
 
-    its([:headers, "Header2"]) { should include({present: true, null: false}) }
+    its([:headers, "Header2"]) { should include({required: true, null: false}) }
     context 'using the special DSL syntax for headers' do
       subject(:dsl_header) { describe[:headers]["Authorization"] }
-      its([:present]){ should be(true) }
-      its([:null]){ should be(false) }
+      its([:required]){ should be(true) }
+      its([:null]){ should be_nil }
       its([:type]){ should eq( { :id=>"Attributor-String", :name=>"String", :family=>"string"} )}
     end
 

@@ -160,8 +160,8 @@ describe Praxis::ActionDefinition do
   end
 
   describe '#payload' do
-    it 'defaults to being required (present) if omitted' do
-      expect(subject.payload.options[:present]).to be(true)
+    it 'defaults to being required if omitted' do
+      expect(subject.payload.options[:required]).to be(true)
     end
 
 
@@ -176,11 +176,11 @@ describe Praxis::ActionDefinition do
     end
 
     it 'merges options (which allows overriding)' do
-      expect(subject.payload.options[:present]).to be(true)
+      expect(subject.payload.options[:required]).to be(true)
 
       subject.payload required: false
 
-      expect(subject.payload.options[:present]).to be(false)
+      expect(subject.payload.options[:required]).to be(false)
     end
   end
 

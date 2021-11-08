@@ -78,7 +78,7 @@ module Praxis
 
         if name.kind_of?(Regexp)
           raise 'part with regexp name may not take :multiple option' if multiple
-          raise 'part with regexp name may not be required' if opts[:present] == true
+          raise 'part with regexp name may not be required' if opts[:required] == true
         end
 
         self.multiple << name if multiple
@@ -264,7 +264,7 @@ module Praxis
             end
 
             if (payload_attribute = options.delete :payload_attribute)
-              if (required = payload_attribute.options[:present])
+              if (required = payload_attribute.options[:required])
                 sub_hash[:options][:required] = true
               end
             end
@@ -365,7 +365,7 @@ module Praxis
           payload_attribute = attribute.options[:payload_attribute]
 
           if !self.part?(name)
-            if payload_attribute.options[:present]
+            if payload_attribute.options[:required]
               sub_context = self.class.generate_subcontext(context, name)
               errors.push "Attribute #{Attributor.humanize_context(sub_context)} is required"
             end

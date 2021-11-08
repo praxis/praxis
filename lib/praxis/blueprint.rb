@@ -333,7 +333,7 @@ module Praxis
         end
 
         # Isn't this handled by the requirements validation? NO! we might want to combine
-        if attribute.options[:present] && !@object.key?(key)
+        if attribute.options[:required] && !@object.key?(key)
           errors.concat ["Attribute #{Attributor.humanize_context(sub_context)} is required."]
         end
         if @object[key].nil?

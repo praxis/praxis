@@ -142,7 +142,7 @@ module Praxis
     def validate_headers(context)
       return [] unless action.headers
 
-      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.headers.options[:present] == true && self.headers.nil?
+      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.headers.options[:required] == true && self.headers.nil?
 
       action.headers.validate(self.headers, context)
     end
@@ -150,7 +150,7 @@ module Praxis
     def validate_params(context)
       return [] unless action.params
 
-      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.params.options[:present] == true && self.params.nil?
+      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.params.options[:required] == true && self.params.nil?
 
       action.params.validate(self.params, context)
     end
@@ -158,7 +158,7 @@ module Praxis
     def validate_payload(context)
       return [] unless action.payload
 
-      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.payload.options[:present] == true && self.payload.nil?
+      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.payload.options[:required] == true && self.payload.nil?
       action.payload.validate(self.payload, context)
     end
 

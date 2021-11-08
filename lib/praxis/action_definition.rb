@@ -124,13 +124,8 @@ module Praxis
     def payload(type=Attributor::Struct, **opts, &block)
       return @payload if !block && ( opts.nil? || opts.empty? ) && type == Attributor::Struct
       
-      if opts.key?(:required)
-        val = opts.delete(:required)
-        opts = val ? {present: true, null: false}.merge(opts) : {present: false}.merge(opts)
-      end
-
-      unless opts.key?(:present)
-        opts = {present: true, null: false}.merge(opts) # Make the payload required and nonbe -nullable by default
+      unless opts.key?(:required)
+        opts = {required: true, null: false}.merge(opts) # Make the payload required and non-nullable by default
       end
 
       if @payload

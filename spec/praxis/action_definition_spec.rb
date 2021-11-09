@@ -160,8 +160,9 @@ describe Praxis::ActionDefinition do
   end
 
   describe '#payload' do
-    it 'defaults to being required if omitted' do
+    it 'defaults to being required and non nullable if omitted' do
       expect(subject.payload.options[:required]).to be(true)
+      expect(subject.payload.options[:null]).to be(false)
     end
 
 

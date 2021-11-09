@@ -369,10 +369,8 @@ module Praxis
               sub_context = self.class.generate_subcontext(context, name)
               errors.push "Attribute #{Attributor.humanize_context(sub_context)} is required"
             end
-            return errors # Return, don't bother checking nullability as it hasn't been provided
-          end
-
-          if !self.part(name) && !Attribute.nullable_attribute?(payload_attribute.options)
+            # Return, don't bother checking nullability as it hasn't been provided
+          elsif !self.part(name) && !Attribute.nullable_attribute?(payload_attribute.options)
             sub_context = self.class.generate_subcontext(context, name)
             errors.push "Attribute #{Attributor.humanize_context(sub_context)} is not nullable"
           end

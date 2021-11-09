@@ -123,7 +123,7 @@ module Praxis
 
     def payload(type=Attributor::Struct, **opts, &block)
       return @payload if !block && ( opts.nil? || opts.empty? ) && type == Attributor::Struct
-      
+
       unless opts.key?(:required)
         opts = {required: true, null: false}.merge(opts) # Make the payload required and non-nullable by default
       end
@@ -134,7 +134,6 @@ module Praxis
             "Invalid type received for extending params: #{type.name}"
           )
         end
-
         update_attribute(@payload, opts, block)
       else
         @payload = create_attribute(type, **opts, &block)

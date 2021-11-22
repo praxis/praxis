@@ -93,6 +93,8 @@ end
 
 class ParentResource < BaseResource
   model ParentModel
+
+  property :display_name, dependencies: [:simple_name, :id, :other_attribute]
 end
 
 class SimpleResource < BaseResource
@@ -117,6 +119,8 @@ class SimpleResource < BaseResource
   property :everything_from_parent, dependencies: ['parent.*']
   property :circular_dep, dependencies: [ :circular_dep, :column1 ]
   property :no_deps, dependencies: []
+
+  property :deep_nested_deps, dependencies: [ 'parent.simple_children.other_model.parent.display_name']
 end
 
 class YamlArrayResource < BaseResource

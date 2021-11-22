@@ -1,9 +1,9 @@
 module Praxis
 
   CONTEXT_FOR = {
-    params: [Attributor::AttributeResolver::ROOT_PREFIX, "params".freeze],
-    headers: [Attributor::AttributeResolver::ROOT_PREFIX, "headers".freeze],
-    payload: [Attributor::AttributeResolver::ROOT_PREFIX, "payload".freeze]
+    params: [Attributor::ROOT_PREFIX, "params".freeze],
+    headers: [Attributor::ROOT_PREFIX, "headers".freeze],
+    payload: [Attributor::ROOT_PREFIX, "payload".freeze]
   }.freeze
 
   class Dispatcher

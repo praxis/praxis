@@ -98,10 +98,10 @@ module Praxis::Mapper
       when Symbol
         map_property(dependency, true)
       when String
-        head, tail = dependency.split('.').collect(&:to_sym)
+        head, *tail = dependency.split('.').collect(&:to_sym)
         raise "String dependencies can not be singular" if tail.nil?
 
-        add_association(head, {tail => true})
+        add_association(head, tail.reverse.inject({}) { |hash, dep| { dep => hash } })
       end
     end
 

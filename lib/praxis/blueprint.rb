@@ -321,18 +321,33 @@ module Praxis
       @validating = true
 
       errors = []
-      self.class.attributes.each do |sub_attribute_name, sub_attribute|
-        sub_context = self.class.generate_subcontext(context, sub_attribute_name)
-        value = self.send(sub_attribute_name)
-        keys_with_values << sub_attribute_name unless value.nil?
+      keys_provided = []
+
+      self.class.attributes.each do |key, attribute|
+        sub_context = self.class.generate_subcontext(context, key)
+        value = _get_attr(key)
+        keys_provided << key if @object.key?(key)
 
         if value.respond_to?(:validating) # really, it's a thing with sub-attributes
           next if value.validating
         end
-        errors.concat(sub_attribute.validate(value, sub_context))
+
+        # Isn't this handled by the requirements validation? NO! we might want to combine
+        if attribute.options[:required] && !@object.key?(key)
+          errors.concat ["Attribute #{Attributor.humanize_context(sub_context)} is required."]
+        end
+        if @object[key].nil?
+          if !Attributor::Attribute.nullable_attribute?(attribute.options) && @object.key?(key) # It is only nullable if there's an explicite null: true (undefined defaults to false)
+            errors.concat ["Attribute #{Attributor.humanize_context(sub_context)} is not nullable."]
+          end
+          # No need to validate the attribute further if the key wasn't passed...(or we would get nullable errors etc..cause the attribute has no
+          # context if its containing key was even passed (and there might not be a containing key for a top level attribute anyways))
+        else
+          errors.concat attribute.validate(value, sub_context)
+        end
       end
-      self.class.attribute.type.requirements.each do |req|
-        validation_errors = req.validate(keys_with_values, context)
+      self.class.attribute.type.requirements.each do |requirement|
+        validation_errors = requirement.validate(keys_provided, context)
         errors.concat(validation_errors) unless validation_errors.empty?
       end
       errors

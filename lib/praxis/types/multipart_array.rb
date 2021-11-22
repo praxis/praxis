@@ -346,6 +346,10 @@ module Praxis
         end
       end
 
+      def part?(name)
+        self.any?{ |i| i.name == name }
+      end
+
       def validate(context=Attributor::DEFAULT_ROOT_CONTEXT)
         errors = self.each_with_index.each_with_object([]) do |(part, idx), errors|
           sub_context = if part.name
@@ -359,13 +363,18 @@ module Praxis
 
         self.class.attributes.each do |name, attribute|
           payload_attribute = attribute.options[:payload_attribute]
-          next unless payload_attribute.options[:required]
-          next if self.part(name)
 
-          sub_context = self.class.generate_subcontext(context, name)
-          errors.push *payload_attribute.validate_missing_value(sub_context)
+          if !self.part?(name)
+            if payload_attribute.options[:required]
+              sub_context = self.class.generate_subcontext(context, name)
+              errors.push "Attribute #{Attributor.humanize_context(sub_context)} is required"
+            end
+            # Return, don't bother checking nullability as it hasn't been provided
+          elsif !self.part(name) && !Attribute.nullable_attribute?(payload_attribute.options)
+            sub_context = self.class.generate_subcontext(context, name)
+            errors.push "Attribute #{Attributor.humanize_context(sub_context)} is not nullable"
+          end
         end
-
         errors
       end
 

@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'mustermann', '>=1.1', '<=2'
   spec.add_dependency 'activesupport', '>= 3'
   spec.add_dependency 'mime', '~> 0'
-  spec.add_dependency 'attributor', '>= 5.5'
+  spec.add_dependency 'attributor', '>= 6.0'
   spec.add_dependency 'thor'
   spec.add_dependency 'terminal-table', '~> 1.4'
 

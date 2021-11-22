@@ -10,7 +10,7 @@ class Instance < Praxis::MediaType
 
     attribute :href, String
 
-    attribute :root_volume, Volume
+    attribute :root_volume, Volume, null: true
 
     attribute :volumes, Volume::Collection
     

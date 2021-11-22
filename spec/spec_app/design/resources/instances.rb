@@ -57,7 +57,7 @@ module ApiResources
         attribute :create_identity_map, Attributor::Boolean, default: false
       end
 
-      payload required: false do
+      payload required: false, null: true do
         attribute :something, String
         attribute :optional, String, default: "not given"
       end
@@ -140,7 +140,7 @@ module ApiResources
         attribute :id
       end
 
-      payload required: false do
+      payload required: false, null: true do
         attribute :when, DateTime
       end
 

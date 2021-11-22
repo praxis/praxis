@@ -320,6 +320,40 @@ describe Praxis::Mapper::SelectorGenerator do
         it_behaves_like 'a proper selector'
       end      
 
+      context 'that are several attriutes deep' do
+        let(:fields) { { deep_nested_deps: true } }
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            columns: [:parent_id],
+            tracks: {
+              parent: {
+                model: ParentModel,
+                columns: [:id], # No FKs in the source model for one_to_many
+                tracks: {
+                  simple_children: { 
+                    columns: [:parent_id, :other_model_id],
+                    model: SimpleModel,
+                    tracks: {
+                      other_model: {
+                        model: OtherModel,
+                        columns: [:id, :parent_id],
+                        tracks: {
+                          parent: {
+                            model: ParentModel,
+                            columns: [:id, :simple_name, :other_attribute]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
     end
   end
 end

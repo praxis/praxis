@@ -38,12 +38,6 @@ module Praxis
           )
         end
 
-        attribute_resolver = Attributor::AttributeResolver.new
-        Attributor::AttributeResolver.current = attribute_resolver
-
-        attribute_resolver.register("headers",request.headers)
-        attribute_resolver.register("params",request.params)
-
         errors = request.validate_headers(CONTEXT_FOR[:headers])
         errors += request.validate_params(CONTEXT_FOR[:params])
         if errors.any?

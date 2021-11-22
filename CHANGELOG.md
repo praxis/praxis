@@ -1,6 +1,8 @@
 # Praxis Changelog
 
 ## next
+
+## 2.0.pre.18
 * Upgraded to newest Attributor, which cleans up the required: true semantics to only work on keys, and introduces null: true for nullability of values (independent from presence of keys or not)
 * Fixed a selector generator bug that would occur when using deep nested resource dependencies as strings 'foo.bar.baz.bam'. In this cases only partial tracking of relationships would be built, which could cause to not fully eager load DB queries.
 ## 2.0.pre.17

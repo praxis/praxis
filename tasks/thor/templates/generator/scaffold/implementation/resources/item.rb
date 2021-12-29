@@ -6,9 +6,8 @@ module <%= version_module %>
       model ::<%= singular_class %> # Change it if it maps to a different DB model class
 
       # Define the name mapping from API filter params, to model attribute/associations
-      # when they aren't 1:1
+      # when they aren't 1:1 the same
       # filters_mapping(
-      #   'name': 'name',
       #   'label': 'association.label_name'
       # )
 

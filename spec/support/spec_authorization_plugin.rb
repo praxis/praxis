@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'singleton'
 
 module AuthorizationPlugin
@@ -11,6 +13,7 @@ module AuthorizationPlugin
     end
 
     def initialize
+      super
       @options = { config_file: 'config/authorization.yml' }
     end
 

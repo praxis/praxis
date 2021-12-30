@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'singleton'
 
 module SimpleAuthenticationPlugin
@@ -8,6 +10,7 @@ module SimpleAuthenticationPlugin
 
     def initialize
       @options = { config_file: 'config/authentication.yml' }
+      super
     end
 
     def config_key

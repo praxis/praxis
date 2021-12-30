@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'praxis/extensions/field_selection'
 class Person < Praxis::MediaType
   identifier 'application/vnd.acme.person'

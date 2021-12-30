@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'singleton'
 
 class Authenticator
@@ -23,8 +25,6 @@ class Authenticator
 
   def self.describe; end
 
-  def initialize(**options); end
-
   def authenticate(_request)
     raise 'sublcass must implement authenticate'
   end
@@ -36,8 +36,6 @@ class GlobalSessionAuthenticator < Authenticator
   end
 
   def self.describe; end
-
-  def initialize(**options); end
 
   def authenticate(request)
     body = { name: 'Unauthorized' }
@@ -62,6 +60,7 @@ module ComplexAuthenticationPlugin
 
     def initialize
       @options = { config_file: 'config/authentication.yml' }
+      super
     end
 
     def config_key

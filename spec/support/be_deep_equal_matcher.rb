@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copied verbatim from: https://github.com/amogil/rspec-deep-ignore-order-matcher
 
 RSpec::Matchers.define :be_deep_equal do |expected|

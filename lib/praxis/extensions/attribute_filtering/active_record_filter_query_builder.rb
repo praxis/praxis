@@ -126,6 +126,23 @@ module Praxis
           end
         end
 
+        # not in filters....checks if it's a valid path
+        def self.valid_path?(model, path) # array of strings
+          first_component, *rest = path
+          if model.attribute_names.include?(first_component)
+            true 
+          elsif model.reflections.keys.include?(first_component)
+            if rest.empty?
+              true # Allow associations as a leaf too (as they can have the ! and !! operator)
+            else # Follow the association
+              nested_model = model.reflections[first_component].klass
+             valid_path?(nested_model, rest)
+            end
+          else
+            false
+          end
+        end
+
         private
         def _depth_first_traversal(root_query:, root_node:, conditions:, &block)
           # Save the associated query for non-leaves 
@@ -152,8 +169,8 @@ module Praxis
         def _mapped_filter(name)
           target = @filters_map[name]
           unless target
-            filter_name = name.to_s
-            if (@model.attribute_names + @model.reflections.keys).include?(filter_name)
+            path = name.to_s.split('.')
+            if self.class.valid_path?(@model, path)
               # Cache it in the filters mapping (to avoid later lookups), and return it.
               @filters_map[name] = name
               target = name

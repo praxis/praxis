@@ -5,7 +5,7 @@
   * The new `any` DSL allows you to define which final leaf attribute to always allow, and with which operators and/or fuzzy restrictions.
   * For example, you can add `any updated_at, using: ['>','<']` which would allow the type to accept filters like `updated_at>2000-01-01`, or any existing nested fields like `posts.comments.updated_at>2000-01-01`
   * Note that the path of attributes passed in, will still need to exist and will be validated. Also, you still need to make sure that you have the right `filters_mapping` defined in your resources.
-
+* Changed `filters_mapping` to allow implicitly any filter path that is a valid representation of existing columns and associations. I.e., you do not have to explicitly define long nested filters that correspond to the same underlying path of associations and columns.
 ## 2.0.pre.18
 * Upgraded to newest Attributor, which cleans up the required: true semantics to only work on keys, and introduces null: true for nullability of values (independent from presence of keys or not)
 * Fixed a selector generator bug that would occur when using deep nested resource dependencies as strings 'foo.bar.baz.bam'. In this cases only partial tracking of relationships would be built, which could cause to not fully eager load DB queries.

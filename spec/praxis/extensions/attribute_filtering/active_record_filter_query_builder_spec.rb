@@ -457,4 +457,60 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       end
     end
   end
+
+  context '.valid_path?' do
+    it 'suceeds for reachable model columns' do
+      expect(described_class.valid_path?(ActiveBook, ['added_column'])).to be_truthy
+      expect(described_class.valid_path?(ActiveBook, ['author','books','added_column'])).to be_truthy
+      expect(described_class.valid_path?(ActiveBook, ['author','books','simple_name'])).to be_truthy
+    end
+    it 'suceeds for reachable leaf associations' do
+      expect(described_class.valid_path?(ActiveBook, ['author'])).to be_truthy
+      expect(described_class.valid_path?(ActiveBook, ['author','books'])).to be_truthy
+    end
+    it 'returns false for invalid model columns' do
+      expect(described_class.valid_path?(ActiveBook, ['not_a_column'])).to be_falsy
+      expect(described_class.valid_path?(ActiveBook, ['author','books','not_here'])).to be_falsy
+      expect(described_class.valid_path?(ActiveBook, ['author','books','name'])).to be_falsy
+    end
+  end
+
+  context '_mapped_filter' do
+    let(:root_resource) { ActiveBookResource }
+    let(:filters_map) { root_resource.instance_variable_get(:@_filters_map)}
+
+    context 'for explicitly mapped values' do
+      [ :id, :name, :'name_is_not', :'author.name', :'category.books.taggings.label']
+        .each do |name|
+        it "suceeds for #{name}" do
+          mapped_value = filters_map[name]
+          expect(mapped_value).to_not be_nil
+          expect(instance.send(:_mapped_filter,name)).to eq(mapped_value)
+        end
+      end
+    end
+
+    context 'for not mapped values' do
+      context 'that are valid model columns/associations paths' do
+        [:added_column, :'author.books.added_column', :'author.books'].each do |name|
+          it "returns (and caches) the same valid path for #{name}" do
+            expect(filters_map[name]).to be_nil
+            expect(instance.send(:_mapped_filter,name)).to eq(name)
+
+            expect(filters_map[name]).to eq(name)
+          end
+        end
+      end
+      context 'that are not model columns/associations paths' do
+        [:not_a_column, :'author.books.not_here'].each do |name|
+          it "returns nil (and does not cache) for #{name}" do
+            expect(filters_map[name]).to be_nil
+            expect(instance.send(:_mapped_filter,name)).to eq(nil)
+
+            expect(filters_map[name]).to eq(nil)
+          end
+        end
+      end
+    end
+  end
 end

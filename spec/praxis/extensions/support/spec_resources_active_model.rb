@@ -102,26 +102,12 @@ class ActiveBookResource < ActiveBaseResource
   model ActiveBook
 
   filters_mapping(
-    id: :id,
-    # category_uuid: :category_uuid  #NOTE: we do not need to define same-name-mappings if they exist
     'fake_nested.name': 'simple_name',
     'name': 'simple_name',
     'name_is_not': lambda do |spec| # Silly way to use a proc, but good enough for testing
       { name: :simple_name, value: spec[:value] , op: '!=' } # Can be an array for multiple conditions as well
       end,
-    'author.id': 'author.id',
-    'author.name': 'author.name',
-    'taggings.label': 'taggings.label',
-    'taggings.tag_id': 'taggings.tag_id',
-    'taggings.tag.taggings.tag_id': 'taggings.tag.taggings.tag_id',
-    'tags.name': 'tags.name',
-    'primary_tags.name': 'primary_tags.name',
-    'category.name': 'category.name',
     'category.books.name': 'category.books.simple_name',
-    'category.books.taggings.tag_id': 'category.books.taggings.tag_id',
-    'category.books.taggings.label': 'category.books.taggings.label',
-    'primary_tags': 'primary_tags',
-    'category.books.taggings': 'category.books.taggings',
   )
   # Forces to add an extra column (added_column)...and yet another (author_id) that will serve
   # to check that if that's already automatically added due to an association, it won't interfere or duplicate

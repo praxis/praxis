@@ -159,12 +159,14 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       # it decides to parenthesize them, even when there's only 1 condition. Hence the silly parentization of
       # these SQL fragments here (and others)
       context 'by using all supported operators' do
+        # rubocop:disable Lint/ConstantDefinitionInBlock
         PREF = Praxis::Extensions::AttributeFiltering::ALIAS_TABLE_PREFIX
         COMMON_SQL_PREFIX = <<~SQL
           SELECT "active_books".* FROM "active_books"
           LEFT OUTER JOIN
             "active_authors" "#{PREF}/author" ON "#{PREF}/author"."id" = "active_books"."author_id"
         SQL
+        # rubocop:enable Lint/ConstantDefinitionInBlock
         context '=' do
           let(:filters_string) { 'author.id=11' }
           it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:author).where('active_authors.id = 11')
@@ -381,7 +383,7 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
           and1 = and1_or1.or(and1_or2)
           and2 = base.where(category_uuid: 'deadbeef1')
 
-          query = and1.and(and2)
+          and1.and(and2)
         end)
 
         it_behaves_like 'subject_matches_sql', <<~SQL

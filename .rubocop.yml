@@ -1,0 +1,38 @@
+# require:
+#   - rubocop-thread_safety
+
+AllCops:
+  Exclude:
+    - "coverage/**/*"
+    - "docs_docusaurus/**/*"
+    - "tmp/**/*"
+    - "pkg/**/*"
+    - "vendor/cache/**/*"
+    - "tasks/thor/templates/**/*"
+  TargetRubyVersion: 2.7
+  NewCops: disable
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false  
+
+Layout/LineLength:
+  Enabled: false  
+
+Style/Documentation:
+  Enabled: false
+

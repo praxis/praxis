@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+# rubocop:disable Style/StringConcatenation
+
 require 'spec_helper'
 
 describe Praxis::MediaTypeIdentifier do
@@ -234,3 +238,4 @@ describe Praxis::MediaTypeIdentifier do
     end
   end
 end
+# rubocop:enable Style/StringConcatenation

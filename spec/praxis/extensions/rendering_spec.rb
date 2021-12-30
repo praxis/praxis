@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Extensions::Rendering do
@@ -42,7 +44,7 @@ describe Praxis::Extensions::Rendering do
     context 'with a rendering exception' do
       let(:handler_params) do
         {
-          summary: 'Circular Rendering Error when rendering response. ' +
+          summary: 'Circular Rendering Error when rendering response. ' \
             'Please especify a view to narrow the dependent fields, or narrow your field set.',
           exception: circular_exception,
           request: request,

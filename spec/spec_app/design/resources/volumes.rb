@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ApiResources
   class Volumes
     include Praxis::EndpointDefinition

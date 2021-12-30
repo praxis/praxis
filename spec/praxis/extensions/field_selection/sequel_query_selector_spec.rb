@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'sequel'
 
@@ -27,9 +29,7 @@ describe Praxis::Extensions::FieldSelection::SequelQuerySelector do
     end
 
     def dump
-      eagers = @object.each_with_object({}) do |(name, val), hash|
-        hash[name] = val.dump
-      end
+      eagers = @object.transform_values(&:dump)
       {
         columns: @cols,
         eagers: eagers

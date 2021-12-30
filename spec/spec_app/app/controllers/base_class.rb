@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BaseClass
   # Do NOT use a controller inherited base class to add concerns!
   # If you do that, you'd be sharing state (i.e. overriding/adding) from  concerns across controllers

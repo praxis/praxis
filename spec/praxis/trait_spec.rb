@@ -1,4 +1,6 @@
-require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+# frozen_string_literal: true
+
+require File.expand_path("#{File.dirname(__FILE__)}/../spec_helper")
 
 describe Praxis::Trait do
   subject(:trait) do

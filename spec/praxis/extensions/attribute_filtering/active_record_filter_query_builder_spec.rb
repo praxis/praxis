@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 require_relative '../support/spec_resources_active_model'
@@ -28,7 +30,7 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       # Strip blank at the beggining (and end) of every line
       # ...and recompose it by adding an extra space at the beginning of each one instead
       exp = expected_sql.split(/\n/).map do |line|
-        ' ' + line.strip
+        " #{line.strip}"
       end.join.strip
       expect(gen_sql).to eq(exp)
     end

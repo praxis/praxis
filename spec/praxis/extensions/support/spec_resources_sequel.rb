@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'sequel'
 
 require 'praxis/mapper/sequel_compat'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Response do
@@ -92,7 +94,7 @@ describe Praxis::Response do
 
       it 'encodes using a suitable handler' do
         response.encode!
-        expect(JSON.load(response.body)).to eq(response_body_structured_data)
+        expect(JSON.parse(response.body)).to eq(response_body_structured_data)
       end
     end
 
@@ -105,7 +107,7 @@ describe Praxis::Response do
       end
       it 'still defaults to the default handler' do
         response.encode!
-        expect(JSON.load(response.body)).to eq(response_body_structured_data)
+        expect(JSON.parse(response.body)).to eq(response_body_structured_data)
       end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Mapper::Resource do
@@ -97,7 +99,7 @@ describe Praxis::Mapper::Resource do
         expect(parents).to be_kind_of(Array)
 
         parents.each { |parent| expect(parent).to be_kind_of(ParentResource) }
-        expect(parents.collect { |parent| parent.record }).to match_array(parent_records)
+        expect(parents.collect(&:record)).to match_array(parent_records)
       end
     end
   end

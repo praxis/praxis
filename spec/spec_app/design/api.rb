@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Praxis::ApiDefinition.define do
   response_template :other_response do |media_type:|
     status 200

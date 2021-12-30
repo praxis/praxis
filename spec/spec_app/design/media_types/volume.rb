@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Volume < Praxis::MediaType
   identifier 'application/vnd.acme.volume'
 

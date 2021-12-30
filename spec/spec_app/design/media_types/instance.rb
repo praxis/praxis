@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Instance < Praxis::MediaType
   identifier 'application/vnd.acme.instance'
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Request do
@@ -17,9 +19,9 @@ describe Praxis::Request do
 
   let(:context) do
     {
-      params: [Attributor::ROOT_PREFIX, 'params'.freeze],
-      headers: [Attributor::ROOT_PREFIX, 'headers'.freeze],
-      payload: [Attributor::ROOT_PREFIX, 'payload'.freeze]
+      params: [Attributor::ROOT_PREFIX, 'params'],
+      headers: [Attributor::ROOT_PREFIX, 'headers'],
+      payload: [Attributor::ROOT_PREFIX, 'payload']
     }.freeze
   end
 

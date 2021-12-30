@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SetHeader
   def initialize(app, header, value)
     @app = app

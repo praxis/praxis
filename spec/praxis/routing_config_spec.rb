@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::RoutingConfig do
@@ -12,7 +14,7 @@ describe Praxis::RoutingConfig do
 
   let(:routing_block) { proc {} }
   let(:base_path) { '' }
-  let(:default_route_prefix) { '/' + endpoint_definition.name.split('::').last.underscore }
+  let(:default_route_prefix) { "/#{endpoint_definition.name.split('::').last.underscore}" }
 
   subject(:routing_config) { Praxis::RoutingConfig.new(base: base_path, &routing_block) }
 

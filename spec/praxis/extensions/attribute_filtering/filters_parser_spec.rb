@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'praxis/extensions/attribute_filtering/filters_parser'
 
 describe Praxis::Extensions::AttributeFiltering::FilteringParams::Condition do

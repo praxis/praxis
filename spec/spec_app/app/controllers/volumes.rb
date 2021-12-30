@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Volumes < BaseClass
   include Praxis::Controller
 
@@ -11,7 +13,7 @@ class Volumes < BaseClass
   def index
     volumes = Volume::Collection.example
 
-    response.body = volumes.collect { |v| v.render }
+    response.body = volumes.collect(&:render)
     response.headers['Content-Type'] = 'application/vnd.acme.volumes'
     response
   end

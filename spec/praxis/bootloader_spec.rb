@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Bootloader do
@@ -11,7 +13,7 @@ describe Praxis::Bootloader do
     its(:application) { should be(application) }
     it 'stages' do
       init_stages = %i[environment plugins initializers lib design app routing warn_unloaded_files]
-      expect(bootloader.stages.map { |s| s.name }).to eq(init_stages)
+      expect(bootloader.stages.map(&:name)).to eq(init_stages)
     end
     its(:config) { should be(application.config) }
     its(:root) { should be(application.root) }

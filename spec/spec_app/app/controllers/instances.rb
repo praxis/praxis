@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Instances < BaseClass
   include Praxis::Controller
 
@@ -39,7 +41,7 @@ class Instances < BaseClass
 
   def index(cloud_id:, response_content_type: 'application/vnd.acme.instance;type=collection', **_params)
     instances = Instance::Collection.example
-    response.body = JSON.pretty_generate(instances.collect { |i| i.render })
+    response.body = JSON.pretty_generate(instances.collect(&:render))
     response.headers['Content-Type'] = response_content_type # 'application/vnd.acme.instance;type=collection'
     response
   end
@@ -69,7 +71,7 @@ class Instances < BaseClass
 
       headers = {
         'Status' => '201',
-        'Content-Type' => (Instance.identifier + '+json').to_s,
+        'Content-Type' => "#{Instance.identifier}+json".to_s,
         'Location' => definition.to_href(cloud_id: cloud_id, id: instance.id)
       }
 

@@ -67,14 +67,12 @@ module Praxis
           when :array # Warning! Multipart types are arrays!
             :array
           when :numeric
-            case praxis_type[:id]
-            when 'Attributor-Integer'
-              :integer
-            when 'Attributor-BigDecimal'
-              :integer
-            when 'Attributor-Float'
-              :number
-            end
+            jtypes = {
+              'Attributor-Integer' => :integer,
+              'Attributor-BigDecimal' => :integer,
+              'Attributor-Float' => :number
+            }
+            jtypes[praxis_type[:id]]
           when :temporal
             :string
           when :boolean

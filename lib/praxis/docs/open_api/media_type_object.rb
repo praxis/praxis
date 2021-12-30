@@ -47,8 +47,8 @@ module Praxis
           end
 
           # Key string (of MT) , value MTObject
-          content_hash = examples_by_content_type.each_with_object({}) do |(content_type, example_hash), accum|
-            accum[content_type] = MediaTypeObject.new(
+          examples_by_content_type.transform_values do |example_hash|
+            MediaTypeObject.new(
               schema: the_schema, # Every MT will have the same exact type..oh well .. maybe a REF?
               example: example_hash
             ).dump

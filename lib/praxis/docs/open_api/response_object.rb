@@ -36,9 +36,10 @@ module Praxis
             # strings, which can either match anything, match the exact word or match a regex
             # they don't even have a description...
             data_value = data[:value]
-            if data_value.is_a? String
+            case data_value
+            when String
               hash[:pattern] = "^#{data_value}$" # Exact String match
-            elsif data_value.is_a? Regexp
+            when Regexp
               sanitized_pattern = data_value.inspect[1..-2] # inspect returns enclosing '/' characters
               hash[:pattern] = sanitized_pattern
             end
@@ -51,7 +52,7 @@ module Praxis
           data = {
             description: info.description || ''
           }
-          if headers_object = dump_response_headers_object(info.headers)
+          if (headers_object = dump_response_headers_object(info.headers))
             data[:headers] = headers_object
           end
 

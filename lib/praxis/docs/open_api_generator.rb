@@ -37,7 +37,7 @@ module Praxis
         initialize_directories
         # Restrict the versions listed in the index file to the ones for which we have at least 1 resource
         write_index_file(for_versions: resources_by_version.keys)
-        resources_by_version.keys.each do |version|
+        resources_by_version.each_key do |version|
           write_version_file(version)
         end
       end
@@ -80,7 +80,7 @@ module Praxis
       end
 
       def scan_types_for_version(version, dumped_resources)
-        found_media_types = resources_by_version[version].select { |r| r.media_type }.collect { |r| r.media_type.describe }
+        found_media_types = resources_by_version[version].select(&:media_type).collect { |r| r.media_type.describe }
 
         # We'll start by processing the rendered mediatypes
         processed_types = Set.new(resources_by_version[version].select do |r|
@@ -107,6 +107,7 @@ module Praxis
         processed_types
       end
 
+      # rubocop:disable Metrics/BlockNesting
       def scan_dump_for_types(data, processed_types)
         newfound_types = Set.new
         case data
@@ -117,7 +118,7 @@ module Praxis
             type_id = data[:type][:id]
             unless type_id.nil? || type_id == Praxis::SimpleMediaType.id # SimpleTypes shouldn't be collected
               unless types_by_id[type_id]
-                raise "Error! We have detected a reference to a 'Type' with id='#{type_id}' which is not derived from Attributor::Type" +
+                raise "Error! We have detected a reference to a 'Type' with id='#{type_id}' which is not derived from Attributor::Type" \
                       ' Document generation cannot proceed.'
               end
               newfound_types << types_by_id[type_id] unless processed_types.include? types_by_id[type_id]
@@ -127,6 +128,7 @@ module Praxis
         end
         newfound_types
       end
+      # rubocop:enable Metrics/BlockNesting
 
       def write_version_file(version)
         # version_info = infos_by_version[version]
@@ -199,11 +201,11 @@ module Praxis
 
         puts "Generating Open API file : #{filename} (json and yml) "
         json_data = JSON.pretty_generate(full_data)
-        File.open(filename + '.json', 'w') { |f| f.write(json_data) }
+        File.open("#{filename}.json", 'w') { |f| f.write(json_data) }
         converted_full_data = JSON.parse(json_data) # So symbols disappear
-        File.open(filename + '.yml', 'w') { |f| f.write(YAML.dump(converted_full_data)) }
+        File.open("#{filename}.yml", 'w') { |f| f.write(YAML.dump(converted_full_data)) }
 
-        html = <<-EOB
+        html = <<-HTML
           <!DOCTYPE html>
           <html>
             <head>
@@ -228,7 +230,7 @@ module Praxis
               <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"> </script>
             </body>
           </html>
-        EOB
+        HTML
         html_file = File.join(doc_root_dir, version_file, 'index.html')
         File.write(html_file, html)
       end
@@ -239,10 +241,10 @@ module Praxis
         # remove previous data (and reset the directory)
         FileUtils.rm_rf @doc_root_dir if File.exist?(@doc_root_dir)
         FileUtils.mkdir_p @doc_root_dir unless File.exist? @doc_root_dir
-        resources_by_version.keys.each do |version|
-          FileUtils.mkdir_p @doc_root_dir + '/' + version
+        resources_by_version.each_key do |version|
+          FileUtils.mkdir_p "#{@doc_root_dir}/#{version}"
         end
-        FileUtils.mkdir_p @doc_root_dir + '/unversioned' if resources_by_version.keys.include?('n/a')
+        FileUtils.mkdir_p "#{@doc_root_dir}/unversioned" if resources_by_version.keys.include?('n/a')
       end
 
       def normalize_media_types(mtis)
@@ -278,7 +280,7 @@ module Praxis
       def dump_responses_object(responses)
         responses.each_with_object({}) do |(_name, info), hash|
           data = { description: info[:description] || '' }
-          if payload = info[:payload]
+          if (payload = info[:payload])
             body_type = payload[:id]
             raise "WAIT! response payload doesn't have an existing id for the schema!!! (do an if, and describe it if so)" unless body_type
 
@@ -286,7 +288,7 @@ module Praxis
           end
 
           #          data[:schema] = ???TODO!!
-          if headers_object = dump_response_headers_object(info[:headers])
+          if (headers_object = dump_response_headers_object(info[:headers]))
             data[:headers] = headers_object
           end
           if info[:payload] && (examples_object = dump_response_examples_object(info[:payload][:examples]))
@@ -326,7 +328,7 @@ module Praxis
             # skip actions with doc_visibility of :none
             next if action.metadata[:doc_visibility] == :none
 
-            action_description = resource_description[:actions].find { |a| a[:name] == action_name }
+            resource_description[:actions].find { |a| a[:name] == action_name }
           end
 
           hash[r.id] = resource_description

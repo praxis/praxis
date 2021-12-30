@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Praxis::Blueprint do
@@ -21,10 +22,10 @@ describe Praxis::Blueprint do
 
     it { should_not be(nil) }
     it 'contains all attributes' do
-      simple_attributes = [:id, :name, :street, :state]
+      simple_attributes = %i[id name street state]
       expect(default_fieldset.keys).to match_array(simple_attributes)
       # Should not have blueprint-derived attributes (or collections of them)
-      expect(default_fieldset.keys).to_not include( AddressBlueprint.attributes.keys - simple_attributes )
+      expect(default_fieldset.keys).to_not include(AddressBlueprint.attributes.keys - simple_attributes)
     end
   end
 
@@ -77,7 +78,6 @@ describe Praxis::Blueprint do
     expect(blueprint_class.attribute.type).to be blueprint_class::Struct
   end
 
-
   context 'an instance' do
     shared_examples 'a blueprint instance' do
       let(:expected_name) { blueprint_instance.name }
@@ -99,13 +99,12 @@ describe Praxis::Blueprint do
 
     context 'from Blueprint.example' do
       subject(:blueprint_instance) do
-        blueprint_class.example('ExamplePersonBlueprint', 
-          address: nil,
-          prior_addresses: [],
-          work_address: nil,
-          myself: nil,
-          friends: []
-        )
+        blueprint_class.example('ExamplePersonBlueprint',
+                                address: nil,
+                                prior_addresses: [],
+                                work_address: nil,
+                                myself: nil,
+                                friends: [])
       end
       it_behaves_like 'a blueprint instance'
     end
@@ -236,25 +235,25 @@ describe Praxis::Blueprint do
     let(:person) { PersonBlueprint.example('1') }
     it 'is an alias to dump' do
       person.object.contents
-      rendered = PersonBlueprint.render(person, fields: [:name, :full_name])
-      dumped = PersonBlueprint.dump(person, fields: [:name, :full_name])
+      rendered = PersonBlueprint.render(person, fields: %i[name full_name])
+      dumped = PersonBlueprint.dump(person, fields: %i[name full_name])
       expect(rendered).to eq(dumped)
     end
   end
 
   context '#render' do
     let(:person) { PersonBlueprint.example }
-    let(:fields) do 
+    let(:fields) do
       {
         name: true,
         full_name: true,
         address: {
           street: true,
-          state: true,
+          state: true
         },
         prior_addresses: {
           street: true,
-          state: true,
+          state: true
         }
       }
     end
@@ -262,15 +261,16 @@ describe Praxis::Blueprint do
     subject(:output) { person.render(fields: fields, **render_opts) }
 
     context 'without passing fields' do
-      it 'renders the default field set defined' do 
-        rendered = person.render( **render_opts)
+      it 'renders the default field set defined' do
+        rendered = person.render(**render_opts)
         default_top_fields = PersonBlueprint.default_fieldset.keys
         expect(rendered.keys).to match_array(default_top_fields)
-        expect(default_top_fields).to match_array([
-          :name,
-          :full_name,
-          :address,
-          :prior_addresses])
+        expect(default_top_fields).to match_array(%i[
+                                                    name
+                                                    full_name
+                                                    address
+                                                    prior_addresses
+                                                  ])
       end
     end
     context 'with a sub-attribute that is a blueprint' do
@@ -317,17 +317,16 @@ describe Praxis::Blueprint do
     end
 
     context 'using un-expanded fields for blueprints' do
-      let(:fields) do 
+      let(:fields) do
         {
           name: true,
-          address: true, # A blueprint!
+          address: true # A blueprint!
         }
       end
       it 'should still render the blueprint sub-attribute with its default fieldset' do
         address_default_top_fieldset = AddressBlueprint.default_fieldset.keys
         expect(output[:address].keys).to match(address_default_top_fieldset)
       end
-
     end
   end
 
@@ -346,7 +345,7 @@ describe Praxis::Blueprint do
 
   context 'FieldsetParser' do
     let(:definition_block) do
-      Proc.new do
+      proc do
         attribute :one
         attribute :two do
           attribute :sub_two
@@ -356,17 +355,17 @@ describe Praxis::Blueprint do
     subject { described_class::FieldsetParser.new(&definition_block) }
 
     it 'parses properly' do
-      expect(subject.fieldset).to eq(one: true, two: { sub_two: true} )
+      expect(subject.fieldset).to eq(one: true, two: { sub_two: true })
     end
 
     context 'with attribute parameters' do
       let(:definition_block) do
-        Proc.new do
+        proc do
           attribute :one, view: :other
         end
       end
       it 'complains and gives instructions if legacy view :default' do
-        expect{ subject.fieldset }.to raise_error(/Default fieldset definitions do not accept parameters/)
+        expect { subject.fieldset }.to raise_error(/Default fieldset definitions do not accept parameters/)
       end
     end
   end

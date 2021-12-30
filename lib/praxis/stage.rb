@@ -1,32 +1,26 @@
 module Praxis
-
   class Stage
-
-    attr_reader :name
-    attr_reader :context
-    attr_reader :stages
-    attr_reader :before_callbacks
-    attr_reader :after_callbacks
+    attr_reader :name, :context, :stages, :before_callbacks, :after_callbacks
 
     def application
       context
     end
 
-    def initialize(name, context, **opts)
+    def initialize(name, context, **_opts)
       @name = name
       @context = context
-      @before_callbacks = Array.new
-      @after_callbacks = Array.new
-      @deferred_callbacks = Hash.new do |hash,stage|
-        hash[stage] = {before: [], after:[]}
+      @before_callbacks = []
+      @after_callbacks = []
+      @deferred_callbacks = Hash.new do |hash, stage|
+        hash[stage] = { before: [], after: [] }
       end
-      @stages = Array.new
+      @stages = []
     end
 
     def run
-      execute_callbacks(self.before_callbacks)
+      execute_callbacks(before_callbacks)
       execute
-      execute_callbacks(self.after_callbacks)
+      execute_callbacks(after_callbacks)
     end
 
     def setup!
@@ -37,11 +31,11 @@ module Praxis
       @deferred_callbacks.keys.each do |stage_name|
         callbacks = @deferred_callbacks.delete stage_name
         callbacks[:before].each do |(*stage_path, block)|
-          self.before(stage_name, *stage_path, &block)
+          before(stage_name, *stage_path, &block)
         end
 
         callbacks[:after].each do |(*stage_path, block)|
-          self.after(stage_name, *stage_path, &block)
+          after(stage_name, *stage_path, &block)
         end
       end
     end
@@ -89,7 +83,5 @@ module Praxis
         @after_callbacks << block
       end
     end
-
-
   end
 end

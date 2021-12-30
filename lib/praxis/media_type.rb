@@ -43,8 +43,6 @@ module Praxis
   #     end
   #   end
   class MediaType < Praxis::Blueprint
-
     include Types::MediaTypeCommon
   end
-
 end

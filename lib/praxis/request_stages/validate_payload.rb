@@ -1,8 +1,6 @@
 module Praxis
   module RequestStages
-
     class ValidatePayload < RequestStage
-
       attr_reader :parent
 
       def initialize(name, context, parent:)
@@ -11,14 +9,14 @@ module Praxis
       end
 
       def path
-        @_path ||= ( @parent.path + [name] )
+        @_path ||= (@parent.path + [name])
       end
 
       def execute
         if request.action.payload
           begin
             request.load_payload(CONTEXT_FOR[:payload])
-          rescue => e
+          rescue StandardError => e
             message = "Error loading payload. Used Content-Type: '#{request.content_type}'"
             return validation_handler.handle!(
               exception: e,
@@ -30,8 +28,8 @@ module Praxis
 
           errors = request.validate_payload(CONTEXT_FOR[:payload])
           if errors.any?
-            return validation_handler.handle!(
-              summary: "Errors validating payload data",
+            validation_handler.handle!(
+              summary: 'Errors validating payload data',
               errors: errors,
               request: request,
               stage: name
@@ -39,8 +37,6 @@ module Praxis
           end
         end
       end
-
     end
-
   end
 end

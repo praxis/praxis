@@ -1,22 +1,21 @@
 module Praxis
   module Types
-
     class FuzzyHash
-      def initialize(value={})
+      def initialize(value = {})
         @hash = {}
         @regexes = []
         update(value)
       end
 
       def update(value)
-        value.each do |k,v|
+        value.each do |k, v|
           self[k] = v
         end
 
         self
       end
 
-      def []=(k,v)
+      def []=(k, v)
         case k
         when Regexp
           @regexes << k
@@ -42,8 +41,6 @@ module Praxis
       def respond_to_missing?(*args)
         @hash.respond_to?(*args)
       end
-
     end
-
   end
 end

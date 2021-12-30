@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe Praxis::ConfigHash do
@@ -45,12 +46,12 @@ describe Praxis::ConfigHash do
     end
     context 'when keys already exist in the hash key' do
       it 'adds one value to the hash' do
-        subject.one'newval'
-        expect(subject.hash[:one]).to match_array(%w(existing newval))
+        subject.one 'newval'
+        expect(subject.hash[:one]).to match_array(%w[existing newval])
       end
       it 'adds multiple values to the hash key' do
         subject.one 'newval', 'other1', 'other2'
-        expect(subject.hash[:one]).to match_array(%w(existing newval other1 other2))
+        expect(subject.hash[:one]).to match_array(%w[existing newval other1 other2])
       end
       context 'when passing a value and a block' do
         let(:my_block) { proc {} }

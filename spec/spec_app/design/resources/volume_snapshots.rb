@@ -7,8 +7,8 @@ module ApiResources
     media_type VolumeSnapshot
 
     version '1.0'
-    
-    parent Volumes, :id => :volume_id
+
+    parent Volumes, id: :volume_id
     prefix '/snapshots'
 
     action :index do
@@ -21,7 +21,6 @@ module ApiResources
       params do
         attribute :volume_id, Integer, description: 'id of parent volume'
       end
-
     end
 
     action :show do
@@ -32,8 +31,6 @@ module ApiResources
       params do
         attribute :id
       end
-      
     end
-
   end
 end

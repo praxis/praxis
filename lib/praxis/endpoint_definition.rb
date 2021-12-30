@@ -9,20 +9,20 @@ module Praxis
 
     included do
       @version = 'n/a'.freeze
-      @actions = Hash.new
-      @responses = Hash.new
+      @actions = {}
+      @responses = {}
 
-      @action_defaults = Trait.new &EndpointDefinition.generate_defaults_block
+      @action_defaults = Trait.new(&EndpointDefinition.generate_defaults_block)
 
       @version_options = {}
       @metadata = {}
       @traits = []
 
-      if self.name
-        @prefix = '/' + self.name.split("::").last.underscore
-      else
-        @prefix = '/'
-      end
+      @prefix = if name
+                  '/' + name.split('::').last.underscore
+                else
+                  '/'
+                end
 
       @version_prefix = ''
 
@@ -31,21 +31,20 @@ module Praxis
 
       @routing_prefix = nil
 
-      @on_finalize = Array.new
+      @on_finalize = []
 
       Application.instance.endpoint_definitions << self
     end
 
-    def self.generate_defaults_block( version: nil )
-
+    def self.generate_defaults_block(version: nil)
       # Ensure we inherit any base params defined in the API definition for the passed in version
       base_attributes = if (base_params = ApiDefinition.instance.info(version).base_params)
-        base_params.attributes
-      else
-        {}
-      end
+                          base_params.attributes
+                        else
+                          {}
+                        end
 
-      Proc.new do
+      proc do
         unless base_attributes.empty?
           params do
             base_attributes.each do |base_name, base_attribute|
@@ -64,15 +63,8 @@ module Praxis
       end
     end
 
-
-
     module ClassMethods
-      attr_reader :actions
-      attr_reader :responses
-      attr_reader :version_options
-      attr_reader :traits
-      attr_reader :version_prefix
-      attr_reader :parent_prefix
+      attr_reader :actions, :responses, :version_options, :traits, :version_prefix, :parent_prefix
 
       # opaque hash of user-defined medata, used to decorate the definition,
       # and also available in the generated JSON documents
@@ -80,38 +72,35 @@ module Praxis
 
       attr_accessor :controller
 
-      def display_name( string=nil )
+      def display_name(string = nil)
         unless string
-          return  @display_name ||= self.name.split("::").last  # Best guess at a display name?
+          return @display_name ||= name.split('::').last # Best guess at a display name?
         end
+
         @display_name = string
       end
 
       def on_finalize(&block)
-        if block_given?
-          @on_finalize << proc(&block)
-        end
+        @on_finalize << proc(&block) if block_given?
 
         @on_finalize
       end
 
-      def prefix(prefix=nil)
+      def prefix(prefix = nil)
         return @prefix if prefix.nil?
+
         @routing_prefix = nil # reset routing_prefix
         @prefix = prefix
       end
 
-      def media_type(media_type=nil)
+      def media_type(media_type = nil)
         return @media_type if media_type.nil?
 
-        if media_type.kind_of?(String)
-          media_type = SimpleMediaType.new(media_type)
-        end
+        media_type = SimpleMediaType.new(media_type) if media_type.is_a?(String)
         @media_type = media_type
       end
 
-
-      def parent(parent=nil, **mapping)
+      def parent(parent = nil, **mapping)
         return @parent if parent.nil?
 
         @routing_prefix = nil # reset routing_prefix
@@ -139,21 +128,21 @@ module Praxis
             param = mapping[name]
             # FIXME: this won't handle URI Template type paths, ie '/{parent_id}'
             prefixed_path = parent_action.route.prefixed_path
-            @parent_prefix = prefixed_path.gsub(/(:)(#{name})(\W+|$)/, "\\1#{param.to_s}\\3")
+            @parent_prefix = prefixed_path.gsub(/(:)(#{name})(\W+|$)/, "\\1#{param}\\3")
           else
             mapping[name] = name
           end
         end
 
-        self.on_finalize do
-          self.inherit_params_from_parent(parent_action, **mapping)
+        on_finalize do
+          inherit_params_from_parent(parent_action, **mapping)
         end
 
         @parent = parent
       end
 
       def inherit_params_from_parent(parent_action, **mapping)
-        actions.each do |name, action|
+        actions.each do |_name, action|
           action.params do
             mapping.each do |parent_name, name|
               next if action.params && action.params.attributes.key?(name)
@@ -164,7 +153,6 @@ module Praxis
             end
           end
         end
-
       end
 
       attr_writer :routing_prefix
@@ -175,18 +163,17 @@ module Praxis
         @routing_prefix = parent_prefix + prefix
       end
 
-
-      def version(version=nil)
+      def version(version = nil)
         return @version unless version
 
         @version = version
-        @action_defaults.instance_eval &EndpointDefinition.generate_defaults_block( version: version )
+        @action_defaults.instance_eval(&EndpointDefinition.generate_defaults_block(version: version))
       end
 
-
-      def canonical_path(action_name=nil)
+      def canonical_path(action_name = nil)
         if action_name
-          raise "Canonical path for #{self.name} is already defined as: '#{@canonical_action_name}'. 'canonical_path' can only be defined once." if @canonical_action_name
+          raise "Canonical path for #{name} is already defined as: '#{@canonical_action_name}'. 'canonical_path' can only be defined once." if @canonical_action_name
+
           @canonical_action_name = action_name
         else
           # Resolution of the actual action definition needs to be done lazily, since we can use the `canonical_path` stanza
@@ -194,80 +181,74 @@ module Praxis
           unless @canonical_action
             href_action = @canonical_action_name || DEFAULT_RESOURCE_HREF_ACTION
             @canonical_action = actions.fetch(href_action) do
-              raise "Error: trying to set canonical_href of #{self.name}. Action '#{href_action}' does not exist"
+              raise "Error: trying to set canonical_href of #{name}. Action '#{href_action}' does not exist"
             end
           end
-          return @canonical_action
+          @canonical_action
         end
       end
 
-      def to_href( params )
+      def to_href(params)
         canonical_path.route.path.expand(params.transform_values(&:to_s))
       end
 
       def parse_href(path)
-        if path.kind_of?(::URI::Generic)
-          path = path.path
-        end
+        path = path.path if path.is_a?(::URI::Generic)
         param_values = canonical_path.route.path.params(path)
         attrs = canonical_path.params.attributes
-        param_values.each_with_object({}) do |(key,value),hash|
-          hash[key.to_sym] = attrs[key.to_sym].load(value,[key])
+        param_values.each_with_object({}) do |(key, value), hash|
+          hash[key.to_sym] = attrs[key.to_sym].load(value, [key])
         end
-      rescue => e
-        raise Praxis::Exception.new("Error parsing or coercing parameters from href: #{path}\n"+e.message)
+      rescue StandardError => e
+        raise Praxis::Exception, "Error parsing or coercing parameters from href: #{path}\n" + e.message
       end
 
       def trait(trait_name)
-        unless ApiDefinition.instance.traits.has_key? trait_name
-          raise Exceptions::InvalidTrait.new("Trait #{trait_name} not found in the system")
-        end
+        raise Exceptions::InvalidTrait, "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.has_key? trait_name
+
         trait = ApiDefinition.instance.traits.fetch(trait_name)
         @traits << trait_name
       end
-      alias_method :use, :trait
+      alias use trait
 
       def action_defaults(&block)
-        if block_given?
-          @action_defaults.instance_eval(&block)
-        end
+        @action_defaults.instance_eval(&block) if block_given?
 
         @action_defaults
       end
 
       def action(name, &block)
-        raise ArgumentError, "can not create ActionDefinition without block" unless block_given?
+        raise ArgumentError, 'can not create ActionDefinition without block' unless block_given?
         raise ArgumentError, "Action names must be defined using symbols (Got: #{name} (of type #{name.class}))" unless name.is_a? Symbol
+
         @actions[name] = ActionDefinition.new(name, self, &block)
       end
 
-      def description(text=nil)
+      def description(text = nil)
         @description = text if text
         @description
       end
 
       def id
-        self.name.gsub('::'.freeze,'-'.freeze)
+        name.gsub('::'.freeze, '-'.freeze)
       end
 
       def describe(context: nil)
         {}.tap do |hash|
           hash[:description] = description
           hash[:media_type] = media_type.describe(true) if media_type
-          hash[:actions] = actions.values.collect{|action| action.describe(context: context)}
-          hash[:name] = self.name
-          hash[:parent] = self.parent.id if self.parent
-          hash[:display_name] = self.display_name
+          hash[:actions] = actions.values.collect { |action| action.describe(context: context) }
+          hash[:name] = name
+          hash[:parent] = parent.id if parent
+          hash[:display_name] = display_name
           hash[:metadata] = metadata
-          hash[:traits] = self.traits
+          hash[:traits] = traits
         end
       end
 
       def nodoc!
         metadata[:doc_visibility] = :none
       end
-
     end
-
   end
 end

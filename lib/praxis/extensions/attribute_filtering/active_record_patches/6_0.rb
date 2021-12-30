@@ -15,6 +15,7 @@ module ActiveRecord
       attr_accessor :references
 
       private
+
       def initialize(base, table, associations, join_type, references: nil)
         tree = self.class.make_tree associations
         @references = references # Save the references values into the instance (to use during build)
@@ -35,8 +36,8 @@ module ActiveRecord
           )
           # through tables do not need a special alias_path alias (as they shouldn't really referenced by the client)
           if is_root_reflection && node.alias_path
-            table = table.left if table.is_a?(Arel::Nodes::TableAlias) #un-alias it if necessary
-            table = table.alias(node.alias_path.join('/')) 
+            table = table.left if table.is_a?(Arel::Nodes::TableAlias) # un-alias it if necessary
+            table = table.alias(node.alias_path.join('/'))
           end
           table
         end
@@ -49,18 +50,17 @@ module ActiveRecord
           reflection.check_validity!
           reflection.check_eager_loadable!
 
-          if reflection.polymorphic?
-            raise EagerLoadPolymorphicError.new(reflection)
-          end
+          raise EagerLoadPolymorphicError, reflection if reflection.polymorphic?
+
           # Praxis: set an alias_path in the JoinAssociation if its path matches a requested reference
-          child_path = (path && !path.empty?) ? path + [name] : nil
+          child_path = path && !path.empty? ? path + [name] : nil
           association = JoinAssociation.new(reflection, build(right, reflection.klass, path: child_path))
           association.alias_path = child_path if references.include?(child_path.join('/'))
-          association            
+          association
         end
       end
-
     end
+
     class ActiveRecord::Associations::JoinDependency::JoinAssociation
       attr_accessor :alias_path
     end

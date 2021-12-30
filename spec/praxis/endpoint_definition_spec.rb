@@ -22,16 +22,14 @@ describe Praxis::EndpointDefinition do
     its([:actions]) { should have(2).items }
     its([:metadata]) { should be_kind_of(Hash) }
     its([:traits]) { should eq [:test] }
-    it { should_not have_key(:parent)}
+    it { should_not have_key(:parent) }
 
     context 'for a resource with a parent' do
-      let(:endpoint_definition) { ApiResources::VolumeSnapshots}
+      let(:endpoint_definition) { ApiResources::VolumeSnapshots }
 
       its([:parent]) { should eq ApiResources::Volumes.id }
     end
-
   end
-
 
   context '.routing_prefix' do
     subject(:endpoint_definition) { ApiResources::VolumeSnapshots }
@@ -42,33 +40,33 @@ describe Praxis::EndpointDefinition do
 
   context '.parent_prefix' do
     subject(:endpoint_definition) { ApiResources::VolumeSnapshots }
-    let(:base_path){ Praxis::ApiDefinition.instance.info.base_path }
-    its(:parent_prefix){ should eq('/clouds/:cloud_id/volumes/:volume_id') }
+    let(:base_path) { Praxis::ApiDefinition.instance.info.base_path }
+    its(:parent_prefix) { should eq('/clouds/:cloud_id/volumes/:volume_id') }
     it do
       expect(endpoint_definition.parent_prefix).to_not match(/^#{base_path}/)
     end
   end
 
-
   context '.action' do
     it 'requires a block' do
-      expect { endpoint_definition.action(:something)
-               }.to raise_error(ArgumentError)
+      expect do
+        endpoint_definition.action(:something)
+      end.to raise_error(ArgumentError)
     end
     it 'creates an ActionDefinition for actions' do
       index = endpoint_definition.actions[:index]
       expect(index).to be_kind_of(Praxis::ActionDefinition)
-      expect(index.description).to eq("index description")
+      expect(index.description).to eq('index description')
     end
 
     it 'complains if action names are not symbols' do
       expect do
         Class.new do
           include Praxis::EndpointDefinition
-          action "foo" do
+          action 'foo' do
           end
         end
-      end.to raise_error(ArgumentError,/Action names must be defined using symbols/)
+      end.to raise_error(ArgumentError, /Action names must be defined using symbols/)
     end
   end
 
@@ -98,14 +96,12 @@ describe Praxis::EndpointDefinition do
             get ''
           end
         end
-
       end
     end
 
     let(:non_singleton_api) do
-      api_def=Praxis::ApiDefinition.__send__(:new)
+      api_def = Praxis::ApiDefinition.__send__(:new)
       api_def.instance_eval do |api|
-
         api.info do
           base_path '/api/:base_param'
           base_params do
@@ -141,7 +137,7 @@ describe Praxis::EndpointDefinition do
     end
 
     context 'includes base_params from the APIDefinition' do
-      let(:show_action_params){ endpoint_definition.actions[:show].params }
+      let(:show_action_params) { endpoint_definition.actions[:show].params }
 
       it 'including globally defined' do
         expect(show_action_params.attributes).to have_key(:base_param)
@@ -154,15 +150,14 @@ describe Praxis::EndpointDefinition do
         expect(show_action_params.attributes).to have_key(:app_name)
         expect(show_action_params.attributes).to_not have_key(:v2_param)
       end
-
     end
   end
 
   context 'setting other values' do
-    subject(:endpoint_definition) { Class.new {include Praxis::EndpointDefinition } }
+    subject(:endpoint_definition) { Class.new { include Praxis::EndpointDefinition } }
 
-    let(:some_proc) { Proc.new {} }
-    let(:some_hash) { Hash.new }
+    let(:some_proc) { proc {} }
+    let(:some_hash) { {} }
 
     it 'accepts a string as media_type' do
       endpoint_definition.media_type('Something')
@@ -170,13 +165,11 @@ describe Praxis::EndpointDefinition do
       expect(endpoint_definition.media_type.identifier).to eq('Something')
     end
 
-    its(:version_options){ should be_kind_of(Hash) }
-
+    its(:version_options) { should be_kind_of(Hash) }
   end
 
-
   context '.trait' do
-    subject(:endpoint_definition) { Class.new {include Praxis::EndpointDefinition } }
+    subject(:endpoint_definition) { Class.new { include Praxis::EndpointDefinition } }
     it 'raises an error for missing traits' do
       expect { endpoint_definition.trait(:stuff) }.to raise_error(Praxis::Exceptions::InvalidTrait)
     end
@@ -201,7 +194,6 @@ describe Praxis::EndpointDefinition do
     it 'is exposed in the describe' do
       expect(endpoint_definition.describe[:metadata][:doc_visibility]).to be(:none)
     end
-
   end
 
   context '#canonical_path' do
@@ -210,9 +202,9 @@ describe Praxis::EndpointDefinition do
         expect(subject.canonical_path).to eq(subject.actions[:show])
       end
       it 'cannot be done if already been defined' do
-        expect{
+        expect do
           endpoint_definition.canonical_path :reset
-        }.to raise_error(/'canonical_path' can only be defined once./)
+        end.to raise_error(/'canonical_path' can only be defined once./)
       end
     end
     context 'if none specified' do
@@ -235,20 +227,20 @@ describe Praxis::EndpointDefinition do
         end
       end
       it 'raises an error' do
-        expect{
+        expect do
           subject.canonical_path
-        }.to raise_error(/Action 'non_existent' does not exist/)
+        end.to raise_error(/Action 'non_existent' does not exist/)
       end
     end
   end
 
   context '#to_href' do
     it 'accesses the path expansion functions of the primary route' do
-      expect(subject.to_href( id: 1)).to eq("/people/1")
+      expect(subject.to_href(id: 1)).to eq('/people/1')
     end
   end
   context '#parse_href' do
-    let(:parsed){ endpoint_definition.parse_href("/people/1") }
+    let(:parsed) { endpoint_definition.parse_href('/people/1') }
     it 'accesses the path expansion functions of the primary route' do
       expect(parsed).to have_key(:id)
     end
@@ -256,5 +248,4 @@ describe Praxis::EndpointDefinition do
       expect(parsed[:id]).to be_kind_of(Integer)
     end
   end
-
 end

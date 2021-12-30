@@ -4,7 +4,7 @@ describe Praxis::FileGroup do
   let(:app) { Praxis::Application.instance }
   let(:layout) { app.file_layout }
 
-  context '#initialize' do 
+  context '#initialize' do
     it 'raises an error if given nil for the base path' do
       expect { Praxis::FileGroup.new(nil) }.to raise_error(ArgumentError)
     end

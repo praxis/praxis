@@ -7,7 +7,7 @@ module SimpleAuthenticationPlugin
     include Singleton
 
     def initialize
-      @options = {config_file: 'config/authentication.yml'}
+      @options = { config_file: 'config/authentication.yml' }
     end
 
     def config_key
@@ -23,9 +23,7 @@ module SimpleAuthenticationPlugin
     def self.authenticate(request)
       request.current_user == 'guest'
     end
-
   end
-
 
   module Request
     def current_user
@@ -39,14 +37,10 @@ module SimpleAuthenticationPlugin
     included do
       before :action do |controller|
         action = controller.request.action
-        if action.authentication_required
-          Plugin.authenticate(controller.request)
-        end
+        Plugin.authenticate(controller.request) if action.authentication_required
       end
     end
-
   end
-
 
   module ActionDefinition
     extend ActiveSupport::Concern
@@ -64,6 +58,5 @@ module SimpleAuthenticationPlugin
     def authentication_required
       @authentication_required ||= false
     end
-
   end
 end

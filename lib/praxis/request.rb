@@ -1,18 +1,17 @@
 module Praxis
-
   class Request < Praxis.request_superclass
     attr_reader :env, :query
-    attr_accessor :route_params, :action
+    attr_accessor :route_params, :action, :headers, :params, :payload
 
-    PATH_VERSION_PREFIX = "/v".freeze
+    PATH_VERSION_PREFIX = '/v'.freeze
     CONTENT_TYPE_NAME = 'CONTENT_TYPE'.freeze
     PATH_INFO_NAME = 'PATH_INFO'.freeze
     REQUEST_METHOD_NAME = 'REQUEST_METHOD'.freeze
     QUERY_STRING_NAME = 'QUERY_STRING'.freeze
-    API_VERSION_HEADER_NAME = "HTTP_X_API_VERSION".freeze
+    API_VERSION_HEADER_NAME = 'HTTP_X_API_VERSION'.freeze
     API_VERSION_PARAM_NAME = 'api_version'.freeze
     API_NO_VERSION_NAME = 'n/a'.freeze
-    VERSION_USING_DEFAULTS = [:header, :params].freeze
+    VERSION_USING_DEFAULTS = %i[header params].freeze
 
     def initialize(env)
       @env = env
@@ -45,10 +44,9 @@ module Praxis
       @env[PATH_INFO_NAME]
     end
 
-    attr_accessor :headers, :params, :payload
-
     def params_hash
       return {} if params.nil?
+
       params.attributes
     end
 
@@ -65,17 +63,15 @@ module Praxis
     end
 
     def raw_payload
-      @raw_payload ||= begin
-        if (input = env['rack.input'.freeze].read)
-          env['rack.input'.freeze].rewind
-          input
-        end
-      end
+      @raw_payload ||= if (input = env['rack.input'.freeze].read)
+                         env['rack.input'.freeze].rewind
+                         input
+                       end
     end
 
     def coalesce_inputs!
-      self.raw_params
-      self.raw_payload
+      raw_params
+      raw_payload
     end
 
     def self.path_version_prefix
@@ -83,14 +79,14 @@ module Praxis
     end
 
     # DEPRECATED: remove with EndpointDefinition.version using: :path
-    PATH_VERSION_MATCHER = %r{^#{self.path_version_prefix}(?<version>[^\/]+)\/}.freeze
+    PATH_VERSION_MATCHER = %r{^#{path_version_prefix}(?<version>[^/]+)/}.freeze
 
     def path_version_matcher
       if Application.instance.versioning_scheme == :path
         matcher = Mustermann.new(ApiDefinition.instance.info.base_path + '*')
-        matcher.params(self.path)[API_VERSION_PARAM_NAME]
+        matcher.params(path)[API_VERSION_PARAM_NAME]
       else
-        PATH_VERSION_MATCHER.match(self.path)[:version]
+        PATH_VERSION_MATCHER.match(path)[:version]
       end
     end
 
@@ -99,30 +95,32 @@ module Praxis
 
       Array(Application.instance.versioning_scheme).find do |mode|
         case mode
-        when :header;
+        when :header
           result = env[API_VERSION_HEADER_NAME]
-        when :params;
+        when :params
           result = @query[API_VERSION_PARAM_NAME]
-        when :path;
-          result = self.path_version_matcher
+        when :path
+          result = path_version_matcher
         else
           raise "Unknown method for retrieving the API version: #{mode}"
         end
       end
-      return result || API_NO_VERSION_NAME
+      result || API_NO_VERSION_NAME
     end
 
     def load_headers(context)
       return unless action.headers
-      defined_headers = action.precomputed_header_keys_for_rack.each_with_object(Hash.new) do |(upper, original), hash|
-        hash[original] = self.env[upper] if self.env.has_key? upper
+
+      defined_headers = action.precomputed_header_keys_for_rack.each_with_object({}) do |(upper, original), hash|
+        hash[original] = env[upper] if env.has_key? upper
       end
       self.headers = action.headers.load(defined_headers, context)
     end
 
     def load_params(context)
       return unless action.params
-      self.params = action.params.load(self.raw_params, context)
+
+      self.params = action.params.load(raw_params, context)
     end
 
     def load_payload(context)
@@ -130,11 +128,11 @@ module Praxis
       return if content_type.nil?
 
       raw = if (handler = Praxis::Application.instance.handlers[content_type.handler_name])
-        handler.parse(self.raw_payload)
-      else
-        # TODO is this a good default?
-        self.raw_payload
-      end
+              handler.parse(raw_payload)
+            else
+              # TODO: is this a good default?
+              raw_payload
+            end
 
       self.payload = action.payload.load(raw, context, content_type: content_type.to_s)
     end
@@ -142,24 +140,25 @@ module Praxis
     def validate_headers(context)
       return [] unless action.headers
 
-      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.headers.options[:required] == true && self.headers.nil?
+      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.headers.options[:required] == true && headers.nil?
 
-      action.headers.validate(self.headers, context)
+      action.headers.validate(headers, context)
     end
 
     def validate_params(context)
       return [] unless action.params
 
-      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.params.options[:required] == true && self.params.nil?
+      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.params.options[:required] == true && params.nil?
 
-      action.params.validate(self.params, context)
+      action.params.validate(params, context)
     end
 
     def validate_payload(context)
       return [] unless action.payload
 
-      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.payload.options[:required] == true && self.payload.nil?
-      action.payload.validate(self.payload, context)
+      return ["Attribute #{Attributor.humanize_context(context)} is required."] if action.payload.options[:required] == true && payload.nil?
+
+      action.payload.validate(payload, context)
     end
 
     # versions that matched all the conditions of the request (except its version)
@@ -172,7 +171,5 @@ module Praxis
     def inspect
       "'@env' => #{@env.inspect},\n'@headers' => #{@headers.inspect},\n'@params' => #{@params.inspect},\n'@query' => #{@query.inspect}"
     end
-
   end
-
 end

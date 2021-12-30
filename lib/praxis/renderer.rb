@@ -2,12 +2,10 @@
 
 module Praxis
   class Renderer
-    attr_reader :include_nil
-    attr_reader :cache
+    attr_reader :include_nil, :cache
 
     class CircularRenderingError < StandardError
-      attr_reader :object
-      attr_reader :context
+      attr_reader :object, :context
 
       def initialize(object, context)
         @object = object
@@ -35,18 +33,16 @@ module Praxis
     def render(object, fields, context: Attributor::DEFAULT_ROOT_CONTEXT)
       if object.is_a? Praxis::Blueprint
         @cache[object._cache_key][fields] ||= _render(object, fields, context: context)
-      else
-        if object.class < Attributor::Collection
-          object.each_with_index.collect do |sub_object, i|
-            sub_context = context + ["at(#{i})"]
-            render(sub_object, fields, context: sub_context)
-          end
-        else
-          _render(object, fields, context: context)
+      elsif object.class < Attributor::Collection
+        object.each_with_index.collect do |sub_object, i|
+          sub_context = context + ["at(#{i})"]
+          render(sub_object, fields, context: sub_context)
         end
+      else
+        _render(object, fields, context: context)
       end
     rescue SystemStackError
-      raise CircularRenderingError.new(object, context)      
+      raise CircularRenderingError.new(object, context)
     end
 
     def _render(object, fields, context: Attributor::DEFAULT_ROOT_CONTEXT)
@@ -62,12 +58,12 @@ module Praxis
       fields.each_with_object({}) do |(key, subfields), hash|
         begin
           value = object._get_attr(key)
-        rescue => e
+        rescue StandardError => e
           raise Attributor::DumpError.new(context: context, name: key, type: object.class, original_exception: e)
         end
 
         if value.nil?
-          hash[key] = nil if self.include_nil
+          hash[key] = nil if include_nil
           next
         end
 

@@ -6,29 +6,31 @@ describe Praxis::Application do
       app = Class.new(Praxis::Application).instance
 
       config = Object.new
-      def config.define(key=nil, type=Attributor::Struct, **opts, &block)
-        return [key,type,opts,block]
+      def config.define(key = nil, type = Attributor::Struct, **opts, &block)
+        [key, type, opts, block]
       end
+
       def config.get
-        return 'gotconfig'
+        'gotconfig'
       end
+
       def config.set(config)
-        return config
+        config
       end
       app.instance_variable_set(:@config, config)
       app
     end
 
     describe '#config' do
-      let(:myblock){ lambda {} }
+      let(:myblock) { -> {} }
       it 'passes the block to config (and sets the right defaults)' do
         ret = app.config(&myblock)
-        expect(ret).to eq([nil,Attributor::Struct,{},myblock])
+        expect(ret).to eq([nil, Attributor::Struct, {}, myblock])
       end
 
       it 'passes the params and block to config' do
-        ret = app.config(:key, Attributor::Hash, **{option: :one}, &myblock)
-        expect(ret).to eq([:key, Attributor::Hash, {option: :one}, myblock])
+        ret = app.config(:key, Attributor::Hash, **{ option: :one }, &myblock)
+        expect(ret).to eq([:key, Attributor::Hash, { option: :one }, myblock])
       end
 
       it 'gets config with no block given' do
@@ -69,13 +71,13 @@ describe Praxis::Application do
 
       context 'given a non-Class' do
         it 'raises' do
-          expect {
+          expect do
             subject.handler('awesomesauce', 'hi') # no instances allowed
-          }.to raise_error(NoMethodError)
+          end.to raise_error(NoMethodError)
 
-          expect {
+          expect do
             subject.handler('awesomesauce', ::Kernel) # no modules allowed
-          }.to raise_error(NoMethodError)
+          end.to raise_error(NoMethodError)
         end
       end
 
@@ -86,9 +88,9 @@ describe Praxis::Application do
       end
 
       it 'ensures that handlers will work' do
-        expect {
+        expect do
           subject.handler new_handler_name, bad_handler_class
-        }.to raise_error(ArgumentError)
+        end.to raise_error(ArgumentError)
       end
     end
   end

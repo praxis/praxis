@@ -26,5 +26,4 @@ class VolumeSnapshot < Praxis::MediaType
       attribute :href
     end
   end
-
 end

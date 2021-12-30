@@ -3,6 +3,7 @@ module Praxis
     module AttributeFiltering
       class FilterTreeNode
         attr_reader :path, :conditions, :children
+
         # Parsed_filters is an Array of {name: X, op: Y, value: Z} ... exactly the format of the FilteringParams.load method
         # It can also contain a :node_object
         def initialize(parsed_filters, path: [])
@@ -27,7 +28,7 @@ module Praxis
               _parent, *rest = item[:name].to_s.split('.')
               item.merge(name: rest.join('.'))
             end
-            hash[name] = self.class.new(sub_filters, path: path + [name] )
+            hash[name] = self.class.new(sub_filters, path: path + [name])
           end
         end
       end

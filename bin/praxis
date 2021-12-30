@@ -9,33 +9,33 @@ rescue Bundler::GemfileNotFound
   # no-op: we might be installed as a system gem
 end
 
-if ARGV[0] == "version"
+if ARGV[0] == 'version'
   require 'praxis/version'
   puts "Praxis version #{Praxis::VERSION}"
   exit 0
 end
 
-if ["routes","docs","console"].include? ARGV[0]
+if %w[routes docs console].include? ARGV[0]
   require 'rake'
   require 'praxis'
   require 'praxis/tasks'
   load 'Rakefile' # Ensure that we read the App's Rakefile, to pickup any definitions etc.
 
   case ARGV[0]
-    when "routes"
-      Rake::Task['praxis:routes'].invoke(ARGV[1])
-    when "docs"
-      task_name = case ARGV[1]
-      when nil,'browser'
-        'praxis:docs:preview'
-      when 'generate'
-        'praxis:docs:generate'
-      when 'package'
-        'praxis:docs:package'        
-      end
-      Rake::Task[task_name].invoke
-    when "console"
-      Rake::Task['praxis:console'].invoke
+  when 'routes'
+    Rake::Task['praxis:routes'].invoke(ARGV[1])
+  when 'docs'
+    task_name = case ARGV[1]
+                when nil, 'browser'
+                  'praxis:docs:preview'
+                when 'generate'
+                  'praxis:docs:generate'
+                when 'package'
+                  'praxis:docs:package'
+                end
+    Rake::Task[task_name].invoke
+  when 'console'
+    Rake::Task['praxis:console'].invoke
   end
   exit 0
 end
@@ -46,81 +46,78 @@ path_to_loader = '%s/tasks/loader.thor' % path_to_praxis
 load path_to_loader
 
 class PraxisGenerator < Thor
-  
   # Include a few fake thor action descriptions (for the rake tasks above) so they can show up in the same usage messages
-  desc "routes [json]", "Prints the route table of the application. Defaults to table format, but can produce json"
-  def routes
-  end
+  desc 'routes [json]', 'Prints the route table of the application. Defaults to table format, but can produce json'
+  def routes; end
 
-  desc "docs [generate|browser|package]", <<~EOF
-  Generates API documentation and a Web App to inspect it
-    generate - Generates the JSON docs
-    browser  - (default) Generates JSON docs, and automatically starts a Web app to browse them.
-    package  - Generates JSON docs, and neatly packages all the necessary static files ready for exporting the browsing app.
+  desc 'docs [generate|browser|package]', <<~EOF
+    Generates API documentation and a Web App to inspect it
+      generate - Generates the JSON docs
+      browser  - (default) Generates JSON docs, and automatically starts a Web app to browse them.
+      package  - Generates JSON docs, and neatly packages all the necessary static files ready for exporting the browsing app.
   EOF
-  def docs
-  end
-  
-  desc "console", "Open a console to the application, with its environment loaded"
-  def console
-  end
+  def docs; end
+
+  desc 'console', 'Open a console to the application, with its environment loaded'
+  def console; end
 
   # Simple helper to go get the existing description for the real action
-  # Usage must still be provided rather than retrieved (since it is not a 
+  # Usage must still be provided rather than retrieved (since it is not a
   # straight "usage" from the remote action when arguments are defined )
-  def self.desc_for( usage_string, klass, action_name, description_prefix="")
+  def self.desc_for(usage_string, klass, action_name, description_prefix = '')
     action_name = action_name.to_s
     cmd = klass.commands[action_name]
     raise "Error, could not find description for #{klass.name}##{action_name}" if cmd.nil?
+
     desc usage_string, "#{description_prefix}#{cmd.description}"
   end
 
-  desc_for "new APP_NAME", ::PraxisGen::App, :new
+  desc_for 'new APP_NAME', ::PraxisGen::App, :new
   def new(app_name)
     gen = ::PraxisGen::App.new([app_name])
     gen.destination_root = app_name
     gen.invoke_all
   end
 
-  desc_for "example APP_NAME", ::PraxisGen::Example, :example
+  desc_for 'example APP_NAME', ::PraxisGen::Example, :example
   def example(app_name)
     gen = ::PraxisGen::Example.new([app_name])
     gen.destination_root = app_name
     gen.invoke(:example)
   end
 
-  desc_for "g COLLECTION_NAME", ::PraxisGen::Scaffold, :g
+  desc_for 'g COLLECTION_NAME', ::PraxisGen::Scaffold, :g
   # Cannot use the argument below or it will apply to all commands (the action in the class has it)
   # argument :collection_name, required: false
   # The options, however, since they're optional are fine (But need to be duplicated from the class :( )
   option :version, required: false, default: '1',
-          desc: 'Version string for the API endpoint. This also dictates the directory structure (i.e., v1/endpoints/...))'
+                   desc: 'Version string for the API endpoint. This also dictates the directory structure (i.e., v1/endpoints/...))'
   option :design, type: :boolean, default: true,
-          desc: 'Include the Endpoint and MediaType files for the collection'
+                  desc: 'Include the Endpoint and MediaType files for the collection'
   option :implementation, type: :boolean, default: true,
-          desc: 'Include the Controller and (possibly the) Resource files for the collection (see --no-resource)'
+                          desc: 'Include the Controller and (possibly the) Resource files for the collection (see --no-resource)'
   option :resource, type: :boolean, default: true,
-          desc: 'Disable (or enable) the creation of the Resource files when generating implementation'
-  option :model, type: :string, enum: ['activerecord','sequel'],
-          desc: 'It also generates a model for the given ORM. An empty --model flag will default to activerecord'
-  option :actions, type: :string, default: 'crud', enum: ['cr','cru','crud','u','ud','d'],
-          desc: 'Specifies the actions to generate for the API. cr=create, u=update, d=delete. Index and show actions are always generated'
+                    desc: 'Disable (or enable) the creation of the Resource files when generating implementation'
+  option :model, type: :string, enum: %w[activerecord sequel],
+                 desc: 'It also generates a model for the given ORM. An empty --model flag will default to activerecord'
+  option :actions, type: :string, default: 'crud', enum: %w[cr cru crud u ud d],
+                   desc: 'Specifies the actions to generate for the API. cr=create, u=update, d=delete. Index and show actions are always generated'
   def g(*args)
     # Because we cannot share the :collection_name argument, we need to do this check here, before
     # we "parse" it and pass it to the g command
     unless args.size == 1
-      ::PraxisGen::Scaffold.command_help(shell,:g)
+      ::PraxisGen::Scaffold.command_help(shell, :g)
       exit 1
     end
 
-    collection_name,_ = args
-    ::PraxisGen::Scaffold.new([collection_name],options).invoke(:g)
+    collection_name, = args
+    ::PraxisGen::Scaffold.new([collection_name], options).invoke(:g)
     if options[:model]
       # Make it easy to be able to both enable or not enable the creation of the model, by passing --model=...
       # but also make it easy so that if there is no value for it, it default to activerecord
-      opts = {orm: options[:model] }
+      opts = { orm: options[:model] }
       opts[:orm] = 'activerecord' if opts[:orm] == 'model' # value is model param passed by no value
-      ::PraxisGen::Model.new([collection_name.singularize],opts).invoke(:g)
+      ::PraxisGen::Model.new([collection_name.singularize], opts).invoke(:g)
     end
   end
 
@@ -144,7 +141,6 @@ class PraxisGenerator < Thor
   #   model_name,_ = args
   #   ::PraxisGen::Model.new([model_name],options).invoke(:g)
   # end
-
 end
-    
+
 PraxisGenerator.start(ARGV)

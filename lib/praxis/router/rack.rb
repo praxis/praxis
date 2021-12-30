@@ -25,20 +25,24 @@ module Mustermann
     #    # in a config.ru
     #    run router
     class Rack < Simple
-      def initialize(env_prefix: "mustermann", params_key: "#{env_prefix}.params", pattern_key: "#{env_prefix}.pattern", **options, &block)
-        @params_key, @pattern_key = params_key, pattern_key
-        options[:default] = [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found"]] unless options.include? :default
+      def initialize(env_prefix: 'mustermann', params_key: "#{env_prefix}.params", pattern_key: "#{env_prefix}.pattern", **options, &block)
+        @params_key = params_key
+        @pattern_key = pattern_key
+        options[:default] = [404, { 'Content-Type' => 'text/plain', 'X-Cascade' => 'pass' }, ['Not Found']] unless options.include? :default
         super(**options, &block)
       end
 
       def invoke(callback, env, params, pattern)
-        params_was, pattern_was             = env[@params_key], env[@pattern_key]
-        env[@params_key], env[@pattern_key] = params, pattern
+        params_was = env[@params_key]
+        pattern_was = env[@pattern_key]
+        env[@params_key] = params
+        env[@pattern_key] = pattern
         response = callback.call(env)
-        response[1].each { |k,v| throw :pass if k.downcase == 'x-cascade' and v == 'pass' }
+        response[1].each { |k, v| throw :pass if k.downcase == 'x-cascade' and v == 'pass' }
         response
       ensure
-        env[@params_key], env[@pattern_key] = params_was, pattern_was
+        env[@params_key] = params_was
+        env[@pattern_key] = pattern_was
       end
 
       def string_for(env)

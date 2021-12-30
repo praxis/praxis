@@ -3,9 +3,7 @@ require 'spec_helper'
 require 'praxis/extensions/field_selection'
 
 describe Praxis::Extensions::FieldSelection::FieldSelector do
-
   let(:type) { described_class.for(Address) }
-
 
   subject(:field_selector) { type.load(fields) }
 
@@ -21,7 +19,6 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
     it 'validates' do
       expect(type.example.validate).to be_empty
     end
-
   end
 
   context '.load' do
@@ -32,22 +29,20 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
       expect(type.load('').fields).to be(true)
     end
 
-
     it 'loads fields' do
       fields = 'id,name,owner{name}'
 
-      expect(Attributor::FieldSelector).to receive(:load).
-        with(fields).and_return(parsed_fields)
+      expect(Attributor::FieldSelector).to receive(:load)
+        .with(fields).and_return(parsed_fields)
 
       result = type.load(fields)
       expect(result.fields).to be parsed_fields
     end
-
   end
 
   context '#dump' do
     it 'is dumpable' do
-      expect( type.load('id') ).to be_kind_of( Attributor::Dumpable )
+      expect(type.load('id')).to be_kind_of(Attributor::Dumpable)
     end
 
     it 'dumps nested fields properly' do
@@ -72,14 +67,13 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
     context 'validating subattributes' do
       let(:selector_string) { 'id,resident,owner{age}' }
       it 'validates subattributes' do
-        errors =  type.validate(selector_string)
+        errors = type.validate(selector_string)
         expect(errors).to match_array([
-          "Attribute with name resident not found in Address",
-          "Attribute with name age not found in Person"
-        ])
+                                        'Attribute with name resident not found in Address',
+                                        'Attribute with name age not found in Person'
+                                      ])
       end
     end
-
   end
 
   context '#validate' do
@@ -90,7 +84,4 @@ describe Praxis::Extensions::FieldSelection::FieldSelector do
       expect(type.validate('id,owner{foo}')).to have(1).items
     end
   end
-
-
-
 end

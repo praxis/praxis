@@ -19,7 +19,7 @@ describe Praxis::RequestStages::Validate do
 
   let(:request) do
     r = Praxis::Request.new(env)
-    r.route_params = {id: 1}
+    r.route_params = { id: 1 }
     r.action = action
     r
   end

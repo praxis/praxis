@@ -1,15 +1,14 @@
-require "spec_helper"
+require 'spec_helper'
 
 describe Praxis::Types::MultipartArray do
-
   let(:type) do
     Class.new(Praxis::Types::MultipartArray) do
-      self.options[:case_insensitive_load] = true
+      options[:case_insensitive_load] = true
 
       part 'title', String, required: true
       part(/nam/, String, regexp: /Bob/i)
 
-      part /stuff/ do
+      part(/stuff/) do
         payload Hash
       end
 
@@ -22,33 +21,31 @@ describe Praxis::Types::MultipartArray do
       file 'thumbnail', Attributor::Tempfile
 
       part 'image', Attributor::Tempfile, filename: true
-
     end
   end
-
 
   let(:form) do
     form_data = MIME::Multipart::FormData.new
     entity = MIME::Text.new('Bob')
-    form_data.add entity,'name'
+    form_data.add entity, 'name'
 
     entity = MIME::Text.new('Captain')
-    form_data.add entity,'title'
+    form_data.add entity, 'title'
 
     entity = MIME::Application.new('file1')
-    form_data.add entity,'files', 'file1'
+    form_data.add entity, 'files', 'file1'
 
     entity = MIME::Application.new('file2')
-    form_data.add entity,'files', 'file2'
+    form_data.add entity, 'files', 'file2'
 
     entity = MIME::Application.new('{"first_name": "Frank"}', 'json')
-    form_data.add entity,'stuff2'
+    form_data.add entity, 'stuff2'
 
     entity = MIME::Application.new('SOMEBINARYDATA', 'jpg')
-    form_data.add entity,'thumbnail', 'thumb.jpg'
+    form_data.add entity, 'thumbnail', 'thumb.jpg'
 
     entity = MIME::Application.new('', 'jpg')
-    form_data.add entity,'image', 'image.jpg'
+    form_data.add entity, 'image', 'image.jpg'
 
     form_data
   end
@@ -94,9 +91,9 @@ describe Praxis::Types::MultipartArray do
       end
     end
 
-    let(:json_payload) { {sub_hash: {key:'value'}}.to_json }
+    let(:json_payload) { { sub_hash: { key: 'value' } }.to_json }
     let(:body) { StringIO.new("--boundary\r\nContent-Disposition: form-data; name=blah\r\n\r\n#{json_payload}\r\n--boundary--") }
-    let(:content_type) { "multipart/form-data; boundary=boundary" }
+    let(:content_type) { 'multipart/form-data; boundary=boundary' }
 
     it do
       expect(payload.part('blah').payload['sub_hash']).to eq('key' => 'value')
@@ -117,9 +114,9 @@ describe Praxis::Types::MultipartArray do
       end
     end
 
-    let(:json_payload) { {attr: 'value'}.to_json }
+    let(:json_payload) { { attr: 'value' }.to_json }
     let(:body) { StringIO.new("--boundary\r\nContent-Disposition: form-data; name=blah\r\n\r\n#{json_payload}\r\n--boundary--") }
-    let(:content_type) { "multipart/form-data; boundary=boundary" }
+    let(:content_type) { 'multipart/form-data; boundary=boundary' }
 
     it do
       expect(payload.part('blah').payload.class.ancestors).to include(Attributor::Struct)
@@ -142,7 +139,7 @@ describe Praxis::Types::MultipartArray do
 
     context 'attributes' do
       subject(:attributes) { description[:attributes] }
-      its(:keys) { should match_array ['title', 'files', 'thumbnail', 'image']}
+      its(:keys) { should match_array %w[title files thumbnail image] }
 
       context 'the "title" part' do
         subject(:title_description) { attributes['title'] }
@@ -172,14 +169,12 @@ describe Praxis::Types::MultipartArray do
           expect(filename[:options]).to eq(regexp: /file/)
           expect(filename[:type]).to eq Attributor::String.describe
         end
-
       end
-
     end
 
     context 'pattern attributes' do
       subject(:pattern_attributes) { description[:pattern_attributes] }
-      its(:keys) { should match_array ['nam', 'stuff']}
+      its(:keys) { should match_array %w[nam stuff] }
     end
 
     context 'with no parts defined' do
@@ -236,7 +231,6 @@ describe Praxis::Types::MultipartArray do
       end
     end
 
-
     context 'with default_format' do
       let(:type) do
         Class.new(Praxis::Types::MultipartArray) do
@@ -267,7 +261,7 @@ describe Praxis::Types::MultipartArray do
 
       let(:output) { example.dump(default_format: default_format) }
 
-      let(:parts) { Praxis::MultipartParser.parse({'Content-Type'=>example.content_type}, output).last }
+      let(:parts) { Praxis::MultipartParser.parse({ 'Content-Type' => example.content_type }, output).last }
 
       it 'dumps the parts with the proper handler' do
         json_handler = Praxis::Application.instance.handlers['json']
@@ -290,9 +284,7 @@ describe Praxis::Types::MultipartArray do
           expect(instance.payload).to eq json_handler.generate(example.part('instances')[i].payload.dump)
         end
       end
-
     end
-
   end
 
   context 'with errors' do
@@ -300,11 +292,10 @@ describe Praxis::Types::MultipartArray do
       form_data = MIME::Multipart::FormData.new
 
       entity = MIME::Text.new('James')
-      form_data.add entity,'name'
-
+      form_data.add entity, 'name'
 
       entity = MIME::Text.new('file1')
-      form_data.add entity,'files', 'file1'
+      form_data.add entity, 'files', 'file1'
 
       form_data
     end
@@ -314,10 +305,10 @@ describe Praxis::Types::MultipartArray do
     it 'validates part headers' do
       expect(errors).to have(3).items
       expect(errors).to match_array([
-                                      %r|\.name\.payload value .* does not match regexp|,
-                                      %r|\.files\.headers.* is not within the allowed values|,
-                                      %r|\.title is required|
-      ])
+                                      /\.name\.payload value .* does not match regexp/,
+                                      /\.files\.headers.* is not within the allowed values/,
+                                      /\.title is required/
+                                    ])
     end
   end
 
@@ -327,14 +318,14 @@ describe Praxis::Types::MultipartArray do
     it 'generates parts' do
       title = payload.part('title')
       expect(title).to_not be_nil
-      expect(title.payload).to match /\w+/
+      expect(title.payload).to match(/\w+/)
 
       files = payload.part('files')
       expect(files).to have(2).items
 
       files.each do |file|
         expect(file.payload).to be_kind_of(Tempfile)
-        expect(file.filename).to match /\w+/
+        expect(file.filename).to match(/\w+/)
 
         expect(file.headers['Content-Type']).to eq 'application/octet-stream'
       end
@@ -343,15 +334,14 @@ describe Praxis::Types::MultipartArray do
     it 'is valid' do
       expect(payload.validate).to have(0).items
     end
-
   end
 
   context 'with a hackish default part definition' do
     let(:type) do
       Class.new(Praxis::Types::MultipartArray) do
-        self.options[:case_insensitive_load] = true
+        options[:case_insensitive_load] = true
 
-        part /\d+/, Instance
+        part(/\d+/, Instance)
       end
     end
 
@@ -362,7 +352,7 @@ describe Praxis::Types::MultipartArray do
         instance = Instance.example("instance-#{i}")
         body = JSON.pretty_generate(instance.render)
         entity = MIME::Text.new(body)
-        form_data.add entity,i.to_s
+        form_data.add entity, i.to_s
       end
 
       form_data
@@ -373,9 +363,7 @@ describe Praxis::Types::MultipartArray do
         expect(part.payload).to be_kind_of(Instance)
       end
     end
-
   end
-
 
   context 'anonymous generation' do
     let(:definition_block) do
@@ -396,7 +384,7 @@ describe Praxis::Types::MultipartArray do
         instance = Instance.example("instance-#{i}")
         body = JSON.pretty_generate(instance.render)
         entity = MIME::Text.new(body)
-        form_data.add entity,i.to_s
+        form_data.add entity, i.to_s
       end
 
       form_data
@@ -411,9 +399,5 @@ describe Praxis::Types::MultipartArray do
         expect(part.payload).to be_kind_of(Instance)
       end
     end
-
-
   end
-
-
 end

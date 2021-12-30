@@ -1,15 +1,15 @@
 require 'active_support/concern'
 
-
 module Praxis::Mapper
   module SequelCompat
     extend ActiveSupport::Concern
 
     included do
       attr_accessor :_resource
-      class <<self  
+
+      class << self
         alias_method :find_by, :find # Easy way to be method compatible with AR
-      end       
+      end
     end
 
     module ClassMethods
@@ -27,25 +27,26 @@ module Praxis::Mapper
       end
 
       def _praxis_associations
-        orig = self.association_reflections.clone
-        orig.each do |k,v|
+        orig = association_reflections.clone
+        orig.each do |_k, v|
           v[:model] = v.associated_class
           v[:local_key_columns] = local_columns_used_for_the_association(v[:type], v)
           v[:remote_key_columns] = remote_columns_used_for_the_association(v[:type], v)
-          if v.respond_to?(:primary_key)
-            v[:primary_key] = v.primary_key
-          else
-            # FIXME: figure out exactly what to do here. 
-            # not super critical, as we can't track these associations
-            # directly, but it would be nice to traverse these
-            # properly.
-            v[:primary_key] = :unsupported
-          end
+          v[:primary_key] = if v.respond_to?(:primary_key)
+                              v.primary_key
+                            else
+                              # FIXME: figure out exactly what to do here.
+                              # not super critical, as we can't track these associations
+                              # directly, but it would be nice to traverse these
+                              # properly.
+                              :unsupported
+                            end
         end
         orig
       end
 
       private
+
       def local_columns_used_for_the_association(type, assoc_reflection)
         case type
         when :one_to_many
@@ -57,7 +58,7 @@ module Praxis::Mapper
         when :many_to_many
           # The middle table if many to many) will point to us by key (usually the PK, but not always)
           assoc_reflection[:left_primary_keys]
-        else 
+        else
           raise "association type #{type} not supported"
         end
       end
@@ -73,12 +74,10 @@ module Praxis::Mapper
         when :many_to_many
           # The middle table if many to many will point to us by key (usually the PK, but not always) ??
           [assoc_reflection.associated_class.primary_key]
-        else 
+        else
           raise "association type #{type} not supported"
         end
       end
-
     end
-
   end
 end

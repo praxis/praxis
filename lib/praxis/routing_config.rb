@@ -1,28 +1,23 @@
 module Praxis
   class RoutingConfig
+    attr_reader :route, :version, :base
 
-    attr_reader :route
-    attr_reader :version
-    attr_reader :base
-
-    def initialize(version:'n/a'.freeze, base: '', prefix:[], &block)
+    def initialize(version: 'n/a'.freeze, base: '', prefix: [], &block)
       @version = version
       @base = base
       @prefix_segments = Array(prefix)
 
       @route = nil
 
-      if block_given?
-        instance_eval(&block)
-      end
+      instance_eval(&block) if block_given?
     end
 
     def clear!
       @prefix_segments = []
     end
 
-    def prefix(prefix=nil)
-      return @prefix_segments.join.gsub('//','/') if prefix.nil?
+    def prefix(prefix = nil)
+      return @prefix_segments.join.gsub('//', '/') if prefix.nil?
 
       case prefix
       when ''
@@ -34,28 +29,54 @@ module Praxis
       end
     end
 
-    def options(path, opts={}) add_route 'OPTIONS', path, opts end
-    def get(path, opts={})     add_route 'GET',     path, opts end
-    def head(path, opts={})    add_route 'HEAD',    path, opts end
-    def post(path, opts={})    add_route 'POST',    path, opts end
-    def put(path, opts={})     add_route 'PUT',     path, opts end
-    def delete(path, opts={})  add_route 'DELETE',  path, opts end
-    def trace(path, opts={})   add_route 'TRACE',   path, opts end
-    def connect(path, opts={}) add_route 'CONNECT', path, opts end
-    def patch(path, opts={})   add_route 'PATCH',   path, opts end
-    def any(path, opts={})     add_route 'ANY',     path, opts end
-
-    ABSOLUTE_PATH_REGEX = %r|^//|
-
-    def add_route(verb, path, options={})
-      unless path =~ ABSOLUTE_PATH_REGEX
-        path = prefix + path
-      end
-      prefixed_path = path.gsub('//','/')
-      path = (base + path).gsub('//','/')
-      pattern = Mustermann.new(path, **{ignore_unknown_options: true}.merge( options ))
-      @route = Route.new(verb, pattern, version, prefixed_path: prefixed_path, **options)
+    def options(path, opts = {})
+      add_route 'OPTIONS', path, opts
     end
 
+    def get(path, opts = {})
+      add_route 'GET',     path, opts
+    end
+
+    def head(path, opts = {})
+      add_route 'HEAD',    path, opts
+    end
+
+    def post(path, opts = {})
+      add_route 'POST',    path, opts
+    end
+
+    def put(path, opts = {})
+      add_route 'PUT',     path, opts
+    end
+
+    def delete(path, opts = {})
+      add_route 'DELETE',  path, opts
+    end
+
+    def trace(path, opts = {})
+      add_route 'TRACE',   path, opts
+    end
+
+    def connect(path, opts = {})
+      add_route 'CONNECT', path, opts
+    end
+
+    def patch(path, opts = {})
+      add_route 'PATCH',   path, opts
+    end
+
+    def any(path, opts = {})
+      add_route 'ANY',     path, opts
+    end
+
+    ABSOLUTE_PATH_REGEX = %r{^//}
+
+    def add_route(verb, path, options = {})
+      path = prefix + path unless path =~ ABSOLUTE_PATH_REGEX
+      prefixed_path = path.gsub('//', '/')
+      path = (base + path).gsub('//', '/')
+      pattern = Mustermann.new(path, **{ ignore_unknown_options: true }.merge(options))
+      @route = Route.new(verb, pattern, version, prefixed_path: prefixed_path, **options)
+    end
   end
 end

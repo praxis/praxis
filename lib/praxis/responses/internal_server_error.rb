@@ -1,7 +1,5 @@
 module Praxis
-
   module Responses
-
     # A generic error message, given when an unexpected condition was encountered and no more specific message is suitable.
     class InternalServerError < Praxis::Response
       self.status = 500
@@ -9,7 +7,7 @@ module Praxis
 
       def initialize(error: nil, **opts)
         super(**opts)
-        @headers['Content-Type'] = 'application/json' #TODO: might want an error mediatype
+        @headers['Content-Type'] = 'application/json' # TODO: might want an error mediatype
         @error = error
       end
 
@@ -24,22 +22,20 @@ module Praxis
             }
             msg[:cause] = format!(exception.cause) if exception.cause
           else
-            msg = {name: 'InternalServerError', message: "Something bad happened."}
+            msg = { name: 'InternalServerError', message: 'Something bad happened.' }
           end
 
           @body = msg
         end
       end
     end
-
   end
 
   ApiDefinition.define do |api|
     api.response_template :internal_server_error do
-      description "A generic error message, given when an unexpected condition was encountered and no more specific message is suitable."
+      description 'A generic error message, given when an unexpected condition was encountered and no more specific message is suitable.'
       status 500
-      media_type "application/json"
+      media_type 'application/json'
     end
   end
-
 end

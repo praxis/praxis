@@ -1,15 +1,11 @@
 module Praxis
-
   module BootloaderStages
-
     class SubgroupLoader < Stage
-
       attr_writer :order
 
       def initialize(name, application)
         super
         # always finalize Taylor after loading app code.
-
       end
 
       def order
@@ -23,6 +19,5 @@ module Praxis
         setup_deferred_callbacks!
       end
     end
-
   end
 end

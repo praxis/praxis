@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class PersonBlueprint < Praxis::Blueprint
   attributes do
     attribute :name, String, example: /[:first_name:]/
@@ -44,7 +45,7 @@ class AddressBlueprint < Praxis::Blueprint
     attribute :id, Integer
     attribute :name, String
     attribute :street, String
-    attribute :state, String, values: %w(OR CA)
+    attribute :state, String, values: %w[OR CA]
 
     attribute :resident, PersonBlueprint, example: proc { |address, context| PersonBlueprint.example(context, address: address) }
   end

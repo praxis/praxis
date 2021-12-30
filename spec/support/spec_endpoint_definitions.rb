@@ -37,9 +37,7 @@ class PeopleResource
       attribute :id, Integer, required: true
     end
   end
-
 end
-
 
 class AddressResource
   include Praxis::EndpointDefinition
@@ -68,5 +66,4 @@ class AddressResource
       attribute :id, Integer, required: true
     end
   end
-
 end

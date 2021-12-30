@@ -1,6 +1,6 @@
 module Praxis
   module Exceptions
-    class InvalidResponse < Exception
+    class InvalidResponse < RuntimeError
     end
   end
 end

@@ -10,7 +10,6 @@ module Praxis
       def generate(structured_data)
         structured_data
       end
-
     end
   end
 end

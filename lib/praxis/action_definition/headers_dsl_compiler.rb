@@ -1,7 +1,6 @@
 module Praxis
   class ActionDefinition
     class HeadersDSLCompiler < Attributor::DSLCompiler
-
       # it allows to define expectations on incoming headers. For example:
       # header :X_SpecialCookie                        => implies the header is required
       # header :X_Something, /matching_this/           => implies that if the name header exists, it should match the regexp
@@ -11,10 +10,8 @@ module Praxis
       #                     required: true             => to make it required
       #                     description: "lorem ipsum" => to describe it (like any other attribute)
 
-      def header(name, val=nil, **options)
-        if val.kind_of?(Class)
-          return key name, val, **options  
-        end
+      def header(name, val = nil, **options)
+        return key name, val, **options if val.is_a?(Class)
 
         case val
         when Regexp
@@ -25,7 +22,7 @@ module Praxis
           # Defining the existence without any other options can only mean that it is required (otherwise it is a useless definition)
           options[:required] = true if options.empty?
         end
-        key name , String, **options
+        key name, String, **options
       end
     end
   end

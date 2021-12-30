@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Praxis::Route do
-
   let(:verb) { 'GET' }
   let(:path) { '/base/stuff' }
   let(:prefixed_path) { '/stuff' }
@@ -23,15 +22,11 @@ describe Praxis::Route do
 
   context '#describe' do
     subject(:description) { route.describe }
-    it { should eq({verb:verb, path:path , version:version}) }
+    it { should eq({ verb: verb, path: path, version: version }) }
 
     context 'with options' do
-      let(:options) { {option: 'value'} }
+      let(:options) { { option: 'value' } }
       its([:options]) { should eq(options) }
     end
-
   end
-
-
-
 end

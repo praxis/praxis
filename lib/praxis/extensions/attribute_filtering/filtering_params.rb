@@ -1,10 +1,11 @@
 # frozen_string_literal: true
+
 require 'praxis/extensions/attribute_filtering/filters_parser'
 
 #
 # Attributor type to define and handle the language to express filtering attributes in listings.
 # Commonly used in a query string parameter value for listing calls.
-# 
+#
 # The type allows you to restrict the allowable fields (and their types) based on an existing Mediatype.
 # It also alows you to define exacly what fields (from that MediaType) are allowed, an what operations are
 # supported for each of them. Includes most in/equalities and fuzzy matching options(i.e., leading/trailing `*` )
@@ -28,7 +29,7 @@ module Praxis
       class FilteringParams
         include Attributor::Type
         include Attributor::Dumpable
-  
+
         attr_reader :parsed_array
 
         class DSLCompiler < Attributor::DSLCompiler
@@ -39,109 +40,108 @@ module Praxis
           def filter(name, using: nil, fuzzy: false)
             target.add_filter(name.to_sym, operators: Set.new(using), fuzzy: fuzzy)
           end
+
           def any(name, using: nil, fuzzy: false)
             target.add_any(name.to_sym, operators: Set.new(using), fuzzy: fuzzy)
-          end          
+          end
         end
-  
+
         VALUE_OPERATORS = Set.new(['!=', '>=', '<=', '=', '<', '>']).freeze
-        NOVALUE_OPERATORS = Set.new(['!','!!']).freeze
-        AVAILABLE_OPERATORS = Set.new(VALUE_OPERATORS+NOVALUE_OPERATORS).freeze
-  
+        NOVALUE_OPERATORS = Set.new(['!', '!!']).freeze
+        AVAILABLE_OPERATORS = Set.new(VALUE_OPERATORS + NOVALUE_OPERATORS).freeze
+
         # Abstract class, which needs to be used by subclassing it through the .for method, to set the allowed filters
         # definition should be a hash, keyed by field name, which contains a hash that can have two pieces of metadata
         # :operators => an array of operators allowed (if empty, means all)
         # :value_type => a type class which the value should match
         # :fuzzy_match => weather or not we allow a "like" type query (for prefix or suffix matching)
         class << self
-          attr_reader :media_type
-          attr_reader :allowed_filters, :allowed_leaves
-  
+          attr_reader :media_type, :allowed_filters, :allowed_leaves
+
           def for(media_type, **_opts)
             unless media_type < Praxis::MediaType
               raise ArgumentError, "Invalid type: #{media_type.name} for Filters. " \
                 'Using the .for method for defining a filter, requires passing a subclass of a MediaType'
             end
-  
+
             ::Class.new(self) do
               @media_type = media_type
               @allowed_filters = {}
               @allowed_leaves = {}
             end
           end
-  
+
           def json_schema_type
             :string
           end
-      
+
           def add_filter(name, operators:, fuzzy:)
             components = name.to_s.split('.').map(&:to_sym)
             attribute, enclosing_type = find_filter_attribute(components, media_type)
             raise 'Invalid set of operators passed' unless AVAILABLE_OPERATORS.superset?(operators)
-  
+
             @allowed_filters[name] = {
               value_type: attribute.type,
               operators: operators,
               fuzzy_match: fuzzy
             }
           end
+
           def add_any(name, operators:, fuzzy:)
             raise 'Invalid set of operators passed' unless AVAILABLE_OPERATORS.superset?(operators)
-  
+
             @allowed_leaves[name] = {
               operators: operators,
               fuzzy_match: fuzzy
             }
           end
         end
-    
+
         def self.native_type
           self
         end
-  
+
         def self.name
           'Praxis::Types::FilteringParams'
         end
-  
+
         def self.display_name
           'Filtering'
         end
-  
+
         def self.family
           'string'
         end
-  
+
         def self.constructable?
           true
         end
-  
+
         def self.construct(definition, **options)
           return self if definition.nil?
-  
+
           DSLCompiler.new(self, **options).parse(*definition)
           self
         end
-  
+
         def self.find_filter_attribute(name_components, type)
           type = type.member_type if type < Attributor::Collection
           first, *rest = name_components
           first_attr = type.attributes[first]
-          unless first_attr
-            raise "Error, you've requested to filter by field '#{first}' which does not exist in the #{type.name} mediatype!\n"
-          end
-  
+          raise "Error, you've requested to filter by field '#{first}' which does not exist in the #{type.name} mediatype!\n" unless first_attr
+
           return find_filter_attribute(rest, first_attr.type) if rest.present?
-  
+
           [first_attr, type] # Return the attribute and associated enclosing type
         end
-  
+
         def self.example(_context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           fields = if media_type
                      mt_example = media_type.example
                      pickable_fields = mt_example.object.keys & allowed_filters.keys
                      pickable_fields.sample(2).each_with_object([]) do |filter_name, arr|
                        op = allowed_filters[filter_name][:operators].to_a.sample(1).first
-  
+
                        # Switch this to pick the right example attribute from the mt example
                        filter_components = filter_name.to_s.split('.').map(&:to_sym)
                        mapped_attribute, _enclosing_type = find_filter_attribute(filter_components, media_type)
@@ -150,32 +150,32 @@ module Praxis
                                " MediaType #{media_type.name}"
                        end
                        if NOVALUE_OPERATORS.include?(op)
-                        arr << "#{filter_name}#{op}" # Do not add a value for the operators that don't take it
+                         arr << "#{filter_name}#{op}" # Do not add a value for the operators that don't take it
                        else
-                        attr_example = filter_components.inject(mt_example) do |last, name|
-                          # we can safely do sends, since we've verified the components are valid
-                          last.send(name)
-                        end
-                        arr << "#{filter_name}#{op}#{attr_example}"
-                      end
+                         attr_example = filter_components.inject(mt_example) do |last, name|
+                           # we can safely do sends, since we've verified the components are valid
+                           last.send(name)
+                         end
+                         arr << "#{filter_name}#{op}#{attr_example}"
+                       end
                      end.join('&')
                    else
                      'name=Joe&date>2017-01-01'
                    end
           load(fields)
         end
-  
+
         def self.validate(value, context = Attributor::DEFAULT_ROOT_CONTEXT, _attribute = nil)
           instance = load(value, context)
           instance.validate(context)
         end
-  
+
         def self.load(filters, _context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           return filters if filters.is_a?(native_type)
           return new if filters.nil? || filters.blank?
 
           parsed = Parser.new.parse(filters)
-          
+
           tree = ConditionGroup.load(parsed)
 
           rr = tree.flattened_conditions
@@ -196,15 +196,15 @@ module Praxis
               else
                 spec[:values]
               end
-            accum.push(name: attr_name, op: spec[:op], value: coerced , fuzzy: spec[:fuzzies], node_object: spec[:node_object])
+            accum.push(name: attr_name, op: spec[:op], value: coerced, fuzzy: spec[:fuzzies], node_object: spec[:node_object])
           end
           new(accum)
         end
-  
+
         def self.dump(value, **_opts)
           load(value).dump
         end
-  
+
         def self.describe(_root = false, example: nil)
           hash = super
           if allowed_filters
@@ -213,16 +213,17 @@ module Praxis
               accum[name][:fuzzy] = true if spec[:fuzzy_match]
             end
           end
-  
+
           hash
         end
-  
+
         def initialize(parsed = [])
           @parsed_array = parsed
         end
-  
+
         def matching_leaf_filter(filter_string)
           return nil unless allowed_leaves.keys.present?
+
           last_component = filter_string.to_s.split('.').last.to_sym
           allowed_leaves[last_component]
         end
@@ -231,7 +232,7 @@ module Praxis
           parsed_array.each_with_object([]) do |item, errors|
             attr_name = item[:name]
             attr_filters = allowed_filters[attr_name]
-            unless attr_filters 
+            unless attr_filters
               # does not match a complete filter, let's check if it matches an 'any' filter on the last component
               attr_filters = matching_leaf_filter(attr_name)
               unless attr_filters
@@ -242,21 +243,17 @@ module Praxis
               end
             end
             allowed_operators = attr_filters[:operators]
-            unless allowed_operators.include?(item[:op])
-              errors << "Operator #{item[:op]} not allowed for filter #{attr_name}"
-            end
+            errors << "Operator #{item[:op]} not allowed for filter #{attr_name}" unless allowed_operators.include?(item[:op])
             value_type = attr_filters[:value_type]
             next unless value_type == Attributor::String
 
-            if item[:value].presence
-              fuzzy_match = attr_filters[:fuzzy_match]
-              if item[:fuzzy] && !item[:fuzzy].empty? && !fuzzy_match
-                errors << "Fuzzy matching for #{attr_name} is not allowed (yet '*' was found in the value)"
-              end
-            end
+            next unless item[:value].presence
+
+            fuzzy_match = attr_filters[:fuzzy_match]
+            errors << "Fuzzy matching for #{attr_name} is not allowed (yet '*' was found in the value)" if item[:fuzzy] && !item[:fuzzy].empty? && !fuzzy_match
           end
         end
-  
+
         # Dump back string parseable form
         def dump
           parsed_array.each_with_object([]) do |item, arr|
@@ -264,17 +261,16 @@ module Praxis
             arr << "#{field}#{item[:op]}#{item[:value]}"
           end.join('&')
         end
-  
-        def each
-          parsed_array&.each do |filter|
-            yield filter
-          end
+
+        def each(&block)
+          parsed_array&.each(&block)
         end
-  
+
         def allowed_filters
           # Class method defined by the subclassing Class (using .for)
           self.class.allowed_filters
         end
+
         def allowed_leaves
           # Class method defined by the subclassing Class (using .for)
           self.class.allowed_leaves
@@ -290,5 +286,3 @@ module Praxis
     FilteringParams = Praxis::Extensions::AttributeFiltering::FilteringParams
   end
 end
-
-# rubocop:enable all

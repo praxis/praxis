@@ -43,17 +43,13 @@ module Praxis
 
       included do
         after :action do |controller, _callee|
-          if controller.response.status < 300
-            # If this action has the pagination parameter defined,
-            # calculate and set the pagination headers (Link header and possibly Total-Count)
-            if controller._pagination.paginator
-              headers = controller.build_pagination_headers(
-                pagination: controller._pagination,
-                current_url: controller.request.path,
-                current_query_params: controller.request.query
-              )
-              controller.response.headers.merge! headers
-            end
+          if controller.response.status < 300 && controller._pagination.paginator
+            headers = controller.build_pagination_headers(
+              pagination: controller._pagination,
+              current_url: controller.request.path,
+              current_query_params: controller.request.query
+            )
+            controller.response.headers.merge! headers
           end
         end
       end
@@ -75,9 +71,7 @@ module Praxis
         links = if pagination.paginator.by
                   # We're assuming that the last element has a "symbol/string" field with the same name of the "by" pagination.
                   last_element = response.body.last
-                  if last_element
-                    last_value = last_element[pagination.paginator.by.to_sym] || last_element[pagination.paginator.by]
-                  end
+                  last_value = last_element[pagination.paginator.by.to_sym] || last_element[pagination.paginator.by] if last_element
                   HeaderGenerator.build_cursor_headers(
                     paginator: pagination.paginator,
                     last_value: last_value,
@@ -97,7 +91,6 @@ module Praxis
           total_count: pagination.total_count
         )
       end
-
     end
   end
 end

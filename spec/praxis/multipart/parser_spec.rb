@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Praxis::MultipartParser do
-
   let(:form) do
     form_data = MIME::Multipart::FormData.new
 
@@ -36,17 +35,16 @@ describe Praxis::MultipartParser do
       form.add text, 'file', 'docker'
     end
 
-    subject(:part) { parts.find { |p| p.name == 'file'} }
-    #subject(:part_body) { part.body }
-
+    subject(:part) { parts.find { |p| p.name == 'file' } }
+    # subject(:part_body) { part.body }
 
     its(:payload) { should be_kind_of(Tempfile) }
-    its(:filename) { should eq("docker") }
-    its(:name) { should eq("file") }
+    its(:filename) { should eq('docker') }
+    its(:name) { should eq('file') }
 
     context 'headers' do
       subject(:part_headers) { part.headers }
-      its(['Content-Type']) { should eq("text/plain") }
+      its(['Content-Type']) { should eq('text/plain') }
       its(['Content-Disposition']) { should match(/filename=docker/) }
     end
 
@@ -56,7 +54,5 @@ describe Praxis::MultipartParser do
       part.payload.rewind
       expect(part.payload.read).to eq('DOCKER_HOST=tcp://127.0.0.1:2375')
     end
-
   end
-
 end

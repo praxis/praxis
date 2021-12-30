@@ -6,6 +6,6 @@ gem 'rubocop'
 group :test do
   gem 'builder'
 
-  gem 'parslet'
   gem 'link_header'
+  gem 'parslet'
 end

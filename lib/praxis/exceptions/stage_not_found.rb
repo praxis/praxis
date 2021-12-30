@@ -1,6 +1,6 @@
 module Praxis
   module Exceptions
-    class StageNotFound < Exception
+    class StageNotFound < RuntimeError
     end
   end
 end

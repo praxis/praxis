@@ -1,8 +1,6 @@
 require 'spec_helper'
 
-
 describe Praxis::Responses::InternalServerError do
-
   context 'a basic response' do
     subject(:response) { Praxis::Responses::InternalServerError.new }
     it 'always sets the json content type' do
@@ -15,12 +13,11 @@ describe Praxis::Responses::InternalServerError do
     end
   end
 
-
   context '.format!' do
     let(:error) { double('error', message: 'error message', backtrace: [1, 2], cause: cause) }
 
     let(:show_exceptions) { true }
-    let(:config) { double("config", show_exceptions: show_exceptions) }
+    let(:config) { double('config', show_exceptions: show_exceptions) }
 
     before do
       allow(Praxis::Application.instance.config).to receive(:praxis).and_return(config)
@@ -30,18 +27,17 @@ describe Praxis::Responses::InternalServerError do
     end
 
     context 'with show_exceptions true' do
-
       context 'without a cause' do
         let(:cause) { nil }
         it 'it fills message and backtrace' do
-          expect(response.body).to eq({name: error.class.name, message: error.message, backtrace: error.backtrace})
+          expect(response.body).to eq({ name: error.class.name, message: error.message, backtrace: error.backtrace })
         end
       end
 
       context 'with a cause' do
         let(:cause) { Exception.new('cause message') }
         it 'it fills message, backtrace and cause' do
-          expect(response.body.keys).to eq([:name, :message, :backtrace, :cause])
+          expect(response.body.keys).to eq(%i[name message backtrace cause])
           expect(response.body[:name]).to eq(error.class.name)
           expect(response.body[:message]).to eq(error.message)
           expect(response.body[:backtrace]).to eq(error.backtrace)
@@ -55,11 +51,10 @@ describe Praxis::Responses::InternalServerError do
       expect(response.body).to be_nil
       response.format!
     end
-
   end
 
   context 'its response template' do
-    let(:template){ Praxis::ApiDefinition.instance.responses[:internal_server_error] }
+    let(:template) { Praxis::ApiDefinition.instance.responses[:internal_server_error] }
     it 'is registered with the ApiDefinition' do
       expect(template).to be_kind_of(Praxis::ResponseTemplate)
     end

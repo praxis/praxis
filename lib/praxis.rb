@@ -15,7 +15,6 @@ module MIME
 end
 
 module Praxis
-
   autoload :ActionDefinition, 'praxis/action_definition'
   autoload :ApiGeneralInfo, 'praxis/api_general_info'
   autoload :ApiDefinition, 'praxis/api_definition'
@@ -28,7 +27,7 @@ module Praxis
   autoload :ErrorHandler, 'praxis/error_handler'
   autoload :ValidationHandler, 'praxis/validation_handler'
   autoload :Exception, 'praxis/exception'
-  autoload :FileGroup,'praxis/file_group'
+  autoload :FileGroup, 'praxis/file_group'
   autoload :Plugin, 'praxis/plugin'
   autoload :PluginConcern, 'praxis/plugin_concern'
   autoload :Request, 'praxis/request'
@@ -50,7 +49,6 @@ module Praxis
   autoload :Blueprint, 'praxis/blueprint'
   autoload :FieldExpander, 'praxis/field_expander'
   autoload :Renderer, 'praxis/renderer'
-  
 
   autoload :Notifications, 'praxis/notifications'
   autoload :MiddlewareApp, 'praxis/middleware_app'
@@ -143,5 +141,4 @@ module Praxis
   require 'praxis/responses/internal_server_error'
   require 'praxis/responses/validation_error'
   require 'praxis/responses/multipart_ok'
-
 end

@@ -6,7 +6,7 @@ require 'praxis/extensions/pagination'
 # When combined with the MapperPlugin, there is no extra configuration that needs to be done for
 # the system to appropriately identify the pagination and order parameters in the API, and translate
 # that in to the appropriate queries to fetch.
-# 
+#
 # To use this plugin without the MapperPlugin (probably a rare case), one can apply the appropriate
 # clauses onto a query, by directly calling (in the controller) the `craft_pagination_query` method
 # of the domain_model associated to the controller's mediatype.
@@ -17,7 +17,7 @@ require 'praxis/extensions/pagination'
 #   objs = domain_model.craft_pagination_query(base_query, pagination: _pagination)
 #   display(objs)
 # end
-# 
+#
 # This plugin accepts configuration about the default behavior of pagination.
 # Any of these configs can individually be overidden when defining each Pagination/Order parameters
 # in any of the Endpoint actions.
@@ -33,12 +33,12 @@ require 'praxis/extensions/pagination'
 #     disallow_paging_by_default: true, # Default false
 #     # Disallows the use of the cursor type pagination mode when true (i.e., using 'by=' or 'from=' parameter)
 #     disallow_cursor_by_default: true, # Default false
-#     # The default mode params to use 
+#     # The default mode params to use
 #     paging_default_mode: {by: :uuid}, # Default {by: :uid}
 #     # Weather or not to enforce that all requested sort fields are part of the media_type attributes
 #     # when false (not enforced) only the first field would be checked
 #     sorting: {
-#       enforce_all_fields: false       # Default true 
+#       enforce_all_fields: false       # Default true
 #     }
 #   end
 # end
@@ -77,7 +77,7 @@ module Praxis
         end
 
         def setup!
-          self.config.each do |name, val|
+          config.each do |name, val|
             if name == :sorting
               val.each do |ordername, orderval|
                 Praxis::Types::OrderingParams.send(ordername, orderval)
@@ -85,7 +85,7 @@ module Praxis
             else
               Praxis::Types::PaginationParams.send(name, val)
             end
-          end      
+          end
         end
       end
 

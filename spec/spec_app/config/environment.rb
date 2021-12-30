@@ -8,12 +8,11 @@ class SetHeader
   def call(env)
     status, headers, body = @app.call(env)
     headers[@header] = @value
-    [status, headers,body]
+    [status, headers, body]
   end
 end
 
 Praxis::Application.configure do |application|
-
   application.middleware SetHeader, 'Spec-Middleware', 'used'
 
   application.bootloader.use SimpleAuthenticationPlugin, config_file: 'config/authentication.yml'
@@ -29,9 +28,8 @@ Praxis::Application.configure do |application|
     $after_app_controllers = :worked
   end
   application.bootloader.after :app do
-    raise "After sub-stage hooks not working!" unless $after_app_controllers == :worked
+    raise 'After sub-stage hooks not working!' unless $after_app_controllers == :worked
   end
-
 
   application.layout do
     layout do
@@ -49,5 +47,4 @@ Praxis::Application.configure do |application|
       end
     end
   end
-
 end

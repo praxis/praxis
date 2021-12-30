@@ -1,6 +1,6 @@
 # This is an example of a handler that can load and generate 'activesupport-style' xml payloads.
-# Note that if you use your API to pass nil values for attributes as a way to unset their values, 
-# this handler will not work (as there isn't necessarily a defined "null"  value in this encoding 
+# Note that if you use your API to pass nil values for attributes as a way to unset their values,
+# this handler will not work (as there isn't necessarily a defined "null"  value in this encoding
 # (although you can probably define how to encode/decode it and use it as such)
 # Use at your own risk
 
@@ -17,7 +17,7 @@ module Praxis
         ActiveSupport::XmlMini.backend = 'Nokogiri'
       rescue LoadError
         raise Praxis::Exceptions::InvalidConfiguration,
-          "XML handler depends on builder ~> 3.2 and nokogiri ~> 1.6; please add them to your Gemfile"
+              'XML handler depends on builder ~> 3.2 and nokogiri ~> 1.6; please add them to your Gemfile'
       end
 
       # Parse an XML document into structured data.
@@ -48,33 +48,35 @@ module Praxis
         when nil
           if (node.children.size == 1 && node.child.text?) || node.children.size == 0
             # leaf text node
-            return node.content
+            node.content
           else
             # A hash
-            return node.children.each_with_object({}) do |child, hash|
+            node.children.each_with_object({}) do |child, hash|
               next unless child.element? # There might be text fragments like newlines...spaces
+
               hash[child.name.underscore] = process(child, child.attributes['type'])
             end
           end
-        when "array"
-          return node.children.each_with_object([]) do |child, arr|
+        when 'array'
+          node.children.each_with_object([]) do |child, arr|
             next unless child.element? # There might be text fragments like newlines...spaces
+
             arr << process(child, child.attributes['type'])
           end
-        when "integer"
-          return Integer(node.content)
-        when "symbol"
-          return node.content.to_sym
-        when "decimal"
-          return BigDecimal(node.content)
-        when "float"
-          return Float(node.content)
-        when "boolean"
-          return ((node.content == "false") ? false : true)
-        when "date"
-          return Date.parse(node.content)
-        when "dateTime"
-          return DateTime.parse(node.content)
+        when 'integer'
+          Integer(node.content)
+        when 'symbol'
+          node.content.to_sym
+        when 'decimal'
+          BigDecimal(node.content)
+        when 'float'
+          Float(node.content)
+        when 'boolean'
+          !(node.content == 'false')
+        when 'date'
+          Date.parse(node.content)
+        when 'dateTime'
+          DateTime.parse(node.content)
         else
           raise ArgumentError, "Unknown attribute type: #{type}"
         end

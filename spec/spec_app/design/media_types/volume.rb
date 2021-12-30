@@ -23,5 +23,4 @@ class Volume < Praxis::MediaType
 
     identifier 'application/vnd.acme.volumes'
   end
-
 end

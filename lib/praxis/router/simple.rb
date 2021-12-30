@@ -60,7 +60,9 @@ module Mustermann
         @map     = []
         @default = default
 
-        block.arity == 0 ? instance_eval(&block) : yield(self) if block
+        if block
+          block.arity == 0 ? instance_eval(&block) : yield(self)
+        end
       end
 
       # @example
@@ -74,7 +76,7 @@ module Mustermann
       # @return [#call, nil] callback for given string, if a pattern matches
       def [](string)
         string = string_for(string) unless string.is_a? String
-        @map.detect { |p,v| p === string }[1]
+        @map.detect { |p, _v| p === string }[1]
       end
 
       # @example
@@ -126,13 +128,14 @@ module Mustermann
         @map.each do |pattern, callback|
           catch(:pass) do
             next unless params = pattern.params(string_for(input))
+
             return invoke(callback, input, params, pattern)
           end
         end
         @default
       end
 
-      def invoke(callback, input, params, pattern)
+      def invoke(callback, input, params, _pattern)
         callback.call(input, params)
       end
 

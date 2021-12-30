@@ -1,8 +1,6 @@
 module Praxis
   module RequestStages
-
     class Action < RequestStage
-
       def execute
         response = Notifications.instrument 'praxis.request_stage.execute'.freeze, controller: controller do
           if controller.method(action.name).arity == 0
@@ -23,8 +21,6 @@ module Praxis
         controller.response.request = request
         nil # Action cannot return its OK request, as it would indicate the end of the stage chain
       end
-
     end
-
   end
 end

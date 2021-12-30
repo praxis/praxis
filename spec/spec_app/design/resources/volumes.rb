@@ -7,10 +7,10 @@ module ApiResources
     prefix '/clouds/:cloud_id/volumes'
 
     trait :authenticated
-  
+
     action_defaults do
       params do
-        attribute :cloud_id, Integer, description: "id of the cloud"
+        attribute :cloud_id, Integer, description: 'id of the cloud'
       end
     end
 
@@ -35,9 +35,6 @@ module ApiResources
         attribute :junk, String, default: ''
         attribute :some_date, DateTime, default: DateTime.parse('2012-12-21')
       end
-      
     end
-
   end
-
 end

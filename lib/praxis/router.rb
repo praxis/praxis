@@ -1,17 +1,15 @@
 require 'praxis/router/rack'
 
 module Praxis
-
   class Router
-    attr_reader :request_class
-    attr_reader :application
-
+    attr_reader :request_class, :application
 
     class VersionMatcher
       def initialize(target, version: 'n/a')
         @target = target
         @version = version
       end
+
       def call(request)
         if request.version == @version
           @target.call(request)
@@ -30,7 +28,7 @@ module Praxis
         super(**options, &block)
       end
 
-      def invoke(callback, request, params, pattern)
+      def invoke(callback, request, params, _pattern)
         request.route_params = params
         callback.call(request)
       end
@@ -39,7 +37,6 @@ module Praxis
         request.path
       end
     end
-
 
     def initialize(application, request_class: Praxis::Request)
       @routes = Hash.new do |hash, verb|
@@ -55,34 +52,32 @@ module Praxis
       # DEPRECATED: remove with EndpointDefinition.version using: :path
       path_versioning ||= (target.action.endpoint_definition.version_options[:using] == :path)
 
-      unless path_versioning
-        target = VersionMatcher.new(target, version: route.version)
-      end
+      target = VersionMatcher.new(target, version: route.version) unless path_versioning
 
       @routes[route.verb].on(route.path, call: target)
     end
 
     def call(env_or_request)
       request = case env_or_request
-      when Hash
-        request_class.new(env_or_request)
-      when request_class
-        env_or_request
-      else
-        raise ArgumentError, "received #{env_or_request.class}"
-      end
+                when Hash
+                  request_class.new(env_or_request)
+                when request_class
+                  env_or_request
+                else
+                  raise ArgumentError, "received #{env_or_request.class}"
+                end
 
       verb = request.verb
-      r = ( @routes.key?(verb) ? @routes[verb] : nil )  # Exact verb match
+      r = (@routes.key?(verb) ? @routes[verb] : nil) # Exact verb match
       result = r.call(request) if r
       # If we didn't have an exact verb route, or if we did but the rest or route conditions didn't match
-      if( r == nil || result == :not_found )
+      if r.nil? || result == :not_found
         # Fallback to a wildcard router, if there is one registered
         result = if @routes.key?('ANY')
-          @routes['ANY'].call(request)
-        else
-          :not_found
-        end
+                   @routes['ANY'].call(request)
+                 else
+                   :not_found
+                 end
       end
 
       if result == :not_found
@@ -90,25 +85,21 @@ module Praxis
         # plus we wouldn't have tracked it as unmatched
         version = request.version
         attempted_versions = request.unmatched_versions
-        body = "NotFound"
+        body = 'NotFound'
         unless attempted_versions.empty? || (attempted_versions.size == 1 && attempted_versions.first == 'n/a')
           body += if version == 'n/a'
-            ". Your request did not specify an API version.".freeze
-          else
-            ". Your request specified API version = \"#{version}\"."
-          end
+                    '. Your request did not specify an API version.'.freeze
+                  else
+                    ". Your request specified API version = \"#{version}\"."
+                  end
           pretty_versions = attempted_versions.collect(&:inspect).join(', ')
           body += " Available versions = #{pretty_versions}."
         end
-        headers = {"Content-Type" => "text/plain"}
-        if Praxis::Application.instance.config.praxis.x_cascade
-          headers['X-Cascade'] = 'pass'
-        end
+        headers = { 'Content-Type' => 'text/plain' }
+        headers['X-Cascade'] = 'pass' if Praxis::Application.instance.config.praxis.x_cascade
         result = [404, headers, [body]]
       end
       result
     end
-
   end
-
 end

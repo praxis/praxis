@@ -1,28 +1,24 @@
 module Praxis
-
-
   module BootloaderStages
-
     class WarnUnloadedFiles < Stage
       @enabled = true
 
-      def self.enabled=(enabled)
-        @enabled = enabled
+      class << self
+        attr_writer :enabled
       end
 
-      def self.enabled
-        @enabled
+      class << self
+        attr_reader :enabled
       end
 
       def execute
         return unless self.class.enabled
 
-        if application.file_layout[:app] == []
-          return
-        end
+        return if application.file_layout[:app] == []
 
         base = application.file_layout[:app].base
         return unless base.exist?
+
         file_enum = base.find.to_a
         files = file_enum.select do |file|
           path = file.relative_path_from(base)
@@ -39,8 +35,6 @@ module Praxis
           warn msg
         end
       end
-
-
     end
   end
 end

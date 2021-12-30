@@ -1,5 +1,4 @@
 module Praxis::Mapper
-
   class SelectorGeneratorNode
     attr_reader :select, :model, :resource, :tracks
 
@@ -8,7 +7,7 @@ module Praxis::Mapper
 
       @select = Set.new
       @select_star = false
-      @tracks = Hash.new 
+      @tracks = {}
     end
 
     def add(fields)
@@ -30,35 +29,34 @@ module Praxis::Mapper
     end
 
     def add_association(name, fields)
-      
       association = resource.model._praxis_associations.fetch(name) do
         raise "missing association for #{resource} with name #{name}"
       end
       associated_resource = resource.model_map[association[:model]]
-      unless associated_resource
-        raise "Whoops! could not find a resource associated with model #{association[:model]} (root resource #{resource})"
-      end
+      raise "Whoops! could not find a resource associated with model #{association[:model]} (root resource #{resource})" unless associated_resource
+
       # Add the required columns in this model to make sure the association can be loaded
-      association[:local_key_columns].each {|col| add_select(col) }
-      
+      association[:local_key_columns].each { |col| add_select(col) }
+
       node = SelectorGeneratorNode.new(associated_resource)
       unless association[:remote_key_columns].empty?
         # Make sure we add the required columns for this association to the remote model query
         fields = {} if fields == true
-        new_fields_as_hash = association[:remote_key_columns].each_with_object({}) do|name, hash|
+        new_fields_as_hash = association[:remote_key_columns].each_with_object({}) do |name, hash|
           hash[name] = true
         end
-        fields = fields.merge(new_fields_as_hash) 
+        fields = fields.merge(new_fields_as_hash)
       end
 
       node.add(fields) unless fields == true
 
-      self.merge_track(name, node)
+      merge_track(name, node)
     end
 
     def add_select(name)
       return @select_star = true if name == :*
       return if @select_star
+
       @select.add name
     end
 
@@ -66,17 +64,13 @@ module Praxis::Mapper
       dependencies = resource.properties[name][:dependencies]
       # Always add the underlying association if we're overriding the name...
       praxis_compat_model = resource.model && resource.model.respond_to?(:_praxis_associations)
-      if praxis_compat_model && resource.model._praxis_associations.key?(name)
-        add_association(name, fields)
-      end
+      add_association(name, fields) if praxis_compat_model && resource.model._praxis_associations.key?(name)
       if dependencies
         dependencies.each do |dependency|
           # To detect recursion, let's allow mapping depending fields to the same name of the property
           # but properly detecting if it's a real association...in which case we've already added it above
           if dependency == name
-            unless praxis_compat_model && resource.model._praxis_associations.key?(name)
-              add_select(name)
-            end
+            add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
           else
             apply_dependency(dependency)
           end
@@ -87,7 +81,7 @@ module Praxis::Mapper
       return if head.nil?
 
       new_fields = tail.reverse.inject(fields) do |thing, step|
-        {step => thing}
+        { step => thing }
       end
 
       add_association(head, new_fields)
@@ -99,25 +93,25 @@ module Praxis::Mapper
         map_property(dependency, true)
       when String
         head, *tail = dependency.split('.').collect(&:to_sym)
-        raise "String dependencies can not be singular" if tail.nil?
+        raise 'String dependencies can not be singular' if tail.nil?
 
         add_association(head, tail.reverse.inject({}) { |hash, dep| { dep => hash } })
       end
     end
 
-    def merge_track( track_name, node )
-      raise "Cannot merge another node for association #{track_name}: incompatible model" unless node.model == self.model
+    def merge_track(track_name, node)
+      raise "Cannot merge another node for association #{track_name}: incompatible model" unless node.model == model
 
-      existing = self.tracks[track_name]
+      existing = tracks[track_name]
       if existing
-        node.select.each do|col_name|
+        node.select.each do |col_name|
           existing.add_select(col_name)
         end
         node.tracks.each do |name, n|
           existing.merge_track(name, n)
         end
       else
-        self.tracks[track_name] = node
+        tracks[track_name] = node
       end
     end
 
@@ -125,11 +119,9 @@ module Praxis::Mapper
       hash = {}
       hash[:model] = resource.model
       if !@select.empty? || @select_star
-        hash[:columns] = @select_star ? [ :* ] : @select.to_a 
+        hash[:columns] = @select_star ? [:*] : @select.to_a
       end
-      unless @tracks.empty?
-        hash[:tracks] = @tracks.each_with_object({}) {|(name, node), hash|  hash[name] = node.dump }
-      end
+      hash[:tracks] = @tracks.each_with_object({}) { |(name, node), hash| hash[name] = node.dump } unless @tracks.empty?
       hash
     end
   end

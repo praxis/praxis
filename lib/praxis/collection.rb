@@ -3,9 +3,7 @@ module Praxis
     include Types::MediaTypeCommon
 
     def self.of(type)
-      if defined?(type::Collection)
-        return type::Collection
-      end
+      return type::Collection if defined?(type::Collection)
 
       klass = super
       klass.anonymous_type
@@ -14,15 +12,14 @@ module Praxis
         klass.member_type type
         type.const_set :Collection, klass
       else
-        raise "Praxis::Collection.of() for non-MediaTypes is unsupported. Use Attributor::Collection.of() instead."
+        raise 'Praxis::Collection.of() for non-MediaTypes is unsupported. Use Attributor::Collection.of() instead.'
       end
-
     end
 
-    def self.member_type(type=nil)
+    def self.member_type(type = nil)
       unless type.nil?
         @member_type = type
-        self.identifier(type.identifier + ';type=collection') unless type.identifier.nil?
+        identifier(type.identifier + ';type=collection') unless type.identifier.nil?
       end
 
       @member_type
@@ -36,7 +33,7 @@ module Praxis
       :array
     end
 
-    def self.as_json_schema(**args)
+    def self.as_json_schema(**_args)
       the_type = @attribute && @attribute.type || member_type
       {
         type: json_schema_type,

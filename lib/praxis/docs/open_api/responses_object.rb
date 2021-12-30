@@ -6,10 +6,10 @@ module Praxis
       class ResponsesObject
         # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#responses-object
         attr_reader :responses
+
         def initialize(responses:)
           @responses = responses
         end
-
 
         def dump
           # {

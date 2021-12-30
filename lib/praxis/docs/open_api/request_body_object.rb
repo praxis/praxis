@@ -5,7 +5,8 @@ module Praxis
     module OpenApi
       class RequestBodyObject
         # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#request-body-object
-        attr_reader :attribute 
+        attr_reader :attribute
+
         def initialize(attribute:)
           @attribute = attribute
         end
@@ -18,18 +19,18 @@ module Praxis
           # OpenApi wants a set of bodies per MediaType/Content-Type
           # For us there's really only one schema (regardless of encoding)...
           # so we'll show all the supported MTs...but repeating the schema
-          #dumped_schema = SchemaObject.new(info: attribute).dump_schema
+          # dumped_schema = SchemaObject.new(info: attribute).dump_schema
 
           example_handlers = if attribute.type < Praxis::Types::MultipartArray
-            ident = MediaTypeIdentifier.load('multipart/form-data')
-            [{ident.to_s => 'plain'}] # Multipart content type, but with the plain renderer (so there's no modification)
-          else
-            # TODO: We could run it through other handlers I guess...if they're registered
-            [{'application/json' => 'json'}]
-          end
-          
-          h[:content] = MediaTypeObject.create_content_attribute_helper(type: attribute.type, 
-                                                                        example_payload: attribute.example(nil), 
+                               ident = MediaTypeIdentifier.load('multipart/form-data')
+                               [{ ident.to_s => 'plain' }] # Multipart content type, but with the plain renderer (so there's no modification)
+                             else
+                               # TODO: We could run it through other handlers I guess...if they're registered
+                               [{ 'application/json' => 'json' }]
+                             end
+
+          h[:content] = MediaTypeObject.create_content_attribute_helper(type: attribute.type,
+                                                                        example_payload: attribute.example(nil),
                                                                         example_handlers: example_handlers)
           # # Key string (of MT) , value MTObject
           # content_hash = info[:examples].each_with_object({}) do |(handler, example_hash),accum|
@@ -43,8 +44,6 @@ module Praxis
           # h[:content] = content_hash
           h
         end
-
-        
       end
     end
   end

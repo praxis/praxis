@@ -8,7 +8,7 @@ module PraxisGen
     attr_reader :actions_hash
 
     def self.source_root
-      File.dirname(__FILE__) + '/templates/generator/scaffold'
+      "#{File.dirname(__FILE__)}/templates/generator/scaffold"
     end
 
     desc 'g', 'Generates an API design and implementation scaffold for managing a collection of <collection_name>'

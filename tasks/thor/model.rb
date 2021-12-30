@@ -6,7 +6,7 @@ module PraxisGen
     include Thor::Actions
 
     def self.source_root
-      File.dirname(__FILE__) + '/templates/generator/scaffold'
+      "#{File.dirname(__FILE__)}/templates/generator/scaffold"
     end
 
     desc 'gmodel', 'Generates a skeleton model file under app/models for ActiveRecord or Sequel.'

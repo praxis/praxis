@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module PraxisGen
   class App < Thor
     include Thor::Actions
 
     namespace 'praxis:app'
     def self.source_root
-      File.dirname(__FILE__) + '/templates/generator/empty_app'
+      "#{File.dirname(__FILE__)}/templates/generator/empty_app"
     end
 
     argument :app_name, required: true

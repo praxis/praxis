@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'thor'
 
 files = Dir[File.join(File.dirname(__FILE__), 'thor/*.rb')]

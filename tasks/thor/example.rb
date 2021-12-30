@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PraxisGen
   class Example < Thor
     include Thor::Actions
@@ -5,7 +7,7 @@ module PraxisGen
     namespace 'praxis:example'
 
     def self.source_root
-      File.dirname(__FILE__) + '/templates/generator/example_app'
+      "#{File.dirname(__FILE__)}/templates/generator/example_app"
     end
 
     argument :app_name, required: true

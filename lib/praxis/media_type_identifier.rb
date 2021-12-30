@@ -66,7 +66,7 @@ module Praxis
         else
           obj.type = 'application'
           obj.subtype = base.split(WORD_SEPARATOR, 2).first
-          obj.suffix = ''
+          obj.suffix = String.new
           obj.parameters = {}
         end
         obj
@@ -126,15 +126,15 @@ module Praxis
     # @return [String] canonicalized representation of the media type including all suffixes and parameters
     def to_s
       # Our handcrafted media types consist of a rich chocolatey center
-      s = "#{type}/#{subtype}"
+      s = String.new("#{type}/#{subtype}")
 
       # coated in a hard candy shell
-      s = s + '+' + suffix unless suffix.empty?
+      s << '+' << suffix unless suffix.empty?
 
       # and encrusted with lexically-ordered sprinkles
       unless parameters.empty?
-        s = s + '; '
-        s = s + parameters.keys.sort.map { |k| "#{k}=#{parameters[k]}" }.join('; ')
+        s << '; '
+        s << parameters.keys.sort.map { |k| "#{k}=#{parameters[k]}" }.join('; ')
       end
 
       # May contain peanuts, tree nuts, soy, dairy, sawdust or glue
@@ -204,7 +204,7 @@ module Praxis
       obj.type = type
       obj.subtype = subtype
       target_suffix = suffix || self.suffix
-      obj.suffix = redundant_suffix(target_suffix) ? '' : target_suffix
+      obj.suffix = redundant_suffix(target_suffix) ? String.new : target_suffix
       obj.parameters = self.parameters.merge(parameters)
 
       obj

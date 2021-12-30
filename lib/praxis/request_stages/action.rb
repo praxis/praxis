@@ -1,9 +1,10 @@
 # frozen_string_literal: true
+
 module Praxis
   module RequestStages
     class Action < RequestStage
       def execute
-        response = Notifications.instrument 'praxis.request_stage.execute'.freeze, controller: controller do
+        response = Notifications.instrument 'praxis.request_stage.execute', controller: controller do
           if controller.method(action.name).arity == 0
             controller.__send__(action.name)
           else

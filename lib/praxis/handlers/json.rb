@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   module Handlers
     class JSON

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   class ApiGeneralInfo
     attr_reader :version
@@ -150,7 +151,7 @@ module Praxis
     end
 
     def describe
-      hash = { schema_version: '1.0'.freeze }
+      hash = { schema_version: '1.0' }
       %i[name title description base_path version_with endpoint consumes produces].each do |attr|
         val = __send__(attr)
         hash[attr] = val unless val.nil?

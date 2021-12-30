@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   class Trait
     attr_reader :name, :attribute_groups

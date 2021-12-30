@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   class << self
     attr_writer :request_superclass

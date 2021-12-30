@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # FOR AR >= 6.1
 module ActiveRecord
   PRAXIS_JOIN_ALIAS_PREFIX = Praxis::Extensions::AttributeFiltering::ALIAS_TABLE_PREFIX

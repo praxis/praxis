@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'active_support/concern'
 require 'active_support/inflector'
 
@@ -9,7 +10,7 @@ module Praxis
     DEFAULT_RESOURCE_HREF_ACTION = :show
 
     included do
-      @version = 'n/a'.freeze
+      @version = 'n/a'
       @actions = {}
       @responses = {}
 
@@ -231,7 +232,7 @@ module Praxis
       end
 
       def id
-        name.gsub('::'.freeze, '-'.freeze)
+        name.gsub('::', '-')
       end
 
       def describe(context: nil)

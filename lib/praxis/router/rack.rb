@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # Originally from:
 # https://github.com/rkh/mustermann/blob/500a603fffe0594ab842d72addcc449eedd6d5be/mustermann/lib/mustermann/router/rack.rb
 # Copied here after its removal from Mustermann proper

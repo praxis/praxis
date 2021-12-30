@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   class Collection < Attributor::Collection
     include Types::MediaTypeCommon

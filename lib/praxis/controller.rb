@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'active_support/concern'
 require 'active_support/all'
 
@@ -25,7 +26,7 @@ module Praxis
       end
 
       def id
-        name.gsub('::'.freeze, '-'.freeze)
+        name.gsub('::', '-')
       end
     end
 

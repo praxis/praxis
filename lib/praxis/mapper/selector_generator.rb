@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis::Mapper
   class SelectorGeneratorNode
     attr_reader :select, :model, :resource, :tracks

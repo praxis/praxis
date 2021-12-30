@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 guard :rspec, cmd: 'bundle exec rspec --format=Fuubar', \
               all_after_pass: false, all_on_start: false, failed_mode: :focus do
   watch(%r{^spec/.+_spec\.rb$})

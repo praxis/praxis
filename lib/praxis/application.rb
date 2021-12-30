@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'singleton'
 require 'mustermann'
 require 'logger'
@@ -84,7 +85,7 @@ module Praxis
 
     def call(env)
       response = []
-      Notifications.instrument 'rack.request.all'.freeze, response: response do
+      Notifications.instrument 'rack.request.all', response: response do
         response.push(*@app.call(env))
       end
     end

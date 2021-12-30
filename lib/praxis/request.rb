@@ -1,17 +1,18 @@
 # frozen_string_literal: true
+
 module Praxis
   class Request < Praxis.request_superclass
     attr_reader :env, :query
     attr_accessor :route_params, :action, :headers, :params, :payload
 
-    PATH_VERSION_PREFIX = '/v'.freeze
-    CONTENT_TYPE_NAME = 'CONTENT_TYPE'.freeze
-    PATH_INFO_NAME = 'PATH_INFO'.freeze
-    REQUEST_METHOD_NAME = 'REQUEST_METHOD'.freeze
-    QUERY_STRING_NAME = 'QUERY_STRING'.freeze
-    API_VERSION_HEADER_NAME = 'HTTP_X_API_VERSION'.freeze
-    API_VERSION_PARAM_NAME = 'api_version'.freeze
-    API_NO_VERSION_NAME = 'n/a'.freeze
+    PATH_VERSION_PREFIX = '/v'
+    CONTENT_TYPE_NAME = 'CONTENT_TYPE'
+    PATH_INFO_NAME = 'PATH_INFO'
+    REQUEST_METHOD_NAME = 'REQUEST_METHOD'
+    QUERY_STRING_NAME = 'QUERY_STRING'
+    API_VERSION_HEADER_NAME = 'HTTP_X_API_VERSION'
+    API_VERSION_PARAM_NAME = 'api_version'
+    API_NO_VERSION_NAME = 'n/a'
     VERSION_USING_DEFAULTS = %i[header params].freeze
 
     def initialize(env)
@@ -64,8 +65,8 @@ module Praxis
     end
 
     def raw_payload
-      @raw_payload ||= if (input = env['rack.input'.freeze].read)
-                         env['rack.input'.freeze].rewind
+      @raw_payload ||= if (input = env['rack.input'].read)
+                         env['rack.input'].rewind
                          input
                        end
     end

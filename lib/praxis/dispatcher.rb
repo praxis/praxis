@@ -1,9 +1,10 @@
 # frozen_string_literal: true
+
 module Praxis
   CONTEXT_FOR = {
-    params: [Attributor::ROOT_PREFIX, 'params'.freeze],
-    headers: [Attributor::ROOT_PREFIX, 'headers'.freeze],
-    payload: [Attributor::ROOT_PREFIX, 'payload'.freeze]
+    params: [Attributor::ROOT_PREFIX, 'params'],
+    headers: [Attributor::ROOT_PREFIX, 'headers'],
+    payload: [Attributor::ROOT_PREFIX, 'payload']
   }.freeze
 
   class Dispatcher
@@ -83,7 +84,7 @@ module Praxis
     end
 
     def instrumented_dispatch(payload)
-      Notifications.instrument 'praxis.request.all'.freeze, payload do
+      Notifications.instrument 'praxis.request.all', payload do
         # the response stage must be the final stage in the list
         *stages, response_stage = @stages
 

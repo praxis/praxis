@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   module Types
     # Traits that are shared by MediaType and SimpleMediaType.

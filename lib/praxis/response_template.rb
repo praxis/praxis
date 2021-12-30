@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   class ResponseTemplate
     attr_reader :name, :block

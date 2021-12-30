@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'praxis/router/rack'
 
 module Praxis
@@ -89,7 +90,7 @@ module Praxis
         body = 'NotFound'
         unless attempted_versions.empty? || (attempted_versions.size == 1 && attempted_versions.first == 'n/a')
           body += if version == 'n/a'
-                    '. Your request did not specify an API version.'.freeze
+                    '. Your request did not specify an API version.'
                   else
                     ". Your request specified API version = \"#{version}\"."
                   end

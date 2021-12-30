@@ -1,9 +1,10 @@
 # frozen_string_literal: true
+
 module Praxis
   class RoutingConfig
     attr_reader :route, :version, :base
 
-    def initialize(version: 'n/a'.freeze, base: '', prefix: [], &block)
+    def initialize(version: 'n/a', base: '', prefix: [], &block)
       @version = version
       @base = base
       @prefix_segments = Array(prefix)

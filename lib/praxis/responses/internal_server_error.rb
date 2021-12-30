@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   module Responses
     # A generic error message, given when an unexpected condition was encountered and no more specific message is suitable.

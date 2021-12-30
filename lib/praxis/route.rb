@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   class Route
     attr_accessor :verb, :path, :version, :prefixed_path, :options

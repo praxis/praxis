@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Praxis
   module Responses
     # Descriptions from http://en.wikipedia.org/wiki/List_of_HTTP_status_codes

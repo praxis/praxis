@@ -18,6 +18,8 @@ require 'praxis/extensions/attribute_filtering/filters_parser'
 #   filter 'name', using: ['=', '!=', '!', '!!]
 #   filter 'children.created_at', using: ['>', '>=', '<', '<=']
 #   filter 'display_name', using: ['=', '!='], fuzzy: true
+#   # Or glob any single leaf attribute into one
+#   any 'updated_at', using: ['>', '>=', '<', '<=', '=']
 # end
 
 module Praxis
@@ -220,7 +222,7 @@ module Praxis
         end
   
         def matching_leaf_filter(filter_string)
-          return nil unless allowed_leaves.keys.presence
+          return nil unless allowed_leaves.keys.present?
           last_component = filter_string.to_s.split('.').last.to_sym
           allowed_leaves[last_component]
         end

@@ -9,7 +9,7 @@ module Praxis
       def execute
         setup_initial_config!
 
-        env_file = application.root + 'config/environment.rb'
+        env_file = application.root / 'config/environment.rb'
         require env_file if File.exist? env_file
 
         setup_default_layout! unless application.file_layout

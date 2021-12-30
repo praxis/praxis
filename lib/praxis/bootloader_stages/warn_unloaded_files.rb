@@ -28,14 +28,14 @@ module Praxis
         end
 
         missing = Set.new(files) - application.loaded_files
-        if missing.any?
-          msg = "The following application files under #{base} were not loaded:\n"
-          missing.each do |file|
-            path = file.relative_path_from(base)
-            msg << " * #{path}\n"
-          end
-          warn msg
+        return unless missing.any?
+
+        msg = "The following application files under #{base} were not loaded:\n"
+        missing.each do |file|
+          path = file.relative_path_from(base)
+          msg << " * #{path}\n"
         end
+        warn msg
       end
     end
   end

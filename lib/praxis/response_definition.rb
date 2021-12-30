@@ -65,7 +65,7 @@ module Praxis
                          # A regexp means it's gonna be a String typed, attached to a regexp
                          [String, { regexp: value }]
                        else
-                         raise Exceptions::InvalidConfiguration, 'A header definition for a response can only take String, Regexp or nil values (to match anything).' +
+                         raise Exceptions::InvalidConfiguration, 'A header definition for a response can only take String, Regexp or nil values (to match anything).' \
                                                                  "Received the following value for header name #{name}: #{value}"
                        end
 
@@ -95,10 +95,8 @@ module Praxis
         headers: {}
       }
 
-      unless headers.nil?
-        headers.each do |name, value|
-          content[:headers][name] = _describe_header(value)
-        end
+      headers&.each do |name, value|
+        content[:headers][name] = _describe_header(value)
       end
       content[:location] = content[:headers]['Location']
 
@@ -125,7 +123,7 @@ module Praxis
             }
           else
             handlers.each do |name, handler|
-              content_type = identifier ? identifier + name : 'application/' + name
+              content_type = identifier ? identifier + name : "application/#{name}"
               payload[:examples][name] = {
                 content_type: content_type.to_s,
                 body: handler.generate(rendered_payload)
@@ -194,7 +192,7 @@ module Praxis
       headers.each do |name, value|
         raise Exceptions::Validation, 'Symbols are not supported in headers' if name.is_a? Symbol
 
-        raise Exceptions::Validation, "Header #{name.inspect} was required but is missing" unless response.headers.has_key?(name)
+        raise Exceptions::Validation, "Header #{name.inspect} was required but is missing" unless response.headers.key?(name)
 
         errors = value[:attribute].validate(response.headers[name])
 
@@ -229,7 +227,7 @@ module Praxis
       expected_content_type = Praxis::MediaTypeIdentifier.load(media_type.identifier)
 
       unless expected_content_type.match(response_content_type)
-        raise Exceptions::Validation, "Bad Content-Type header. #{response_content_type}" +
+        raise Exceptions::Validation, "Bad Content-Type header. #{response_content_type}" \
                                       " is incompatible with #{expected_content_type} as described in response: #{name}"
       end
     end
@@ -245,7 +243,7 @@ module Praxis
 
       errors = media_type.validate(media_type.load(response.body))
       if errors.any?
-        message = "Invalid response body for #{media_type.identifier}." +
+        message = "Invalid response body for #{media_type.identifier}." \
                   "Errors: #{errors.inspect}"
         raise Exceptions::Validation.new(message, errors: errors)
       end

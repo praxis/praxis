@@ -129,7 +129,7 @@ module Praxis
                                     simple_attrs = media_type.attributes.select do |_k, attr|
                                       attr.type == Attributor::String || attr.type < Attributor::Numeric || attr.type < Attributor::Temporal
                                     end.keys
-                                    starting_set + simple_attrs.select { |attr| attr != starting_set.first }.sample(1)
+                                    starting_set + simple_attrs.reject { |attr| attr == starting_set.first }.sample(1)
                                   end
                      chosen_set.each_with_object([]) do |chosen, arr|
                        sign = rand(10) < 5 ? '-' : ''
@@ -152,10 +152,11 @@ module Praxis
           parsed_order = {}
           unless order.nil?
             parsed_order = order.split(',').each_with_object([]) do |order_string, arr|
-              item = if order_string[0] == '-'
-                       { desc: order_string[1..-1].to_s }
-                     elsif order_string[0] == '+'
-                       { asc: order_string[1..-1].to_s }
+              item = case order_string[0]
+                     when '-'
+                       { desc: order_string[1..].to_s }
+                     when '+'
+                       { asc: order_string[1..].to_s }
                      else
                        { asc: order_string.to_s }
                      end

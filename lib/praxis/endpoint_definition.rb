@@ -21,7 +21,7 @@ module Praxis
       @traits = []
 
       @prefix = if name
-                  '/' + name.split('::').last.underscore
+                  "/#{name.split('::').last.underscore}"
                 else
                   '/'
                 end
@@ -147,7 +147,7 @@ module Praxis
         actions.each do |_name, action|
           action.params do
             mapping.each do |parent_name, name|
-              next if action.params && action.params.attributes.key?(name)
+              next if action.params&.attributes&.key?(name)
 
               parent_attribute = parent_action.params.attributes[parent_name]
 
@@ -206,7 +206,7 @@ module Praxis
       end
 
       def trait(trait_name)
-        raise Exceptions::InvalidTrait, "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.has_key? trait_name
+        raise Exceptions::InvalidTrait, "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.key? trait_name
 
         trait = ApiDefinition.instance.traits.fetch(trait_name)
         @traits << trait_name

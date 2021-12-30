@@ -12,7 +12,7 @@ module Praxis
         renderer.render(loaded, expanded_fields)
       rescue Attributor::DumpError
         if media_type.domain_model == Object
-          warn "Detected the rendering of an object of type #{media_type} without having a domain object model set.\n" +
+          warn "Detected the rendering of an object of type #{media_type} without having a domain object model set.\n" \
                'Did you forget to define it?'
         end
         raise
@@ -26,7 +26,7 @@ module Praxis
         response
       rescue Praxis::Renderer::CircularRenderingError => e
         Praxis::Application.instance.validation_handler.handle!(
-          summary: 'Circular Rendering Error when rendering response. ' +
+          summary: 'Circular Rendering Error when rendering response. ' \
                    'Please especify a view to narrow the dependent fields, or narrow your field set.',
           exception: e,
           request: request,

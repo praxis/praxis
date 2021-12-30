@@ -41,9 +41,7 @@ module Praxis
       @stages << RequestStages::Validate.new(:validate, self)
       @stages << RequestStages::Action.new(:action, self)
       @stages << RequestStages::Response.new(:response, self)
-      @stages.each do |s|
-        s.setup!
-      end
+      @stages.each(&:setup!)
       setup_deferred_callbacks!
     end
 

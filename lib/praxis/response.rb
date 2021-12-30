@@ -80,7 +80,7 @@ module Praxis
       @body = Array(@body)
 
       if @form_data
-        @body << "\r\n" if @body.any? && !(@body.last =~ /\n$/)
+        @body << "\r\n" if @body.any? && @body.last !~ /\n$/
 
         @parts.each do |name, part|
           part.encode!

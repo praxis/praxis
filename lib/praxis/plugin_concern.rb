@@ -16,7 +16,7 @@ module Praxis
         ActionDefinition
         Response
         ApiGeneralInfo
-      ]
+      ].freeze
 
       def setup!
         return if @setup

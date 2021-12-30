@@ -17,7 +17,7 @@ module Praxis
         extend ActiveSupport::Concern
 
         def expanded_fields(request, media_type)
-          uses_fields = params && params.attributes.key?(:fields)
+          uses_fields = params&.attributes&.key?(:fields)
           fields = uses_fields ? request.params.fields.fields : true
 
           Praxis::FieldExpander.expand(media_type, fields)

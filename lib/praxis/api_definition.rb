@@ -13,7 +13,7 @@ module Praxis
     attr_accessor :versioning_scheme
 
     def self.define(&block)
-      if block.arity == 0
+      if block.arity.zero?
         instance.instance_eval(&block)
       else
         yield(instance)
@@ -43,7 +43,7 @@ module Praxis
     end
 
     def trait(name, &block)
-      raise Exceptions::InvalidTrait, "Overwriting a previous trait with the same name (#{name})" if traits.has_key? name
+      raise Exceptions::InvalidTrait, "Overwriting a previous trait with the same name (#{name})" if traits.key? name
 
       traits[name] = Trait.new(&block)
     end

@@ -97,7 +97,7 @@ module Praxis
                      raise "Cannot use plugin: #{plugin}. It does not have a config_key defined, and its class does not have a name" unless instance.class.name
 
                      # Default the config key based on the full class name transformed to snake case (and joining modules with '_')
-                     instance.class.name.to_s.split('::').collect { |n| n.underscore }.join('_').to_sym
+                     instance.class.name.to_s.split('::').collect(&:underscore).join('_').to_sym
                    else
                      instance.config_key
                    end

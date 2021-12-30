@@ -190,7 +190,7 @@ module Praxis
 
       suffix = parameters.shift unless parameters.first.include?('=')
       # remove redundant '+'
-      suffix = suffix[1..-1] if suffix && suffix[0] == '+'
+      suffix = suffix[1..] if suffix && suffix[0] == '+'
 
       parameters = parameters.each_with_object({}) do |e, h|
         k, v = e.split('=', 2)

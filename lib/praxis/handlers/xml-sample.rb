@@ -48,7 +48,7 @@ module Praxis
 
         case type
         when nil
-          if (node.children.size == 1 && node.child.text?) || node.children.size == 0
+          if (node.children.size == 1 && node.child.text?) || node.children.size.zero?
             # leaf text node
             node.content
           else
@@ -74,7 +74,7 @@ module Praxis
         when 'float'
           Float(node.content)
         when 'boolean'
-          !(node.content == 'false')
+          node.content != 'false'
         when 'date'
           Date.parse(node.content)
         when 'dateTime'

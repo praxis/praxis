@@ -201,8 +201,8 @@ module Praxis
     # of the headers.
     def derive_content_type(handler_name)
       possible_values = if content_type.match 'text/plain'
-                          _, content_type_attribute = headers_attribute && headers_attribute.attributes.find { |k, _v| k.to_s =~ /^content[-_]{1}type$/i }
-                          if content_type_attribute && content_type_attribute.options.key?(:values)
+                          _, content_type_attribute = headers_attribute&.attributes&.find { |k, _v| k.to_s =~ /^content[-_]{1}type$/i }
+                          if content_type_attribute&.options&.key?(:values)
                             content_type_attribute.options[:values]
                           else
                             []

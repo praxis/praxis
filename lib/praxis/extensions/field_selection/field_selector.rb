@@ -25,7 +25,7 @@ module Praxis
 
         def self.for(media_type)
           unless media_type < Praxis::MediaType
-            raise ArgumentError, "Invalid type: #{media_type.name} for FieldSelector. " +
+            raise ArgumentError, "Invalid type: #{media_type.name} for FieldSelector. " \
                                  'Must be a subclass of MediaType'
           end
 

@@ -51,7 +51,7 @@ module Praxis
           domain_model = media_type&.domain_model
           raise "No domain model defined for #{name}. Cannot use the attribute filtering helpers without it" unless domain_model
 
-          filters = request.params.filters if request.params&.respond_to?(:filters)
+          filters = request.params.filters if request.params.respond_to?(:filters)
           # Handle filters
           base_query = domain_model.craft_filter_query(base_query, filters: filters)
           # Handle field and nested field selection

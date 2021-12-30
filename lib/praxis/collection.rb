@@ -21,7 +21,7 @@ module Praxis
     def self.member_type(type = nil)
       unless type.nil?
         @member_type = type
-        identifier(type.identifier + ';type=collection') unless type.identifier.nil?
+        identifier("#{type.identifier};type=collection") unless type.identifier.nil?
       end
 
       @member_type
@@ -36,7 +36,7 @@ module Praxis
     end
 
     def self.as_json_schema(**_args)
-      the_type = @attribute && @attribute.type || member_type
+      the_type = @attribute&.type || member_type
       {
         type: json_schema_type,
         items: { '$ref': "#/components/schemas/#{the_type.id}" }

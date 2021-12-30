@@ -12,7 +12,7 @@ module Praxis
         def initialize(query:, selectors:, debug: false)
           @selector = selectors
           @query = query
-          @logger = debug ? Logger.new(STDOUT) : nil
+          @logger = debug ? Logger.new($stdout) : nil
         end
 
         def generate

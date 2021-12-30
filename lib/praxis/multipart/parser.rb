@@ -184,14 +184,14 @@ module Praxis
       filename = nil
       if head =~ RFC2183
         filename = Hash[head.scan(DISPPARM)]['filename']
-        filename = Regexp.last_match(1) if filename and filename =~ /^"(.*)"$/
+        filename = Regexp.last_match(1) if filename && filename =~ (/^"(.*)"$/)
       elsif head =~ BROKEN_QUOTED
         filename = Regexp.last_match(1)
       elsif head =~ BROKEN_UNQUOTED
         filename = Regexp.last_match(1)
       end
 
-      filename = Rack::Utils.unescape(filename) if filename && filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
+      filename = Rack::Utils.unescape(filename) if filename&.scan(/%.?.?/)&.all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
       filename = filename.gsub(/\\(.)/, '\1') if filename && filename !~ /\\[^\\"]/
       filename
     end

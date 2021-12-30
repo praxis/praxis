@@ -5,7 +5,7 @@ module Praxis
     class Action < RequestStage
       def execute
         response = Notifications.instrument 'praxis.request_stage.execute', controller: controller do
-          if controller.method(action.name).arity == 0
+          if controller.method(action.name).arity.zero?
             controller.__send__(action.name)
           else
             controller.__send__(action.name, **request.params_hash)

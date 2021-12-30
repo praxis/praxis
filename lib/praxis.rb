@@ -7,7 +7,7 @@ require 'active_support/concern'
 require 'praxis/request_superclassing'
 require 'active_support/inflector'
 
-$:.unshift File.dirname(__FILE__)
+$LOAD_PATH.unshift File.dirname(__FILE__)
 
 require 'mime'
 module MIME

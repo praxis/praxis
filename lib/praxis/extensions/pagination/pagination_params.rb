@@ -225,7 +225,7 @@ module Praxis
           instance.validate(context)
         end
 
-        CLAUSE_REGEX = /(?<type>[^=]+)=(?<value>.+)$/
+        CLAUSE_REGEX = /(?<type>[^=]+)=(?<value>.+)$/.freeze
         def self.load(paginator, _context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           return paginator if paginator.is_a?(native_type) || paginator.nil?
 
@@ -294,7 +294,7 @@ module Praxis
           if media_type&.attributes
             attrs = media_type&.attributes || {}
             attribute = attrs[name.to_sym]
-            attribute.type.load(value) if attribute
+            attribute&.type&.load(value)
           else
             value
           end
@@ -309,7 +309,7 @@ module Praxis
           @total_count = parsed[:total_count]
         end
 
-        def validate(_context = Attributor::DEFAULT_ROOT_CONTEXT) # rubocop:disable Metrics/PerceivedComplexity
+        def validate(_context = Attributor::DEFAULT_ROOT_CONTEXT)
           errors = []
 
           if page

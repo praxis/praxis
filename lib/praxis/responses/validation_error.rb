@@ -7,7 +7,7 @@ module Praxis
         super(**opts)
         @headers['Content-Type'] = 'application/json' # TODO: might want an error mediatype
         @errors = errors
-        @errors = [exception.message] if !@errors && (exception && exception.message) # The exception message will the the only error if no errors are passed in
+        @errors = [exception.message] if !@errors && exception&.message # The exception message will the the only error if no errors are passed in
         @exception = exception
         @summary = summary
         @documentation = documentation
@@ -17,7 +17,7 @@ module Praxis
         @body = { name: 'ValidationError', summary: @summary }
         @body[:errors] = @errors if @errors
 
-        @body[:cause] = { name: @exception.cause.class.name, message: @exception.cause.message } if @exception && @exception.cause
+        @body[:cause] = { name: @exception.cause.class.name, message: @exception.cause.message } if @exception&.cause
 
         @body[:documentation] = @documentation if @documentation
 

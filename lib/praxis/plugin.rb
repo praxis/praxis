@@ -14,7 +14,7 @@ module Praxis
     def prepare_config!(node); end
 
     def load_config!
-      return unless options.has_key?(:config_file)
+      return unless options.key?(:config_file)
       return {} unless (application.root + options[:config_file]).exist?
 
       YAML.load_file(application.root + options[:config_file])

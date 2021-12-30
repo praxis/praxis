@@ -10,7 +10,7 @@ module Praxis
         def initialize(query:, selectors:, debug: false)
           @selector = selectors
           @query = query
-          @logger = debug ? Logger.new(STDOUT) : nil
+          @logger = debug ? Logger.new($stdout) : nil
         end
 
         def generate
@@ -34,8 +34,8 @@ module Praxis
         end
 
         def _eager(selector_node)
-          selector_node.tracks.each_with_object({}) do |(track_name, track_node), h|
-            h[track_name] = _eager(track_node)
+          selector_node.tracks.transform_values do |track_node|
+            _eager(track_node)
           end
         end
 

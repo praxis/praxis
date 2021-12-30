@@ -25,7 +25,7 @@ module Praxis
       when ''
         @prefix_segments = []
       when ABSOLUTE_PATH_REGEX
-        @prefix_segments = Array(prefix[1..-1])
+        @prefix_segments = Array(prefix[1..])
       else
         @prefix_segments << prefix
       end
@@ -71,7 +71,7 @@ module Praxis
       add_route 'ANY',     path, opts
     end
 
-    ABSOLUTE_PATH_REGEX = %r{^//}
+    ABSOLUTE_PATH_REGEX = %r{^//}.freeze
 
     def add_route(verb, path, options = {})
       path = prefix + path unless path =~ ABSOLUTE_PATH_REGEX

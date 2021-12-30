@@ -36,7 +36,7 @@ module Praxis
       @loaded_files = Set.new
       @config = Config.new
       @root = nil
-      @logger = Logger.new(STDOUT)
+      @logger = Logger.new($stdout)
     end
 
     def setup(root: '.')

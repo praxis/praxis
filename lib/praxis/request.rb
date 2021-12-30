@@ -85,7 +85,7 @@ module Praxis
 
     def path_version_matcher
       if Application.instance.versioning_scheme == :path
-        matcher = Mustermann.new(ApiDefinition.instance.info.base_path + '*')
+        matcher = Mustermann.new("#{ApiDefinition.instance.info.base_path}*")
         matcher.params(path)[API_VERSION_PARAM_NAME]
       else
         PATH_VERSION_MATCHER.match(path)[:version]
@@ -114,7 +114,7 @@ module Praxis
       return unless action.headers
 
       defined_headers = action.precomputed_header_keys_for_rack.each_with_object({}) do |(upper, original), hash|
-        hash[original] = env[upper] if env.has_key? upper
+        hash[original] = env[upper] if env.key? upper
       end
       self.headers = action.headers.load(defined_headers, context)
     end

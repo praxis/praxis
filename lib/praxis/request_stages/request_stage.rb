@@ -18,7 +18,7 @@ module Praxis
             next if conditions.key?(:actions) && !(conditions[:actions].include? action.name)
 
             result = block.call(controller)
-            if result && result.is_a?(Praxis::Response)
+            if result.is_a?(Praxis::Response)
               controller.response = result
               return result
             end
@@ -60,7 +60,7 @@ module Praxis
         result = execute_with_around
         # Shortcut lifecycle if filters return a response
         # (non-nil but non-response-class response is ignored)
-        if result && result.is_a?(Praxis::Response)
+        if result.is_a?(Praxis::Response)
           controller.response = result
           return result
         end
@@ -84,7 +84,7 @@ module Praxis
           inner_proc = proc { execute }
 
           applicable = cb.select do |(conditions, _handler)|
-            if conditions.has_key?(:actions)
+            if conditions.key?(:actions)
               (conditions[:actions].include? action.name) ? true : false
             else
               true
@@ -107,7 +107,7 @@ module Praxis
 
         @stages.each do |stage|
           shortcut = stage.run
-          if shortcut && shortcut.is_a?(Praxis::Response)
+          if shortcut.is_a?(Praxis::Response)
             controller.response = shortcut
             return shortcut
           end

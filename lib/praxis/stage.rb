@@ -30,7 +30,7 @@ module Praxis
     end
 
     def setup_deferred_callbacks!
-      @deferred_callbacks.keys.each do |stage_name|
+      @deferred_callbacks.each_key do |stage_name|
         callbacks = @deferred_callbacks.delete stage_name
         callbacks[:before].each do |(*stage_path, block)|
           before(stage_name, *stage_path, &block)
@@ -43,9 +43,7 @@ module Praxis
     end
 
     def execute
-      @stages.each do |stage|
-        stage.run
-      end
+      @stages.each(&:run)
     end
 
     def execute_callbacks(callbacks)

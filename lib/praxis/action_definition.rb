@@ -57,7 +57,7 @@ module Praxis
     end
 
     def trait(trait_name)
-      raise Exceptions::InvalidTrait, "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.has_key? trait_name
+      raise Exceptions::InvalidTrait, "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.key? trait_name
 
       trait = ApiDefinition.instance.traits.fetch(trait_name)
       trait.apply!(self)
@@ -231,7 +231,7 @@ module Praxis
       end
 
       desc = params.describe(example: example)
-      desc[:type][:attributes].keys.each do |k|
+      desc[:type][:attributes].each_key do |k|
         source = if route_params.include? k
                    'url'
                  else
@@ -256,8 +256,8 @@ module Praxis
       # MultipartArrays *must* use the provided content_type
       return MediaTypeIdentifier.load(example.content_type) if example.is_a? Praxis::Types::MultipartArray
 
-      _, content_type_attribute = headers && headers.attributes.find { |k, _v| k.to_s =~ /^content[-_]{1}type$/i }
-      if content_type_attribute && content_type_attribute.options.key?(:values)
+      _, content_type_attribute = headers&.attributes&.find { |k, _v| k.to_s =~ /^content[-_]{1}type$/i }
+      if content_type_attribute&.options&.key?(:values)
 
         # if any defined value match the preferred handler_name, return it
         content_type_attribute.options[:values].each do |ct|

@@ -17,9 +17,9 @@ describe Praxis::RequestStages::RequestStage do
   let(:action) { instance_double('Praxis::ActionDefinition') }
   let(:context) { double('context', controller: controller, action: action) }
 
-  let(:substage_1) { instance_double('Praxis::RequestStage') }
-  let(:substage_2) { instance_double('Praxis::RequestStage') }
-  let(:substage_3) { instance_double('Praxis::RequestStage') }
+  let(:substage1) { instance_double('Praxis::RequestStage') }
+  let(:substage2) { instance_double('Praxis::RequestStage') }
+  let(:substage3) { instance_double('Praxis::RequestStage') }
 
   let(:before_callbacks) { double('before_callbacks') }
   let(:after_callbacks) { double('after_callbacks') }
@@ -58,14 +58,14 @@ describe Praxis::RequestStages::RequestStage do
 
   context '#execute' do
     before do
-      stage.stages.push(substage_1, substage_2, substage_3)
+      stage.stages.push(substage1, substage2, substage3)
     end
 
     context 'when all stages succeed' do
       it 'runs them all and returns nil' do
-        expect(substage_1).to receive(:run).once
-        expect(substage_2).to receive(:run).once
-        expect(substage_3).to receive(:run).once
+        expect(substage1).to receive(:run).once
+        expect(substage2).to receive(:run).once
+        expect(substage3).to receive(:run).once
         expect(stage.execute).to be(nil)
       end
     end
@@ -73,12 +73,12 @@ describe Praxis::RequestStages::RequestStage do
     context 'when one stage returns a Response' do
       let(:response) { Praxis::Responses::Ok.new }
       before do
-        expect(substage_1).to receive(:run).once
-        expect(substage_2).to receive(:run).once.and_return(response)
+        expect(substage1).to receive(:run).once
+        expect(substage2).to receive(:run).once.and_return(response)
       end
 
       it 'runs no further stages after that' do
-        expect(substage_3).to_not receive(:run)
+        expect(substage3).to_not receive(:run)
         stage.execute
       end
 
@@ -139,16 +139,16 @@ describe Praxis::RequestStages::RequestStage do
 
     context 'with substages' do
       before do
-        stage.stages.push(substage_1, substage_2, substage_3)
+        stage.stages.push(substage1, substage2, substage3)
       end
 
       context 'when one returns a Response' do
         let(:response) { Praxis::Responses::Unauthorized.new }
 
         before do
-          expect(substage_1).to receive(:run).once
-          expect(substage_2).to receive(:run).once.and_return(response)
-          expect(substage_3).to_not receive(:run)
+          expect(substage1).to receive(:run).once
+          expect(substage2).to receive(:run).once.and_return(response)
+          expect(substage3).to_not receive(:run)
         end
 
         it 'runs no after callbacks (including from the controller) ' do

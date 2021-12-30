@@ -58,7 +58,6 @@ describe Praxis::Types::MultipartArray do
   subject(:payload) { type.load(body, content_type: content_type) }
 
   it 'validates' do
-    part = payload.part('files').first
     expect(payload.validate).to be_empty
   end
 
@@ -223,13 +222,13 @@ describe Praxis::Types::MultipartArray do
     subject(:dumped) { payload.dump }
 
     it 'dumps' do
-      loaded = type.load(dumped, content_type: payload.content_type)
+      type.load(dumped, content_type: payload.content_type)
     end
     context 'an example' do
       let(:payload) { type.example }
 
       it 'dumps' do
-        loaded = type.load(dumped, content_type: payload.content_type)
+        type.load(dumped, content_type: payload.content_type)
       end
     end
 

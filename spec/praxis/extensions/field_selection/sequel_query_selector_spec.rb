@@ -5,38 +5,38 @@ require 'sequel'
 
 require 'praxis/extensions/field_selection/sequel_query_selector'
 
-describe Praxis::Extensions::FieldSelection::SequelQuerySelector do
-  class Q
-    attr_reader :object, :cols
+class QTest
+  attr_reader :object, :cols
 
-    def initialize
-      @object = {}
-      @cols = []
-    end
-
-    def eager(hash)
-      raise 'we are only calling eager one at a time!' if hash.keys.size > 1
-
-      name = hash.keys.first
-      # Actually call the incoming proc with an instance of Q, to collect the further select/eager calls
-      @object[name] = hash[name].call(Q.new)
-      self
-    end
-
-    def select(*names)
-      @cols += names.map(&:column)
-      self
-    end
-
-    def dump
-      eagers = @object.transform_values(&:dump)
-      {
-        columns: @cols,
-        eagers: eagers
-      }
-    end
+  def initialize
+    @object = {}
+    @cols = []
   end
 
+  def eager(hash)
+    raise 'we are only calling eager one at a time!' if hash.keys.size > 1
+
+    name = hash.keys.first
+    # Actually call the incoming proc with an instance of QTest, to collect the further select/eager calls
+    @object[name] = hash[name].call(QTest.new)
+    self
+  end
+
+  def select(*names)
+    @cols += names.map(&:column)
+    self
+  end
+
+  def dump
+    eagers = @object.transform_values(&:dump)
+    {
+      columns: @cols,
+      eagers: eagers
+    }
+  end
+end
+
+describe Praxis::Extensions::FieldSelection::SequelQuerySelector do
   # Pay the price for creating and connecting only in this spec instead in spec helper
   # this way all other specs do not need to be slower and it's a better TDD experience
 
@@ -118,7 +118,7 @@ describe Praxis::Extensions::FieldSelection::SequelQuerySelector do
       end
     end
     context 'just mocking the query' do
-      let(:query) { Q.new }
+      let(:query) { QTest.new }
 
       it 'creates the right recursive lambdas for the eager loading' do
         ds = subject.generate

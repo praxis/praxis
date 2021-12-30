@@ -12,7 +12,7 @@ describe Praxis::ApiDefinition do
     api_def.instance_eval do |api|
       api.response_template :template1, &proc {}
       api.trait :trait1, &proc {}
-      api.trait :trait_2 do
+      api.trait :secondtrait do
         description 'the second testing trait'
       end
 
@@ -161,7 +161,7 @@ describe Praxis::ApiDefinition do
       end
       its(:keys) { should include('9.0') }
       its(:keys) { should include :traits }
-      its(%i[traits trait_2]) { should eq api.traits[:trait_2].describe }
+      its(%i[traits secondtrait]) { should eq api.traits[:secondtrait].describe }
 
       context 'for v9.0 info' do
         subject(:v9_info) { output['9.0'][:info] }

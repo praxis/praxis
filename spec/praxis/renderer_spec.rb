@@ -128,9 +128,9 @@ describe Praxis::Renderer do
     it 'caches and returns identical results for the same field objects' do
       expect(person).to receive(:full_name).once.and_call_original
 
-      render_1 = renderer.render(person, fields)
-      render_2 = renderer.render(person, fields)
-      expect(render_1).to be(render_2)
+      render1 = renderer.render(person, fields)
+      render2 = renderer.render(person, fields)
+      expect(render1).to be(render2)
     end
   end
 

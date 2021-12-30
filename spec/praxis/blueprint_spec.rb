@@ -9,11 +9,11 @@ describe Praxis::Blueprint do
 
   context 'deterministic examples' do
     it 'works' do
-      person_1 = PersonBlueprint.example('person 1')
-      person_2 = PersonBlueprint.example('person 1')
+      person1 = PersonBlueprint.example('person 1')
+      person2 = PersonBlueprint.example('person 1')
 
-      expect(person_1.name).to eq(person_2.name)
-      expect(person_1.address.name).to eq(person_2.address.name)
+      expect(person1.name).to eq(person2.name)
+      expect(person1.address.name).to eq(person2.address.name)
     end
   end
 

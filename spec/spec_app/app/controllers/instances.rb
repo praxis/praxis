@@ -39,7 +39,7 @@ class Instances < BaseClass
     # puts "Decorator three end"
   end
 
-  def index(cloud_id:, response_content_type: 'application/vnd.acme.instance;type=collection', **_params)
+  def index(response_content_type: 'application/vnd.acme.instance;type=collection', **_params)
     instances = Instance::Collection.example
     response.body = JSON.pretty_generate(instances.collect(&:render))
     response.headers['Content-Type'] = response_content_type # 'application/vnd.acme.instance;type=collection'
@@ -82,7 +82,7 @@ class Instances < BaseClass
     response
   end
 
-  def attach_file(id:, cloud_id:)
+  def attach_file(*)
     response.headers['Content-Type'] = 'application/json'
 
     destination_path = request.payload.part('destination_path').payload
@@ -106,23 +106,23 @@ class Instances < BaseClass
     response
   end
 
-  def terminate(id:, cloud_id:)
+  def terminate(*)
     response.headers['Content-Type'] = 'application/json'
     response
   end
 
-  def stop(id:, cloud_id:)
+  def stop(*)
     response.headers['Content-Type'] = 'application/json'
     response
   end
 
-  def update(id:, cloud_id:)
+  def update(*)
     response.body = JSON.pretty_generate(request.payload.dump)
     response.headers['Content-Type'] = 'application/vnd.acme.instance'
     response
   end
 
-  def exceptional(cloud_id:, splat:)
+  def exceptional(*)
     response.headers['Content-Type'] = 'application/json'
     response
   end

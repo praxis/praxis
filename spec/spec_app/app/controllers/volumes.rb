@@ -18,7 +18,7 @@ class Volumes < BaseClass
     response
   end
 
-  def show(id:, **_other_params)
+  def show(*)
     response.body = JSON.pretty_generate(Volume.example.render)
     response.headers['Content-Type'] = 'application/vnd.acme.volume'
     response

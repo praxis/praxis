@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'set'
 require 'active_support/core_ext/object/blank'
 
@@ -127,12 +129,12 @@ module Praxis
       s = "#{type}/#{subtype}"
 
       # coated in a hard candy shell
-      s << '+' << suffix unless suffix.empty?
+      s = s + '+' + suffix unless suffix.empty?
 
       # and encrusted with lexically-ordered sprinkles
       unless parameters.empty?
-        s << '; '
-        s << parameters.keys.sort.map { |k| "#{k}=#{parameters[k]}" }.join('; ')
+        s = s + '; '
+        s = s + parameters.keys.sort.map { |k| "#{k}=#{parameters[k]}" }.join('; ')
       end
 
       # May contain peanuts, tree nuts, soy, dairy, sawdust or glue

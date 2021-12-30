@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Collection do
@@ -38,15 +40,14 @@ describe Praxis::Collection do
 
   context '.member_type' do
     subject(:collection) do
-      class Team < Praxis::Collection
+      Class.new(Praxis::Collection) do
         member_type Person
       end
-      Team
     end
     its(:member_type) { should be(Person) }
     its(:member_attribute) { should be_kind_of(Attributor::Attribute) }
     its('member_attribute.type') { should be(Person) }
-    its(:identifier) { should eq Person.identifier + '; type=collection' }
+    its(:identifier) { should eq Person.identifier + '; type=collection' } # rubocop:disable Style/StringConcatenation
   end
 
   context '.load' do

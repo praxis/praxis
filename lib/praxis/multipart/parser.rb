@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rack/utils'
 
 # stolen from Rack::Multipart::Parser
@@ -86,7 +88,7 @@ module Praxis
 
       @boundary = "--#{match[1]}"
 
-      @buf = ''
+      @buf = String.new
 
       @params = new_params
 
@@ -119,7 +121,7 @@ module Praxis
     end
 
     def fast_forward_to_first_boundary
-      preamble = ''
+      preamble = String.new
       loop do
         content = @io.read(BUFSIZE)
         raise EOFError, 'bad content body' unless content
@@ -141,7 +143,7 @@ module Praxis
 
     def get_current_head_and_filename_and_content_type_and_name_and_body
       head = nil
-      body = ''
+      body = String.new
       filename = content_type = name = nil
       content = nil
 

@@ -5,14 +5,6 @@ module V1
     class User < Base
       model ::User
 
-      # Mappings for the allowed filters
-      filters_mapping(
-        'uuid': 'uuid',
-        'first_name': 'first_name',
-        'last_name': 'last_name',
-        'email': 'email'
-      )
-
       # To compute the full_name (method below) we need to load first and last names from the DB
       property :full_name, dependencies: %i[first_name last_name]
 

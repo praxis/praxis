@@ -18,6 +18,8 @@ require 'praxis/extensions/attribute_filtering/filters_parser'
 #   filter 'name', using: ['=', '!=', '!', '!!]
 #   filter 'children.created_at', using: ['>', '>=', '<', '<=']
 #   filter 'display_name', using: ['=', '!='], fuzzy: true
+#   # Or glob any single leaf attribute into one
+#   any 'updated_at', using: ['>', '>=', '<', '<=', '=']
 # end
 
 module Praxis
@@ -37,6 +39,9 @@ module Praxis
           def filter(name, using: nil, fuzzy: false)
             target.add_filter(name.to_sym, operators: Set.new(using), fuzzy: fuzzy)
           end
+          def any(name, using: nil, fuzzy: false)
+            target.add_any(name.to_sym, operators: Set.new(using), fuzzy: fuzzy)
+          end          
         end
   
         VALUE_OPERATORS = Set.new(['!=', '>=', '<=', '=', '<', '>']).freeze
@@ -50,7 +55,7 @@ module Praxis
         # :fuzzy_match => weather or not we allow a "like" type query (for prefix or suffix matching)
         class << self
           attr_reader :media_type
-          attr_reader :allowed_filters
+          attr_reader :allowed_filters, :allowed_leaves
   
           def for(media_type, **_opts)
             unless media_type < Praxis::MediaType
@@ -61,6 +66,7 @@ module Praxis
             ::Class.new(self) do
               @media_type = media_type
               @allowed_filters = {}
+              @allowed_leaves = {}
             end
           end
   
@@ -75,6 +81,14 @@ module Praxis
   
             @allowed_filters[name] = {
               value_type: attribute.type,
+              operators: operators,
+              fuzzy_match: fuzzy
+            }
+          end
+          def add_any(name, operators:, fuzzy:)
+            raise 'Invalid set of operators passed' unless AVAILABLE_OPERATORS.superset?(operators)
+  
+            @allowed_leaves[name] = {
               operators: operators,
               fuzzy_match: fuzzy
             }
@@ -113,7 +127,7 @@ module Praxis
           first, *rest = name_components
           first_attr = type.attributes[first]
           unless first_attr
-            raise "Error, you've requested to filter by field #{first} which does not exist in the #{type.name} mediatype!\n"
+            raise "Error, you've requested to filter by field '#{first}' which does not exist in the #{type.name} mediatype!\n"
           end
   
           return find_filter_attribute(rest, first_attr.type) if rest.present?
@@ -207,13 +221,25 @@ module Praxis
           @parsed_array = parsed
         end
   
+        def matching_leaf_filter(filter_string)
+          return nil unless allowed_leaves.keys.present?
+          last_component = filter_string.to_s.split('.').last.to_sym
+          allowed_leaves[last_component]
+        end
+
         def validate(_context = Attributor::DEFAULT_ROOT_CONTEXT)
           parsed_array.each_with_object([]) do |item, errors|
             attr_name = item[:name]
             attr_filters = allowed_filters[attr_name]
-            unless attr_filters
-              errors << "Filtering by #{attr_name} is not allowed. You can filter by #{allowed_filters.keys.map(&:to_s).join(', ')}"
-              next
+            unless attr_filters 
+              # does not match a complete filter, let's check if it matches an 'any' filter on the last component
+              attr_filters = matching_leaf_filter(attr_name)
+              unless attr_filters
+                msg = "Filtering by #{attr_name} is not allowed. You can filter by #{allowed_filters.keys.map(&:to_s).join(', ')}"
+                msg += " or leaf attributes matching #{allowed_leaves.keys.map(&:to_s).join(', ')}" if allowed_leaves.keys.presence
+                errors << msg
+                next
+              end
             end
             allowed_operators = attr_filters[:operators]
             unless allowed_operators.include?(item[:op])
@@ -248,6 +274,10 @@ module Praxis
         def allowed_filters
           # Class method defined by the subclassing Class (using .for)
           self.class.allowed_filters
+        end
+        def allowed_leaves
+          # Class method defined by the subclassing Class (using .for)
+          self.class.allowed_leaves
         end
       end
     end

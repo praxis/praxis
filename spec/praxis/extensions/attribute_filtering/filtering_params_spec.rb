@@ -124,6 +124,7 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
         # then manually apply the block
         Attributor::Attribute.new(described_class.for(Post)) do
           filter 'id', using: ['=', '!=', '!']
+          any 'updated_at', using: ['>', '<', '=']
         end.type.load(str).parsed_array
       end
 
@@ -151,6 +152,30 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
           expect(parsed.first[:value]).to be_nil
         end
       end
+
+      context 'for an ANY matcher' do
+        let(:str) { 'blog.timestamps.updated_at>=2001-01-01' }
+        it 'coerces its value to the associated mediatype attribute type' do
+          expect(parsed.first[:value]).to eq(DateTime.parse('2001-01-01'))
+          nested_updated_at_attr = Post.attributes[:blog].attributes[:timestamps].attributes[:updated_at]
+          expect(nested_updated_at_attr.type.valid_type?(parsed.first[:value])).to be_truthy
+        end
+      end
+
+      context 'for both normal and ANY type filters' do
+        let(:str) { 'blog.timestamps.updated_at>=2001-01-01&id=42' }
+        it 'properly parsed them both, and into their own types' do
+          expect(parsed.first[:value]).to eq(DateTime.parse('2001-01-01'))
+          nested_updated_at_attr = Post.attributes[:blog].attributes[:timestamps].attributes[:updated_at]
+          expect(nested_updated_at_attr.type.valid_type?(parsed.first[:value])).to be_truthy
+
+          expect(parsed.second[:value]).to eq(42)
+          id_attr = Post.attributes[:blog].attributes[:id]
+          expect(id_attr.type.valid_type?(parsed.second[:value])).to be_truthy
+        end
+      end
+
+
     end
 
   end
@@ -164,6 +189,7 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
         filter 'id', using: ['=', '!=', '!']
         filter 'title', using: ['=', '!='], fuzzy: true
         filter 'content', using: ['=', '!=', '!']
+        any 'updated_at', using: ['>', '<', '=']
       end.type
     end
     let(:loaded_params) { filtering_params_type.load(filters_string) }
@@ -181,7 +207,7 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
         let(:filters_string) { 'href=Foobar*'}
         it 'raises an error' do
           expect(subject).to_not be_empty
-          matches_error = subject.any? {|err| err =~ /Filtering by href is not allowed/}
+          matches_error = subject.any? {|err| err =~ /Filtering by href is not allowed.*leaf attributes matching updated_at/}
           expect(matches_error).to be_truthy
         end
       end
@@ -191,6 +217,34 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
         it 'raises an error' do
           expect(subject).to_not be_empty
           expect(subject.first).to match(/Operator > not allowed for filter title/)
+        end
+      end
+    end
+
+    context 'for any-type leaf filters' do
+      context 'with the correct operator' do
+        let(:filters_string) { 'timestamps.updated_at>2001-01-01'}
+        it 'succeeds' do
+          expect(subject).to be_empty
+        end
+      end
+      context 'with the correct operator on a nested mediatype' do
+        let(:filters_string) { 'blog.timestamps.updated_at>2001-01-01'}
+        it 'succeeds' do
+          expect(subject).to be_empty
+        end
+      end
+      context 'with an incorrect operator' do
+        let(:filters_string) { 'blog.timestamps.updated_at>=2001-01-01'}
+        it 'complains about it' do
+          expect(subject).to_not be_empty
+          expect(subject.first).to match(/Operator >= not allowed for filter blog.timestamps.updated_at/)
+        end
+      end
+      context 'with an correct operator but passing an unexistent attribute path' do
+        let(:filters_string) { 'some.not.true.path.updated_at>=2001-01-01'}
+        it 'complains about it' do
+          expect{subject}.to raise_error(/Error, you've requested to filter by field 'some'/)
         end
       end
     end

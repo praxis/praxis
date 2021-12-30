@@ -1,6 +1,10 @@
 # Praxis Changelog
 
 ## next
+* Introduced a new DSL for the `FilteringParams` type that allows filters for common attributes in your Media Types:
+  * The new `any` DSL allows you to define which final leaf attribute to always allow, and with which operators and/or fuzzy restrictions.
+  * For example, you can add `any updated_at, using: ['>','<']` which would allow the type to accept filters like `updated_at>2000-01-01`, or any existing nested fields like `posts.comments.updated_at>2000-01-01`
+  * Note that the path of attributes passed in, will still need to exist and will be validated. Also, you still need to make sure that you have the right `filters_mapping` defined in your resources.
 
 ## 2.0.pre.18
 * Upgraded to newest Attributor, which cleans up the required: true semantics to only work on keys, and introduces null: true for nullability of values (independent from presence of keys or not)

@@ -40,7 +40,7 @@ module Mustermann
         env[@params_key] = params
         env[@pattern_key] = pattern
         response = callback.call(env)
-        response[1].each { |k, v| throw :pass if k.downcase == 'x-cascade' and v == 'pass' }
+        response[1].each { |k, v| throw :pass if (k.downcase == 'x-cascade') && (v == 'pass') }
         response
       ensure
         env[@params_key] = params_was

@@ -2,19 +2,19 @@
 
 require 'spec_helper'
 
-describe Praxis::ActionDefinition do
-  class SpecMediaType < Praxis::MediaType
-    identifier 'application/json'
+class SpecMediaType < Praxis::MediaType
+  identifier 'application/json'
 
-    attributes do
-      attribute :one, String
-      attribute :two, Integer
-    end
-    default_fieldset do
-      attribute :one
-    end
+  attributes do
+    attribute :one, String
+    attribute :two, Integer
   end
+  default_fieldset do
+    attribute :one
+  end
+end
 
+describe Praxis::ActionDefinition do
   let(:endpoint_definition) do
     Class.new do
       include Praxis::EndpointDefinition
@@ -41,6 +41,7 @@ describe Praxis::ActionDefinition do
 
         media_type media_type
         location location
+        description description
         headers&.each do |(name, value)|
           header(name, value)
         end

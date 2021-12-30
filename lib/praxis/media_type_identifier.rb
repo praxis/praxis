@@ -25,7 +25,7 @@ module Praxis
     QUOTED_STRING = /^".*"$/.freeze
 
     # Token that indicates a media-type component that matches anything.
-    WILDCARD = '*'.freeze
+    WILDCARD = '*'
 
     # Inner type representing semicolon-delimited parameters.
     Parameters = Attributor::Hash.of(key: String)

@@ -6,8 +6,8 @@ require 'rack/utils'
 
 module Praxis
   class MultipartParser
-    EOL = "\r\n".freeze
-    MULTIPART_BOUNDARY = 'AaB03x'.freeze
+    EOL = "\r\n"
+    MULTIPART_BOUNDARY = 'AaB03x'
     MULTIPART = %r{\Amultipart/.*boundary="?([^";,]+)"?}n.freeze
     TOKEN = %r{[^\s()<>,;:\\"/\[\]?=]+}.freeze
     CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i.freeze

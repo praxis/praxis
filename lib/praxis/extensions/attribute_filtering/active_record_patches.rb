@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_record'
 
 maj, min, = ActiveRecord.gem_version.segments

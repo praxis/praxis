@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Praxis
   # Stripped-down representation of an Internet Media Type where the structure and content of the
   # type are unknown, or are defined externally to the Praxis application.

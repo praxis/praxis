@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative 'parameter_object'
 require_relative 'request_body_object'
 require_relative 'responses_object'

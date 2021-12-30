@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Praxis
   CONTEXT_FOR = {
     params: [Attributor::ROOT_PREFIX, 'params'.freeze],

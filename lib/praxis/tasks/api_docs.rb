@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 namespace :praxis do
   namespace :docs do
     desc 'Generate OpenAPI 3 docs for a Praxis App'

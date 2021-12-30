@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'praxis/router/rack'
 
 module Praxis

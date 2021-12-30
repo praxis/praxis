@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Praxis
   module BootloaderStages
     class WarnUnloadedFiles < Stage

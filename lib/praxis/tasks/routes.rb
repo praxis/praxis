@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 namespace :praxis do
   desc 'List routes, format=json or table, default table'
   task :routes, [:format] => [:environment] do |_t, args|

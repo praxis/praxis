@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # Make Praxis' request derive from ActionDispatch
 if defined? Praxis::Request
   puts "IT seems that we're trying to redefine Praxis' request parent too late."

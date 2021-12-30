@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Praxis
   class ValidationHandler
     # Should return the Response to send back

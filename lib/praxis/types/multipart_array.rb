@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'praxis/types/multipart_array/part_definition'
 
 module Praxis

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Praxis
   module RequestStages
     # Special Stage what will hijack the run and execute methods to:

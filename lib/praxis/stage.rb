@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Praxis
   class Stage
     attr_reader :name, :context, :stages, :before_callbacks, :after_callbacks

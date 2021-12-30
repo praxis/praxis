@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative 'operation_object'
 module Praxis
   module Docs

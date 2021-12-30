@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Praxis
   class RoutingConfig
     attr_reader :route, :version, :base

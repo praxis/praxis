@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # A resource creates a data store and instantiates a list of models that it wishes to load, building up the overall set of data that it will need.
 # Once that is complete, the data set is iterated and a resultant view is generated.
 module Praxis::Mapper

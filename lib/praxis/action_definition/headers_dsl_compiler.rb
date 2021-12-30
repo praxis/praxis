@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Praxis
   class ActionDefinition
     class HeadersDSLCompiler < Attributor::DSLCompiler

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Praxis
   class Request < Praxis.request_superclass
     attr_reader :env, :query

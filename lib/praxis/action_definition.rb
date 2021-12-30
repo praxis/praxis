@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # A RESTful action allows you to define the following:
 # - a payload structure
 # - a params structure

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative 'open_api/info_object'
 require_relative 'open_api/server_object'
 require_relative 'open_api/paths_object'

@@ -64,7 +64,7 @@ module Praxis
             newval, fuzzy = if starting && ending
                               [raw_val[1..-2], :start_end]
                             elsif starting
-                              [raw_val[1..-1], :start]
+                              [raw_val[1..], :start]
                             elsif ending
                               [raw_val[0..-2], :end]
                             else
@@ -84,11 +84,11 @@ module Praxis
             when nil
               val
             when :start_end
-              '{*}' + val + '{*}'
+              "{*}#{val}{*}"
             when :start
-              '{*}' + val
+              "{*}#{val}"
             when :end
-              val + '{*}'
+              "#{val}{*}"
             end
           end
 
@@ -135,7 +135,7 @@ module Praxis
           end
 
           def dump
-            '( ' + @items.map(&:dump).join(" #{type.upcase} ") + ' )'
+            "( #{@items.map(&:dump).join(" #{type.upcase} ")} )"
           end
 
           # Returns an array with flat conditions from all child triad conditions

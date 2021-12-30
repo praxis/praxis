@@ -33,12 +33,12 @@ module Praxis
           @initial_query = query
           @model = model
           @filters_map = filters_map
-          @logger = debug ? Logger.new(STDOUT) : nil
+          @logger = debug ? Logger.new($stdout) : nil
           @active_record_version_maj = ActiveRecord.gem_version.segments[0]
         end
 
         def debug_query(msg, query)
-          @logger.info(msg + query.to_sql) if @logger
+          @logger&.info(msg + query.to_sql)
         end
 
         def generate(filters)
@@ -122,7 +122,8 @@ module Praxis
         end
 
         # not in filters....checks if it's a valid path
-        def self.valid_path?(model, path) # array of strings
+        # array of strings
+        def self.valid_path?(model, path)
           first_component, *rest = path
           if model.attribute_names.include?(first_component)
             true
@@ -316,7 +317,7 @@ module Praxis
             no = negative ? 'NOT ' : ''
             list = value.map { |v| conn.quote_default_expression(v, column_object) }
             "#{no}IN (#{list.join(',')})"
-          elsif value && value.is_a?(Range)
+          elsif value.is_a?(Range)
             raise 'TODO!'
           else
             op = negative ? '<>' : '='
@@ -332,18 +333,18 @@ module Praxis
 
             case fuzzy
             when :start_end
-              '%' + value + '%'
+              "%#{value}%"
             when :start
-              '%' + value
+              "%#{value}"
             when :end
-              value + '%'
+              "#{value}%"
             end
           end
         end
 
         # The value that we need to stick in the references method is different in the latest Rails
         maj, min, = ActiveRecord.gem_version.segments
-        if maj == 5 || (maj == 6 && min == 0)
+        if maj == 5 || (maj == 6 && min.zero?)
           # In AR 6 (and 6.0) the references are simple strings
           def build_reference_value(column_prefix, query: nil)
             column_prefix

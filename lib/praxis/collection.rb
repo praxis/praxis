@@ -10,12 +10,10 @@ module Praxis
       klass = super
       klass.anonymous_type
 
-      if type < Praxis::Types::MediaTypeCommon
-        klass.member_type type
-        type.const_set :Collection, klass
-      else
-        raise 'Praxis::Collection.of() for non-MediaTypes is unsupported. Use Attributor::Collection.of() instead.'
-      end
+      raise 'Praxis::Collection.of() for non-MediaTypes is unsupported. Use Attributor::Collection.of() instead.' unless type < Praxis::Types::MediaTypeCommon
+
+      klass.member_type type
+      type.const_set :Collection, klass
     end
 
     def self.member_type(type = nil)

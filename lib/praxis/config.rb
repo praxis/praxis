@@ -73,7 +73,7 @@ module Praxis
     end
 
     def get
-      @value ||= begin
+      @value ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
         context = %w[Application config].freeze
         @attribute.load({}, context, recurse: true)
       end

@@ -86,13 +86,9 @@ module Praxis
       if block_given?
         raise 'Redefining Blueprint attributes is not currently supported' if const_defined?(:Struct, false)
 
-        if opts.key?(:reference) && opts[:reference] != reference
-          raise "Reference mismatch in #{inspect}. Given :reference option #{opts[:reference].inspect}, while using #{reference.inspect}"
-        elsif reference
-          opts[:reference] = reference # pass the reference Class down
-        else
-          opts[:reference] = self
-        end
+        raise "Reference mismatch in #{inspect}. Given :reference option #{opts[:reference].inspect}, while using #{reference.inspect}" if opts.key?(:reference) && opts[:reference] != reference
+
+        opts[:reference] = (reference || self)
 
         @options.merge!(opts)
         @block = block
@@ -317,7 +313,6 @@ module Praxis
       raise ArgumentError, "Invalid context received (nil) while validating value of type #{name}" if context.nil?
 
       context = [context] if context.is_a? ::String
-      keys_with_values = []
 
       raise 'validation conflict' if @validating
 

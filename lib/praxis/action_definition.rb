@@ -270,11 +270,9 @@ module Praxis
 
         # and return that one if it already corresponds to a registered handler
         # otherwise, add the encoding
-        if Praxis::Application.instance.handlers.include?(pick.handler_name)
-          return pick
-        else
-          return pick + handler_name
-        end
+        return pick if Praxis::Application.instance.handlers.include?(pick.handler_name)
+
+        return pick + handler_name
       end
 
       # generic default encoding

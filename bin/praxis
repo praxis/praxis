@@ -42,7 +42,7 @@ if %w[routes docs console].include? ARGV[0]
 end
 # Thor tasks
 path_to_praxis = File.expand_path(File.dirname(File.dirname(__FILE__)))
-path_to_loader = '%s/tasks/loader.thor' % path_to_praxis
+path_to_loader = format('%<path>s/tasks/loader.thor', path: path_to_praxis)
 
 load path_to_loader
 
@@ -51,12 +51,12 @@ class PraxisGenerator < Thor
   desc 'routes [json]', 'Prints the route table of the application. Defaults to table format, but can produce json'
   def routes; end
 
-  desc 'docs [generate|browser|package]', <<~EOF
+  desc 'docs [generate|browser|package]', <<~HELP
     Generates API documentation and a Web App to inspect it
       generate - Generates the JSON docs
       browser  - (default) Generates JSON docs, and automatically starts a Web app to browse them.
       package  - Generates JSON docs, and neatly packages all the necessary static files ready for exporting the browsing app.
-  EOF
+  HELP
   def docs; end
 
   desc 'console', 'Open a console to the application, with its environment loaded'
@@ -113,13 +113,13 @@ class PraxisGenerator < Thor
 
     collection_name, = args
     ::PraxisGen::Scaffold.new([collection_name], options).invoke(:g)
-    if options[:model]
-      # Make it easy to be able to both enable or not enable the creation of the model, by passing --model=...
-      # but also make it easy so that if there is no value for it, it default to activerecord
-      opts = { orm: options[:model] }
-      opts[:orm] = 'activerecord' if opts[:orm] == 'model' # value is model param passed by no value
-      ::PraxisGen::Model.new([collection_name.singularize], opts).invoke(:g)
-    end
+    return unless options[:model]
+
+    # Make it easy to be able to both enable or not enable the creation of the model, by passing --model=...
+    # but also make it easy so that if there is no value for it, it default to activerecord
+    opts = { orm: options[:model] }
+    opts[:orm] = 'activerecord' if opts[:orm] == 'model' # value is model param passed by no value
+    ::PraxisGen::Model.new([collection_name.singularize], opts).invoke(:g)
   end
 
   # Initially, the idea was to build some quick model generator, but I think it's better to keep it

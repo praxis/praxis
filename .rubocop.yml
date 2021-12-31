@@ -3,6 +3,7 @@
 
 AllCops:
   Exclude:
+    - "_site/**/*"
     - "coverage/**/*"
     - "docs_docusaurus/**/*"
     - "tmp/**/*"

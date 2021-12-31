@@ -9,11 +9,12 @@ module Praxis
       @global_info = global_info
       @version = version
 
-      if @global_info.nil? # this *is* the global info
-        version_with %i[header params]
-        consumes 'json', 'x-www-form-urlencoded'
-        produces 'json'
-      end
+      return unless @global_info.nil?
+
+      # this *is* the global info
+      version_with %i[header params]
+      consumes 'json', 'x-www-form-urlencoded'
+      produces 'json'
     end
 
     # Allow any custom method to get/set any value
@@ -29,15 +30,15 @@ module Praxis
       true
     end
 
-    def get(k)
-      return @data[k] if @data.key?(k)
-      return @global_info.get(k) if @global_info
+    def get(key)
+      return @data[key] if @data.key?(key)
+      return @global_info.get(key) if @global_info
 
       nil
     end
 
-    def set(k, v)
-      @data[k] = v
+    def set(key, val)
+      @data[key] = val
     end
 
     def name(val = nil)

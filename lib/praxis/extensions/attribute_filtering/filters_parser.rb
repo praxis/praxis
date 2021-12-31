@@ -26,12 +26,11 @@ module Praxis
                 @values = ''
                 @fuzzies = nil
               elsif values.size == 1
-                raw_val = values.first[:value].to_s
                 @values, @fuzzies = _compute_fuzzy(values.first[:value].to_s)
               else
                 @values = []
                 @fuzzies = []
-                results = values.each do |e|
+                values.each do |e|
                   val, fuz = _compute_fuzzy(e[:value].to_s)
                   @values.push val
                   @fuzzies.push fuz
@@ -111,8 +110,8 @@ module Praxis
 
           def self.load(node)
             if node[:o]
-              compactedl = compress_tree(node: node[:l], op: node[:o])
-              compactedr = compress_tree(node: node[:r], op: node[:o])
+              compactedl = compress_tree(node: node[:l], operator: node[:o])
+              compactedr = compress_tree(node: node[:r], operator: node[:o])
               compacted = { op: node[:o], items: compactedl + compactedr }
 
               loaded = ConditionGroup.new(**compacted, parent_group: nil)
@@ -122,6 +121,7 @@ module Praxis
             loaded
           end
 
+          # rubocop:disable Naming/MethodParameterName
           def initialize(op:, items:, parent_group:)
             @type = op.to_s == '&' ? :and : :or
             @items = items.map do |item|
@@ -148,17 +148,17 @@ module Praxis
           # Given a binary tree of operand conditions, transform it to a multi-leaf tree
           # where a single condition node has potentially multiple subtrees for the same operation (instead of 2)
           # For example (&, (&, a, b), (|, c, d)) => (&, a, b, (|, c, d))
-          def self.compress_tree(node:, op:)
+          def self.compress_tree(node:, operator:)
             return [node] if node[:triad]
 
             # It is an op node
-            if node[:o] == op
+            if node[:o] == operator
               # compatible op as parent, collect my compacted children and return them up skipping my op
-              resultl = compress_tree(node: node[:l], op: op)
-              resultr = compress_tree(node: node[:r], op: op)
+              resultl = compress_tree(node: node[:l], operator: operator)
+              resultr = compress_tree(node: node[:r], operator: operator)
               resultl + resultr
             else
-              collected = compress_tree(node: node, op: node[:o])
+              collected = compress_tree(node: node, operator: node[:o])
               [{ op: node[:o], items: collected }]
             end
           end

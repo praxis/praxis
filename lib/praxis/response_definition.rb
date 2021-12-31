@@ -35,11 +35,9 @@ module Praxis
                            when String
                              SimpleMediaType.new(media_type)
                            when Class
-                             if media_type < Praxis::Types::MediaTypeCommon
-                               media_type
-                             else
-                               raise Exceptions::InvalidConfiguration, 'Invalid media_type specification. media_type must be a Praxis::MediaType'
-                             end
+                             raise Exceptions::InvalidConfiguration, 'Invalid media_type specification. media_type must be a Praxis::MediaType' unless media_type < Praxis::Types::MediaTypeCommon
+
+                             media_type
                            when SimpleMediaType
                              media_type
                            else
@@ -87,8 +85,6 @@ module Praxis
     end
 
     def describe(context: nil)
-      location_type = location.is_a?(Regexp) ? :regexp : :string
-      location_value = location.is_a?(Regexp) ? location.inspect : location
       content = {
         description: description,
         status: status,
@@ -116,17 +112,17 @@ module Praxis
             default_handlers.include?(k)
           end
 
-          if identifier && handler = handlers[identifier.handler_name]
+          if identifier && (handler = handlers[identifier.handler_name])
             payload[:examples][identifier.handler_name] = {
               content_type: identifier.to_s,
               body: handler.generate(rendered_payload)
             }
           else
-            handlers.each do |name, handler|
+            handlers.each do |name, handler_class|
               content_type = identifier ? identifier + name : "application/#{name}"
               payload[:examples][name] = {
                 content_type: content_type.to_s,
-                body: handler.generate(rendered_payload)
+                body: handler_class.generate(rendered_payload)
               }
             end
           end
@@ -179,7 +175,7 @@ module Praxis
       return unless status
 
       # Validate status code if defined in the spec
-      raise Exceptions::Validation, format('Invalid response code detected. Response %s dictates status of %s but this response is returning %s.', name, status.inspect, response.status.inspect) if response.status != status
+      raise Exceptions::Validation, format('Invalid response code detected. Response %<name>s dictates status of %<status>s but this response is returning %<response>s.', name: name, status: status.inspect, response: response.status.inspect) if response.status != status
     end
 
     # Validates Headers
@@ -225,11 +221,10 @@ module Praxis
 
       response_content_type = response.content_type
       expected_content_type = Praxis::MediaTypeIdentifier.load(media_type.identifier)
+      return if expected_content_type.match(response_content_type)
 
-      unless expected_content_type.match(response_content_type)
-        raise Exceptions::Validation, "Bad Content-Type header. #{response_content_type}" \
-                                      " is incompatible with #{expected_content_type} as described in response: #{name}"
-      end
+      raise Exceptions::Validation, "Bad Content-Type header. #{response_content_type}" \
+                                    " is incompatible with #{expected_content_type} as described in response: #{name}"
     end
 
     # Validates response body
@@ -242,11 +237,11 @@ module Praxis
       return if media_type.is_a? SimpleMediaType
 
       errors = media_type.validate(media_type.load(response.body))
-      if errors.any?
-        message = "Invalid response body for #{media_type.identifier}." \
-                  "Errors: #{errors.inspect}"
-        raise Exceptions::Validation.new(message, errors: errors)
-      end
+      return unless errors.any?
+
+      message = "Invalid response body for #{media_type.identifier}." \
+                "Errors: #{errors.inspect}"
+      raise Exceptions::Validation.new(message, errors: errors)
     end
 
     def validate_parts!(response)

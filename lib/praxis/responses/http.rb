@@ -142,8 +142,8 @@ module Praxis
 
           media_type media_type if media_type
           location location if location
-          headers&.each do |(name, value)|
-            header(name: name, value: value)
+          headers&.each do |(header_name, value)|
+            header(name: header_name, value: value)
           end
         end
       end

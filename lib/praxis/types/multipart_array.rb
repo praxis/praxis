@@ -264,6 +264,7 @@ module Praxis
       attr_reader :content_type
 
       def initialize(content_type: self.class.identifier.to_s)
+        super()
         self.content_type = content_type
       end
 

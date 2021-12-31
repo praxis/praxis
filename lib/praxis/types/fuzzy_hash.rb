@@ -10,27 +10,27 @@ module Praxis
       end
 
       def update(value)
-        value.each do |k, v|
-          self[k] = v
+        value.each do |key, val|
+          self[key] = val
         end
 
         self
       end
 
-      def []=(k, v)
-        case k
+      def []=(key, val)
+        case key
         when Regexp
-          @regexes << k
+          @regexes << key
         end
-        @hash[k] = v
+        @hash[key] = val
       end
 
-      def [](k)
-        return @hash[k] if @hash.key?(k)
+      def [](key)
+        return @hash[key] if @hash.key?(key)
 
-        k = k.to_s
+        key = key.to_s
         @regexes.each do |regex|
-          return @hash[regex] if regex.match(k)
+          return @hash[regex] if regex.match(key)
         end
 
         nil

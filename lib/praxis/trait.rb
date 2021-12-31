@@ -22,6 +22,10 @@ module Praxis
       @other << [name, args, block]
     end
 
+    def respond_to_missing?(*)
+      true
+    end
+
     def description(desc = nil)
       return @description if desc.nil?
 
@@ -45,7 +49,7 @@ module Praxis
     end
 
     def payload(*args, &block)
-      type, opts = args
+      type, _opts = args
 
       raise 'payload in a trait with non-hash (or model or struct) is not supported' if type && !(type < Attributor::Hash)
 
@@ -96,14 +100,13 @@ module Praxis
       @responses.each do |name, args|
         target.response(name, **args)
       end
+      return unless @other.any?
 
-      if @other.any?
-        @other.each do |name, args, block|
-          if block
-            target.send(name, *args, &block)
-          else
-            target.send(name, *args)
-          end
+      @other.each do |name, args, block|
+        if block
+          target.send(name, *args, &block)
+        else
+          target.send(name, *args)
         end
       end
     end

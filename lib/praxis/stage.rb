@@ -59,7 +59,7 @@ module Praxis
     def before(*stage_path, &block)
       if stage_path.any?
         stage_name = stage_path.shift
-        stage = stages.find { |stage| stage.name == stage_name }
+        stage = stages.find { |s| s.name == stage_name }
         if stage
           stage.before(*stage_path, &block)
         else
@@ -73,7 +73,7 @@ module Praxis
     def after(*stage_path, &block)
       if stage_path.any?
         stage_name = stage_path.shift
-        stage = stages.find { |stage| stage.name == stage_name }
+        stage = stages.find { |s| s.name == stage_name }
         if stage
           stage.after(*stage_path, &block)
         else

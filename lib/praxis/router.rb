@@ -24,7 +24,7 @@ module Praxis
     end
 
     class RequestRouter < Mustermann::Router::Simple
-      def initialize(default: nil, **options, &block)
+      def initialize(**options, &block)
         options[:default] = :not_found
 
         super(**options, &block)

@@ -25,7 +25,7 @@ module Praxis
       when ''
         @prefix_segments = []
       when ABSOLUTE_PATH_REGEX
-        @prefix_segments = Array(prefix[1..])
+        @prefix_segments = Array(prefix[1..-1])
       else
         @prefix_segments << prefix
       end

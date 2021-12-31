@@ -19,7 +19,7 @@ module Praxis
       self.class.id
     end
 
-    def describe(_shallow = true)
+    def describe(*)
       { name: name, family: 'string', id: id, identifier: identifier }
     end
   end

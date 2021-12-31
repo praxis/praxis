@@ -15,7 +15,7 @@ namespace :praxis do
     Praxis::Application.instance.endpoint_definitions.each do |endpoint_definition|
       endpoint_definition.actions.each do |name, action|
         method = begin
-          m = endpoint_definition.controller.instance_method(name)
+          endpoint_definition.controller.instance_method(name)
         rescue StandardError
           nil
         end
@@ -42,7 +42,8 @@ namespace :praxis do
         end
       end
     end
-    case args[:format] || 'table'
+    format_type = args[:format] || 'table'
+    case format_type
     when 'json'
       puts JSON.pretty_generate(rows)
     when 'table'

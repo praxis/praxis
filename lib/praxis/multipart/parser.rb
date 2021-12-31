@@ -47,10 +47,10 @@ module Praxis
 
       loop do
         head, filename, content_type, name, body =
-          get_current_head_and_filename_and_content_type_and_name_and_body
+          current_head_and_filename_and_content_type_and_name_and_body
 
         # Save the rest.
-        if i = @buf.index(rx)
+        if (i = @buf.index(rx))
           body << @buf.slice!(0, i)
           @buf.slice!(0, @boundary_size + 2)
 
@@ -94,7 +94,7 @@ module Praxis
 
       @boundary_size = @boundary.bytesize + EOL.size
 
-      if @content_length = @headers['Content-Length']
+      if (@content_length = @headers['Content-Length'])
         @content_length = @content_length.to_i
         @content_length -= @boundary_size
       end
@@ -130,25 +130,23 @@ module Praxis
 
         while @buf.gsub!(UNTIL_NEWLINE, '')
           read_buffer = Regexp.last_match(1)
-          if read_buffer == full_boundary
-            return preamble.gsub!(TERMINAL_CRLF, '')
-          else
-            preamble << read_buffer
-          end
+          return preamble.gsub!(TERMINAL_CRLF, '') if read_buffer == full_boundary
+
+          preamble << read_buffer
         end
 
         raise EOFError, 'bad content body' if Rack::Utils.bytesize(@buf) >= BUFSIZE
       end
     end
 
-    def get_current_head_and_filename_and_content_type_and_name_and_body
+    def current_head_and_filename_and_content_type_and_name_and_body
       head = nil
       body = String.new
       filename = content_type = name = nil
       content = nil
 
       until head && @buf =~ rx
-        if !head && i = @buf.index(EOL + EOL)
+        if !head && (i = @buf.index(EOL + EOL))
           head = @buf.slice!(0, i + 2) # First \r\n
 
           @buf.slice!(0, 2) # Second \r\n

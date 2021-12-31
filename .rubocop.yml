@@ -39,3 +39,12 @@ Layout/LineLength:
 Style/Documentation:
   Enabled: false
 
+#### RE-ENABLE PLEASE
+Metrics/BlockNesting:
+  Enabled: false
+
+Style/OptionalBooleanParameter:
+  Enabled: false
+  
+Lint/Void:
+  Enabled: false  

@@ -4,7 +4,8 @@ module Praxis
   class MultipartPart
     include Attributor::Type
 
-    attr_accessor :body, :headers, :filename, :name, :payload_attribute, :headers_attribute, :filename_attribute, :default_handler
+    attr_reader :name, :filename
+    attr_accessor :body, :headers, :payload_attribute, :headers_attribute, :filename_attribute, :default_handler
 
     def self.check_option!(name, definition)
       case name
@@ -67,19 +68,19 @@ module Praxis
       hash
     end
 
-    def initialize(body, headers = {}, name: nil, filename: nil, payload_attribute: nil, headers_attribute: nil, filename_attribute: nil)
-      @name = name
+    def initialize(body, headers = {}, **args)
+      @name = args[:name]
       @body = body
       @headers = headers
       @default_handler = Praxis::Application.instance.handlers['json']
 
       self.content_type = 'text/plain' if content_type.nil?
 
-      @filename = filename
+      @filename = args[:filename]
 
-      @payload_attribute = payload_attribute
-      @headers_attribute = headers_attribute
-      @filename_attribute = filename_attribute
+      @payload_attribute = args[:payload_attribute]
+      @headers_attribute = args[:headers_attribute]
+      @filename_attribute = args[:filename_attribute]
 
       reset_content_disposition
     end
@@ -98,15 +99,14 @@ module Praxis
     end
 
     def load_payload(_context = Attributor::DEFAULT_ROOT_CONTEXT)
-      if payload_attribute
-        value = if payload.is_a?(String)
-                  handler.parse(payload)
-                else
-                  payload
-                end
+      return unless payload_attribute
 
-        self.payload = payload_attribute.load(value)
-      end
+      value = if payload.is_a?(String)
+                handler.parse(payload)
+              else
+                payload
+              end
+      self.payload = payload_attribute.load(value)
     end
 
     def load_headers(_context = Attributor::DEFAULT_ROOT_CONTEXT)

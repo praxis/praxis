@@ -30,7 +30,7 @@ module Praxis
           lambda do |dset|
             dset = add_select(query: dset, selector_node: selector_node)
 
-            dset = selector_node.tracks.inject(dset) do |ds, (track_name, track_node)|
+            selector_node.tracks.inject(dset) do |ds, (track_name, track_node)|
               ds.eager(track_name => _eager(track_node))
             end
           end
@@ -47,9 +47,9 @@ module Praxis
           query.select(*qualified)
         end
 
-        def explain_query(ds)
+        def explain_query(dataset)
           @logger.debug("Query plan for ...#{selector.resource.model} with selectors: #{JSON.generate(selector.dump)}")
-          ds.all
+          dataset.all
           @logger.debug('Query plan end')
         end
       end

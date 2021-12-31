@@ -77,7 +77,7 @@ module Praxis
 
           def add_filter(name, operators:, fuzzy:)
             components = name.to_s.split('.').map(&:to_sym)
-            attribute, enclosing_type = find_filter_attribute(components, media_type)
+            attribute, _enclosing_type = find_filter_attribute(components, media_type)
             raise 'Invalid set of operators passed' unless AVAILABLE_OPERATORS.superset?(operators)
 
             @allowed_filters[name] = {

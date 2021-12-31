@@ -62,11 +62,9 @@ module Praxis
 
     def expand_type(object, fields = true)
       unless object.respond_to?(:attributes)
-        if object.respond_to?(:member_attribute)
-          return expand_type(object.member_attribute.type, fields)
-        else
-          return true
-        end
+        return expand_type(object.member_attribute.type, fields) if object.respond_to?(:member_attribute)
+
+        return true
       end
 
       # just include the full thing if it has no attributes

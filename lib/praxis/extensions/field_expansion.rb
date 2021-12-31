@@ -10,7 +10,7 @@ module Praxis
       end
 
       def expanded_fields
-        @expansion ||= request.action.expanded_fields(request, media_type)
+        @expanded_fields ||= request.action.expanded_fields(request, media_type)
       end
 
       module ActionDefinitionExtension

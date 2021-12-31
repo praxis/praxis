@@ -64,7 +64,7 @@ module Praxis
             newval, fuzzy = if starting && ending
                               [raw_val[1..-2], :start_end]
                             elsif starting
-                              [raw_val[1..], :start]
+                              [raw_val[1..-1], :start]
                             elsif ending
                               [raw_val[0..-2], :end]
                             else

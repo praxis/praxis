@@ -30,14 +30,14 @@ module Praxis
         end
 
         errors = request.validate_payload(CONTEXT_FOR[:payload])
-        if errors.any?
-          validation_handler.handle!(
-            summary: 'Errors validating payload data',
-            errors: errors,
-            request: request,
-            stage: name
-          )
-        end
+        return unless errors.any?
+
+        validation_handler.handle!(
+          summary: 'Errors validating payload data',
+          errors: errors,
+          request: request,
+          stage: name
+        )
       end
     end
   end

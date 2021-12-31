@@ -12,7 +12,7 @@ module Praxis
         @context = context
 
         first = Attributor.humanize_context(context[0..10])
-        last = Attributor.humanize_context(context[-5..])
+        last = Attributor.humanize_context(context[-5..-1])
         pretty_context = "#{first}...#{last}"
         super("SystemStackError in rendering #{object.class} with context: #{pretty_context}")
       end

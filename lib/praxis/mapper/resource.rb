@@ -79,7 +79,7 @@ module Praxis
       def self.for_record(record)
         return record._resource if record._resource
 
-        if resource_class_for_record = model_map[record.class]
+        if (resource_class_for_record = model_map[record.class])
           record._resource = resource_class_for_record.new(record)
         else
           version = name.split('::')[0..-2].join('::')
@@ -128,15 +128,15 @@ module Praxis
         association_model = association_spec.fetch(:model)
         association_resource_class = model_map[association_model]
 
-        if association_resource_class
-          module_eval <<-RUBY, __FILE__, __LINE__ + 1
+        return unless association_resource_class
+
+        module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{name}
           records = record.#{name}
             return nil if records.nil?
           @__#{name} ||= #{association_resource_class}.wrap(records)
         end
-          RUBY
-        end
+        RUBY
       end
 
       def self.define_resource_delegate(resource_name, resource_attribute)

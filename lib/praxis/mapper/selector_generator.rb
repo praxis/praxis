@@ -45,8 +45,8 @@ module Praxis
         unless association[:remote_key_columns].empty?
           # Make sure we add the required columns for this association to the remote model query
           fields = {} if fields == true
-          new_fields_as_hash = association[:remote_key_columns].each_with_object({}) do |name, hash|
-            hash[name] = true
+          new_fields_as_hash = association[:remote_key_columns].each_with_object({}) do |key, hash|
+            hash[key] = true
           end
           fields = fields.merge(new_fields_as_hash)
         end

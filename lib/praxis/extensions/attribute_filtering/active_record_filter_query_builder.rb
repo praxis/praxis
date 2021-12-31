@@ -65,10 +65,10 @@ module Praxis
             colo = condition[:model].columns_hash[condition[:name].to_s]
             column_prefix = condition[:column_prefix]
             association_key_column = \
-              if ref = condition[:parent_reflection]
+              if (ref = condition[:parent_reflection])
                 # get the target model of the association(where the assoc pk is)
-                target_model = condition[:parent_reflection].klass
-                target_model.columns_hash[condition[:parent_reflection].association_primary_key]
+                target_model = ref.klass
+                target_model.columns_hash[ref.association_primary_key]
               end
 
             # Mark where clause referencing the appropriate alias IF it's not the root table, as there is no association to reference
@@ -136,6 +136,119 @@ module Praxis
             end
           else
             false
+          end
+        end
+
+        # rubocop:disable Metrics/ParameterLists,Naming/MethodParameterName
+        def self.add_clause(query:, column_prefix:, column_object:, op:, value:, fuzzy:, association_key_column:)
+          likeval = get_like_value(value, fuzzy)
+
+          association_op = nil
+          case op
+          when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
+            op = '!='
+            value = nil # Enforce it is indeed nil (should be)
+            association_op = :not_null if association_key_column && !column_object
+          when '!!'
+            op = '='
+            value = nil # Enforce it is indeed nil (should be)
+            association_op = :null if association_key_column && !column_object
+          end
+
+          if association_op
+            neg = association_op == :not_null
+            qr = quote_right_part(query: query, value: nil, column_object: association_key_column, negative: neg)
+            return query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: association_key_column)} #{qr}")
+          end
+
+          # Add an AND along with the condition, which ensures the left outter join 'exists' for it
+          # Normally this wouldn't be necessary as a condition on a given value mathing would imply the related row was there
+          # but this is not the case for NULL conditions, as the foreign column would match a  NULL value, but not because the related column
+          # is NULL, but because the whole missing related row would appear with all fields null
+          # NOTE: we don't need to do it for conditions applying to the root of the tree (there isn't a join to it)
+          if association_key_column
+            qr = quote_right_part(query: query, value: nil, column_object: association_key_column, negative: true)
+            query = query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: association_key_column)} #{qr}")
+          end
+
+          case op
+          when '='
+            if likeval
+              add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'LIKE', value: likeval)
+            else
+              quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: false)
+              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
+            end
+          when '!='
+            if likeval
+              add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'NOT LIKE', value: likeval)
+            else
+              quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: true)
+              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
+            end
+          when '>'
+            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>', value: value)
+          when '<'
+            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<', value: value)
+          when '>='
+            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>=', value: value)
+          when '<='
+            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<=', value: value)
+          else
+            raise "Unsupported Operator!!! #{op}"
+          end
+        end
+        # rubocop:enable Metrics/ParameterLists,Naming/MethodParameterName
+
+        # rubocop:disable Naming/MethodParameterName
+        def self.add_safe_where(query:, tab:, col:, op:, value:)
+          quoted_value = query.connection.quote_default_expression(value, col)
+          query.where("#{quote_column_path(query: query, prefix: tab, column_object: col)} #{op} #{quoted_value}")
+        end
+        # rubocop:enable Naming/MethodParameterName
+
+        def self.quote_column_path(query:, prefix:, column_object:)
+          c = query.connection
+          quoted_column = c.quote_column_name(column_object.name)
+          if prefix
+            quoted_table = c.quote_table_name(prefix)
+            "#{quoted_table}.#{quoted_column}"
+          else
+            quoted_column
+          end
+        end
+
+        def self.quote_right_part(query:, value:, column_object:, negative:)
+          conn = query.connection
+          if value.nil?
+            no = negative ? ' NOT' : ''
+            "IS#{no} #{conn.quote_default_expression(value, column_object)}"
+          elsif value.is_a?(Array)
+            no = negative ? 'NOT ' : ''
+            list = value.map { |v| conn.quote_default_expression(v, column_object) }
+            "#{no}IN (#{list.join(',')})"
+          elsif value.is_a?(Range)
+            raise 'TODO!'
+          else
+            op = negative ? '<>' : '='
+            "#{op} #{conn.quote_default_expression(value, column_object)}"
+          end
+        end
+
+        # Returns nil if the value was not a fuzzzy pattern
+        def self.get_like_value(value, fuzzy)
+          is_fuzzy = fuzzy.is_a?(Array) ? !fuzzy.compact.empty? : fuzzy
+          return unless is_fuzzy
+
+          raise MultiMatchWithFuzzyNotAllowedByAdapter unless value.is_a?(String)
+
+          case fuzzy
+          when :start_end
+            "%#{value}%"
+          when :start
+            "%#{value}"
+          when :end
+            "#{value}%"
           end
         end
 
@@ -233,120 +346,11 @@ module Praxis
           { associations_hash: h, conditions: conditions }
         end
 
-        def self.add_clause(query:, column_prefix:, column_object:, op:, value:, fuzzy:, association_key_column:)
-          likeval = get_like_value(value, fuzzy)
-
-          association_op = nil
-          case op
-          when '!' # name! means => name IS NOT NULL (and the incoming value is nil)
-            op = '!='
-            value = nil # Enforce it is indeed nil (should be)
-            association_op = :not_null if association_key_column && !column_object
-          when '!!'
-            op = '='
-            value = nil # Enforce it is indeed nil (should be)
-            association_op = :null if association_key_column && !column_object
-          end
-
-          if association_op
-            neg = association_op == :not_null
-            qr = quote_right_part(query: query, value: nil, column_object: association_key_column, negative: neg)
-            return query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: association_key_column)} #{qr}")
-          end
-
-          # Add an AND along with the condition, which ensures the left outter join 'exists' for it
-          # Normally this wouldn't be necessary as a condition on a given value mathing would imply the related row was there
-          # but this is not the case for NULL conditions, as the foreign column would match a  NULL value, but not because the related column
-          # is NULL, but because the whole missing related row would appear with all fields null
-          # NOTE: we don't need to do it for conditions applying to the root of the tree (there isn't a join to it)
-          if association_key_column
-            qr = quote_right_part(query: query, value: nil, column_object: association_key_column, negative: true)
-            query = query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: association_key_column)} #{qr}")
-          end
-
-          case op
-          when '='
-            if likeval
-              add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'LIKE', value: likeval)
-            else
-              quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: false)
-              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
-            end
-          when '!='
-            if likeval
-              add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'NOT LIKE', value: likeval)
-            else
-              quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: true)
-              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
-            end
-          when '>'
-            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>', value: value)
-          when '<'
-            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<', value: value)
-          when '>='
-            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>=', value: value)
-          when '<='
-            add_safe_where(query: query, tab: column_prefix, col: column_object, op: '<=', value: value)
-          else
-            raise "Unsupported Operator!!! #{op}"
-          end
-        end
-
-        def self.add_safe_where(query:, tab:, col:, op:, value:)
-          quoted_value = query.connection.quote_default_expression(value, col)
-          query.where("#{quote_column_path(query: query, prefix: tab, column_object: col)} #{op} #{quoted_value}")
-        end
-
-        def self.quote_column_path(query:, prefix:, column_object:)
-          c = query.connection
-          quoted_column = c.quote_column_name(column_object.name)
-          if prefix
-            quoted_table = c.quote_table_name(prefix)
-            "#{quoted_table}.#{quoted_column}"
-          else
-            quoted_column
-          end
-        end
-
-        def self.quote_right_part(query:, value:, column_object:, negative:)
-          conn = query.connection
-          if value.nil?
-            no = negative ? ' NOT' : ''
-            "IS#{no} #{conn.quote_default_expression(value, column_object)}"
-          elsif value.is_a?(Array)
-            no = negative ? 'NOT ' : ''
-            list = value.map { |v| conn.quote_default_expression(v, column_object) }
-            "#{no}IN (#{list.join(',')})"
-          elsif value.is_a?(Range)
-            raise 'TODO!'
-          else
-            op = negative ? '<>' : '='
-            "#{op} #{conn.quote_default_expression(value, column_object)}"
-          end
-        end
-
-        # Returns nil if the value was not a fuzzzy pattern
-        def self.get_like_value(value, fuzzy)
-          is_fuzzy = fuzzy.is_a?(Array) ? !fuzzy.compact.empty? : fuzzy
-          if is_fuzzy
-            raise MultiMatchWithFuzzyNotAllowedByAdapter unless value.is_a?(String)
-
-            case fuzzy
-            when :start_end
-              "%#{value}%"
-            when :start
-              "%#{value}"
-            when :end
-              "#{value}%"
-            end
-          end
-        end
-
         # The value that we need to stick in the references method is different in the latest Rails
         maj, min, = ActiveRecord.gem_version.segments
         if maj == 5 || (maj == 6 && min.zero?)
           # In AR 6 (and 6.0) the references are simple strings
-          def build_reference_value(column_prefix, query: nil)
+          def build_reference_value(column_prefix, **_args)
             column_prefix
           end
         else

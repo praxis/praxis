@@ -133,6 +133,7 @@ module Praxis
             end
             @parent_group = parent_group
           end
+          # rubocop:enable Naming/MethodParameterName
 
           def dump
             "( #{@items.map(&:dump).join(" #{type.upcase} ")} )"

@@ -43,7 +43,7 @@ module Praxis
 
     def handle; end
 
-    def add_part(name = nil, part)
+    def add_part(part, name = nil)
       @form_data ||= begin
         form = MIME::Multipart::FormData.new
         @headers.merge! form.headers.headers

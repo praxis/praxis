@@ -47,4 +47,7 @@ Style/OptionalBooleanParameter:
   Enabled: false
   
 Lint/Void:
-  Enabled: false  
+  Enabled: false
+  
+Lint/MissingSuper:
+  Enabled: false    

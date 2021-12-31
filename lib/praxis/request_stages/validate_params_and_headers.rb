@@ -11,7 +11,7 @@ module Praxis
       end
 
       def path
-        @_path ||= (@parent.path + [name])
+        @path ||= (@parent.path + [name])
       end
 
       def execute
@@ -41,15 +41,15 @@ module Praxis
 
         errors = request.validate_headers(CONTEXT_FOR[:headers])
         errors += request.validate_params(CONTEXT_FOR[:params])
-        if errors.any?
-          message = 'Error validating request data.'
-          validation_handler.handle!(
-            summary: message,
-            errors: errors,
-            request: request,
-            stage: name
-          )
-        end
+        return unless errors.any?
+
+        message = 'Error validating request data.'
+        validation_handler.handle!(
+          summary: message,
+          errors: errors,
+          request: request,
+          stage: name
+        )
       end
     end
   end

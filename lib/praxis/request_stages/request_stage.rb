@@ -85,7 +85,7 @@ module Praxis
 
           applicable = cb.select do |(conditions, _handler)|
             if conditions.key?(:actions)
-              (conditions[:actions].include? action.name) ? true : false
+              conditions[:actions].include?(action.name) ? true : false
             else
               true
             end

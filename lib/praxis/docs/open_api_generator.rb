@@ -107,7 +107,6 @@ module Praxis
         processed_types
       end
 
-      # rubocop:disable Metrics/BlockNesting
       def scan_dump_for_types(data, processed_types)
         newfound_types = Set.new
         case data
@@ -128,7 +127,6 @@ module Praxis
         end
         newfound_types
       end
-      # rubocop:enable Metrics/BlockNesting
 
       def write_version_file(version)
         # version_info = infos_by_version[version]

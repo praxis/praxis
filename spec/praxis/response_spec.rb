@@ -135,7 +135,7 @@ describe Praxis::Response do
       context 'with a name' do
         let(:part_name) { 'a-part' }
         before do
-          response.add_part(part_name, part)
+          response.add_part(part, part_name)
         end
 
         it 'adds the part' do

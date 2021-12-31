@@ -9,7 +9,7 @@ AllCops:
     - "pkg/**/*"
     - "vendor/cache/**/*"
     - "tasks/thor/templates/**/*"
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 2.5
   NewCops: disable
 
 Metrics/BlockLength:

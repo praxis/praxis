@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
 
   spec.homepage = 'https://github.com/praxis/praxis'
   spec.license = 'MIT'
-  spec.required_ruby_version = '>=2.1'
+  spec.required_ruby_version = '>=2.5'
 
   spec.require_paths = ['lib']
   spec.files         = `git ls-files -z`.split("\x0")

@@ -14,6 +14,7 @@ module Praxis
       @identifier = MediaTypeIdentifier.load('multipart/form-data').freeze
 
       def self.inherited(klass)
+        super
         klass.instance_eval do
           @attributes = FuzzyHash.new
           @saved_blocks = []
@@ -51,11 +52,9 @@ module Praxis
 
       def self.payload_type(type = nil, **opts, &block)
         if type.nil?
-          if block_given?
-            type = Attributor::Struct
-          else
-            return @payload_type
-          end
+          return @payload_type unless block_given?
+
+          type = Attributor::Struct
         end
         @payload_type = Attributor.resolve_type(type)
         @payload_attribute = Attributor::Attribute.new(@payload_type, **opts, &block)
@@ -103,7 +102,7 @@ module Praxis
         end
       end
 
-      def self.file(name, payload_type = nil, filename: nil, **opts, &block)
+      def self.file(name, payload_type = nil, **opts, &block)
         part(name, payload_type, filename: true, **opts, &block)
       end
 
@@ -182,7 +181,6 @@ module Praxis
             part_example = part_attribute.example
             key_to_use = part_name.is_a?(Regexp) ? part_name.source : part_name
 
-            part_info = {}
             if (payload_attribute = part_attribute.options[:payload_attribute])
               props[key_to_use] = payload_attribute.as_json_schema(example: part_example.payload)
             end
@@ -205,7 +203,7 @@ module Praxis
         hash
       end
 
-      def self.as_json_schema(shallow: false, example: nil, attribute_options: {})
+      def self.as_json_schema(attribute_options: {}, **_other)
         as_openapi_request_body(attribute_options: attribute_options)
       end
 
@@ -251,7 +249,7 @@ module Praxis
             sub_hash[:options] = {}
             sub_hash[:options][:multiple] = true if multiple.include?(part_name)
 
-            if (payload_attribute = options.delete :payload_attribute) && (required = payload_attribute.options[:required])
+            if (payload_attribute = options.delete :payload_attribute) && payload_attribute.options[:required]
               sub_hash[:options][:required] = true
             end
           end
@@ -330,14 +328,14 @@ module Praxis
       end
 
       def validate(context = Attributor::DEFAULT_ROOT_CONTEXT)
-        errors = each_with_index.each_with_object([]) do |(part, idx), errors|
+        errors = each_with_index.each_with_object([]) do |(part, idx), error_list|
           sub_context = if part.name
                           self.class.generate_subcontext(context, part.name)
                         else
                           context + ["at(#{idx})"]
                         end
 
-          errors.push(*part.validate(sub_context))
+          error_list.push(*part.validate(sub_context))
         end
 
         self.class.attributes.each do |name, attribute|

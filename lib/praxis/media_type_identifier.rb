@@ -12,7 +12,7 @@ module Praxis
     # the syntax for type identifiers is substantially narrower than what we accept there.
     #
     # Note that this ONLY matches type, subtype and suffix; we handle options differently.
-    VALID_TYPE = %r{^\s*(?<type>[^/]+)/(?<subtype>[^+]+)(\+(?<suffix>[^; ]+))?\s*$}x.freeze
+    VALID_TYPE = %r{^\s*(?<type>[^/]+)/(?<subtype>[^+]+)(?<nothing>\+(?<suffix>[^; ]+))?\s*$}x.freeze
 
     # Pattern that separates parameters of a media type from each other, and from the base identifier.
     PARAMETER_SEPARATOR = /\s*;\s*/x.freeze

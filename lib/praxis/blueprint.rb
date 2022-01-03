@@ -42,7 +42,7 @@ module Praxis
 
     extend Finalizable
 
-    @@caching_enabled = false
+    @@caching_enabled = false # rubocop:disable Style/ClassVars
 
     attr_reader :validating
     attr_accessor :object
@@ -139,7 +139,7 @@ module Praxis
     end
 
     def self.caching_enabled=(caching_enabled)
-      @@caching_enabled = caching_enabled
+      @@caching_enabled = caching_enabled # rubocop:disable Style/ClassVars
     end
 
     # Fetch current blueprint cache, scoped by this class

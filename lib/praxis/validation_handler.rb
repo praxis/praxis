@@ -3,7 +3,9 @@
 module Praxis
   class ValidationHandler
     # Should return the Response to send back
-    def handle!(summary:, request:, stage:, errors: nil, exception: nil, **opts)
+    def handle!(summary:, errors: nil, exception: nil, **opts)
+      opts.delete(:request)
+      opts.delete(:stage)
       Responses::ValidationError.new(summary: summary, errors: errors, exception: exception, **opts)
     end
   end

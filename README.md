@@ -2,8 +2,9 @@
 
 [//]: # ( COMMENTED OUT UNTIL GEMNASIUM CAN SEE THE REPOS: [![Dependency Status][gemnasium-img-url]][gemnasium-url])
 
-[travis-img-url]: https://travis-ci.org/praxis/praxis.svg?branch=master
-[travis-ci-url]:https://travis-ci.org/praxis/praxis
+
+[travis-img-url]: https://app.travis-ci.com/praxis/praxis.svg?branch=master
+[travis-ci-url]: https://app.travis-ci.com/praxis/praxis
 [coveralls-img-url]:https://coveralls.io/repos/github/praxis/praxis/badge.svg?branch=master
 [coveralls-url]:https://coveralls.io/github/praxis/praxis?branch=master
 [gemnasium-img-url]:https://gemnasium.com/praxis/praxis.svg

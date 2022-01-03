@@ -31,6 +31,7 @@ It is every maintainer's responsibility to:
   list.
 4. Make sure their component respects the philosophy, design and
   road map of the project.
+5. Be inclusive of the different ways to develop and use the framework
 
 ## How are decisions made?
 

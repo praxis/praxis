@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 module Praxis
   module Responses
     class MultipartOk < Ok
-
-      def initialize(status:self.class.status, headers:{}, body:'')
+      def initialize(status: self.class.status, headers: {}, body: '')
         @name    = response_name
         @status  = status
         @headers = headers
@@ -12,12 +13,9 @@ module Praxis
       def handle
         case @body
         when Praxis::Types::MultipartArray
-          if @headers['Content-Type'].nil?
-            @headers['Content-Type'] = @body.content_type
-          end
+          @headers['Content-Type'] = @body.content_type if @headers['Content-Type'].nil?
         end
       end
-
 
       def encode!
         case @body
@@ -36,9 +34,7 @@ module Praxis
 
         [@status, @headers, @body]
       end
-
     end
-
   end
 
   ApiDefinition.define do |api|
@@ -47,5 +43,4 @@ module Praxis
       media_type media_type
     end
   end
-
 end

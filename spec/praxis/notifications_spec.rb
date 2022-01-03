@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Notifications do
-
   let(:events) { [] }
 
   before do
-    Praxis::Notifications.subscribe('render') do |name, start, finish, id, payload|
+    Praxis::Notifications.subscribe('render') do |_name, _start, _finish, _id, payload|
       events << payload
     end
 
@@ -17,7 +18,6 @@ describe Praxis::Notifications do
 
   it 'works' do
     expect(events).to have(2).items
-    expect(events).to match [{extra: :information}, {extra: :single}]
+    expect(events).to match [{ extra: :information }, { extra: :single }]
   end
-
 end

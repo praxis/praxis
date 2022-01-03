@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 module Praxis
   module Extensions
     module AttributeFiltering
       class FilterTreeNode
         attr_reader :path, :conditions, :children
+
         # Parsed_filters is an Array of {name: X, op: Y, value: Z} ... exactly the format of the FilteringParams.load method
         # It can also contain a :node_object
         def initialize(parsed_filters, path: [])
@@ -12,9 +15,9 @@ module Praxis
           children_data = {} # Hash with keys as names of the first level component of the children nodes (and values as array of matching filters)
           parsed_filters.map do |hash|
             *components = hash[:name].to_s.split('.')
-            if components.empty?
-              return
-            elsif components.size == 1
+            next if components.empty?
+
+            if components.size == 1
               @conditions << hash.slice(:name, :op, :value, :fuzzy, :node_object)
             else
               children_data[components.first] ||= []
@@ -27,7 +30,7 @@ module Praxis
               _parent, *rest = item[:name].to_s.split('.')
               item.merge(name: rest.join('.'))
             end
-            hash[name] = self.class.new(sub_filters, path: path + [name] )
+            hash[name] = self.class.new(sub_filters, path: path + [name])
           end
         end
       end

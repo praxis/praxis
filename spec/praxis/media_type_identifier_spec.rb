@@ -1,4 +1,8 @@
-require "spec_helper"
+# frozen_string_literal: true
+
+# rubocop:disable Style/StringConcatenation
+
+require 'spec_helper'
 
 describe Praxis::MediaTypeIdentifier do
   let(:example) { 'application/ice-cream+sundae; nuts="true"; fudge="true"' }
@@ -14,7 +18,7 @@ describe Praxis::MediaTypeIdentifier do
     end
 
     context 'of empty string values' do
-      let(:example) { "" }
+      let(:example) { '' }
       it 'returns nil' do
         expect(subject).to be(nil)
       end
@@ -47,8 +51,6 @@ describe Praxis::MediaTypeIdentifier do
       #   pending("need to stop using a regexp to do a context-free parser's job")
       #   expect(described_class.new(tricky_example).parameters['sauce']).to eq('yes; absolutely')
       # end
-
-
     end
 
     context 'given a malformed type' do
@@ -164,7 +166,7 @@ describe Praxis::MediaTypeIdentifier do
 
     let(:with_suffix) { 'application/vnd.widget+xml' }
     let(:with_subtype) { 'text/xml' }
-    let(:with_both) { 'text/json+xml' } #nonsensical but valid!
+    let(:with_both) { 'text/json+xml' } # nonsensical but valid!
 
     it 'uses the suffix' do
       expect(subject.new(with_suffix).handler_name).to eq('xml')
@@ -192,15 +194,15 @@ describe Praxis::MediaTypeIdentifier do
 
     it 'adds parameters' do
       expect(simple_subject + 'nuts=true').to \
-      eq(described_class.new('application/vnd.icecream; nuts=true'))
+        eq(described_class.new('application/vnd.icecream; nuts=true'))
 
       expect(simple_subject + '; nuts=true').to \
-      eq(described_class.new('application/vnd.icecream; nuts=true'))
+        eq(described_class.new('application/vnd.icecream; nuts=true'))
     end
 
     it 'adds suffix and parameters' do
       expect(simple_subject + 'xml; nuts=true').to \
-      eq(described_class.new('application/vnd.icecream+xml; nuts=true'))
+        eq(described_class.new('application/vnd.icecream+xml; nuts=true'))
     end
 
     it 'replaces the suffix' do
@@ -210,7 +212,7 @@ describe Praxis::MediaTypeIdentifier do
 
     it 'replaces existing parameters and adds new ones' do
       expect(complex_subject + 'nuts=false; cherry=true').to \
-      eq(described_class.new('application/vnd.icecream+json; cherry=true; nuts=false'))
+        eq(described_class.new('application/vnd.icecream+json; cherry=true; nuts=false'))
 
       expect(complex_subject + '; nuts=false; cherry=true').to \
         eq(described_class.new('application/vnd.icecream+json; cherry=true; nuts=false'))
@@ -236,3 +238,4 @@ describe Praxis::MediaTypeIdentifier do
     end
   end
 end
+# rubocop:enable Style/StringConcatenation

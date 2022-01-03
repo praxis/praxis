@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Volume < Praxis::MediaType
   identifier 'application/vnd.acme.volume'
 
@@ -23,5 +25,4 @@ class Volume < Praxis::MediaType
 
     identifier 'application/vnd.acme.volumes'
   end
-
 end

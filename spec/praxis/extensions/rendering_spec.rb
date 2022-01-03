@@ -1,19 +1,20 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Extensions::Rendering do
-
   let(:test_class) do
-    Struct.new(:media_type, :expanded_fields, :response, :request) do |klass|
+    Struct.new(:media_type, :expanded_fields, :response, :request) do |_klass|
       include Praxis::Extensions::Rendering
     end
   end
 
   let(:media_type) { Person }
-  let(:expanded_fields) { {id: true, name: true} }
+  let(:expanded_fields) { { id: true, name: true } }
   let(:response) { double('response', headers: {}) }
   let(:request) { double('request') }
 
-  let(:object) { {id: '1', name: 'bob', href: '/people/bob'} }
+  let(:object) { { id: '1', name: 'bob', href: '/people/bob' } }
   subject(:instance) { test_class.new(media_type, expanded_fields, response, request) }
 
   context '#render' do
@@ -26,7 +27,7 @@ describe Praxis::Extensions::Rendering do
   context '#display' do
     context 'without exception' do
       before do
-        expect(response).to receive(:body=).with({id: 1, name: 'bob'})
+        expect(response).to receive(:body=).with({ id: 1, name: 'bob' })
       end
 
       subject!(:output) { instance.display(object) }
@@ -43,15 +44,15 @@ describe Praxis::Extensions::Rendering do
     context 'with a rendering exception' do
       let(:handler_params) do
         {
-          summary: "Circular Rendering Error when rendering response. " +
-                 "Please especify a view to narrow the dependent fields, or narrow your field set.",
+          summary: 'Circular Rendering Error when rendering response. ' \
+            'Please especify a view to narrow the dependent fields, or narrow your field set.',
           exception: circular_exception,
           request: request,
           stage: :action,
           errors: nil
         }
       end
-      let(:circular_exception){ Praxis::Renderer::CircularRenderingError.new(object, "ctx") }
+      let(:circular_exception) { Praxis::Renderer::CircularRenderingError.new(object, 'ctx') }
       it 'catches a circular rendering exception' do
         expect(instance).to receive(:render).and_raise(circular_exception)
         expect(Praxis::Application.instance.validation_handler).to receive(:handle!).with(handler_params)
@@ -59,5 +60,4 @@ describe Praxis::Extensions::Rendering do
       end
     end
   end
-
 end

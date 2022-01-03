@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module Praxis
   class ErrorHandler
-
     def handle!(request, error)
       Application.instance.logger.error error.inspect
       error.backtrace.each do |line|
@@ -11,6 +12,5 @@ module Praxis
       response.request = request
       response.finish
     end
-
   end
 end

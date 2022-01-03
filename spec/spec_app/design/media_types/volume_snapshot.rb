@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class VolumeSnapshot < Praxis::MediaType
   identifier 'application/json'
 
@@ -26,5 +28,4 @@ class VolumeSnapshot < Praxis::MediaType
       attribute :href
     end
   end
-
 end

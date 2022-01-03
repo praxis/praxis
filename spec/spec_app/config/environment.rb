@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SetHeader
   def initialize(app, header, value)
     @app = app
@@ -8,12 +10,25 @@ class SetHeader
   def call(env)
     status, headers, body = @app.call(env)
     headers[@header] = @value
-    [status, headers,body]
+    [status, headers, body]
+  end
+end
+
+class LowBudgetMutex
+  include Singleton
+
+  attr_reader :after_app_controllers
+
+  def initialize
+    @after_app_controllers = nil
+  end
+
+  def after_app_controllers_called
+    @after_app_controllers = :worked
   end
 end
 
 Praxis::Application.configure do |application|
-
   application.middleware SetHeader, 'Spec-Middleware', 'used'
 
   application.bootloader.use SimpleAuthenticationPlugin, config_file: 'config/authentication.yml'
@@ -26,12 +41,11 @@ Praxis::Application.configure do |application|
 
   # Silly callback code pieces to test that the deferred callbacks work even for sub-stages
   application.bootloader.after :app, :controllers do
-    $after_app_controllers = :worked
+    LowBudgetMutex.instance.after_app_controllers_called
   end
   application.bootloader.after :app do
-    raise "After sub-stage hooks not working!" unless $after_app_controllers == :worked
+    raise 'After sub-stage hooks not working!' unless LowBudgetMutex.instance.after_app_controllers == :worked
   end
-
 
   application.layout do
     layout do
@@ -49,5 +63,4 @@ Praxis::Application.configure do |application|
       end
     end
   end
-
 end

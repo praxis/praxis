@@ -1,31 +1,28 @@
+# frozen_string_literal: true
+
 module Praxis
   class Response
-    attr_reader :name
-    attr_reader :parts
+    attr_reader :name, :parts
 
-    attr_accessor :status
-    attr_accessor :headers
-    attr_accessor :body
-    attr_accessor :request
+    attr_accessor :status, :headers, :body, :request
 
     class << self
-      attr_accessor :response_name
-      attr_accessor :status
+      attr_accessor :response_name, :status
     end
 
     def self.inherited(klass)
       klass.response_name = klass.name.demodulize.underscore.to_sym
-      klass.status = self.status if self.status
+      klass.status = status if status
     end
 
-    def initialize(status:self.class.status, headers:{}, body: nil, location: nil)
+    def initialize(status: self.class.status, headers: {}, body: nil, location: nil)
       @name    = response_name
       @status  = status
       @headers = headers
       @body    = body
       @headers['Location'] = location if location
       @form_data = nil
-      @parts = Hash.new
+      @parts = {}
     end
 
     # Determine the content type of this response.
@@ -44,10 +41,9 @@ module Praxis
       headers['Content-Type'] = MediaTypeIdentifier.load(identifier).to_s
     end
 
-    def handle
-    end
+    def handle; end
 
-    def add_part(name=nil, part)
+    def add_part(part, name = nil)
       @form_data ||= begin
         form = MIME::Multipart::FormData.new
         @headers.merge! form.headers.headers
@@ -63,8 +59,7 @@ module Praxis
       self.class.response_name
     end
 
-    def format!
-    end
+    def format!; end
 
     def encode!
       case @body
@@ -85,11 +80,7 @@ module Praxis
       @body = Array(@body)
 
       if @form_data
-        if @body.any?
-          unless @body.last =~ /\n$/
-            @body << "\r\n"
-          end
-        end
+        @body << "\r\n" if @body.any? && @body.last !~ /\n$/
 
         @parts.each do |name, part|
           part.encode!
@@ -108,7 +99,6 @@ module Praxis
       [@status, @headers, @body]
     end
 
-
     # Validates the response
     #
     # @param [Object] action
@@ -118,12 +108,10 @@ module Praxis
 
       unless (response_definition = action.responses[response_name])
         raise Exceptions::Validation, "Attempting to return a response with name #{response_name} " \
-          "but no response definition with that name can be found"
+          'but no response definition with that name can be found'
       end
 
       response_definition.validate(self, validate_body: validate_body)
     end
-
-
   end
 end

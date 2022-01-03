@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'singleton'
 
 module AuthorizationPlugin
@@ -11,7 +13,8 @@ module AuthorizationPlugin
     end
 
     def initialize
-      @options = {config_file: 'config/authorization.yml'}
+      super
+      @options = { config_file: 'config/authorization.yml' }
     end
 
     def prepare_config!(node)
@@ -30,7 +33,6 @@ module AuthorizationPlugin
 
       (request.action.required_abilities - abilities).empty?
     end
-
   end
 
   module Request
@@ -43,13 +45,10 @@ module AuthorizationPlugin
     extend ActiveSupport::Concern
 
     included do
-
       before :action do |controller|
         verify_abilities(controller.request)
       end
-
     end
-
 
     module ClassMethods
       def verify_abilities(request)
@@ -57,19 +56,16 @@ module AuthorizationPlugin
 
         authorized = AuthorizationPlugin::Plugin.instance.authorized?(request)
 
-        unless authorized
-          return Praxis::Responses::Forbidden.new
-        end
+        return Praxis::Responses::Forbidden.new unless authorized
       end
     end
 
     def subject
-      #p [self, :subject]
+      # p [self, :subject]
     end
   end
 
   module EndpointDefinition
-
   end
 
   module ActionDefinition
@@ -77,6 +73,7 @@ module AuthorizationPlugin
 
     included do
       attr_accessor :required_abilities
+
       decorate_docs do |action, docs|
         docs[:required_abilities] = action.required_abilities
       end
@@ -90,6 +87,4 @@ module AuthorizationPlugin
       requires_authentication true
     end
   end
-
-
 end

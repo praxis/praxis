@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 require 'praxis/extensions/field_selection'
 
 describe Praxis::Extensions::FieldExpansion do
-
   # include the ActionDefinitionExtension module directly, as that's where the
   # bulk of lies, and by including this instead of the base FieldExpansion module
   # we avoid the side-effect of injecting the ActionDefinitionExtension into
@@ -24,8 +25,7 @@ describe Praxis::Extensions::FieldExpansion do
 
   let(:request_params) do
     double('params',
-      fields: Praxis::Extensions::FieldSelection::FieldSelector.for(Person).load(fields)
-    )
+           fields: Praxis::Extensions::FieldSelection::FieldSelector.for(Person).load(fields))
   end
 
   let(:request) { double('Praxis::Request', params: request_params) }
@@ -33,26 +33,25 @@ describe Praxis::Extensions::FieldExpansion do
 
   let(:fields) { nil }
 
-  let(:test_attributes) {  }
+  let(:test_attributes) {}
   let(:test_params) { double('test_params', attributes: test_attributes) }
 
-  subject(:expansion) { test_instance.expanded_fields(request, media_type)}
+  subject(:expansion) { test_instance.expanded_fields(request, media_type) }
 
   context '#expanded_fields' do
-
     context 'with fields and view params defined' do
       let(:test_attributes) { {} }
 
       context 'with no fields provided' do
         it 'returns the fields for the default view' do
-          expect(expansion).to eq({id: true, name: true})
+          expect(expansion).to eq({ id: true, name: true })
         end
       end
 
       context 'with a set of fields provided' do
         let(:fields) { 'id,name,owner{name}' }
         it 'returns the subset of fields' do
-          expected = {id: true, name: true }
+          expected = { id: true, name: true }
           expect(expansion).to eq expected
         end
       end
@@ -61,9 +60,8 @@ describe Praxis::Extensions::FieldExpansion do
     context 'with an action with no params' do
       let(:test_params) { nil }
       it 'ignores incoming parameters and expands for the default fieldset' do
-        expect(expansion).to eq({id: true, name: true})
+        expect(expansion).to eq({ id: true, name: true })
       end
     end
   end
-
 end

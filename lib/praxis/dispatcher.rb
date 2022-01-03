@@ -1,35 +1,33 @@
-module Praxis
+# frozen_string_literal: true
 
+module Praxis
   CONTEXT_FOR = {
-    params: [Attributor::ROOT_PREFIX, "params".freeze],
-    headers: [Attributor::ROOT_PREFIX, "headers".freeze],
-    payload: [Attributor::ROOT_PREFIX, "payload".freeze]
+    params: [Attributor::ROOT_PREFIX, 'params'],
+    headers: [Attributor::ROOT_PREFIX, 'headers'],
+    payload: [Attributor::ROOT_PREFIX, 'payload']
   }.freeze
 
   class Dispatcher
-    attr_reader :controller
-    attr_reader :action
-    attr_reader :request
-    attr_reader :application
+    attr_reader :controller, :action, :request, :application
 
-    @deferred_callbacks = Hash.new do |hash,stage|
-      hash[stage] = {before: [], after:[]}
+    @deferred_callbacks = Hash.new do |hash, stage|
+      hash[stage] = { before: [], after: [] }
     end
 
     class << self
       attr_reader :deferred_callbacks
     end
 
-    def self.before(*stage_path, **conditions, &block)
+    def self.before(*_stage_path, **conditions, &block)
       @deferred_callbacks[:before] << [conditions, block]
     end
 
-    def self.after(*stage_path, **conditions, &block)
+    def self.after(*_stage_path, **conditions, &block)
       @deferred_callbacks[:after] << [conditions, block]
     end
 
     def self.current(thread: Thread.current, application: Application.instance)
-      thread[:praxis_dispatcher] ||= self.new(application: application)
+      thread[:praxis_dispatcher] ||= new(application: application)
     end
 
     def initialize(application: Application.instance)
@@ -43,20 +41,18 @@ module Praxis
       @stages << RequestStages::Validate.new(:validate, self)
       @stages << RequestStages::Action.new(:action, self)
       @stages << RequestStages::Response.new(:response, self)
-      @stages.each do |s|
-        s.setup!
-      end
+      @stages.each(&:setup!)
       setup_deferred_callbacks!
     end
 
     def setup_deferred_callbacks!
       self.class.deferred_callbacks.each do |stage_name, callbacks|
         callbacks[:before].each do |(*stage_path, block)|
-          self.before(stage_name, *stage_path, &block)
+          before(stage_name, *stage_path, &block)
         end
 
         callbacks[:after].each do |(*stage_path, block)|
-          self.after(stage_name, *stage_path, &block)
+          after(stage_name, *stage_path, &block)
         end
       end
     end
@@ -76,38 +72,35 @@ module Praxis
       @action = action
       @request = request
 
-      payload = {request: request, response: nil, controller: @controller}
+      payload = { request: request, response: nil, controller: @controller }
 
-      instrumented_dispatch( payload )
-
+      instrumented_dispatch(payload)
     ensure
       @controller = nil
       @action = nil
       @request = nil
     end
 
-    def instrumented_dispatch( payload )
-      Notifications.instrument 'praxis.request.all'.freeze, payload do
-        begin
-          # the response stage must be the final stage in the list
-          *stages, response_stage = @stages
+    def instrumented_dispatch(payload)
+      Notifications.instrument 'praxis.request.all', payload do
+        # the response stage must be the final stage in the list
+        *stages, response_stage = @stages
 
-          stages.each do |stage|
-            result = stage.run
-            case result
-            when Response
-              controller.response = result
-              break
-            end
+        stages.each do |stage|
+          result = stage.run
+          case result
+          when Response
+            controller.response = result
+            break
           end
-
-          response_stage.run
-
-          payload[:response] = controller.response
-          controller.response.finish
-        rescue => e
-          @application.error_handler.handle!(request, e)
         end
+
+        response_stage.run
+
+        payload[:response] = controller.response
+        controller.response.finish
+      rescue StandardError => e
+        @application.error_handler.handle!(request, e)
       end
     end
 
@@ -116,9 +109,8 @@ module Praxis
       return unless Praxis::Blueprint.caching_enabled?
 
       Praxis::Blueprint.cache = Hash.new do |hash, key|
-        hash[key] = Hash.new
+        hash[key] = {}
       end
     end
-
   end
 end

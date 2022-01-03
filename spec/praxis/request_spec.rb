@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Request do
-  let(:path) { '/instances/1?junk=foo&api_version=1.0' } 
+  let(:path) { '/instances/1?junk=foo&api_version=1.0' }
   let(:rack_input) { StringIO.new('{"something": "given"}') }
-  let(:env_content_type){ 'application/json' }
+  let(:env_content_type) { 'application/json' }
   let(:env) do
     env = Rack::MockRequest.env_for(path)
     env['rack.input'] = rack_input
@@ -17,9 +19,9 @@ describe Praxis::Request do
 
   let(:context) do
     {
-      params: [Attributor::ROOT_PREFIX, "params".freeze],
-      headers: [Attributor::ROOT_PREFIX, "headers".freeze],
-      payload: [Attributor::ROOT_PREFIX, "payload".freeze]
+      params: [Attributor::ROOT_PREFIX, 'params'],
+      headers: [Attributor::ROOT_PREFIX, 'headers'],
+      payload: [Attributor::ROOT_PREFIX, 'payload']
     }.freeze
   end
 
@@ -29,9 +31,9 @@ describe Praxis::Request do
     request
   end
 
-  its(:verb) { should eq("GET") }
+  its(:verb) { should eq('GET') }
   its(:path) { should eq('/instances/1') }
-  its(:raw_params) { should eq({'junk' => 'foo'}) }
+  its(:raw_params) { should eq({ 'junk' => 'foo' }) }
   its(:version) { should eq('1.0') }
 
   context 'path versioning' do
@@ -42,26 +44,24 @@ describe Praxis::Request do
       allow(
         Praxis::ApiDefinition.instance.info
       ).to receive(:base_path).and_return('/api/v:api_version')
-
     end
 
     let(:path) { '/api/v2.0/instances/1' }
 
-
     its(:version) { should eq '2.0' }
-    #its('class.path_version_prefix'){ should eq("/v") }
-    #its(:path_version_matcher){ should be_kind_of(Regexp) }
-    #it 'uses a "/v*" default matcher with a "version" named capture' do
+    # its('class.path_version_prefix'){ should eq("/v") }
+    # its(:path_version_matcher){ should be_kind_of(Regexp) }
+    # it 'uses a "/v*" default matcher with a "version" named capture' do
     #  match = subject.path_version_matcher.match("/v5.5/something")
     #  expect(match).to_not be(nil)
     #  expect(match['version']).to eq("5.5")
-    #end
+    # end
   end
 
   context 'loading api version' do
-    #let(:request) { Praxis::Request.new(env) }
-    subject(:version){ request.version }
-    let(:versioning_scheme){ Praxis::Request::VERSION_USING_DEFAULTS }
+    # let(:request) { Praxis::Request.new(env) }
+    subject(:version) { request.version }
+    let(:versioning_scheme) { Praxis::Request::VERSION_USING_DEFAULTS }
     before do
       allow(
         Praxis::Application.instance
@@ -69,18 +69,18 @@ describe Praxis::Request do
     end
 
     context 'using X-Api-Header' do
-      let(:env){ {'HTTP_X_API_VERSION' => "5.0", "PATH_INFO" => "/something"} }
-      let(:versioning_scheme){ :header }
+      let(:env) { { 'HTTP_X_API_VERSION' => '5.0', 'PATH_INFO' => '/something' } }
+      let(:versioning_scheme) { :header }
       it { should eq('5.0') }
     end
     context 'using query param' do
       let(:env) { Rack::MockRequest.env_for('/instances/1?junk=foo&api_version=5.0') }
-      let(:versioning_scheme){ :params }
+      let(:versioning_scheme) { :params }
       it { should eq('5.0') }
     end
     context 'using path (with the default pattern matcher)' do
-      let(:env){ Rack::MockRequest.env_for('/v5.0/instances/1?junk=foo') }
-      let(:versioning_scheme){ :path }
+      let(:env) { Rack::MockRequest.env_for('/v5.0/instances/1?junk=foo') }
+      let(:versioning_scheme) { :path }
 
       before do
         allow(
@@ -92,21 +92,21 @@ describe Praxis::Request do
 
     context 'using a method that it is not allowed in the definition' do
       context 'allowing query param but passing it through a header' do
-        let(:env){ {'HTTP_X_API_VERSION' => "5.0", "PATH_INFO" => "/something"} }
-        let(:versioning_scheme){ :params }
+        let(:env) { { 'HTTP_X_API_VERSION' => '5.0', 'PATH_INFO' => '/something' } }
+        let(:versioning_scheme) { :params }
         it { should eq('n/a') }
       end
       context 'allowing header but passing it through param' do
         let(:env) { Rack::MockRequest.env_for('/instances/1?junk=foo&api_version=5.0') }
-        let(:versioning_scheme){ :header }
+        let(:versioning_scheme) { :header }
         it { should eq('n/a') }
       end
     end
 
     context 'using defaults' do
-      subject(:version){ request.version }
+      subject(:version) { request.version }
       context 'would succeed if passed through the header' do
-        let(:env){ {'HTTP_X_API_VERSION' => "5.0", "PATH_INFO" => "/something"} }
+        let(:env) { { 'HTTP_X_API_VERSION' => '5.0', 'PATH_INFO' => '/something' } }
         it { should eq('5.0') }
       end
       context 'would succeed if passed through params' do
@@ -126,9 +126,9 @@ describe Praxis::Request do
       form_data
     end
 
-    let(:rack_input) {
+    let(:rack_input) do
       StringIO.new(form.body.to_s)
-    }
+    end
 
     let(:env) do
       env = Rack::MockRequest.env_for('/instances/1?junk=foo&api_version=1.0')
@@ -138,21 +138,18 @@ describe Praxis::Request do
       env
     end
 
-    #its(:multipart?) { should be(true) }
+    # its(:multipart?) { should be(true) }
 
     it 'works' do
-      #p request #.body
-      #p request #.parts
+      # p request #.body
+      # p request #.parts
     end
-
-
   end
 
   context '#load_headers' do
-
     it 'is done preserving the original case' do
       request.load_headers(context[:headers])
-      expect(request.headers).to eq({"Authorization" => "Secret"})
+      expect(request.headers).to eq({ 'Authorization' => 'Secret' })
     end
 
     it 'performs it using the memoized rack keys from the action (Hacky but...performance is important)' do
@@ -161,7 +158,7 @@ describe Praxis::Request do
     end
   end
 
-  context "performs request validation" do
+  context 'performs request validation' do
     before(:each) do
       request.load_headers(context[:headers])
       request.load_params(context[:params])
@@ -205,17 +202,17 @@ describe Praxis::Request do
     end
 
     context '#load_payload' do
-      let(:load_context){ context[:payload] }
-      let(:parsed_result){ double("parsed") }
+      let(:load_context) { context[:payload] }
+      let(:parsed_result) { double('parsed') }
 
       after do
-        expect(request.action.payload).to receive(:load).with(parsed_result, load_context, content_type: request.content_type.to_s )
-        request.load_payload( load_context )
+        expect(request.action.payload).to receive(:load).with(parsed_result, load_context, content_type: request.content_type.to_s)
+        request.load_payload(load_context)
       end
 
       context 'that is json encoded' do
         let(:rack_input) { StringIO.new('{"one":1,"sub_hash":{"first":"hello"}}') }
-        let(:env_content_type){ 'application/json' }
+        let(:env_content_type) { 'application/json' }
         let(:parsed_result) { Praxis::Handlers::JSON.new.parse(request.raw_payload) }
 
         it 'decodes using the JSON handler' do end

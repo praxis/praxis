@@ -1,22 +1,25 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::RoutingConfig do
-
   let(:endpoint_definition) do
     Class.new do
       include Praxis::EndpointDefinition
-      def self.name; 'MyResource'; end
+      def self.name
+        'MyResource'
+      end
     end
   end
 
-  let(:routing_block) { Proc.new{} }
-  let(:base_path){ '' }
-  let(:default_route_prefix) { "/" + endpoint_definition.name.split("::").last.underscore }
+  let(:routing_block) { proc {} }
+  let(:base_path) { '' }
+  let(:default_route_prefix) { "/#{endpoint_definition.name.split('::').last.underscore}" }
 
-  subject(:routing_config){ Praxis::RoutingConfig.new(base: base_path, &routing_block) }
+  subject(:routing_config) { Praxis::RoutingConfig.new(base: base_path, &routing_block) }
 
   its(:version) { should eq('n/a') }
-  its(:prefix ) { should eq('') }
+  its(:prefix) { should eq('') }
 
   context '#prefix' do
     it 'sets the prefix' do
@@ -35,15 +38,14 @@ describe Praxis::RoutingConfig do
       routing_config.prefix '/people'
       expect(routing_config.prefix).to eq('/people')
     end
-
   end
 
   context '#add_route' do
     let(:path) { '/people' }
     let(:options) { {} }
-    let(:base_path){ '/api' }
-    let(:route) { routing_config.add_route 'GET', path, **options}
-    
+    let(:base_path) { '/api' }
+    let(:route) { routing_config.add_route 'GET', path, **options }
+
     it 'returns a corresponding Praxis::Route' do
       expect(route).to be_kind_of(Praxis::Route)
     end
@@ -53,11 +55,11 @@ describe Praxis::RoutingConfig do
     end
 
     context 'passing  options' do
-      let(:options){ { except: '/special' } }
+      let(:options) { { except: '/special' } }
 
       it 'passes them through the underlying mustermann object (telling it to ignore unknown ones)' do
         expect(Mustermann).to receive(:new).with(base_path + path, hash_including(ignore_unknown_options: true, except: '/special'))
-        expect(route.options).to eq( { except: '/special' })
+        expect(route.options).to eq({ except: '/special' })
       end
     end
 
@@ -82,5 +84,4 @@ describe Praxis::RoutingConfig do
       end
     end
   end
-
 end

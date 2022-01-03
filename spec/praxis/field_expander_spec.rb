@@ -1,11 +1,12 @@
 # frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::FieldExpander do
   let(:field_expander) { Praxis::FieldExpander.new }
   let(:expanded_person_default_fieldset) do
     # The only ones that are not already leaves is the full name, which can expand to first, last
-    PersonBlueprint.default_fieldset.merge!(full_name: {first: true, last: true})
+    PersonBlueprint.default_fieldset.merge!(full_name: { first: true, last: true })
   end
   let(:expanded_address_default_fieldset) do
     # AddressBlueprint' default fieldset already has all attributes as leaves
@@ -96,20 +97,20 @@ describe Praxis::FieldExpander do
 
   context 'expanding a two-dimensional collection' do
     it 'expands the fields discarding the collection nexting nesting' do
-      matrix_type =  Attributor::Collection.of(Attributor::Collection.of(FullName))
+      matrix_type = Attributor::Collection.of(Attributor::Collection.of(FullName))
       expect(field_expander.expand(matrix_type)).to eq(first: true, last: true)
     end
   end
 
   context 'circular expansions' do
     it 'preserve field object identity for circular references' do
-      result = field_expander.expand(PersonBlueprint, address: {resident: true}, work_address: {resident: true})
+      result = field_expander.expand(PersonBlueprint, address: { resident: true }, work_address: { resident: true })
       expect(result[:address][:resident]).to be(result[:work_address][:resident])
     end
 
     context 'with collections of Blueprints' do
       it 'still preserves object identity' do
-        result = field_expander.expand(PersonBlueprint, address: {resident: true}, prior_addresses: {resident: true})
+        result = field_expander.expand(PersonBlueprint, address: { resident: true }, prior_addresses: { resident: true })
         expect(result[:address][:resident]).to be(result[:prior_addresses][:resident])
       end
     end

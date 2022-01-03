@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative '../spec_helper'
 
 describe Praxis::Renderer do
@@ -30,7 +31,7 @@ describe Praxis::Renderer do
       address: {
         state: true,
         street: true,
-        resident:  { name: true }
+        resident: { name: true }
       },
       prior_addresses: { name: true },
       work_address: true,
@@ -45,15 +46,15 @@ describe Praxis::Renderer do
   subject(:output) { renderer.render(person, fields) }
 
   it 'renders existing attributes' do
-    expect(output.keys).to match_array([:name, :full_name, :alive, :address, :prior_addresses, :metadata, :aliases])
+    expect(output.keys).to match_array(%i[name full_name alive address prior_addresses metadata aliases])
 
     expect(output[:name]).to eq person.name
     expect(output[:full_name]).to eq(first: person.full_name.first, last: person.full_name.last)
     expect(output[:alive]).to be false
 
     expect(output[:address]).to eq(state: person.address.state,
-                               street: person.address.street,
-                               resident: { name: person.address.resident.name })
+                                   street: person.address.street,
+                                   resident: { name: person.address.resident.name })
 
     expected_prior_addresses = prior_addresses.collect { |addr| { name: addr.name } }
     expect(output[:prior_addresses]).to match_array(expected_prior_addresses)
@@ -118,18 +119,18 @@ describe Praxis::Renderer do
 
   context 'rendering stuff that breaks badly' do
     it 'does not break badly' do
-      expect{renderer.render(person, {tags: true})}.to_not raise_error
+      expect { renderer.render(person, { tags: true }) }.to_not raise_error
     end
   end
 
   context 'caching rendered objects' do
-    let(:fields) { {full_name: true} }
+    let(:fields) { { full_name: true } }
     it 'caches and returns identical results for the same field objects' do
       expect(person).to receive(:full_name).once.and_call_original
 
-      render_1 = renderer.render(person, fields)
-      render_2 = renderer.render(person, fields)
-      expect(render_1).to be(render_2)
+      render1 = renderer.render(person, fields)
+      render2 = renderer.render(person, fields)
+      expect(render1).to be(render2)
     end
   end
 

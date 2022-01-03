@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Praxis
   module Extensions
     module Pagination
@@ -76,40 +78,32 @@ module Praxis
             default_mode, default_value = target.defaults[:default_mode].first
             case pagination_type
             when :paging
-              if default_mode == :page
-                raise "Cannot disallow page-based pagination if you define a default pagination of:  page: #{default_value}"
-              end
+              raise "Cannot disallow page-based pagination if you define a default pagination of:  page: #{default_value}" if default_mode == :page
+
               target.defaults[:disallow_paging] = true
             when :cursor
-              if default_mode == :by
-                raise "Cannot disallow cursor-based pagination if you define a default pagination of:   by: #{default_value}"
-              end
+              raise "Cannot disallow cursor-based pagination if you define a default pagination of:   by: #{default_value}" if default_mode == :by
+
               target.defaults[:disallow_cursor] = true
             end
           end
 
           def default(spec)
-            unless spec.is_a?(Hash) && spec.keys.size == 1 && [:by, :page].include?(spec.keys.first)
+            unless spec.is_a?(Hash) && spec.keys.size == 1 && %i[by page].include?(spec.keys.first)
               raise "'default' syntax for pagination takes exactly one key specification. Either by: <:fieldname> or page: <num>" \
                     "#{spec} is invalid"
             end
             mode, value = spec.first
             def_mode = case mode
                        when :by
-                         if target.fields_allowed && !target.fields_allowed&.include?(value)
-                           raise "Error setting default pagination. Field #{value} is not amongst the allowed fields."
-                         end
-                         if target.defaults[:disallow_cursor]
-                           raise "Cannot define a default pagination that is cursor based, if cursor-based pagination is disallowed."
-                         end
+                         raise "Error setting default pagination. Field #{value} is not amongst the allowed fields." if target.fields_allowed && !target.fields_allowed&.include?(value)
+                         raise 'Cannot define a default pagination that is cursor based, if cursor-based pagination is disallowed.' if target.defaults[:disallow_cursor]
+
                          { by: value }
                        when :page
-                         unless value.is_a?(Integer)
-                           raise "Error setting default pagination. Initial page should be a integer (but got #{value})"
-                         end
-                         if target.defaults[:disallow_paging]
-                           raise "Cannot define a default pagination that is page-based, if page-based pagination is disallowed."
-                         end
+                         raise "Error setting default pagination. Initial page should be a integer (but got #{value})" unless value.is_a?(Integer)
+                         raise 'Cannot define a default pagination that is page-based, if page-based pagination is disallowed.' if target.defaults[:disallow_paging]
+
                          { page: value }
                        end
             target.defaults[:default_mode] = def_mode
@@ -141,9 +135,8 @@ module Praxis
 
         def self.paging_default_mode(newval = nil)
           if newval
-            unless newval.respond_to?(:keys) && newval.keys.size == 1 && [:by, :page].include?(newval.keys.first)
-              raise "Error setting paging_default_mode, value must be a hash with :by or :page keys"
-            end
+            raise 'Error setting paging_default_mode, value must be a hash with :by or :page keys' unless newval.respond_to?(:keys) && newval.keys.size == 1 && %i[by page].include?(newval.keys.first)
+
             @paging_default_mode = newval
           end
           @paging_default_mode
@@ -152,14 +145,13 @@ module Praxis
         # Abstract class, which needs to be used by subclassing it through the .for method, to link it to a particular
         # MediaType, so that the field name checking and value coercion can be performed
         class << self
-          attr_reader :media_type
-          attr_reader :defaults
+          attr_reader :media_type, :defaults
           attr_accessor :fields_allowed
 
           def for(media_type, **_opts)
             unless media_type < Praxis::MediaType
               raise ArgumentError, "Invalid type: #{media_type.name} for Paginator. " \
-                "Must be a subclass of MediaType"
+                'Must be a subclass of MediaType'
             end
 
             ::Class.new(self) do
@@ -206,11 +198,7 @@ module Praxis
           self
         end
 
-        attr_reader :by
-        attr_reader :from
-        attr_reader :items
-        attr_reader :page
-        attr_reader :total_count
+        attr_reader :by, :from, :items, :page, :total_count
 
         def self.example(_context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           fields = if media_type
@@ -224,10 +212,10 @@ module Praxis
                      from = media_type.attributes[by].example(parent: mt_example).to_s
                      # Make sure to encode the value of the from, as it can contain commas and such
                      # Only add the from parameter if it's not empty (an empty from is not allowed and it's gonna blow up in load)
-                     optional_from_component = (from && !from.empty?) ? ",from=#{CGI.escape(from)}" : ''
+                     optional_from_component = from && !from.empty? ? ",from=#{CGI.escape(from)}" : ''
                      "by=#{by}#{optional_from_component},items=#{defaults[:page_size]}"
                    else
-                     "by=id,from=20,items=100"
+                     'by=id,from=20,items=100'
                    end
           load(fields)
         end
@@ -237,9 +225,10 @@ module Praxis
           instance.validate(context)
         end
 
-        CLAUSE_REGEX = /(?<type>[^=]+)=(?<value>.+)$/
+        CLAUSE_REGEX = /(?<type>[^=]+)=(?<value>.+)$/.freeze
         def self.load(paginator, _context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           return paginator if paginator.is_a?(native_type) || paginator.nil?
+
           parsed = {}
           unless paginator.nil?
             parsed = paginator.split(',').each_with_object({}) do |paginator_string, hash|
@@ -305,7 +294,7 @@ module Praxis
           if media_type&.attributes
             attrs = media_type&.attributes || {}
             attribute = attrs[name.to_sym]
-            attribute.type.load(value) if attribute
+            attribute&.type&.load(value)
           else
             value
           end
@@ -320,28 +309,20 @@ module Praxis
           @total_count = parsed[:total_count]
         end
 
-        def validate(_context = Attributor::DEFAULT_ROOT_CONTEXT) # rubocop:disable Metrics/PerceivedComplexity
+        def validate(_context = Attributor::DEFAULT_ROOT_CONTEXT)
           errors = []
 
           if page
-            if self.class.defaults[:disallow_paging]
-              errors << "Page-based pagination is disallowed (i.e., using 'page=' parameter)"
-            end
+            errors << "Page-based pagination is disallowed (i.e., using 'page=' parameter)" if self.class.defaults[:disallow_paging]
           elsif self.class.defaults[:disallow_cursor]
             errors << "Cursor-based pagination is disallowed (i.e., using 'by=' or 'from=' parameter)"
           end
 
-          if page && page <= 0
-            errors << "Page parameter cannot be zero or negative! (got: #{parsed.page})"
-          end
+          errors << "Page parameter cannot be zero or negative! (got: #{parsed.page})" if page && page <= 0
 
-          if items && (items <= 0 || ( self.class.defaults[:max_items] && items > self.class.defaults[:max_items]) )
-            errors << "Value of 'items' is invalid (got: #{items}). It must be positive, and smaller than the maximum amount of items per request (set to #{self.class.defaults[:max_items]})"
-          end
+          errors << "Value of 'items' is invalid (got: #{items}). It must be positive, and smaller than the maximum amount of items per request (set to #{self.class.defaults[:max_items]})" if items && (items <= 0 || (self.class.defaults[:max_items] && items > self.class.defaults[:max_items]))
 
-          if page && (by || from)
-            errors << "Cannot specify the field to use and its start value to paginate from when using a fix pager (i.e., `by` and/or `from` params are not compabible with `page`)"
-          end
+          errors << 'Cannot specify the field to use and its start value to paginate from when using a fix pager (i.e., `by` and/or `from` params are not compabible with `page`)' if page && (by || from)
 
           if by && self.class.fields_allowed && !self.class.fields_allowed.include?(by.to_sym)
             errors << if self.class.media_type.attributes.key?(by.to_sym)
@@ -364,7 +345,7 @@ module Praxis
                   s
                 end
           str += ",items=#{items}" if @items
-          str += ",total_count=true" if @total_count
+          str += ',total_count=true' if @total_count
           str
         end
       end

@@ -1,9 +1,9 @@
+# frozen_string_literal: true
+
 module Praxis
   module RequestStages
-
     class Validate < RequestStage
-
-      def initialize(name, context,**opts)
+      def initialize(name, context, **opts)
         super
         # Add our sub-stages
         @stages = [
@@ -11,8 +11,6 @@ module Praxis
           RequestStages::ValidatePayload.new(:payload, context, parent: self)
         ]
       end
-
     end
-
   end
 end

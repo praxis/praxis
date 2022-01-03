@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ApiResources
   class Instances
     include Praxis::EndpointDefinition
@@ -28,15 +30,14 @@ module ApiResources
 
       headers do
         # BOTH ARE EQUIVALENT
-        #key "FOO", String, required: true
-        header "FOO", /bar/
+        # key "FOO", String, required: true
+        header 'FOO', /bar/
         key 'Account-Id', Integer, required: false, min: 0
       end
 
       params do
         attribute :response_content_type, String, default: 'application/vnd.acme.instance;type=collection'
       end
-
 
       response :ok, Praxis::Collection.of(Instance)
     end
@@ -59,10 +60,9 @@ module ApiResources
 
       payload required: false, null: true do
         attribute :something, String
-        attribute :optional, String, default: "not given"
+        attribute :optional, String, default: 'not given'
       end
     end
-
 
     action :bulk_create do
       routing do
@@ -77,11 +77,11 @@ module ApiResources
       response :multipart_ok, Praxis::Types::MultipartArray do
         name_type Integer
 
-        part /\d+/ do
+        part(/\d+/) do
           header 'Status', '201'
           header 'Content-Type', /^#{Instance.identifier}/
           header 'Location', Attributor::URI,
-            example: proc { |part| ApiResources::Instances.to_href(cloud_id: part[:value].cloud_id, id: part[:value].id) }
+                 example: proc { |part| ApiResources::Instances.to_href(cloud_id: part[:value].cloud_id, id: part[:value].id) }
 
           payload Hash do
             attribute :key, Integer, required: true
@@ -90,16 +90,14 @@ module ApiResources
               attribute :name
             end
           end
-
         end
       end
 
-
       # Using a hash param for parts
-      #response :multipart_ok, parts: {
+      # response :multipart_ok, parts: {
       #  like: :created,
       #  location: /\/instances\//
-      #}
+      # }
 
       # Using a block for parts to defin a sub-request
       #     sub_request = proc do
@@ -157,7 +155,6 @@ module ApiResources
         attribute :id
       end
 
-
       response :ok, media_type: 'application/json'
     end
 
@@ -177,7 +174,6 @@ module ApiResources
 
       response :ok
     end
-
 
     action :exceptional do
       routing do
@@ -229,7 +225,5 @@ module ApiResources
     #     key 'destination', String, required: true
     #     match /file-.+/, FileUpload
     #   end
-
   end
-
 end

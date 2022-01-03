@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/concern'
 require 'active_support/all'
 
@@ -24,11 +26,11 @@ module Praxis
       end
 
       def id
-        self.name.gsub('::'.freeze,'-'.freeze)
+        name.gsub('::', '-')
       end
     end
 
-    def initialize(request, response=Responses::Ok.new)
+    def initialize(request, response = Responses::Ok.new)
       @request = request
       @response = response
     end
@@ -38,12 +40,11 @@ module Praxis
     end
 
     def media_type
-      if (response_definition = self.request.action.responses[self.response.name])
-        return response_definition.media_type
+      if (response_definition = request.action.responses[response.name])
+        response_definition.media_type
       else
-        self.definition.media_type
+        definition.media_type
       end
     end
-
   end
 end

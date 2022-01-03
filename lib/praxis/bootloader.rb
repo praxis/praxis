@@ -1,13 +1,12 @@
+# frozen_string_literal: true
+
 module Praxis
-
   class Bootloader
-
-    attr_reader :application
-    attr_reader :stages
+    attr_reader :application, :stages
 
     def initialize(application)
       @application = application
-      @stages = Array.new
+      @stages = []
 
       setup_stages!
     end
@@ -26,7 +25,7 @@ module Praxis
 
       # then setup plugins
       stages << BootloaderStages::PluginLoader.new(:plugins, application)
-      
+
       # then the initializers. as it is their job to ensure monkey patches and other
       # config is in place first.
       stages << BootloaderStages::FileLoader.new(:initializers, application)
@@ -50,24 +49,18 @@ module Praxis
         Praxis::Blueprint.finalize!
         Praxis::EndpointDefinition.finalize!
       end
-
     end
 
     def delete_stage(stage_name)
-      if (stage = stages.find { |stage| stage.name == stage_name })
-        stages.delete(stage)
-      else
-        raise Exceptions::StageNotFound.new(
-          "Cannot remove stage with name #{stage_name}, stage does not exist."
-        )
-      end
-    end
+      raise Exceptions::StageNotFound, "Cannot remove stage with name #{stage_name}, stage does not exist." unless (stage = stages.find { |s| s.name == stage_name })
 
+      stages.delete(stage)
+    end
 
     def before(*stage_path, &block)
       stage_name = stage_path.shift
       the_stage = stages.find { |stage| stage.name == stage_name }
-      raise Exceptions::StageNotFound.new("Error running a before block for stage #{stage_name}") unless the_stage
+      raise Exceptions::StageNotFound, "Error running a before block for stage #{stage_name}" unless the_stage
 
       the_stage.before(*stage_path, &block)
     end
@@ -75,36 +68,37 @@ module Praxis
     def after(*stage_path, &block)
       stage_name = stage_path.shift
       the_stage = stages.find { |stage| stage.name == stage_name }
-      raise Exceptions::StageNotFound.new("Error running an after block for stage #{stage_name}") unless the_stage
+      raise Exceptions::StageNotFound, "Error running an after block for stage #{stage_name}" unless the_stage
 
       the_stage.after(*stage_path, &block)
     end
 
-    def use(plugin,**options, &block)
+    def use(plugin, **options, &block)
       if plugin.ancestors.include?(PluginConcern)
         plugin.setup!
         plugin = plugin::Plugin
       end
 
       instance = if plugin.ancestors.include?(Singleton)
-        plugin.instance
-      elsif plugin.kind_of?(Class)
-        plugin.new
-      else
-        plugin
-      end
+                   plugin.instance
+                 elsif plugin.is_a?(Class)
+                   plugin.new
+                 else
+                   plugin
+                 end
 
       instance.application = application
       instance.options.merge!(options)
       instance.block = block if block_given?
 
       config_key = if instance.config_key.nil?
-        raise "Cannot use plugin: #{plugin}. It does not have a config_key defined, and its class does not have a name" unless instance.class.name
-        # Default the config key based on the full class name transformed to snake case (and joining modules with '_')
-        instance.class.name.to_s.split('::').collect{|n| n.underscore }.join('_').to_sym
-      else
-        instance.config_key
-      end
+                     raise "Cannot use plugin: #{plugin}. It does not have a config_key defined, and its class does not have a name" unless instance.class.name
+
+                     # Default the config key based on the full class name transformed to snake case (and joining modules with '_')
+                     instance.class.name.to_s.split('::').collect(&:underscore).join('_').to_sym
+                   else
+                     instance.config_key
+                   end
 
       if application.plugins.key?(instance.config_key)
         used_in = application.plugins[config_key].class
@@ -128,8 +122,5 @@ module Praxis
         stage.run
       end
     end
-
   end
-
-
 end

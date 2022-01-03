@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'forwardable'
 
 module Praxis
@@ -65,13 +67,12 @@ module Praxis
         # MediaType, so that the field name checking and value coercion can be performed
         class << self
           attr_reader :media_type
-          attr_accessor :fields_allowed
-          attr_accessor :enforce_all # True when we need to enforce the allowed fields at all ordering positions
+          attr_accessor :fields_allowed, :enforce_all # True when we need to enforce the allowed fields at all ordering positions
 
           def for(media_type, **_opts)
             unless media_type < Praxis::MediaType
               raise ArgumentError, "Invalid type: #{media_type.name} for Ordering. " \
-                "Must be a subclass of MediaType"
+                'Must be a subclass of MediaType'
             end
 
             ::Class.new(self) do
@@ -121,22 +122,22 @@ module Praxis
 
         def self.example(_context = Attributor::DEFAULT_ROOT_CONTEXT, **_options)
           fields = if media_type
-                    chosen_set = if enforce_all
+                     chosen_set = if enforce_all
                                     fields_allowed.sample(2)
                                   else
                                     starting_set = fields_allowed.sample(1)
                                     simple_attrs = media_type.attributes.select do |_k, attr|
                                       attr.type == Attributor::String || attr.type < Attributor::Numeric || attr.type < Attributor::Temporal
                                     end.keys
-                                    starting_set + simple_attrs.select { |attr| attr != starting_set.first }.sample(1)
+                                    starting_set + simple_attrs.reject { |attr| attr == starting_set.first }.sample(1)
                                   end
-                    chosen_set.each_with_object([]) do |chosen, arr|
-                      sign = rand(10) < 5 ? "-" : ""
-                      arr << "#{sign}#{chosen}"
-                    end.join(',')
-                  else
-                    "name,last_name,-birth_date"
-                  end
+                     chosen_set.each_with_object([]) do |chosen, arr|
+                       sign = rand(10) < 5 ? '-' : ''
+                       arr << "#{sign}#{chosen}"
+                     end.join(',')
+                   else
+                     'name,last_name,-birth_date'
+                   end
           load(fields)
         end
 
@@ -151,13 +152,14 @@ module Praxis
           parsed_order = {}
           unless order.nil?
             parsed_order = order.split(',').each_with_object([]) do |order_string, arr|
-              item = if order_string[0] == '-'
-                      { desc: order_string[1..-1].to_s }
-                    elsif order_string[0] == '+'
-                      { asc: order_string[1..-1].to_s }
-                    else
-                      { asc: order_string.to_s }
-                    end
+              item = case order_string[0]
+                     when '-'
+                       { desc: order_string[1..-1].to_s }
+                     when '+'
+                       { asc: order_string[1..-1].to_s }
+                     else
+                       { asc: order_string.to_s }
+                     end
               arr.push item
             end
           end
@@ -195,7 +197,8 @@ module Praxis
             enforceable_items.each do |spec|
               _dir, field = spec.first
               field = field.to_sym
-              next unless !self.class.fields_allowed.include?(field)
+              next if self.class.fields_allowed.include?(field)
+
               errors << if self.class.media_type.attributes.key?(field)
                           "Ordering by field \'#{field}\' is disallowed. Ordering is only allowed using the following fields: " +
                           self.class.fields_allowed.map { |f| "\'#{f}\'" }.join(', ').to_s
@@ -213,17 +216,15 @@ module Praxis
           items.each_with_object([]) do |spec, arr|
             dir, field = spec.first
             arr << if dir == :desc
-                    "-#{field}"
-                  else
-                    field
-                  end
+                     "-#{field}"
+                   else
+                     field
+                   end
           end.join(',')
         end
 
-        def each
-          items.each do |item|
-            yield item
-          end
+        def each(&block)
+          items.each(&block)
         end
       end
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Praxis
   module Handlers
     class Plain
@@ -10,7 +12,6 @@ module Praxis
       def generate(structured_data)
         structured_data
       end
-
     end
   end
 end

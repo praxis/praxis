@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module Praxis
   module Docs
     module OpenApi
       class InfoObject
         attr_reader :info, :version
-        def initialize(version: , api_definition_info: )
+
+        def initialize(version:, api_definition_info:)
           @version = version
           @info = api_definition_info
           raise "OpenApi docs require a 'Title' for your API." unless info.title
@@ -11,12 +14,12 @@ module Praxis
 
         def dump
           data = { version: version }
-          [
-            :title,
-            :description,
-            :termsOfService,
-            :contact,
-            :license
+          %i[
+            title
+            description
+            termsOfService
+            contact
+            license
           ].each do |attr|
             val = info.send(attr)
             data[attr] = val if val
@@ -27,7 +30,7 @@ module Praxis
           if info.logo_url
             data[:'x-logo'] = {
               url: info.logo_url,
-              backgroundColor: "#FFFFFF",
+              backgroundColor: '#FFFFFF',
               altText: info.title
             }
           end

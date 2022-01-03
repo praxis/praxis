@@ -1,10 +1,13 @@
+# frozen_string_literal: true
+# rubocop:disable all
+
 # FOR AR >= 6.1
 module ActiveRecord
   PRAXIS_JOIN_ALIAS_PREFIX = Praxis::Extensions::AttributeFiltering::ALIAS_TABLE_PREFIX
   module Associations
     class JoinDependency
-
       private
+
       def make_constraints(parent, child, join_type)
         foreign_table = parent.table
         foreign_klass = parent.base_klass
@@ -19,7 +22,7 @@ module ActiveRecord
 
           table_name = @references[reflection.name.to_sym]
           # Praxis: set an alias_path in the JoinAssociation if its path matches a requested reference
-          table_name = @references[child&.alias_path.join('/').to_sym] unless table_name
+          table_name ||= @references[child&.alias_path.join('/').to_sym]
 
           table = alias_tracker.aliased_table_for(reflection.klass.arel_table, table_name) do
             name = reflection.alias_candidate(parent.table_name)
@@ -38,21 +41,21 @@ module ActiveRecord
           reflection.check_validity!
           reflection.check_eager_loadable!
 
-          if reflection.polymorphic?
-            raise EagerLoadPolymorphicError.new(reflection)
-          end
+          raise EagerLoadPolymorphicError, reflection if reflection.polymorphic?
+
           # Praxis: set an alias_path in the JoinAssociation if its path matches a requested reference
-          child_path = (path && !path.empty?) ? path + [name] : nil
+          child_path = path && !path.empty? ? path + [name] : nil
           association = JoinAssociation.new(reflection, build(right, reflection.klass, path: child_path))
-          #association.alias_path = child_path if references.include?(child_path.join('/'))
+          # association.alias_path = child_path if references.include?(child_path.join('/'))
           association.alias_path = child_path # ??? should be the line above no?
-          association            
+          association
         end
-      end      
+      end
     end
-    
+
     class ActiveRecord::Associations::JoinDependency::JoinAssociation
       attr_accessor :alias_path
     end
   end
 end
+# rubocop:enable all

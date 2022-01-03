@@ -1,9 +1,9 @@
-require "spec_helper"
+# frozen_string_literal: true
+
+require 'spec_helper'
 
 describe Praxis::Collection do
-
   let(:member_type) { Volume }
-
 
   subject!(:collection) do
     Praxis::Collection.of(member_type)
@@ -40,15 +40,14 @@ describe Praxis::Collection do
 
   context '.member_type' do
     subject(:collection) do
-      class Team < Praxis::Collection
+      Class.new(Praxis::Collection) do
         member_type Person
       end
-      Team
     end
-    its(:member_type){ should be(Person) }
-    its(:member_attribute){ should be_kind_of(Attributor::Attribute) }
-    its('member_attribute.type'){ should be(Person) }
-    its(:identifier) { should eq Person.identifier + "; type=collection" }
+    its(:member_type) { should be(Person) }
+    its(:member_attribute) { should be_kind_of(Attributor::Attribute) }
+    its('member_attribute.type') { should be(Person) }
+    its(:identifier) { should eq Person.identifier + '; type=collection' } # rubocop:disable Style/StringConcatenation
   end
 
   context '.load' do
@@ -60,15 +59,14 @@ describe Praxis::Collection do
       }
     end
 
-    let(:snapshots_data) {
+    let(:snapshots_data) do
       nil
-    }
-
+    end
 
     context 'loading an array' do
       let(:snapshots_data) do
-        [{id: 1, name: 'snapshot-1'},
-         {id: 2, name: 'snapshot-2'}]
+        [{ id: 1, name: 'snapshot-1' },
+         { id: 2, name: 'snapshot-2' }]
       end
 
       let(:volume) { Volume.load(volume_data) }
@@ -82,11 +80,8 @@ describe Praxis::Collection do
         expect(snapshots[1].id).to eq(2)
         expect(snapshots[1].name).to eq('snapshot-2')
       end
-
     end
   end
-
-
 
   context '#render' do
     context 'for members' do
@@ -110,15 +105,14 @@ describe Praxis::Collection do
       }
     end
 
-    let(:snapshots_data) {
+    let(:snapshots_data) do
       nil
-    }
-
+    end
 
     context 'for an array' do
       let(:snapshots_data) do
-        [{id: 1, name: 'snapshot-1'},
-         {id: 2, name: 'snapshot-2'}]
+        [{ id: 1, name: 'snapshot-1' },
+         { id: 2, name: 'snapshot-2' }]
       end
 
       let(:volume) { Volume.load(volume_data) }
@@ -130,8 +124,8 @@ describe Praxis::Collection do
 
       context 'with invalid members' do
         let(:snapshots_data) do
-          [{id: 1, name: 'invalid-1'},
-           {id: 2, name: 'snapshot-2'}]
+          [{ id: 1, name: 'invalid-1' },
+           { id: 2, name: 'snapshot-2' }]
         end
 
         it 'returns the error' do
@@ -141,5 +135,4 @@ describe Praxis::Collection do
       end
     end
   end
-
 end

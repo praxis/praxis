@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Praxis
   # An Internet Media Type as defined in RFC 1590, as used in HTTP (see RFC 2616). As used in the
   # Praxis framework, media types also define the structure and content of entities of that type:
@@ -43,8 +45,6 @@ module Praxis
   #     end
   #   end
   class MediaType < Praxis::Blueprint
-
     include Types::MediaTypeCommon
   end
-
 end

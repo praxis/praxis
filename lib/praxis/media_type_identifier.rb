@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'set'
 require 'active_support/core_ext/object/blank'
 
@@ -10,7 +12,7 @@ module Praxis
     # the syntax for type identifiers is substantially narrower than what we accept there.
     #
     # Note that this ONLY matches type, subtype and suffix; we handle options differently.
-    VALID_TYPE = /^\s*(?<type>[^\/]+)\/(?<subtype>[^\+]+)(\+(?<suffix>[^; ]+))?\s*$/x.freeze
+    VALID_TYPE = %r{^\s*(?<type>[^/]+)/(?<subtype>[^+]+)(?<nothing>\+(?<suffix>[^; ]+))?\s*$}x.freeze
 
     # Pattern that separates parameters of a media type from each other, and from the base identifier.
     PARAMETER_SEPARATOR = /\s*;\s*/x.freeze
@@ -23,7 +25,7 @@ module Praxis
     QUOTED_STRING = /^".*"$/.freeze
 
     # Token that indicates a media-type component that matches anything.
-    WILDCARD = '*'.freeze
+    WILDCARD = '*'
 
     # Inner type representing semicolon-delimited parameters.
     Parameters = Attributor::Hash.of(key: String)
@@ -32,7 +34,7 @@ module Praxis
       attribute :type, Attributor::String, default: 'application', description: 'RFC2046 media type'
       attribute :subtype, Attributor::String, default: '*', description: 'RFC2046 media subtype', example: 'vnd.widget'
       attribute :suffix, Attributor::String, default: '', description: 'RFC6838 structured-syntax suffix', example: 'json'
-      attribute :parameters, Parameters, default: {}, description: "Type-specific parameters", example: "{'type' => 'collection'}"
+      attribute :parameters, Parameters, default: {}, description: 'Type-specific parameters', example: "{'type' => 'collection'}"
     end
 
     # Parse a media type identifier from a String, or load it from a Hash or Model. Assume malformed
@@ -41,10 +43,11 @@ module Praxis
     # @param [String,Hash,Attributor::Model] value
     # @return [MediaTypeIdentifier]
     # @see Attributor::Model#load
-    def self.load(value, context=Attributor::DEFAULT_ROOT_CONTEXT, recurse: false, **options)
+    def self.load(value, context = Attributor::DEFAULT_ROOT_CONTEXT, recurse: false, **options)
       case value
       when String
         return nil if value.blank?
+
         base, *parameters = value.split(PARAMETER_SEPARATOR)
         match = VALID_TYPE.match(base)
 
@@ -56,17 +59,19 @@ module Praxis
             h[k] = v
           end
 
-          obj.type, obj.subtype, obj.suffix, obj.parameters =
-              match[:type], match[:subtype], match[:suffix], parameters
+          obj.type = match[:type]
+          obj.subtype = match[:subtype]
+          obj.suffix = match[:suffix]
+          obj.parameters = parameters
         else
           obj.type = 'application'
           obj.subtype = base.split(WORD_SEPARATOR, 2).first
-          obj.suffix = ''
+          obj.suffix = String.new
           obj.parameters = {}
         end
         obj
       when nil
-        return nil
+        nil
       else
         super
       end
@@ -97,6 +102,7 @@ module Praxis
       return false unless type == other.type || type == WILDCARD
       return false unless subtype == other.subtype || subtype == WILDCARD
       return false unless suffix.empty? || suffix == other.suffix
+
       parameters.each_pair do |k, v|
         return false unless other.parameters[k] == v
       end
@@ -120,7 +126,7 @@ module Praxis
     # @return [String] canonicalized representation of the media type including all suffixes and parameters
     def to_s
       # Our handcrafted media types consist of a rich chocolatey center
-      s = "#{type}/#{subtype}"
+      s = String.new("#{type}/#{subtype}")
 
       # coated in a hard candy shell
       s << '+' << suffix unless suffix.empty?
@@ -135,18 +141,17 @@ module Praxis
       s
     end
 
-    alias_method :to_str, :to_s
-
+    alias to_str to_s
 
     # If parameters are empty, return self; otherwise return a new object consisting of this type
     # minus parameters.
     #
     # @return [MediaTypeIdentifier]
     def without_parameters
-      if self.parameters.empty?
+      if parameters.empty?
         self
       else
-        val = {type: self.type, subtype: self.subtype, suffix: self.suffix}
+        val = { type: type, subtype: subtype, suffix: suffix }
         MediaTypeIdentifier.load(val)
       end
     end
@@ -176,12 +181,12 @@ module Praxis
     #
     # @example Indicate UTF8 encoding
     #     MediaTypeIdentifier.new('application/vnd.widget') + 'charset=UTF8' # => 'application/vnd.widget; charset="UTF8"'
-    def +(extension)
-      parameters = extension.split(PARAMETER_SEPARATOR)
+    def +(other)
+      parameters = other.split(PARAMETER_SEPARATOR)
       # remove useless initial '; '
       parameters.shift if parameters.first && parameters.first.empty?
 
-      raise ArgumentError, "Must pass a type identifier suffix and/or parameters" if parameters.empty?
+      raise ArgumentError, 'Must pass a type identifier suffix and/or parameters' if parameters.empty?
 
       suffix = parameters.shift unless parameters.first.include?('=')
       # remove redundant '+'
@@ -196,10 +201,10 @@ module Praxis
       parameters = Parameters.load(parameters)
 
       obj = self.class.new
-      obj.type = self.type
-      obj.subtype = self.subtype
+      obj.type = type
+      obj.subtype = subtype
       target_suffix = suffix || self.suffix
-      obj.suffix = redundant_suffix(target_suffix) ? '' : target_suffix
+      obj.suffix = redundant_suffix(target_suffix) ? String.new : target_suffix
       obj.parameters = self.parameters.merge(parameters)
 
       obj
@@ -208,9 +213,8 @@ module Praxis
     def redundant_suffix(suffix)
       # application/json does not need to be suffixed with +json (same for application/xml)
       # we're supporting text/json and text/xml for older formats as well
-      if (self.type == 'application' || self.type == 'text') && self.subtype == suffix
-        return true
-      end
+      return true if (type == 'application' || type == 'text') && subtype == suffix
+
       false
     end
   end

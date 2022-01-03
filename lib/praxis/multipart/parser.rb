@@ -1,32 +1,33 @@
+# frozen_string_literal: true
+
 require 'rack/utils'
 
 # stolen from Rack::Multipart::Parser
 
 module Praxis
   class MultipartParser
-    EOL = "\r\n".freeze
-    MULTIPART_BOUNDARY = "AaB03x".freeze
-    MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|n.freeze
-    TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/.freeze
+    EOL = "\r\n"
+    MULTIPART_BOUNDARY = 'AaB03x'
+    MULTIPART = %r{\Amultipart/.*boundary="?([^";,]+)"?}n.freeze
+    TOKEN = %r{[^\s()<>,;:\\"/\[\]?=]+}.freeze
     CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i.freeze
     DISPPARM = /;\s*(#{TOKEN})=("(?:\\"|[^"])*"|#{TOKEN})/.freeze
     RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i.freeze
     BROKEN_QUOTED = /^#{CONDISP}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*#{TOKEN}=)/i.freeze
     BROKEN_UNQUOTED = /^#{CONDISP}.*;\sfilename=(#{TOKEN})/i.freeze
     MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni.freeze
-    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*\s+name="?([^\";]*)"?/ni.freeze
+    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*\s+name="?([^";]*)"?/ni.freeze
     MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni.freeze
 
     HEADER_KV = /(?<k>[^:]+): (?<v>.*)/.freeze
     UNTIL_NEWLINE = /\A([^\n]*\n)/.freeze
     TERMINAL_CRLF = /\r\n$/.freeze
 
+    PARAMS_BUF_SIZE = 65_536 # Same as implicitly in rack 1.x
+    BUFSIZE = 16_384
 
-    PARAMS_BUF_SIZE = 65536 # Same as implicitly in rack 1.x
-    BUFSIZE = 16384
-
-    def self.parse(headers,body)
-      self.new(headers,body).parse
+    def self.parse(headers, body)
+      new(headers, body).parse
     end
 
     def initialize(headers, body)
@@ -36,7 +37,7 @@ module Praxis
         @io << chunk
       end
       @io.rewind
-      @parts = Array.new
+      @parts = []
     end
 
     def parse
@@ -46,19 +47,19 @@ module Praxis
 
       loop do
         head, filename, content_type, name, body =
-          get_current_head_and_filename_and_content_type_and_name_and_body
+          current_head_and_filename_and_content_type_and_name_and_body
 
         # Save the rest.
-        if i = @buf.index(rx)
+        if (i = @buf.index(rx))
           body << @buf.slice!(0, i)
-          @buf.slice!(0, @boundary_size+2)
+          @buf.slice!(0, @boundary_size + 2)
 
-          @content_length = -1  if $1 == "--"
+          @content_length = -1 if Regexp.last_match(1) == '--'
         end
 
         filename, data = get_data(filename, body, content_type, name, head)
 
-        parsed_headers = head.split(EOL).each_with_object(Hash.new) do |line, hash|
+        parsed_headers = head.split(EOL).each_with_object({}) do |line, hash|
           match = HEADER_KV.match(line)
           k = match[:k]
           v = match[:v]
@@ -70,7 +71,7 @@ module Praxis
         @parts << part
 
         # break if we're at the end of a buffer, but not if it is the end of a field
-        break if (@buf.empty? && $1 != EOL) || @content_length == -1
+        break if (@buf.empty? && Regexp.last_match(1) != EOL) || @content_length == -1
       end
 
       @io.rewind
@@ -79,6 +80,7 @@ module Praxis
     end
 
     private
+
     def setup_parse
       unless (match = MULTIPART.match @headers['Content-Type'])
         return false
@@ -86,13 +88,13 @@ module Praxis
 
       @boundary = "--#{match[1]}"
 
-      @buf = ""
+      @buf = String.new
 
       @params = new_params
 
       @boundary_size = @boundary.bytesize + EOL.size
 
-      if @content_length = @headers['Content-Length']
+      if (@content_length = @headers['Content-Length'])
         @content_length = @content_length.to_i
         @content_length -= @boundary_size
       end
@@ -119,36 +121,35 @@ module Praxis
     end
 
     def fast_forward_to_first_boundary
-      preamble = ''
+      preamble = String.new
       loop do
         content = @io.read(BUFSIZE)
-        raise EOFError, "bad content body" unless content
+        raise EOFError, 'bad content body' unless content
+
         @buf << content
 
         while @buf.gsub!(UNTIL_NEWLINE, '')
-          read_buffer = $1
-          if read_buffer == full_boundary
-            return preamble.gsub!(TERMINAL_CRLF,'')
-          else
-            preamble << read_buffer
-          end
+          read_buffer = Regexp.last_match(1)
+          return preamble.gsub!(TERMINAL_CRLF, '') if read_buffer == full_boundary
+
+          preamble << read_buffer
         end
 
-        raise EOFError, "bad content body" if Rack::Utils.bytesize(@buf) >= BUFSIZE
+        raise EOFError, 'bad content body' if Rack::Utils.bytesize(@buf) >= BUFSIZE
       end
     end
 
-    def get_current_head_and_filename_and_content_type_and_name_and_body
+    def current_head_and_filename_and_content_type_and_name_and_body
       head = nil
-      body = ''
+      body = String.new
       filename = content_type = name = nil
       content = nil
 
       until head && @buf =~ rx
-        if !head && i = @buf.index(EOL+EOL)
-          head = @buf.slice!(0, i+2) # First \r\n
+        if !head && (i = @buf.index(EOL + EOL))
+          head = @buf.slice!(0, i + 2) # First \r\n
 
-          @buf.slice!(0, 2)          # Second \r\n
+          @buf.slice!(0, 2) # Second \r\n
 
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
           name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
@@ -157,7 +158,7 @@ module Praxis
           filename = get_filename(head)
 
           if filename
-            body = Tempfile.new("RackMultipart")
+            body = Tempfile.new('RackMultipart')
             body.binmode if body.respond_to?(:binmode)
           end
 
@@ -165,12 +166,10 @@ module Praxis
         end
 
         # Save the read body part.
-        if head && (@boundary_size+4 < @buf.size)
-          body << @buf.slice!(0, @buf.size - (@boundary_size+4))
-        end
+        body << @buf.slice!(0, @buf.size - (@boundary_size + 4)) if head && (@boundary_size + 4 < @buf.size)
 
         content = @io.read(@content_length && BUFSIZE >= @content_length ? @content_length : BUFSIZE)
-        raise EOFError, "bad content body"  if content.nil? || content.empty?
+        raise EOFError, 'bad content body' if content.nil? || content.empty?
 
         @buf << content
         @content_length -= content.size if @content_length
@@ -183,34 +182,30 @@ module Praxis
       filename = nil
       if head =~ RFC2183
         filename = Hash[head.scan(DISPPARM)]['filename']
-        filename = $1 if filename and filename =~ /^"(.*)"$/
+        filename = Regexp.last_match(1) if filename && filename =~ (/^"(.*)"$/)
       elsif head =~ BROKEN_QUOTED
-        filename = $1
+        filename = Regexp.last_match(1)
       elsif head =~ BROKEN_UNQUOTED
-        filename = $1
+        filename = Regexp.last_match(1)
       end
 
-      if filename && filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
-        filename = Rack::Utils.unescape(filename)
-      end
-      if filename && filename !~ /\\[^\\"]/
-        filename = filename.gsub(/\\(.)/, '\1')
-      end
+      filename = Rack::Utils.unescape(filename) if filename&.scan(/%.?.?/)&.all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
+      filename = filename.gsub(/\\(.)/, '\1') if filename && filename !~ /\\[^\\"]/
       filename
     end
 
-    def get_data(filename, body, content_type, name, head)
+    def get_data(filename, body, _content_type, _name, _head)
       # filename is blank which means no file has been selected
-      return nil if filename == ""
+      return nil if filename == ''
 
       # Take the basename of the upload's original filename.
       # This handles the full Windows paths given by Internet Explorer
       # (and perhaps other broken user agents) without affecting
       # those which give the lone filename.
-      filename = filename.split(/[\/\\]/).last if filename
+      filename = filename.split(%r{[/\\]}).last if filename
 
       # Rewind any IO bodies so the app can read them at its leisure
-      body.rewind if  body.is_a?(IO)
+      body.rewind if body.is_a?(IO)
 
       [filename, body]
     end

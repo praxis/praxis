@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 module Praxis
   module RequestStages
-
     class ValidateParamsAndHeaders < RequestStage
       attr_reader :parent
 
@@ -10,14 +11,14 @@ module Praxis
       end
 
       def path
-        @_path ||= ( @parent.path + [name] )
+        @path ||= (@parent.path + [name])
       end
 
       def execute
         begin
           request.load_headers(CONTEXT_FOR[:headers])
-        rescue => e
-          message = "Error loading headers."
+        rescue StandardError => e
+          message = 'Error loading headers.'
           return validation_handler.handle!(
             exception: e,
             summary: message,
@@ -29,7 +30,7 @@ module Praxis
         begin
           request.load_params(CONTEXT_FOR[:params])
         rescue Attributor::AttributorException => e
-          message = "Error loading params."
+          message = 'Error loading params.'
           return validation_handler.handle!(
             exception: e,
             summary: message,
@@ -40,18 +41,16 @@ module Praxis
 
         errors = request.validate_headers(CONTEXT_FOR[:headers])
         errors += request.validate_params(CONTEXT_FOR[:params])
-        if errors.any?
-          message = "Error validating request data."
-          return validation_handler.handle!(
-            summary: message,
-            errors: errors,
-            request: request,
-            stage: name
-          )
-        end
+        return unless errors.any?
+
+        message = 'Error validating request data.'
+        validation_handler.handle!(
+          summary: message,
+          errors: errors,
+          request: request,
+          stage: name
+        )
       end
-
     end
-
   end
 end

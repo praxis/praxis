@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module Praxis
   module Docs
     module OpenApi
       class TagObject
         attr_reader :name, :description
-        def initialize(name:,description: )
+
+        def initialize(name:, description:)
           @name = name
           @description = description
         end
@@ -11,8 +14,8 @@ module Praxis
         def dump
           {
             name: name,
-            description: description,
-            #externalDocs: ???,
+            description: description
+            # externalDocs: ???,
           }
         end
       end

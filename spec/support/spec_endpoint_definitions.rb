@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'spec_media_types'
 
 Praxis::ApiDefinition.define do
@@ -37,9 +39,7 @@ class PeopleResource
       attribute :id, Integer, required: true
     end
   end
-
 end
-
 
 class AddressResource
   include Praxis::EndpointDefinition
@@ -68,5 +68,4 @@ class AddressResource
       attribute :id, Integer, required: true
     end
   end
-
 end

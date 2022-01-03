@@ -1,4 +1,6 @@
-$:.unshift File.expand_path('lib',__dir__)
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift File.expand_path('lib', __dir__)
 
 require 'praxis'
 require 'praxis/tasks'
@@ -9,4 +11,4 @@ require 'bundler/gem_tasks'
 
 RSpec::Core::RakeTask.new(:spec)
 
-task :default => :spec
+task default: :spec

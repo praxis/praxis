@@ -1,29 +1,29 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Praxis::Controller do
   subject do
-    Class.new {
+    Class.new do
       include Praxis::Controller
 
       implements PeopleResource
 
       before :validate, actions: [:index] do
-        "before"
+        'before'
       end
 
       before actions: [:show] do
       end
 
       after :response, actions: [:show] do
-        "after"
+        'after'
       end
 
-      def index
-      end
+      def index; end
 
-      def show
-      end
-    }
+      def show; end
+    end
   end
 
   context '.implements' do
@@ -31,5 +31,4 @@ describe Praxis::Controller do
       expect(subject).to eq(PeopleResource.controller)
     end
   end
-
 end

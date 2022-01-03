@@ -1,5 +1,6 @@
-module Praxis
+# frozen_string_literal: true
 
+module Praxis
   module PluginConcern
     extend ::ActiveSupport::Concern
 
@@ -8,35 +9,31 @@ module Praxis
     end
 
     module ClassMethods
-      PLUGIN_CLASSES = [
-        :Request,
-        :Controller,
-        :EndpointDefinition,
-        :ActionDefinition,
-        :Response,
-        :ApiGeneralInfo
-      ]
+      PLUGIN_CLASSES = %i[
+        Request
+        Controller
+        EndpointDefinition
+        ActionDefinition
+        Response
+        ApiGeneralInfo
+      ].freeze
 
       def setup!
         return if @setup
 
         PLUGIN_CLASSES.each do |name|
-          if self.constants.include?(name)
-            inject!(name)
-          end
+          inject!(name) if constants.include?(name)
         end
 
         @setup = true
       end
 
       def inject!(name)
-        plugin = self.const_get(name)
+        plugin = const_get(name)
         praxis = Praxis.const_get(name)
 
         praxis.include(plugin)
       end
-
     end
   end
-
 end

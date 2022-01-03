@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 namespace :praxis do
-  desc "Run interactive pry/irb console"
+  desc 'Run interactive pry/irb console'
   task :console do
     have_pry = false
 

@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Praxis
   module Exceptions
-    class InvalidConfiguration < Exception
+    class InvalidConfiguration < RuntimeError
     end
   end
 end

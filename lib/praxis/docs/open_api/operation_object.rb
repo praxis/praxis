@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'parameter_object'
 require_relative 'request_body_object'
 require_relative 'responses_object'
@@ -8,6 +10,7 @@ module Praxis
       class OperationObject
         # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#operation-object
         attr_reader :id, :url, :action, :tags
+
         def initialize(id:, url:, action:, tags:)
           @id = id
           @url = url
@@ -21,9 +24,9 @@ module Praxis
           h = {
             summary: action.name.to_s,
             description: action.description,
-            #externalDocs: {}, # TODO/FIXME
+            # externalDocs: {}, # TODO/FIXME
             operationId: id,
-            responses: ResponsesObject.new(responses: action.responses).dump, 
+            responses: ResponsesObject.new(responses: action.responses).dump
             # callbacks
             # deprecated: false
             # security: [{}]
@@ -31,7 +34,7 @@ module Praxis
           }
           h[:tags] = all_tags.uniq unless all_tags.empty?
           h[:parameters] = all_parameters unless all_parameters.empty?
-          h[:requestBody] = RequestBodyObject.new(attribute: action.payload ).dump if action.payload
+          h[:requestBody] = RequestBodyObject.new(attribute: action.payload).dump if action.payload
           h
         end
       end

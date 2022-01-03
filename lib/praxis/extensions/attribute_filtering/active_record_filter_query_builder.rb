@@ -1,4 +1,4 @@
-
+# frozen_string_literal: true
 
 module Praxis
   module Extensions
@@ -10,13 +10,14 @@ module Praxis
       # This is necessary as (the latest AR code):
       # * does not carry over "references" in joins if they are not SqlLiterals
       # * but, at the same time, it indexes the references using the .to_sym value (which is really expected to be the normal string, without quotes)
-      # If we pass a normal SqlLiteral, instead of our wrapper, without quoting the table, the current AR code will never quote it to form the 
+      # If we pass a normal SqlLiteral, instead of our wrapper, without quoting the table, the current AR code will never quote it to form the
       # SQL string, as it's already a literal...so our "/" type separators as names won't work without quoting.
       class QuasiSqlLiteral < Arel::Nodes::SqlLiteral
         def initialize(quoted:, symbolized:)
           @symbolized = symbolized
           super(quoted)
         end
+
         def to_sym
           @symbolized
         end
@@ -27,67 +28,61 @@ module Praxis
         attr_reader :model, :filters_map
 
         # Base query to build upon
-        def initialize(query: , model:, filters_map:, debug: false)
-          # Note: Do not make the initial_query an attr reader to make sure we don't count/leak on modifying it. Easier to mostly use class methods
+        def initialize(query:, model:, filters_map:, debug: false)
+          # NOTE: Do not make the initial_query an attr reader to make sure we don't count/leak on modifying it. Easier to mostly use class methods
           @initial_query = query
           @model = model
           @filters_map = filters_map
-          @logger = debug ? Logger.new(STDOUT) : nil
+          @logger = debug ? Logger.new($stdout) : nil
           @active_record_version_maj = ActiveRecord.gem_version.segments[0]
         end
-        
+
         def debug_query(msg, query)
-          @logger.info(msg + query.to_sql) if @logger
+          @logger&.info(msg + query.to_sql)
         end
 
         def generate(filters)
           # Resolve the names and values first, based on filters_map
           root_node = _convert_to_treenode(filters)
           crafted = craft_filter_query(root_node, for_model: @model)
-          debug_query("SQL due to filters: ", crafted.all)
+          debug_query('SQL due to filters: ', crafted.all)
           crafted
         end
 
         def craft_filter_query(nodetree, for_model:)
           result = _compute_joins_and_conditions_data(nodetree, model: for_model, parent_reflection: nil)
           return @initial_query if result[:conditions].empty?
-          
+
           # Find the root group (usually an AND group) but can be an OR group, or nil if there's only 1 condition
           root_parent_group = result[:conditions].first[:node_object].parent_group || result[:conditions].first[:node_object]
-          while root_parent_group.parent_group != nil
-            root_parent_group = root_parent_group.parent_group
-          end
+          root_parent_group = root_parent_group.parent_group until root_parent_group.parent_group.nil?
 
           # Process the joins
           query_with_joins = result[:associations_hash].empty? ? @initial_query : @initial_query.left_outer_joins(result[:associations_hash])
 
           # Proc to apply a single condition
-          apply_single_condition = Proc.new do |condition, associated_query|
+          apply_single_condition = proc do |condition, associated_query|
             colo = condition[:model].columns_hash[condition[:name].to_s]
             column_prefix = condition[:column_prefix]
             association_key_column = \
-              if ref = condition[:parent_reflection]
+              if (ref = condition[:parent_reflection])
                 # get the target model of the association(where the assoc pk is)
-                target_model = condition[:parent_reflection].klass
-                target_model.columns_hash[condition[:parent_reflection].association_primary_key]
-              else
-                nil
+                target_model = ref.klass
+                target_model.columns_hash[ref.association_primary_key]
               end
 
             # Mark where clause referencing the appropriate alias IF it's not the root table, as there is no association to reference
-            # If we added root table as a reference, we better make sure it is not quoted, as it actually makes AR to see it as an 
+            # If we added root table as a reference, we better make sure it is not quoted, as it actually makes AR to see it as an
             # unmatched reference and eager loads the whole association (it means eager load ALL the things). Not good.
-            unless for_model.table_name == column_prefix
-              associated_query = associated_query.references(build_reference_value(column_prefix, query: associated_query))
-            end
+            associated_query = associated_query.references(build_reference_value(column_prefix, query: associated_query)) unless for_model.table_name == column_prefix
             self.class.add_clause(
-              query: associated_query, 
-              column_prefix: column_prefix, 
-              column_object: colo, 
-              op: condition[:op], 
+              query: associated_query,
+              column_prefix: column_prefix,
+              column_object: colo,
+              op: condition[:op],
               value: condition[:value],
               fuzzy: condition[:fuzzy],
-              association_key_column: association_key_column,
+              association_key_column: association_key_column
             )
           end
 
@@ -97,7 +92,7 @@ module Praxis
             if root_parent_group.is_a?(FilteringParams::Condition)
               # A Single condition it is easy to handle
               apply_single_condition.call(result[:conditions].first, query_with_joins)
-            elsif root_parent_group.items.all?{|i| i.is_a?(FilteringParams::Condition)}
+            elsif root_parent_group.items.all? { |i| i.is_a?(FilteringParams::Condition) }
               # Only 1 top level root, with only with simple condition items
               if root_parent_group.type == :and
                 result[:conditions].reverse.inject(query_with_joins) do |accum, condition|
@@ -113,132 +108,40 @@ module Praxis
                 end
               end
             else
-              raise "Mixing AND and OR conditions is not supported for ActiveRecord <6."
+              raise 'Mixing AND and OR conditions is not supported for ActiveRecord <6.'
             end
           else #  ActiveRecord 6+
             # Process the conditions in a depth-first order, and return the resulting query
             _depth_first_traversal(
-              root_query: query_with_joins, 
-              root_node: root_parent_group, 
-              conditions: result[:conditions], 
+              root_query: query_with_joins,
+              root_node: root_parent_group,
+              conditions: result[:conditions],
               &apply_single_condition
             )
           end
         end
 
         # not in filters....checks if it's a valid path
-        def self.valid_path?(model, path) # array of strings
+        # array of strings
+        def self.valid_path?(model, path)
           first_component, *rest = path
           if model.attribute_names.include?(first_component)
-            true 
+            true
           elsif model.reflections.keys.include?(first_component)
             if rest.empty?
               true # Allow associations as a leaf too (as they can have the ! and !! operator)
             else # Follow the association
               nested_model = model.reflections[first_component].klass
-             valid_path?(nested_model, rest)
+              valid_path?(nested_model, rest)
             end
           else
             false
           end
         end
 
-        private
-        def _depth_first_traversal(root_query:, root_node:, conditions:, &block)
-          # Save the associated query for non-leaves 
-          root_node.associated_query = root_query if root_node.is_a?(FilteringParams::ConditionGroup)
-          
-          if root_node.is_a?(FilteringParams::Condition)
-            matching_condition = conditions.find {|cond| cond[:node_object] == root_node }
-
-            # The simplified case of a single top level condition (without a wrapping group)
-            # will need to pass the root query itself
-            associated_query = root_node.parent_group ? root_node.parent_group.associated_query : root_query
-            return yield matching_condition, associated_query
-          else
-            first_query, *rest_queries = root_node.items.map do |child|
-              _depth_first_traversal(root_query: root_query, root_node: child, conditions: conditions, &block)
-            end
-
-            rest_queries.each.inject(first_query) do |q, a_query|
-              root_node.type == :and ? q.and(a_query) : q.or(a_query)
-            end
-          end
-        end
-
-        def _mapped_filter(name)
-          target = @filters_map[name]
-          unless target
-            path = name.to_s.split('.')
-            if self.class.valid_path?(@model, path)
-              # Cache it in the filters mapping (to avoid later lookups), and return it.
-              @filters_map[name] = name
-              target = name
-            end
-          end
-          return target
-        end
-
-        # Resolve and convert from filters, to a more manageable and param-type-independent structure
-        def _convert_to_treenode(filters)
-          # Resolve the names and values first, based on filters_map
-          resolved_array = []
-          filters.parsed_array.each do |filter|
-            mapped_value = _mapped_filter(filter[:name])
-            unless mapped_value
-              msg = "Filtering by #{filter[:name]} is not allowed. No implementation mapping defined for it has been found \
-                and there is not a model attribute with this name either.\n" \
-                "Please add a mapping for #{filter[:name]} in the `filters_mapping` method of the appropriate Resource class"
-              raise msg
-            end
-            bindings_array = \
-              if mapped_value.is_a?(Proc)
-                result = mapped_value.call(filter)
-                # Result could be an array of hashes (each hash has name/op/value to identify a condition)
-                result_from_proc = result.is_a?(Array) ? result : [result]
-                # Make sure we tack on the node object associated with the filter
-                result_from_proc.map{|hash| hash.merge(node_object: filter[:node_object])}
-              else
-                # For non-procs there's only 1 filter and 1 value (we're just overriding the mapped value)
-                [filter.merge( name: mapped_value)]
-              end
-            resolved_array = resolved_array + bindings_array
-          end
-          FilterTreeNode.new(resolved_array, path: [ALIAS_TABLE_PREFIX])
-        end
-
-        # Calculate join tree and conditions array for the nodetree object and its children
-        def _compute_joins_and_conditions_data(nodetree, model:, parent_reflection:)
-          h = {}
-          conditions = []
-          nodetree.children.each do |name, child|
-            child_reflection = model.reflections[name.to_s]
-            result = _compute_joins_and_conditions_data(child, model: child_reflection.klass, parent_reflection: child_reflection)
-            h[name] = result[:associations_hash]
-            
-            conditions += result[:conditions]
-          end
-          
-          column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? model.table_name : nodetree.path.join(REFERENCES_STRING_SEPARATOR)
-          nodetree.conditions.each do |condition|
-            # If it's a final ! or !! operation on an association from the parent, it means we need to add a condition
-            # on the existence (or lack of) of the whole associated table
-            ref = model.reflections[condition[:name].to_s]
-            if ref && ['!','!!'].include?(condition[:op])
-              cp = (nodetree.path + [condition[:name].to_s]).join(REFERENCES_STRING_SEPARATOR)
-              conditions += [condition.merge(column_prefix: cp, model: model, parent_reflection: ref)]
-              h[condition[:name]] = {}
-            else
-              # Save the parent reflection where the condition applies as well (used later to get assoc keys)
-              conditions += [condition.merge(column_prefix: column_prefix, model: model, parent_reflection: parent_reflection)]
-            end
-            
-          end
-          {associations_hash: h, conditions: conditions}
-        end
-
-        def self.add_clause(query:, column_prefix:, column_object:, op:, value:,fuzzy:, association_key_column:)
-          likeval = get_like_value(value,fuzzy)
+        # rubocop:disable Metrics/ParameterLists,Naming/MethodParameterName
+        def self.add_clause(query:, column_prefix:, column_object:, op:, value:, fuzzy:, association_key_column:)
+          likeval = get_like_value(value, fuzzy)
 
           association_op = nil
           case op
@@ -253,7 +156,7 @@ module Praxis
           end
 
           if association_op
-            neg = association_op == :not_null ? true : false
+            neg = association_op == :not_null
             qr = quote_right_part(query: query, value: nil, column_object: association_key_column, negative: neg)
             return query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: association_key_column)} #{qr}")
           end
@@ -295,11 +198,14 @@ module Praxis
             raise "Unsupported Operator!!! #{op}"
           end
         end
+        # rubocop:enable Metrics/ParameterLists,Naming/MethodParameterName
 
+        # rubocop:disable Naming/MethodParameterName
         def self.add_safe_where(query:, tab:, col:, op:, value:)
-          quoted_value = query.connection.quote_default_expression(value,col)
-          query.where("#{self.quote_column_path(query: query, prefix: tab, column_object: col)} #{op} #{quoted_value}")
+          quoted_value = query.connection.quote_default_expression(value, col)
+          query.where("#{quote_column_path(query: query, prefix: tab, column_object: col)} #{op} #{quoted_value}")
         end
+        # rubocop:enable Naming/MethodParameterName
 
         def self.quote_column_path(query:, prefix:, column_object:)
           c = query.connection
@@ -316,44 +222,135 @@ module Praxis
           conn = query.connection
           if value.nil?
             no = negative ? ' NOT' : ''
-            "IS#{no} #{conn.quote_default_expression(value,column_object)}"
+            "IS#{no} #{conn.quote_default_expression(value, column_object)}"
           elsif value.is_a?(Array)
             no = negative ? 'NOT ' : ''
-            list = value.map{|v| conn.quote_default_expression(v,column_object)}
+            list = value.map { |v| conn.quote_default_expression(v, column_object) }
             "#{no}IN (#{list.join(',')})"
-          elsif value && value.is_a?(Range)
-            raise "TODO!"
+          elsif value.is_a?(Range)
+            raise 'TODO!'
           else
             op = negative ? '<>' : '='
-            "#{op} #{conn.quote_default_expression(value,column_object)}"
+            "#{op} #{conn.quote_default_expression(value, column_object)}"
           end
         end
 
         # Returns nil if the value was not a fuzzzy pattern
-        def self.get_like_value(value,fuzzy)
+        def self.get_like_value(value, fuzzy)
           is_fuzzy = fuzzy.is_a?(Array) ? !fuzzy.compact.empty? : fuzzy
-          if is_fuzzy
-            unless value.is_a?(String)
-              raise MultiMatchWithFuzzyNotAllowedByAdapter.new
-            end
-            case fuzzy
-            when :start_end
-              '%'+value+'%'
-            when :start
-              '%'+value
-            when :end
-              value+'%'
-            end
-          else
-            nil
+          return unless is_fuzzy
+
+          raise MultiMatchWithFuzzyNotAllowedByAdapter unless value.is_a?(String)
+
+          case fuzzy
+          when :start_end
+            "%#{value}%"
+          when :start
+            "%#{value}"
+          when :end
+            "#{value}%"
           end
         end
 
+        private
+
+        def _depth_first_traversal(root_query:, root_node:, conditions:, &block)
+          # Save the associated query for non-leaves
+          root_node.associated_query = root_query if root_node.is_a?(FilteringParams::ConditionGroup)
+
+          if root_node.is_a?(FilteringParams::Condition)
+            matching_condition = conditions.find { |cond| cond[:node_object] == root_node }
+
+            # The simplified case of a single top level condition (without a wrapping group)
+            # will need to pass the root query itself
+            associated_query = root_node.parent_group ? root_node.parent_group.associated_query : root_query
+            yield matching_condition, associated_query
+          else
+            first_query, *rest_queries = root_node.items.map do |child|
+              _depth_first_traversal(root_query: root_query, root_node: child, conditions: conditions, &block)
+            end
+
+            rest_queries.each.inject(first_query) do |q, a_query|
+              root_node.type == :and ? q.and(a_query) : q.or(a_query)
+            end
+          end
+        end
+
+        def _mapped_filter(name)
+          target = @filters_map[name]
+          unless target
+            path = name.to_s.split('.')
+            if self.class.valid_path?(@model, path)
+              # Cache it in the filters mapping (to avoid later lookups), and return it.
+              @filters_map[name] = name
+              target = name
+            end
+          end
+          target
+        end
+
+        # Resolve and convert from filters, to a more manageable and param-type-independent structure
+        def _convert_to_treenode(filters)
+          # Resolve the names and values first, based on filters_map
+          resolved_array = []
+          filters.parsed_array.each do |filter|
+            mapped_value = _mapped_filter(filter[:name])
+            unless mapped_value
+              msg = "Filtering by #{filter[:name]} is not allowed. No implementation mapping defined for it has been found \
+                and there is not a model attribute with this name either.\n" \
+                "Please add a mapping for #{filter[:name]} in the `filters_mapping` method of the appropriate Resource class"
+              raise msg
+            end
+            bindings_array = \
+              if mapped_value.is_a?(Proc)
+                result = mapped_value.call(filter)
+                # Result could be an array of hashes (each hash has name/op/value to identify a condition)
+                result_from_proc = result.is_a?(Array) ? result : [result]
+                # Make sure we tack on the node object associated with the filter
+                result_from_proc.map { |hash| hash.merge(node_object: filter[:node_object]) }
+              else
+                # For non-procs there's only 1 filter and 1 value (we're just overriding the mapped value)
+                [filter.merge(name: mapped_value)]
+              end
+            resolved_array += bindings_array
+          end
+          FilterTreeNode.new(resolved_array, path: [ALIAS_TABLE_PREFIX])
+        end
+
+        # Calculate join tree and conditions array for the nodetree object and its children
+        def _compute_joins_and_conditions_data(nodetree, model:, parent_reflection:)
+          h = {}
+          conditions = []
+          nodetree.children.each do |name, child|
+            child_reflection = model.reflections[name.to_s]
+            result = _compute_joins_and_conditions_data(child, model: child_reflection.klass, parent_reflection: child_reflection)
+            h[name] = result[:associations_hash]
+
+            conditions += result[:conditions]
+          end
+
+          column_prefix = nodetree.path == [ALIAS_TABLE_PREFIX] ? model.table_name : nodetree.path.join(REFERENCES_STRING_SEPARATOR)
+          nodetree.conditions.each do |condition|
+            # If it's a final ! or !! operation on an association from the parent, it means we need to add a condition
+            # on the existence (or lack of) of the whole associated table
+            ref = model.reflections[condition[:name].to_s]
+            if ref && ['!', '!!'].include?(condition[:op])
+              cp = (nodetree.path + [condition[:name].to_s]).join(REFERENCES_STRING_SEPARATOR)
+              conditions += [condition.merge(column_prefix: cp, model: model, parent_reflection: ref)]
+              h[condition[:name]] = {}
+            else
+              # Save the parent reflection where the condition applies as well (used later to get assoc keys)
+              conditions += [condition.merge(column_prefix: column_prefix, model: model, parent_reflection: parent_reflection)]
+            end
+          end
+          { associations_hash: h, conditions: conditions }
+        end
+
         # The value that we need to stick in the references method is different in the latest Rails
-        maj, min, _ = ActiveRecord.gem_version.segments
-        if maj == 5 || (maj == 6 && min == 0)
+        maj, min, = ActiveRecord.gem_version.segments
+        if maj == 5 || (maj == 6 && min.zero?)
           # In AR 6 (and 6.0) the references are simple strings
-          def build_reference_value(column_prefix, query: nil)
+          def build_reference_value(column_prefix, **_args)
             column_prefix
           end
         else

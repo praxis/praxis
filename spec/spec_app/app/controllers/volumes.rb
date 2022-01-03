@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Volumes < BaseClass
   include Praxis::Controller
 
@@ -5,22 +7,20 @@ class Volumes < BaseClass
   include Concerns::BasicApi
 
   before actions: [:show] do |controller|
-    #puts "before action for volumes"
+    # puts "before action for volumes"
   end
 
   def index
     volumes = Volume::Collection.example
-    
-    response.body = volumes.collect { |v| v.render }
+
+    response.body = volumes.collect(&:render)
     response.headers['Content-Type'] = 'application/vnd.acme.volumes'
     response
   end
 
-  def show(id:, **other_params)
+  def show(*)
     response.body = JSON.pretty_generate(Volume.example.render)
     response.headers['Content-Type'] = 'application/vnd.acme.volume'
     response
   end
-
-
 end

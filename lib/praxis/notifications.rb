@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 require 'active_support/notifications'
 
 require 'singleton'
 
 module Praxis
-
   module Notifications
     include Praxis::PluginConcern
 
@@ -13,7 +14,6 @@ module Praxis
       def config_key
         :notifications # 'praxis.notifications'
       end
-
     end
 
     def self.publish(name, *args)
@@ -35,7 +35,5 @@ module Praxis
     def self.unsubscribe(subscriber_or_name)
       ActiveSupport::Notifications.unsubscribe(subscriber_or_name)
     end
-
-
   end
 end

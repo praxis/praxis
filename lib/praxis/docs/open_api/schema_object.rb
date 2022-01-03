@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 module Praxis
   module Docs
     module OpenApi
       class SchemaObject
         # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#schema-object
         attr_reader :type, :attribute
+
         def initialize(info:)
-          #info could be an attribute ... or a type?
+          # info could be an attribute ... or a type?
           if info.is_a? Attributor::Attribute
             @attribute = info
           else
@@ -29,7 +32,7 @@ module Praxis
           else
             type.as_json_schema(shallow: true, example: nil)
           end
-          # # TODO: FIXME: return a generic object type if the passed info was weird. 
+          # # TODO: FIXME: return a generic object type if the passed info was weird.
           # return { type: :object } unless info
 
           # h = {
@@ -41,7 +44,7 @@ module Praxis
           # h[:default] = info[:default] if info[:default]
           # h[:pattern] = info[:regexp] if info[:regexp]
           # # TODO: there are other possible things we can do..maximum, minimum...etc
-  
+
           # if h[:type] == :array
           #   # FIXME: ... hack it for MultiPart arrays...where there's no member attr
           #   member_type =  info[:type][:member_attribute]
@@ -51,27 +54,25 @@ module Praxis
           #   h[:items] = SchemaObject.new(info: member_type ).dump_schema
           # end
           # h
-        rescue => e
+        rescue StandardError => e
           puts "Error dumping schema #{e}"
         end
-        
-        def convert_family_to_json_type( praxis_type )
+
+        def convert_family_to_json_type(praxis_type)
           case praxis_type[:family].to_sym
           when :string
             :string
           when :hash
             :object
-          when :array #Warning! Multipart types are arrays!
+          when :array # Warning! Multipart types are arrays!
             :array
           when :numeric
-            case praxis_type[:id]
-            when 'Attributor-Integer'
-              :integer
-            when 'Attributor-BigDecimal'
-              :integer
-            when 'Attributor-Float'
-              :number
-            end
+            jtypes = {
+              'Attributor-Integer' => :integer,
+              'Attributor-BigDecimal' => :integer,
+              'Attributor-Float' => :number
+            }
+            jtypes[praxis_type[:id]]
           when :temporal
             :string
           when :boolean
@@ -80,7 +81,6 @@ module Praxis
             raise "Unknown praxis family type: #{praxis_type[:family]}"
           end
         end
-
       end
     end
   end

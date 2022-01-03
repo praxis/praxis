@@ -1,12 +1,12 @@
 # frozen_string_literal: true
+
 module Praxis
   class FieldExpander
     def self.expand(object, fields = true)
       new.expand(object, fields)
     end
 
-    attr_reader :stack
-    attr_reader :history
+    attr_reader :stack, :history
 
     def initialize
       @stack = Hash.new do |hash, key|
@@ -20,6 +20,7 @@ module Praxis
     def expand(object, fields = true)
       if stack[object].include? fields
         return history[object][fields] if history[object].include? fields
+
         # We should probably never get here, since we should have a record
         # of the history of an expansion if we're trying to redo it,
         # but we should also be conservative and raise here just in case.
@@ -61,11 +62,9 @@ module Praxis
 
     def expand_type(object, fields = true)
       unless object.respond_to?(:attributes)
-        if object.respond_to?(:member_attribute)
-          return expand_type(object.member_attribute.type, fields)
-        else
-          return true
-        end
+        return expand_type(object.member_attribute.type, fields) if object.respond_to?(:member_attribute)
+
+        return true
       end
 
       # just include the full thing if it has no attributes
@@ -80,7 +79,7 @@ module Praxis
       result = expand_fields(object.attributes, fields) do |dumpable, sub_fields|
         expand(dumpable.type, sub_fields)
       end
-      unless fields == true 
+      unless fields == true
         non_matching = fields.keys - object.attributes.keys
         raise "FieldExpansion error: attribute(s) #{non_matching} do not exist in #{object}" unless non_matching.empty?
       end

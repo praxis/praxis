@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'ostruct'
 
 require 'praxis/mapper/active_model_compat'
@@ -63,15 +65,15 @@ end
 class YamlArrayModel < OpenStruct
   include Praxis::Mapper::ActiveModelCompat
   def self._praxis_associations
-   {
-    parents: {
-      model: ParentModel,
-      primary_key: :id,
-      type: :one_to_many,
-      local_key_columns: [:id],
-      remote_key_columns: [:parent_id]
+    {
+      parents: {
+        model: ParentModel,
+        primary_key: :id,
+        type: :one_to_many,
+        local_key_columns: [:id],
+        remote_key_columns: [:parent_id]
+      }
     }
-  }
   end
 end
 
@@ -79,7 +81,7 @@ end
 class BaseResource < Praxis::Mapper::Resource
   def href
     base_href = '' # "/api"
-    base_href + "/#{self.class.collection_name}/#{self.id}"
+    base_href + "/#{self.class.collection_name}/#{id}"
   end
 
   property :href, dependencies: [:id]
@@ -94,33 +96,33 @@ end
 class ParentResource < BaseResource
   model ParentModel
 
-  property :display_name, dependencies: [:simple_name, :id, :other_attribute]
+  property :display_name, dependencies: %i[simple_name id other_attribute]
 end
 
 class SimpleResource < BaseResource
   model SimpleModel
 
-  resource_delegate :other_model => [:other_attribute]
+  resource_delegate other_model: [:other_attribute]
 
   def other_resource
-    self.other_model
+    other_model
   end
 
-  property :aliased_method, dependencies: [:column1, :other_model]
+  property :aliased_method, dependencies: %i[column1 other_model]
   property :other_resource, dependencies: [:other_model]
 
-  property :parent, dependencies: [:parent, :added_column]
+  property :parent, dependencies: %i[parent added_column]
 
   property :name, dependencies: [:simple_name]
-  property :direct_other_name, dependencies: [ 'other_model.name' ]
-  property :aliased_other_name, dependencies: [ 'other_model.display_name' ]
+  property :direct_other_name, dependencies: ['other_model.name']
+  property :aliased_other_name, dependencies: ['other_model.display_name']
 
   property :everything, dependencies: [:*]
   property :everything_from_parent, dependencies: ['parent.*']
-  property :circular_dep, dependencies: [ :circular_dep, :column1 ]
+  property :circular_dep, dependencies: %i[circular_dep column1]
   property :no_deps, dependencies: []
 
-  property :deep_nested_deps, dependencies: [ 'parent.simple_children.other_model.parent.display_name']
+  property :deep_nested_deps, dependencies: ['parent.simple_children.other_model.parent.display_name']
 end
 
 class YamlArrayResource < BaseResource

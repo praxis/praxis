@@ -1,10 +1,8 @@
+# frozen_string_literal: true
+
 module Praxis
-
-
   module BootloaderStages
-
     class FileLoader < Stage
-
       attr_reader :path
 
       def initialize(name, application, path: nil)
@@ -16,6 +14,7 @@ module Praxis
         application.file_layout[*path].each do |file|
           next if application.loaded_files.include?(file)
           next unless file.extname == '.rb'
+
           require file
           application.loaded_files << file
         end
@@ -24,8 +23,6 @@ module Praxis
       def callback_args
         application.file_layout[*path]
       end
-
     end
   end
-
 end

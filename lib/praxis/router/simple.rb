@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Originally from:
 # https://github.com/rkh/mustermann/blob/500a603fffe0594ab842d72addcc449eedd6d5be/mustermann/lib/mustermann/router/simple.rb
 # Copied here after its removal from Mustermann proper
@@ -60,7 +62,9 @@ module Mustermann
         @map     = []
         @default = default
 
-        block.arity == 0 ? instance_eval(&block) : yield(self) if block
+        return unless block
+
+        block.arity.zero? ? instance_eval(&block) : yield(self)
       end
 
       # @example
@@ -74,7 +78,7 @@ module Mustermann
       # @return [#call, nil] callback for given string, if a pattern matches
       def [](string)
         string = string_for(string) unless string.is_a? String
-        @map.detect { |p,v| p === string }[1]
+        @map.detect { |p, _v| p === string }[1] # rubocop:disable Style/CaseEquality
       end
 
       # @example
@@ -125,14 +129,15 @@ module Mustermann
       def call(input)
         @map.each do |pattern, callback|
           catch(:pass) do
-            next unless params = pattern.params(string_for(input))
+            next unless (params = pattern.params(string_for(input)))
+
             return invoke(callback, input, params, pattern)
           end
         end
         @default
       end
 
-      def invoke(callback, input, params, pattern)
+      def invoke(callback, input, params, _pattern)
         callback.call(input, params)
       end
 

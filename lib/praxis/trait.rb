@@ -1,8 +1,8 @@
-module Praxis
+# frozen_string_literal: true
 
+module Praxis
   class Trait
-    attr_reader :name
-    attr_reader :attribute_groups
+    attr_reader :name, :attribute_groups
 
     def initialize(&block)
       @name = nil
@@ -11,21 +11,24 @@ module Praxis
       @routing = nil
       @other = []
 
-      @attribute_groups = Hash.new do |h,k|
+      @attribute_groups = Hash.new do |h, k|
         h[k] = []
       end
 
-      if block_given?
-        self.instance_eval(&block)
-      end
+      instance_eval(&block) if block_given?
     end
 
     def method_missing(name, *args, &block)
       @other << [name, args, block]
     end
 
-    def description(desc=nil)
+    def respond_to_missing?(*)
+      true
+    end
+
+    def description(desc = nil)
       return @description if desc.nil?
+
       @description = desc
     end
 
@@ -37,22 +40,20 @@ module Praxis
       @attribute_groups[name] << block
     end
 
-    def headers(*args, &block)
-      create_group(:headers,&block)
+    def headers(*_args, &block)
+      create_group(:headers, &block)
     end
 
-    def params(*args, &block)
-      create_group(:params,&block)
+    def params(*_args, &block)
+      create_group(:params, &block)
     end
 
     def payload(*args, &block)
-      type, opts = args
+      type, _opts = args
 
-      if type && !(type < Attributor::Hash)
-        raise 'payload in a trait with non-hash (or model or struct) is not supported'
-      end
+      raise 'payload in a trait with non-hash (or model or struct) is not supported' if type && !(type < Attributor::Hash)
 
-      create_group(:payload,&block)
+      create_group(:payload, &block)
     end
 
     def routing(&block)
@@ -60,26 +61,24 @@ module Praxis
     end
 
     def describe
-      desc = {description: @description}
+      desc = { description: @description }
       desc[:name] = @name if @name
       desc[:responses] = @responses if @responses.any?
 
-      if @routing
-        desc[:routing] = ConfigHash.new(&@routing).to_hash
-      end
+      desc[:routing] = ConfigHash.new(&@routing).to_hash if @routing
 
       @attribute_groups.each_with_object(desc) do |(name, blocks), hash|
         type_class = if name == :headers
-          # Headers are special:
-          # Keys are strings, they have a special DSL, and are case insensitive
-          hash_opts = {
-            dsl_compiler: ActionDefinition::HeadersDSLCompiler,
-            case_insensitive_load: true
-          }
-          Attributor::Hash.of(key: String).construct(Proc.new {}, **hash_opts)
-        else
-          Attributor::Hash.construct(Proc.new {})
-        end
+                       # Headers are special:
+                       # Keys are strings, they have a special DSL, and are case insensitive
+                       hash_opts = {
+                         dsl_compiler: ActionDefinition::HeadersDSLCompiler,
+                         case_insensitive_load: true
+                       }
+                       Attributor::Hash.of(key: String).construct(proc {}, **hash_opts)
+                     else
+                       Attributor::Hash.construct(proc {})
+                     end
         blocks.each do |block|
           type_class.construct(block)
         end
@@ -89,7 +88,6 @@ module Praxis
       desc
     end
 
-
     def apply!(target)
       @attribute_groups.each do |name, blocks|
         blocks.each do |block|
@@ -97,27 +95,20 @@ module Praxis
         end
       end
 
-      if @routing
-        target.routing(&@routing)
-      end
+      target.routing(&@routing) if @routing
 
       @responses.each do |name, args|
         target.response(name, **args)
       end
+      return unless @other.any?
 
-      if @other.any?
-        @other.each do |name, args, block|
-          if block
-            target.send(name, *args, &block)
-          else
-            target.send(name,*args)
-          end
+      @other.each do |name, args, block|
+        if block
+          target.send(name, *args, &block)
+        else
+          target.send(name, *args)
         end
       end
     end
-
-
-
   end
-
 end

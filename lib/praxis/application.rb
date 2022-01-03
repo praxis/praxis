@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'singleton'
 require 'mustermann'
 require 'logger'
@@ -6,28 +8,12 @@ module Praxis
   class Application
     include Singleton
 
-    attr_reader :router
-    attr_reader :controllers
-    attr_reader :endpoint_definitions
-    attr_reader :app
-    attr_reader :builder
+    attr_reader :router, :controllers, :endpoint_definitions, :app, :builder
 
-    attr_accessor :bootloader
-    attr_accessor :file_layout
-    attr_accessor :loaded_files
-    attr_accessor :logger
-    attr_accessor :plugins
-    attr_accessor :doc_browser_plugin_paths
-    attr_accessor :handlers
-    attr_accessor :root
-    attr_accessor :error_handler
-    attr_accessor :validation_handler
-
-    attr_accessor :versioning_scheme
-
+    attr_accessor :bootloader, :file_layout, :loaded_files, :logger, :plugins, :doc_browser_plugin_paths, :handlers, :root, :error_handler, :validation_handler, :versioning_scheme
 
     def self.configure
-      yield(self.instance)
+      yield(instance)
     end
 
     def initialize
@@ -44,15 +30,14 @@ module Praxis
 
       @bootloader = Bootloader.new(self)
       @file_layout = nil
-      @plugins = Hash.new
+      @plugins = {}
       @doc_browser_plugin_paths = []
-      @handlers = Hash.new
+      @handlers = {}
       @loaded_files = Set.new
       @config = Config.new
       @root = nil
-      @logger = Logger.new(STDOUT)
+      @logger = Logger.new($stdout)
     end
-
 
     def setup(root: '.')
       return self unless @app.nil?
@@ -92,9 +77,7 @@ module Praxis
       handler = handler.new
 
       # Make sure it quacks like a handler.
-      unless handler.respond_to?(:generate) && handler.respond_to?(:parse)
-        raise ArgumentError, "Media type handlers must respond to #generate and #parse"
-      end
+      raise ArgumentError, 'Media type handlers must respond to #generate and #parse' unless handler.respond_to?(:generate) && handler.respond_to?(:parse)
 
       # Register that thing!
       @handlers[name.to_s] = handler
@@ -102,17 +85,17 @@ module Praxis
 
     def call(env)
       response = []
-      Notifications.instrument 'rack.request.all'.freeze, response: response do
+      Notifications.instrument 'rack.request.all', response: response do
         response.push(*@app.call(env))
       end
     end
 
     def layout(&block)
-      self.file_layout = FileGroup.new(self.root, &block)
+      self.file_layout = FileGroup.new(root, &block)
     end
 
-    def config(key=nil, type=Attributor::Struct, **opts, &block)
-      if block_given? || (type==Attributor::Struct && !opts.empty? )
+    def config(key = nil, type = Attributor::Struct, **opts, &block)
+      if block_given? || (type == Attributor::Struct && !opts.empty?)
         @config.define(key, type, **opts, &block)
       else
         @config.get
@@ -123,9 +106,9 @@ module Praxis
       @config.set(config)
     end
 
-    # [DEPRECATED] - Warn of the change of method name for the transition 
+    # [DEPRECATED] - Warn of the change of method name for the transition
     def resource_definitions
-      raise "Praxis::Application.instance does not use `resource_definitions` any longer. Use `endpoint_definitions` instead."
+      raise 'Praxis::Application.instance does not use `resource_definitions` any longer. Use `endpoint_definitions` instead.'
     end
   end
 end

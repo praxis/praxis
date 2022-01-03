@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# rubocop:disable all
 
 # FOR AR < 6.1
 module ActiveRecord
@@ -68,3 +69,4 @@ module ActiveRecord
     end
   end
 end
+# rubocop:enable all

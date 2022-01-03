@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# rubocop:disable all
 
 require 'active_record'
 
@@ -91,3 +92,4 @@ module ActiveRecord
     end
   end
 end
+# rubocop:enable all

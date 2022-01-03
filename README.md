@@ -7,37 +7,32 @@
 [travis-ci-url]: https://app.travis-ci.com/praxis/praxis
 [coveralls-img-url]:https://coveralls.io/repos/github/praxis/praxis/badge.svg?branch=master
 [coveralls-url]:https://coveralls.io/github/praxis/praxis?branch=master
-[gemnasium-img-url]:https://gemnasium.com/praxis/praxis.svg
-[gemnasium-url]:https://gemnasium.com/praxis/praxis
 
-Praxis is a framework for both _designing_ and _implementing_ APIs.
+A fast and highly efficient paradigm to build beautiful service APIs
 
-An important part of the framework is geared towards the _design_ aspect of building an API. This functionality empowers architects with tools to design every last aspect of their API, resulting in a complete, web-browsable documentation, which includes automatic generation of examples for resources, parameters, headers, etc...as well as requests and responses for the supported encodings. The design process is iterative, and flows from defining new resources, parameters, etc...to reviewing the resulting docs (usually with some of the potential clients of the API), back to updating the design based on feedback, or expanding it with more resources. The design language (i.e. DSL) of Praxis follows a clean 'ruby-type-syntax' and its final outcome is to generates an output that is both a set of schema documents as well as a web-based API browser (driven by those schemas). This allows Praxis to design APIs that can potentially be implemented in any language.
+Praxis is built to empower development teams with extreme productivty tools to create fast, and modern APIs that will delight their customers. Some of the salient features are:
 
-Another important part of the framework is geared towards helping in the _implementation_ of the API service. In particular, Praxis provides help to Ruby developers for building a service conforming to the designed API. Aside from Ruby there is also sister-project called [Goa](http://goa.design/) that assists in implementing Praxis-like design API using Golang. Since the API design generates schema files very similar in nature to other API document formats like (Swagger, Google Discovery, RAML, etc...) supporting other implementation languages could be easily accomplished in the future by building converters to/from them.
+* **Truthful & Beautiful Docs:** Automatically generate Open API 3.x documents from the actual functioning code, and rest assured they're always correct.
 
-The part of the framework that helps with the ruby service implementation takes an approach that is different from other existing ruby (micro)frameworks such as [Grape](http://www.ruby-grape.org), [Sinatra](https://github.com/sinatra/sinatra), [Scorched](http://scorchedrb.com/), [Lotus](http://lotusrb.org/) or even [RailsAPI](https://github.com/rails-api/rails-api) (now part of Rails). Instead of being developer-centric, it takes an integrated approach treating both designers and implementors as first class citizens throughout the complete API building process. With Praxis you create an API by iterating through the design, review and implementation phases. While Praxis can help Ruby developers in a lot of aspects involved in building a service, the framework is completely componentized as to allow developers to pick and choose which parts to use, which ones not to use, and which other technologies to integrate with. The framework provides help in many areas, for example: all aspects of request and response validation, automatic type-coercion, consistent error-responses, routing and url generation, advanced template/media-type definition and rendering, domain-modeling, optional database ORM (for high-perfomance large datasets), DB integration (with an efficient identityMap), a plugin and extensible framework to easily hook into, available integrations such as newrelic, statsd, etc...
-
-There is a long list of benefits that come from using Praxis. From those, here are a couple of the salient themes:
-* Designing APIs with Praxis result in a very precise, consistent and beautiful API documentation that it is apt for both human (web browsable) or machine consumption (JSON spec files).
-* Building Ruby APIs with Praxis will result in much faster developer times, and more importantly with a resulting service that will ensure that its implementation is always consistent with its design, and it is enforced at all times.
+* **GraphQL Flexibility, REST Simplicity:** Allow customers to specify which fields they want to receive using the GraphQL syntax, but exposing them through well known REST endpoints.
+* **Fast Runtime and Blazing Fast Development:** Deploy your API using one of the best Ruby performing frameworks and take advantage of an unprecedented development speed.
+* **API Design-First Philosophy:** Craft and visualize your API design upfont, without writing a single line of code. Forget about implementing any of the API validations, the framework fully takes care of it from your design specification.
+* **Feature Rich yet Fully Customizable:** Fully take advantage of the tons of best practices, proven methods, standards and features that the frameworks comes with, or pick and choose only the ones you want to enable.
+* **Hardnened & Battle Tested:** Rest assured you'll get the advertised results as this framework has been deployed in production environments since before 2014.
 
 ## Quickstart
 ```bash
 # Install the praxis gem
 gem install praxis
 
-# Generate a praxis application named my-app in ./my-app
-praxis example my-app
+# Generate and bundle a praxis application named my-app in ./my-app
+praxis example my-app && cd my-app && bundle
 
 # Run it!
-cd my-app
-bundle
 rackup
 ```
 
-Or better yet, checkout a simple, but functional [blog example app](https://github.com/praxis/praxis-example-app) which showcases a few of the main design and implementation aspects that Praxis has to offer.
-
+Or check the getting started tutorial and reference docs at https://www.praxis-framework.io all that Praxis has to offer.
 
 ## Mailing List
 Join our Google Groups for discussion, support and announcements.
@@ -60,10 +55,10 @@ for further details on what contributions are accepted and how to go about
 contributing.
 
 ## Requirements
-Praxis requires Ruby 2.1.0 or greater.
+Praxis requires Ruby 2.5.0 or greater.
 
 ## License
 
 This software is released under the [MIT License](http://www.opensource.org/licenses/MIT). Please see  [LICENSE](LICENSE) for further details.
 
-Copyright (c) 2014 RightScale
+This framework was initially developed and used at RightScale, and was open sourced in 2014, after a few years of its production use.

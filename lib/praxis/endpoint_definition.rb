@@ -208,7 +208,7 @@ module Praxis
       def trait(trait_name)
         raise Exceptions::InvalidTrait, "Trait #{trait_name} not found in the system" unless ApiDefinition.instance.traits.key? trait_name
 
-        trait = ApiDefinition.instance.traits.fetch(trait_name)
+        # TODO: We're only storing the names here, should we store the actual traits in a hash?
         @traits << trait_name
       end
       alias use trait

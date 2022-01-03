@@ -299,7 +299,6 @@ module Praxis
       # Accept a simple array of fields, and transform it to a 1-level hash with true values
       fields = fields.each_with_object({}) { |field, hash| hash[field] = true } if fields.is_a? Array
 
-      expanded = Praxis::FieldExpander.new.expand(self, fields)
       renderer.render(self, fields, context: context)
     end
 

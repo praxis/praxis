@@ -51,6 +51,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec-collection_matchers', '~> 1'
   spec.add_development_dependency 'rspec-its', '~> 1'
   # Just for the query selector extensions etc...
-  spec.add_development_dependency 'activerecord', '> 4'
+  spec.add_development_dependency 'activerecord', '> 4','< 7'
   spec.add_development_dependency 'sequel', '~> 5'
 end

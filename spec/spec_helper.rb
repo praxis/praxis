@@ -15,9 +15,6 @@ RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
 end
 
-require 'simplecov'
-SimpleCov.start 'praxis'
-
 require 'pry'
 require 'pry-byebug'
 

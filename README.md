@@ -1,8 +1,5 @@
 # Praxis [![TravisCI][travis-img-url]][travis-ci-url] [![Coverage Status][coveralls-img-url]][coveralls-url] 
 
-[//]: # ( COMMENTED OUT UNTIL GEMNASIUM CAN SEE THE REPOS: [![Dependency Status][gemnasium-img-url]][gemnasium-url])
-
-
 [travis-img-url]: https://app.travis-ci.com/praxis/praxis.svg?branch=master
 [travis-ci-url]: https://app.travis-ci.com/praxis/praxis
 [coveralls-img-url]:https://coveralls.io/repos/github/praxis/praxis/badge.svg?branch=master

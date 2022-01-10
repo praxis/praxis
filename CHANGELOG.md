@@ -1,6 +1,8 @@
 # Praxis Changelog
 
 ## next
+
+## 2.0.pre.19
 * Introduced a new DSL for the `FilteringParams` type that allows filters for common attributes in your Media Types:
   * The new `any` DSL allows you to define which final leaf attribute to always allow, and with which operators and/or fuzzy restrictions.
   * For example, you can add `any updated_at, using: ['>','<']` which would allow the type to accept filters like `updated_at>2000-01-01`, or any existing nested fields like `posts.comments.updated_at>2000-01-01`

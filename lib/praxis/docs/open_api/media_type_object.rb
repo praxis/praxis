@@ -27,9 +27,9 @@ module Praxis
           return {} if type.is_a? SimpleMediaType # NOTE: skip if it's a SimpleMediaType?? ... is that correct?
 
           the_schema = if type.anonymous? || !(type < Praxis::MediaType) # Avoid referencing  custom/simple Types? (i.e., just MTs)
-                         SchemaObject.new(info: type).dump_schema
+                         SchemaObject.new(info: type).dump_schema(shallow: false, allow_ref: false)
                        else
-                         { '$ref': "#/components/schemas/#{type.id}" }
+                         SchemaObject.new(info: type).dump_schema(shallow: true, allow_ref: true)
                        end
 
           if example_payload

@@ -7,7 +7,8 @@ namespace :praxis do
       require 'fileutils'
 
       Praxis::Blueprint.caching_enabled = false
-      generator = Praxis::Docs::OpenApiGenerator.new(Dir.pwd)
+      generator = Praxis::Docs::OpenApiGenerator.instance
+      generator.configure_root(Dir.pwd)
       generator.save!
     end
 

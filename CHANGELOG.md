@@ -1,7 +1,9 @@
 # Praxis Changelog
 
 ## next
-
+* Open API Generation enhancements:
+  * Fixed type discovery (where some types wouldn't be included in the output)
+  * Changed the generation to output named types into components, and use `$ref` to point to them whenever appropriate
 ## 2.0.pre.19
 * Introduced a new DSL for the `FilteringParams` type that allows filters for common attributes in your Media Types:
   * The new `any` DSL allows you to define which final leaf attribute to always allow, and with which operators and/or fuzzy restrictions.

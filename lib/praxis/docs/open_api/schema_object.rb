@@ -9,7 +9,12 @@ module Praxis
 
         def initialize(info:)
           # info could be an attribute ... or a type?
-          @type =  info.is_a?(Attributor::Attribute) ? info.type : info
+          if info.is_a?(Attributor::Attribute)
+            @type =  info.type
+            @enum = info.options[:values]
+          else
+            @type = info
+          end
 
           # Mediatypes have the description method, lower types don't
           @description = @type.description if @type.respond_to?(:description)
@@ -46,7 +51,10 @@ module Praxis
             # OpenApi::SchemaObject.new(info:target).dump_schema(allow_ref: allow_ref, shallow: shallow)
             # TODO...we need to make sure we can use refs in the underlying components after the first level...
             # ... maybe we need to loop over the attributes if it's an object/struct?...
-            type.as_json_schema(shallow: shallow, example: nil)
+            schema = type.as_json_schema(shallow: shallow, example: nil)
+            # TODO: should this sort of logic be moved into as_json_schema?
+            schema.merge!(enum: @enum) if @enum
+            schema
           end
 
           # # TODO: FIXME: return a generic object type if the passed info was weird.

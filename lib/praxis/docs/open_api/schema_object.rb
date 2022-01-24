@@ -12,6 +12,7 @@ module Praxis
           if info.is_a?(Attributor::Attribute)
             @type =  info.type
             @enum = info.options[:values]
+            @nullable = info.options[:null]
           else
             @type = info
           end
@@ -43,7 +44,9 @@ module Praxis
             else
               # Object
               props = type.attributes.each_with_object({}) do |(name, definition), hash|
-                hash[name] = OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
+                schema = OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
+                schema[:nullable] = true if definition.options[:null]
+                hash[name] = schema
               end
               { type: :object, properties: props } # TODO: Example?
             end
@@ -54,6 +57,7 @@ module Praxis
             schema = type.as_json_schema(shallow: shallow, example: nil)
             # TODO: should this sort of logic be moved into as_json_schema?
             schema.merge!(enum: @enum) if @enum
+            schema.merge!(nullable: true) if @nullable
             schema
           end
 

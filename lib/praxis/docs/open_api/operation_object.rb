@@ -23,7 +23,6 @@ module Praxis
           all_tags = tags + action.traits
           h = {
             summary: action.name.to_s,
-            description: action.description,
             # externalDocs: {}, # TODO/FIXME
             operationId: id,
             responses: ResponsesObject.new(responses: action.responses).dump
@@ -32,6 +31,7 @@ module Praxis
             # security: [{}]
             # servers: [{}]
           }
+          h[:description] = action.description if action.description
           h[:tags] = all_tags.uniq unless all_tags.empty?
           h[:parameters] = all_parameters unless all_parameters.empty?
           h[:requestBody] = RequestBodyObject.new(attribute: action.payload).dump if action.payload

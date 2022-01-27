@@ -12,11 +12,11 @@ module Praxis
         end
 
         def dump
-          {
-            name: name,
-            description: description
+          h = description ? { description: description } : {}
+          h.merge(
+            name: name
             # externalDocs: ???,
-          }
+          )
         end
       end
     end

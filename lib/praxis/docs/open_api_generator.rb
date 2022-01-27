@@ -9,6 +9,7 @@ module Praxis
   module Docs
     class OpenApiGenerator
       require 'active_support/core_ext/enumerable' # For index_by
+      include Singleton
 
       API_DOCS_DIRNAME = 'docs/openapi'
       EXCLUDED_TYPES_FROM_OUTPUT = Set.new([
@@ -26,7 +27,7 @@ module Praxis
                                              Attributor::URI
                                            ]).freeze
 
-      attr_reader :resources_by_version, :types_by_id, :infos_by_version, :doc_root_dir
+      attr_reader :resources_by_version, :infos_by_version, :doc_root_dir
 
       # substitutes ":params_like_so" for {params_like_so}
       def self.templatize_url(string)
@@ -34,24 +35,37 @@ module Praxis
       end
 
       def save!
+        raise 'You need to configure the root directory before saving (configure_root(<dir>))' unless @root
+
         initialize_directories
         # Restrict the versions listed in the index file to the ones for which we have at least 1 resource
         write_index_file(for_versions: resources_by_version.keys)
         resources_by_version.each_key do |version|
+          @seen_components_for_current_version = Set.new
           write_version_file(version)
         end
       end
 
-      def initialize(root)
+      def initialize
         require 'yaml'
-        @root = root
+
         @resources_by_version = Hash.new do |h, k|
           h[k] = Set.new
         end
-
+        # List of types that we have seen/marked as necessary to list in the components/schemas section
+        # These should contain any mediatype define in the versioned controllers plus any type
+        # for which we've explicitly rendered a $ref schema
+        @seen_components_for_current_version = Set.new
         @infos = ApiDefinition.instance.infos
         collect_resources
-        collect_types
+      end
+
+      def configure_root(root)
+        @root = root
+      end
+
+      def register_seen_component(type)
+        @seen_components_for_current_version.add(type)
       end
 
       private
@@ -69,63 +83,16 @@ module Praxis
         end
       end
 
-      def collect_types
-        @types_by_id = ObjectSpace.each_object(Class).select do |obj|
-          obj < Attributor::Type
-        end.index_by(&:id)
-      end
-
       def write_index_file(for_versions:)
         # TODO. create a simple html file that can link to the individual versions available
       end
 
-      def scan_types_for_version(version, dumped_resources)
-        found_media_types = resources_by_version[version].select(&:media_type).collect { |r| r.media_type.describe }
-
+      # TODO: Change this function name to scan_default_mediatypes...
+      def collect_default_mediatypes(endpoints)
         # We'll start by processing the rendered mediatypes
-        processed_types = Set.new(resources_by_version[version].select do |r|
-          r.media_type && !r.media_type.is_a?(Praxis::SimpleMediaType)
+        Set.new(endpoints.select do |endpoint|
+          endpoint.media_type && !endpoint.media_type.is_a?(Praxis::SimpleMediaType)
         end.collect(&:media_type))
-
-        newfound = Set.new
-        found_media_types.each do |mt|
-          newfound += scan_dump_for_types({ type: mt }, processed_types)
-        end
-        # Then will process the rendered resources (noting)
-        newfound += scan_dump_for_types(dumped_resources, Set.new)
-
-        # At this point we've done a scan of the dumped resources and mediatypes.
-        # In that scan we've discovered a bunch of types, however, many of those might have appeared in the JSON
-        # rendered in just shallow mode, so it is not guaranteed that we've seen all the available types.
-        # For that we'll do a (non-shallow) dump of all the types we found, and scan them until the scans do not
-        # yield types we haven't seen before
-        until newfound.empty?
-          dumped = newfound.collect(&:describe)
-          processed_types += newfound
-          newfound = scan_dump_for_types(dumped, processed_types)
-        end
-        processed_types
-      end
-
-      def scan_dump_for_types(data, processed_types)
-        newfound_types = Set.new
-        case data
-        when Array
-          data.collect { |item| newfound_types += scan_dump_for_types(item, processed_types) }
-        when Hash
-          if data.key?(:type) && data[:type].is_a?(Hash) && (%i[id name family] - data[:type].keys).empty?
-            type_id = data[:type][:id]
-            unless type_id.nil? || type_id == Praxis::SimpleMediaType.id # SimpleTypes shouldn't be collected
-              unless types_by_id[type_id]
-                raise "Error! We have detected a reference to a 'Type' with id='#{type_id}' which is not derived from Attributor::Type" \
-                      ' Document generation cannot proceed.'
-              end
-              newfound_types << types_by_id[type_id] unless processed_types.include? types_by_id[type_id]
-            end
-          end
-          data.values.map { |item| newfound_types += scan_dump_for_types(item, processed_types) }
-        end
-        newfound_types
       end
 
       def write_version_file(version)
@@ -133,11 +100,11 @@ module Praxis
         # # Hack, let's "inherit/copy" all traits of a version from the global definition
         # # Eventually traits should be defined for a version (and inheritable from global) so we'll emulate that here
         # version_info[:traits] = infos_by_version[:traits]
-        dumped_resources = dump_resources(resources_by_version[version])
-        processed_types = scan_types_for_version(version, dumped_resources)
 
+        # We'll for sure include any of the default mediatypes in the endpoints for this version
+        @seen_components_for_current_version.merge(collect_default_mediatypes(resources_by_version[version]))
         # Here we have:
-        # processed types: which includes mediatypes and normal types...real classes
+        # processed types: which includes default mediatypes for the processed endpoints
         # processed resources for this version: resources_by_version[version]
 
         info_object = OpenApi::InfoObject.new(version: version, api_definition_info: @infos[version])
@@ -168,8 +135,8 @@ module Praxis
         end
         full_data[:tags] = full_data[:tags] + tags_for_traits unless tags_for_traits.empty?
 
-        # Include only MTs (i.e., not custom types or simple types...)
-        component_schemas = reusable_schema_objects(processed_types.select { |t| t < Praxis::MediaType })
+        # Include only MTs and Blueprints (i.e., no simple types...)
+        component_schemas = add_component_schemas(@seen_components_for_current_version.clone, {})
 
         # 3- Then adding all of the top level Mediatypes...so we can present them at the bottom, otherwise they don't show
         tags_for_mts = component_schemas.map do |(name, _info)|
@@ -251,16 +218,16 @@ module Praxis
         end
       end
 
-      def reusable_schema_objects(types)
-        types.each_with_object({}) do |(type), accum|
-          the_type = \
-            if type.respond_to? :as_json_schema
-              type
-            else # If it is a blueprint ... for now, it'd be through the attribute
-              type.attribute
-            end
-          accum[type.id] = the_type.as_json_schema(shallow: false)
+      def add_component_schemas(types_to_add, components_hash)
+        initial = @seen_components_for_current_version.dup
+        types_to_add.each_with_object(components_hash) do |(type), accum|
+          # For components, we want the first level to be fully dumped (only references below that)
+          accum[type.id] = OpenApi::SchemaObject.new(info: type).dump_schema(allow_ref: false, shallow: false)
         end
+        newfound = @seen_components_for_current_version - initial
+        # Process the new types if they have discovered
+        add_component_schemas(newfound, components_hash) unless newfound.empty?
+        components_hash
       end
 
       def convert_to_parameter_object(params)

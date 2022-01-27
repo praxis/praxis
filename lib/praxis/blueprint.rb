@@ -38,6 +38,7 @@ module Praxis
       end
     end
     include Attributor::Type
+    include Attributor::Container
     include Attributor::Dumpable
 
     extend Finalizable

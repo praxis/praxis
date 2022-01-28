@@ -8,12 +8,19 @@ module Praxis
         attr_reader :type
 
         def initialize(info:)
-          # info could be an attribute ... or a type?
-          @type =  info.is_a?(Attributor::Attribute) ? info.type : info
+          @attribute_options = {}
+
+          # info could be an attribute ... or a type
+          if info.is_a?(Attributor::Attribute)
+            @type = info.type
+            # Save the options that might be attached to the attribute, to add them to the type schema later
+            @attribute_options = info.options
+          else
+            @type = info
+          end
 
           # Mediatypes have the description method, lower types don't
-          @description = @type.description if @type.respond_to?(:description)
-          @description ||= info.options[:description] if info.respond_to?(:options)
+          @attribute_options[:description] = @type.description if @type.respond_to?(:description)
           @collection = type.respond_to?(:member_type)
         end
 
@@ -27,18 +34,18 @@ module Praxis
           if type < Attributor::Container
             if (type < Praxis::Blueprint || type < Attributor::Model) && allow_ref && !type.anonymous?
               # TODO: Do we even need a description?
-              h = @description ? { 'description' => @description } : {}
+              h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
 
               Praxis::Docs::OpenApiGenerator.instance.register_seen_component(type)
               h.merge('$ref' => "#/components/schemas/#{type.id}")
             elsif @collection
               items = OpenApi::SchemaObject.new(info: type.member_type).dump_schema(allow_ref: allow_ref, shallow: false)
-              h = @description ? { description: @description } : {}
+              h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
               h.merge(type: 'array', items: items)
             else
               # Object
-              props = type.attributes.each_with_object({}) do |(name, definition), hash|
-                hash[name] = OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
+              props = type.attributes.transform_values do |definition|
+                OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
               { type: :object, properties: props } # TODO: Example?
             end
@@ -46,7 +53,15 @@ module Praxis
             # OpenApi::SchemaObject.new(info:target).dump_schema(allow_ref: allow_ref, shallow: shallow)
             # TODO...we need to make sure we can use refs in the underlying components after the first level...
             # ... maybe we need to loop over the attributes if it's an object/struct?...
-            type.as_json_schema(shallow: shallow, example: nil)
+            h = type.as_json_schema(shallow: shallow, example: nil, attribute_options: @attribute_options)
+
+            # Tag on OpenAPI specific requirements that aren't already added in the underlying JSON schema model
+            # Nullable: (it seems we need to ensure there is a null option to the enum, if there is one)
+            if @attribute_options[:null]
+              h[:nullable] = @attribute_options[:null]
+              h[:enum] = h[:enum] + [nil] if h[:enum] && !h[:enum].include?(nil)
+            end
+            h
           end
 
           # # TODO: FIXME: return a generic object type if the passed info was weird.

@@ -1,6 +1,7 @@
 # Praxis Changelog
 
 ## next
+* Introduced a method to reload a Resouce (.reload), which will clear the memoized values and call record.reload as well
 * Open API Generation enhancements:
   * Fixed type discovery (where some types wouldn't be included in the output)
   * Changed the generation to output named types into components, and use `$ref` to point to them whenever appropriate

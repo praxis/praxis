@@ -13,6 +13,8 @@ module Praxis
 
       class << self
         attr_reader :model_map, :properties
+        # Names of the memoizable things (without the @__ prefix)
+        attr_accessor :memoized_variables
       end
 
       # TODO: also support an attribute of sorts on the versioned resource module. ie, V1::Resources.api_version.
@@ -32,6 +34,7 @@ module Praxis
 
           @properties = superclass.properties.clone
           @_filters_map = {}
+          @memoized_variables = []
         end
       end
 
@@ -130,10 +133,13 @@ module Praxis
 
         return unless association_resource_class
 
+        memoized_variables << name
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{name}
+          return @__#{name} if instance_variable_defined?("@__#{name}")
+
           records = record.#{name}
-            return nil if records.nil?
+          return nil if records.nil?
           @__#{name} ||= #{association_resource_class}.wrap(records)
         end
         RUBY
@@ -151,6 +157,7 @@ module Praxis
       end
 
       def self.define_delegation_for_related_attribute(resource_name, resource_attribute)
+        memoized_variables << resource_attribute
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{resource_attribute}
           @__#{resource_attribute} ||= if (rec = self.#{resource_name})
@@ -164,6 +171,7 @@ module Praxis
         related_resource_class = model_map[related_association[:model]]
         return unless related_resource_class
 
+        memoized_variables << resource_attribute
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{resource_attribute}
           @__#{resource_attribute} ||= if (rec = self.#{resource_name})
@@ -181,10 +189,10 @@ module Praxis
                     else
                       name.to_s
                     end
-
+        memoized_variables << ivar_name
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{name}
-        return @__#{ivar_name} if defined? @__#{ivar_name}
+        return @__#{ivar_name} if instance_variable_defined?("@__#{ivar_name}")
         @__#{ivar_name} = record.#{name}
       end
         RUBY
@@ -237,6 +245,22 @@ module Praxis
 
       def initialize(record)
         @record = record
+      end
+
+      def reload
+        clear_memoization
+        reload_record
+      end
+
+      def clear_memoization
+        self.class.memoized_variables.each do |name|
+          ivar = "@__#{name}"
+          remove_instance_variable(ivar) if instance_variable_defined?(ivar)
+        end
+      end
+
+      def reload_record
+        record.reload
       end
 
       def respond_to_missing?(name, *)

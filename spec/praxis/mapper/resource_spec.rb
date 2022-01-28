@@ -133,6 +133,19 @@ describe Praxis::Mapper::Resource do
       allow(record).to receive(:other_model).and_return(other_record)
       expect(resource.other_resource).to be(SimpleResource.new(record).other_resource)
     end
+
+    it 'memoizes result of related associations' do
+      expect(record).to receive(:parent).once.and_return(parent_record)
+      expect(resource.parent).to be(resource.parent)
+    end
+
+    it 'can clear memoization' do
+      expect(record).to receive(:parent).twice.and_return(parent_record)
+
+      expect(resource.parent).to be(resource.parent) # One time only calling the record parent method
+      resource.clear_memoization
+      expect(resource.parent).to be(resource.parent) # One time only time calling the record parent method after the reset
+    end
   end
 
   context '.wrap' do

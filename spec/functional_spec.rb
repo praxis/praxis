@@ -88,7 +88,7 @@ describe 'Functional specs' do
 
       it 'fails to validate the response' do
         get '/api/clouds/1/instances?response_content_type=somejunk&api_version=1.0', nil, 'HTTP_FOO' => 'bar', 'global_session' => session
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(500)
         response = JSON.parse(last_response.body)
 
         expect(response['name']).to eq('ValidationError')
@@ -104,7 +104,7 @@ describe 'Functional specs' do
           expect(Praxis::Application.instance.config).to receive(:praxis).and_return(praxis_config)
         end
 
-        it 'fails to validate the response' do
+        it 'does not to validate the response and succeeds' do
           expect do
             get '/api/clouds/1/instances?response_content_type=somejunk&api_version=1.0', nil, 'global_session' => session
           end.to_not raise_error
@@ -400,7 +400,7 @@ describe 'Functional specs' do
       its(['root_volume']) { should be(nil) }
     end
 
-    context 'with an invalid name' do
+    context 'returning an invalid name' do
       let(:request_payload) { { name: 'Invalid Name' } }
 
       its(['name']) { should eq 'ValidationError' }
@@ -408,7 +408,7 @@ describe 'Functional specs' do
       its(['errors']) { should match_array [/\$\.name value \(Invalid Name\) does not match regexp/] }
 
       it 'returns a validation error' do
-        expect(last_response.status).to eq(400)
+        expect(last_response.status).to eq(500)
       end
     end
   end

@@ -110,8 +110,18 @@ module Praxis
         raise Exceptions::Validation, "Attempting to return a response with name #{response_name} " \
           'but no response definition with that name can be found'
       end
-
       response_definition.validate(self, validate_body: validate_body)
+    rescue Exceptions::Validation => e
+      ve = Application.instance.validation_handler.handle!(
+        summary: 'Error validating response',
+        exception: e,
+        request: request,
+        stage: 'response',
+        errors: e.errors
+      )
+      body = ve.format!
+
+      Responses::InternalServerError.new(body: body)
     end
   end
 end

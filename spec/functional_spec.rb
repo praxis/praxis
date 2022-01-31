@@ -104,7 +104,7 @@ describe 'Functional specs' do
           expect(Praxis::Application.instance.config).to receive(:praxis).and_return(praxis_config)
         end
 
-        it 'does not to validate the response and succeeds' do
+        it 'does not validate the response and succeeds' do
           expect do
             get '/api/clouds/1/instances?response_content_type=somejunk&api_version=1.0', nil, 'global_session' => session
           end.to_not raise_error

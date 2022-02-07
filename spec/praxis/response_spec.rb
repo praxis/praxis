@@ -61,9 +61,15 @@ describe Praxis::Response do
       end
 
       it 'should raise an error' do
+        resp = nil
         expect do
-          response.validate(action)
-        end.to raise_error(Praxis::Exceptions::Validation, /response definition with that name can be found/)
+          resp = response.validate(action)
+        end.to_not raise_error
+
+        expect(resp.status).to eq(500)
+        expect(resp.body[:name]).to eq('ValidationError')
+        expect(resp.body[:summary]).to eq('Error validating response')
+        expect(resp.body[:errors]).to include(/response definition with that name can be found/)
       end
     end
 

@@ -2,6 +2,8 @@
 
 ## next
 
+## 2.0.pre.21
+  * Fix nullable attribute in OpenApi generation
 ## 2.0.pre.20
 * Changed the behavior of dev-mode when validate_responses. Now they return a 500 status code (instead of a 400) but with the same validation error format body.
   * validate_responses is meant to catch the application returning non-compliant responses for development only. As such, a 500 is much more appropriate and clear, as the validation is done on the behavior of the server, and not on the information sent by the client (i.e., it is a server problem, not reacting the way the API is defined)

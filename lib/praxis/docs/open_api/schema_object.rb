@@ -37,32 +37,32 @@ module Praxis
               h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
 
               Praxis::Docs::OpenApiGenerator.instance.register_seen_component(type)
-              h.merge('$ref' => "#/components/schemas/#{type.id}")
+              h.merge!('$ref' => "#/components/schemas/#{type.id}")
             elsif @collection
               items = OpenApi::SchemaObject.new(info: type.member_type).dump_schema(allow_ref: allow_ref, shallow: false)
               h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
-              h.merge(type: 'array', items: items)
-            else
-              # Object
+              h.merge!(type: 'array', items: items)
+            else # Attributor::Struct, etc
               props = type.attributes.transform_values do |definition|
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
-              { type: :object, properties: props } # TODO: Example?
+              h = { type: :object, properties: props } # TODO: Example?
             end
           else
             # OpenApi::SchemaObject.new(info:target).dump_schema(allow_ref: allow_ref, shallow: shallow)
             # TODO...we need to make sure we can use refs in the underlying components after the first level...
             # ... maybe we need to loop over the attributes if it's an object/struct?...
             h = type.as_json_schema(shallow: shallow, example: nil, attribute_options: @attribute_options)
-
-            # Tag on OpenAPI specific requirements that aren't already added in the underlying JSON schema model
-            # Nullable: (it seems we need to ensure there is a null option to the enum, if there is one)
-            if @attribute_options[:null]
-              h[:nullable] = @attribute_options[:null]
-              h[:enum] = h[:enum] + [nil] if h[:enum] && !h[:enum].include?(nil)
-            end
-            h
           end
+
+          # Tag on OpenAPI specific requirements that aren't already added in the underlying JSON schema model
+          # Nullable: (it seems we need to ensure there is a null option to the enum, if there is one)
+          if @attribute_options[:null]
+            h[:nullable] = @attribute_options[:null]
+            h[:enum] = h[:enum] + [nil] if h[:enum] && !h[:enum].include?(nil)
+          end
+
+          h
 
           # # TODO: FIXME: return a generic object type if the passed info was weird.
           # return { type: :object } unless info

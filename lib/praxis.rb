@@ -135,6 +135,7 @@ module Praxis
 
   module Mapper
     autoload :Resource, 'praxis/mapper/resource'
+    autoload :ResourceCallbacks, 'praxis/mapper/resource_callbacks'
     autoload :SelectorGenerator, 'praxis/mapper/selector_generator'
   end
 

@@ -4,6 +4,8 @@
 # Once that is complete, the data set is iterated and a resultant view is generated.
 module Praxis
   module Mapper
+    class ResourceNotFound < RuntimeError
+    end
     class Resource
       extend Praxis::Finalizable
 
@@ -58,6 +60,7 @@ module Praxis
         finalize_resource_delegates
         define_model_accessors
 
+        hookup_callbacks
         super
       end
 
@@ -76,6 +79,65 @@ module Praxis
 
         model._praxis_associations.each do |k, v|
           define_model_association_accessor(k, v) unless instance_methods.include? k
+        end
+      end
+
+      def self.hookup_callbacks
+        return unless ancestors.include?(Praxis::Mapper::ResourceCallbacks)
+
+        affected_methods = (before_callbacks.keys + after_callbacks.keys + around_callbacks.keys).uniq!
+        affected_methods.each do |method|
+          calls = {}
+          calls[:before] = before_callbacks[method] if before_callbacks.key?(method)
+          calls[:around] = around_callbacks[method] if around_callbacks.key?(method)
+          calls[:after] = after_callbacks[method] if after_callbacks.key?(method)
+          intercept_callbacks_for(method, calls)
+        end
+      end
+
+      def self.intercept_callbacks_for(method, calls)
+        orig = "orig_#{method}".to_sym
+        alias_method orig, method
+
+        has_args = instance_method(orig).parameters.any? { |(type, _)| [:req, :opt, :rest].include?(type) }
+        if has_args
+          # Setup the method to take both args and  kwargs
+          define_method(method) do |*args, **kwargs|
+            result = nil
+            calls[:before]&.each do |target|
+              # target.is_a?(Symbol) ? send(target, *args, **kwargs) : target.call(*args, **kwargs)
+              target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
+            end
+            orig_call = proc { |*a, **kw| send(orig, *a, **kw)}
+            if calls[:around].presence
+              result = calls[:around].inject(orig_call) do |inner, target|
+                proc { |*a, **kw| send(target, *a, **kw, &inner) }
+              end.call(*args, **kwargs)
+            end
+            calls[:after]&.each do |target|
+              target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
+            end
+            result
+          end
+        else
+          # Setup the method to only take kwargs
+          define_method(method) do |**kwargs|
+            result = nil
+            calls[:before]&.each do |target|
+              target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)
+            end
+
+            orig_call = proc { |**kw| send(orig, **kw) }
+            if calls[:around].presence
+              result = calls[:around].inject(orig_call) do |inner, target|
+                proc { |**kw| send(target, **kw, &inner) }
+              end.call(**kwargs)
+            end
+            calls[:after]&.each do |target|
+              target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)
+            end
+            result
+          end
         end
       end
 
@@ -104,6 +166,7 @@ module Praxis
         end
       end
 
+      # OVERRIDEN FOR NOW!!!
       def self.get(condition)
         record = model.get(condition)
 
@@ -186,6 +249,8 @@ module Praxis
       def self.define_accessor(name)
         ivar_name = if name.to_s =~ /\?/
                       "is_#{name.to_s[0..-2]}"
+                    elsif name.to_s =~ /\!/
+                      "#{name.to_s[0..-2]}_bang"
                     else
                       name.to_s
                     end
@@ -243,13 +308,14 @@ module Praxis
         handler_klass.paginate(base_query, pagination)
       end
 
-      def initialize(record)
+      def initialize(record=nil)
         @record = record
       end
 
       def reload
         clear_memoization
         reload_record
+        self
       end
 
       def clear_memoization

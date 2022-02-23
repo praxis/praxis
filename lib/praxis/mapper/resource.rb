@@ -86,16 +86,24 @@ module Praxis
         return unless ancestors.include?(Praxis::Mapper::ResourceCallbacks)
 
         affected_methods = (before_callbacks.keys + after_callbacks.keys + around_callbacks.keys).uniq
+        # TODO!! Only create 1 prepended module for all methods!!!
         affected_methods&.each do |method|
           calls = {}
           calls[:before] = before_callbacks[method] if before_callbacks.key?(method)
           calls[:around] = around_callbacks[method] if around_callbacks.key?(method)
           calls[:after] = after_callbacks[method] if after_callbacks.key?(method)
-          intercept_callbacks_for(method, calls)
+
+          if  method_defined?(method)
+            intercept_callbacks_for_instance(method, calls) 
+          elsif methods.include?(method)
+            intercept_callbacks_for_class(method, calls) 
+          else
+            raise "No method found for callbacks #{method}"
+          end
         end
       end
 
-      def self.intercept_callbacks_for(method, calls)
+      def self.intercept_callbacks_for_instance(method, calls)
         # orig = "orig_#{method}".to_sym
         # alias_method orig, method
 
@@ -146,6 +154,56 @@ module Praxis
           end
         end
         prepend themodule
+      end
+
+      def self.intercept_callbacks_for_class(method, calls)
+        has_args = method(method).parameters.any? { |(type, _)| [:req, :opt, :rest].include?(type) }
+        themodule = if has_args
+          Module.new do
+            # Setup the method to take both args and  kwargs
+            define_method(method) do |*args, **kwargs|
+              calls[:before]&.each do |target|
+                target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
+              end
+              orig_call = proc { |*a, **kw| super(*a, **kw)}
+              result = if calls[:around].presence
+                # TODO: This can be a nested loop of sends, without procs...?
+                calls[:around].inject(orig_call) do |inner, target|
+                  proc { |*a, **kw| send(target, *a, **kw, &inner) }
+                end.call(*args, **kwargs)
+              else
+                super(*args, **kwargs)
+              end
+              calls[:after]&.each do |target|
+                target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
+              end
+              result
+            end
+          end
+        else
+          Module.new do
+            # Setup the method to only take kwargs
+            define_method(method) do |**kwargs|
+              calls[:before]&.each do |target|
+                target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)
+              end
+              orig_call = proc { |**kw| super(**kw)}
+              result = if calls[:around].presence
+                # TODO: This can be a nested loop of sends, without procs...?
+                calls[:around].inject(orig_call) do |inner, target|
+                  proc { |**kw| send(target, **kw, &inner) }
+                end.call(**kwargs)
+              else
+                super(**kwargs)
+              end
+              calls[:after]&.each do |target|
+                target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)
+              end
+              result
+            end
+          end
+        end
+        singleton_class.send(:prepend, themodule)
       end
 
       def self.for_record(record)

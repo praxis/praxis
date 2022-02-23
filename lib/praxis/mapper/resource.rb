@@ -85,8 +85,8 @@ module Praxis
       def self.hookup_callbacks
         return unless ancestors.include?(Praxis::Mapper::ResourceCallbacks)
 
-        affected_methods = (before_callbacks.keys + after_callbacks.keys + around_callbacks.keys).uniq!
-        affected_methods.each do |method|
+        affected_methods = (before_callbacks.keys + after_callbacks.keys + around_callbacks.keys).uniq
+        affected_methods&.each do |method|
           calls = {}
           calls[:before] = before_callbacks[method] if before_callbacks.key?(method)
           calls[:around] = around_callbacks[method] if around_callbacks.key?(method)
@@ -103,16 +103,19 @@ module Praxis
         if has_args
           # Setup the method to take both args and  kwargs
           define_method(method) do |*args, **kwargs|
-            result = nil
             calls[:before]&.each do |target|
               # target.is_a?(Symbol) ? send(target, *args, **kwargs) : target.call(*args, **kwargs)
               target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
             end
             orig_call = proc { |*a, **kw| send(orig, *a, **kw)}
-            if calls[:around].presence
-              result = calls[:around].inject(orig_call) do |inner, target|
+            result = if calls[:around].presence
+              calls[:around].inject(orig_call) do |inner, target|
                 proc { |*a, **kw| send(target, *a, **kw, &inner) }
               end.call(*args, **kwargs)
+            else
+              require 'pry'
+              binding.pry
+              send(orig, *args, **kwargs) # Call the actual function if there aren't around filters
             end
             calls[:after]&.each do |target|
               target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
@@ -122,16 +125,17 @@ module Praxis
         else
           # Setup the method to only take kwargs
           define_method(method) do |**kwargs|
-            result = nil
             calls[:before]&.each do |target|
               target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)
             end
 
             orig_call = proc { |**kw| send(orig, **kw) }
-            if calls[:around].presence
-              result = calls[:around].inject(orig_call) do |inner, target|
+            result = if calls[:around].presence
+              calls[:around].inject(orig_call) do |inner, target|
                 proc { |**kw| send(target, **kw, &inner) }
               end.call(**kwargs)
+            else
+              send(orig, **kwargs) # Call the actual function if there aren't around filters
             end
             calls[:after]&.each do |target|
               target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)

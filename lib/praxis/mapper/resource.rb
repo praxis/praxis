@@ -96,53 +96,56 @@ module Praxis
       end
 
       def self.intercept_callbacks_for(method, calls)
-        orig = "orig_#{method}".to_sym
-        alias_method orig, method
+        # orig = "orig_#{method}".to_sym
+        # alias_method orig, method
 
-        has_args = instance_method(orig).parameters.any? { |(type, _)| [:req, :opt, :rest].include?(type) }
-        if has_args
-          # Setup the method to take both args and  kwargs
-          define_method(method) do |*args, **kwargs|
-            calls[:before]&.each do |target|
-              # target.is_a?(Symbol) ? send(target, *args, **kwargs) : target.call(*args, **kwargs)
-              target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
+        has_args = instance_method(method).parameters.any? { |(type, _)| [:req, :opt, :rest].include?(type) }
+        themodule = if has_args
+          Module.new do
+            # Setup the method to take both args and  kwargs
+            define_method(method) do |*args, **kwargs|
+              calls[:before]&.each do |target|
+                target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
+              end
+              orig_call = proc { |*a, **kw| super(*a, **kw)}
+              result = if calls[:around].presence
+                # TODO: This can be a nested loop of sends, without procs...?
+                calls[:around].inject(orig_call) do |inner, target|
+                  proc { |*a, **kw| send(target, *a, **kw, &inner) }
+                end.call(*args, **kwargs)
+              else
+                super(*args, **kwargs)
+              end
+              calls[:after]&.each do |target|
+                target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
+              end
+              result
             end
-            orig_call = proc { |*a, **kw| send(orig, *a, **kw)}
-            result = if calls[:around].presence
-              calls[:around].inject(orig_call) do |inner, target|
-                proc { |*a, **kw| send(target, *a, **kw, &inner) }
-              end.call(*args, **kwargs)
-            else
-              require 'pry'
-              binding.pry
-              send(orig, *args, **kwargs) # Call the actual function if there aren't around filters
-            end
-            calls[:after]&.each do |target|
-              target.is_a?(Symbol) ? send(target, *args, **kwargs) : self.instance_exec(*args, **kwargs, &target)
-            end
-            result
           end
         else
-          # Setup the method to only take kwargs
-          define_method(method) do |**kwargs|
-            calls[:before]&.each do |target|
-              target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)
+          Module.new do
+            # Setup the method to only take kwargs
+            define_method(method) do |**kwargs|
+              calls[:before]&.each do |target|
+                target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)
+              end
+              orig_call = proc { |**kw| super(**kw)}
+              result = if calls[:around].presence
+                # TODO: This can be a nested loop of sends, without procs...?
+                calls[:around].inject(orig_call) do |inner, target|
+                  proc { |**kw| send(target, **kw, &inner) }
+                end.call(**kwargs)
+              else
+                super(**kwargs)
+              end
+              calls[:after]&.each do |target|
+                target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)
+              end
+              result
             end
-
-            orig_call = proc { |**kw| send(orig, **kw) }
-            result = if calls[:around].presence
-              calls[:around].inject(orig_call) do |inner, target|
-                proc { |**kw| send(target, **kw, &inner) }
-              end.call(**kwargs)
-            else
-              send(orig, **kwargs) # Call the actual function if there aren't around filters
-            end
-            calls[:after]&.each do |target|
-              target.is_a?(Symbol) ? send(target, **kwargs) : self.instance_exec(**kwargs, &target)
-            end
-            result
           end
         end
+        prepend themodule
       end
 
       def self.for_record(record)

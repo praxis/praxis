@@ -5,7 +5,14 @@
 module Praxis
   module Mapper
     class ResourceNotFound < RuntimeError
+      attr_reader :type, :id
+
+      def initialize(type:, id: nil)
+        @type = type
+        @id = id
+      end
     end
+
     class Resource
       extend Praxis::Finalizable
 

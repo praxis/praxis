@@ -32,7 +32,9 @@ describe Praxis::Mapper::Resource do
   context 'retrieving resources' do
     context 'getting a single resource' do
       before do
-        expect(SimpleModel).to receive(:get).with(name: 'george xvi').and_return(record)
+        expect(SimpleModel).to receive(:get) do |args|
+          expect(**args).to match(name: 'george xvi')
+        end.and_return(record)
       end
 
       subject(:resource)  { SimpleResource.get(name: 'george xvi') }
@@ -44,7 +46,9 @@ describe Praxis::Mapper::Resource do
 
     context 'getting multiple resources' do
       before do
-        expect(SimpleModel).to receive(:all).with(name: ['george xvi']).and_return([record])
+        expect(SimpleModel).to receive(:all) do |args|
+          expect(**args).to eq(name: ['george xvi'])
+        end.and_return([record])
       end
 
       subject(:resource_collection) { SimpleResource.all(name: ['george xvi']) }

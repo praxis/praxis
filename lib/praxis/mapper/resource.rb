@@ -380,7 +380,7 @@ module Praxis
         handler_klass.paginate(base_query, pagination)
       end
 
-      def initialize(record=nil)
+      def initialize(record)
         @record = record
       end
 

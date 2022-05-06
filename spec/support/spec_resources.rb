@@ -132,10 +132,12 @@ class SimpleResource < BaseResource
   around(:update!, :do_around_update)
   # Define an after as a proc
   after(:update!) do |number:|
+    _unused = number
     record.after_count += 1
   end
 
   def do_before_update(number:)
+    _unused = number
     record.before_count += 1
   end
 
@@ -153,12 +155,14 @@ class SimpleResource < BaseResource
   after(:change_name, :do_after_change_name)
   # Define a before as a proc
   before(:change_name) do |name, force:|
+    _unused = force
     record.before_count += 1
     record.name = name
     record.force = false # Force always false in before
   end
 
-  def do_after_change_name(name, force:) 
+  def do_after_change_name(name, force:)
+    _unused = force
     record.after_count += 1
     record.name += "-#{name}"
   end

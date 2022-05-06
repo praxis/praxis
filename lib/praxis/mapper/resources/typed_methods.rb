@@ -2,7 +2,7 @@
 
 module Praxis
   module Mapper
-    class Resource
+    module Resources
       module TypedMethods # TODO: Move into Resource namespace?...
         extend ::ActiveSupport::Concern
 

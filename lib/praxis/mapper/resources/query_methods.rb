@@ -2,7 +2,7 @@
 
 module Praxis
   module Mapper
-    class Resource
+    module Resources
       module QueryMethods
         extend ::ActiveSupport::Concern
 

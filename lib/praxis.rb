@@ -138,10 +138,10 @@ module Praxis
     autoload :ResourceCallbacks, 'praxis/mapper/resource_callbacks'
     autoload :SelectorGenerator, 'praxis/mapper/selector_generator'
 
-    class Resource
-      autoload :QueryMethods, 'praxis/mapper/resource/query_methods'
-      autoload :TypedMethods, 'praxis/mapper/resource/typed_methods'
-      autoload :QueryProxy, 'praxis/mapper/resource/query_proxy'
+    module Resources
+      autoload :QueryMethods, 'praxis/mapper/resources/query_methods'
+      autoload :TypedMethods, 'praxis/mapper/resources/typed_methods'
+      autoload :QueryProxy, 'praxis/mapper/resources/query_proxy'
     end
   end
 

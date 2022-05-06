@@ -135,10 +135,10 @@ module Praxis
 
   module Mapper
     autoload :Resource, 'praxis/mapper/resource'
-    autoload :ResourceCallbacks, 'praxis/mapper/resource_callbacks'
     autoload :SelectorGenerator, 'praxis/mapper/selector_generator'
 
     module Resources
+      autoload :Callbacks, 'praxis/mapper/resources/callbacks'
       autoload :QueryMethods, 'praxis/mapper/resources/query_methods'
       autoload :TypedMethods, 'praxis/mapper/resources/typed_methods'
       autoload :QueryProxy, 'praxis/mapper/resources/query_proxy'

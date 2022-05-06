@@ -101,7 +101,7 @@ class ParentResource < BaseResource
 end
 
 class SimpleResource < BaseResource
-  include Praxis::Mapper::ResourceCallbacks
+  include Praxis::Mapper::Resources::Callbacks
 
   model SimpleModel
 

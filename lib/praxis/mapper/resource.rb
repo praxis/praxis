@@ -90,7 +90,7 @@ module Praxis
       end
 
       def self.hookup_callbacks
-        return unless ancestors.include?(Praxis::Mapper::ResourceCallbacks)
+        return unless ancestors.include?(Praxis::Mapper::Resources::Callbacks)
 
         affected_methods = (before_callbacks.keys + after_callbacks.keys + around_callbacks.keys).uniq
         # TODO!! Only create 1 prepended module for all methods!!!
@@ -100,7 +100,7 @@ module Praxis
           calls[:around] = around_callbacks[method] if around_callbacks.key?(method)
           calls[:after] = after_callbacks[method] if after_callbacks.key?(method)
 
-          if  method_defined?(method)
+          if method_defined?(method)
             intercept_callbacks_for_instance(method, calls) 
           elsif methods.include?(method)
             intercept_callbacks_for_class(method, calls) 

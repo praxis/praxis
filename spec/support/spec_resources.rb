@@ -77,6 +77,12 @@ class YamlArrayModel < OpenStruct
   end
 end
 
+class TypedModel < OpenStruct
+  def self._praxis_associations
+    {}
+  end
+end
+
 # A set of resource classes for use in specs
 class BaseResource < Praxis::Mapper::Resource
 
@@ -190,4 +196,29 @@ end
 
 class YamlArrayResource < BaseResource
   model YamlArrayModel
+end
+
+class TypedResource < BaseResource
+  include Praxis::Mapper::Resources::TypedMethods
+
+  model TypedModel
+
+  signature(:update!) do
+    attribute :string_param, String, null: false
+    attribute :struct_param do
+      attribute :id, Integer
+    end
+  end
+  def update!(payload)
+    payload
+  end
+
+  signature(:create) do
+    attribute :name, String, regexp: /Praxis/
+    attribute :payload, TypedResource.signature(:update!), required: true
+  end
+
+  def self.create(payload)
+    payload
+  end
 end

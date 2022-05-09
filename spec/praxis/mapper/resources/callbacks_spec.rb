@@ -9,12 +9,12 @@ describe Praxis::Mapper::Resources::Callbacks do
     end
     let(:resource) { SimpleResource.new(double_model) }
     context 'using functions with args and kwargs' do
-      subject { resource.change_name('hi', force: true)}
+      subject { resource.change_name('hi', force: true) }
       it 'before' do
-        expect(subject.record.before_count).to eq(1) #1 before hook
+        expect(subject.record.before_count).to eq(1) # 1 before hook
       end
       it 'after' do
-        expect(subject.record.after_count).to eq(1) #1 after hook
+        expect(subject.record.after_count).to eq(1) # 1 after hook
       end
       it 'around' do
         # 50, just for the only filter
@@ -28,7 +28,7 @@ describe Praxis::Mapper::Resources::Callbacks do
     end
 
     context 'using functions with only kwargs' do
-      subject { resource.update!(number: 1000)}
+      subject { resource.update!(number: 1000) }
       it 'before' do
         expect(subject.record.before_count).to eq(1) # 1 before hook
       end

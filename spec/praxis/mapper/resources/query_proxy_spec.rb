@@ -124,7 +124,7 @@ describe Praxis::Mapper::Resources::QueryProxy do
     context 'when no record is found' do
       let(:resource_instance) { nil }
       it 'raises ResourceNotFound' do
-        expect{ subject }.to raise_error(Praxis::Mapper::ResourceNotFound)
+        expect { subject }.to raise_error(Praxis::Mapper::ResourceNotFound)
       end
     end
     context 'with a record found' do

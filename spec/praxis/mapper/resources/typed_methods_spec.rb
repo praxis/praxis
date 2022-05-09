@@ -79,15 +79,15 @@ describe Praxis::Mapper::Resources::TypedMethods do
 
     before do
       # None of our wrappers before invoking the function
-      our_wrappers = resource_class.methods.select{|m| m.to_s =~ /^_coerce_params_for_class_/ }
-      our_wrappers +=  resource_class.instance_methods.select{|m| m.to_s =~ /^_coerce_params_for_/ }
+      our_wrappers = resource_class.methods.select { |m| m.to_s =~ /^_coerce_params_for_class_/ }
+      our_wrappers +=  resource_class.instance_methods.select { |m| m.to_s =~ /^_coerce_params_for_/ }
       expect(our_wrappers).to be_empty
     end
     context 'instance methods' do
       let(:method) { :imethod }
       it 'creates the wrapper methods' do
         hook_coercer
-        iwrappers = resource_class.instance_methods.select{|m| m.to_s =~ /^_coerce_params_for_/ }
+        iwrappers = resource_class.instance_methods.select { |m| m.to_s =~ /^_coerce_params_for_/ }
         expect(iwrappers).to eq [:_coerce_params_for_imethod]
       end
 
@@ -124,7 +124,7 @@ describe Praxis::Mapper::Resources::TypedMethods do
       let(:method) { :cmethod }
       it 'creates the wrapper methods' do
         hook_coercer
-        cwrappers = resource_class.methods.select{ |m| m.to_s =~ /^_coerce_params_for_class_/ }
+        cwrappers = resource_class.methods.select { |m| m.to_s =~ /^_coerce_params_for_class_/ }
         expect(cwrappers).to eq [:_coerce_params_for_class_cmethod]
       end
 

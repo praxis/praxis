@@ -85,7 +85,6 @@ end
 
 # A set of resource classes for use in specs
 class BaseResource < Praxis::Mapper::Resource
-
   def href
     base_href = '' # "/api"
     base_href + "/#{self.class.collection_name}/#{id}"

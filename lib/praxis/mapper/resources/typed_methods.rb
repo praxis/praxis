@@ -72,7 +72,7 @@ module Praxis
               around_method_name = "_coerce_params_for_#{method.name}"
               ctx = [to_s, method.name].freeze
               define_method(around_method_name) do |*args, &block|
-                loaded = type.load(*args,ctx)
+                loaded = type.load(*args, ctx)
                 errors = type.validate(loaded, ctx, nil)
                 # TODO: Throw a specific exception...
                 raise IncompatibleTypeForMethodArguments.new(errors: errors, method: method.name, klass: self) unless errors.empty?
@@ -89,7 +89,7 @@ module Praxis
               singleton_class.instance_eval do # Define an instance method in the eigenclass
                 ctx = [to_s, method.name].freeze
                 define_method(around_method_name) do |*args, &block|
-                  loaded = type.load(*args,ctx)
+                  loaded = type.load(*args, ctx)
                   errors = type.validate(loaded, ctx, nil)
                   # TODO: Throw a specific exception...
                   raise IncompatibleTypeForMethodArguments.new(errors: errors, method: method.name, klass: self) unless errors.empty?

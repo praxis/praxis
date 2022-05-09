@@ -20,7 +20,7 @@ module Praxis
         #  we need to expand based on the resource methods, not the model methods
         def get(condition)
           base = klass.model._add_includes(klass.model, @_includes) # includes(nil) seems to have no effect
-          record = base.find_by(condition)
+          record = base._get(condition)
 
           record.nil? ? nil : klass.wrap(record)
         end
@@ -38,7 +38,7 @@ module Praxis
         # .all(name: 'foo') -> returns all that match the name
         def all(condition = {})
           base = klass.model._add_includes(klass.model, @_includes) # includes(nil) seems to have no effect
-          records = condition.empty? ? base.all : base.where(condition)
+          records = base._all(condition)
 
           klass.wrap(records)
         end

@@ -32,7 +32,7 @@ describe Praxis::Mapper::Resources::TypedMethods do
 
   context '.signature' do
     # We are not creating more classes and signatures, simply checking that the ones created
-    # for TypedResoruce in the spec_resource_files are correctly processed
+    # for TypedResource in the spec_resource_files are correctly processed
     it 'defines it in the @signatures hash' do
       expect(TypedResource.signatures.keys).to include(:create, :update!)
       expect(TypedResource.signature(:create)).to be < Attributor::Struct
@@ -113,8 +113,8 @@ describe Praxis::Mapper::Resources::TypedMethods do
 
           it 'succeeds and returns the coerced struct if compatible' do
             result = resource_class.new(nil).imethod(id: '1', name: 'Praxis')
-            expect(result.id).to eq(1) # Coerces to Integer!
-            expect(result.name).to eq('Praxis')
+            expect(result[:id]).to eq(1) # Coerces to Integer!
+            expect(result[:name]).to eq('Praxis')
           end
         end
       end
@@ -150,8 +150,8 @@ describe Praxis::Mapper::Resources::TypedMethods do
 
           it 'succeeds and returns the coerced struct if compatible' do
             result = resource_class.cmethod(id: '1', name: 'Praxis')
-            expect(result.id).to eq(1) # Coerces to Integer!
-            expect(result.name).to eq('Praxis')
+            expect(result[:id]).to eq(1) # Coerces to Integer!
+            expect(result[:name]).to eq('Praxis')
           end
         end
       end

@@ -45,7 +45,6 @@ module Praxis
                 type =
                   Class.new(Attributor::Struct) do
                     attributes do
-                      # attribute :body, String, null: false, values: ['asdfa']
                       instance_eval(&block)
                     end
                   end
@@ -60,6 +59,10 @@ module Praxis
               raise "Argument type for #{method} could not be found. Did you define a `signature` stanza for it?" unless type
 
               if method_defined?(method)
+                if methods.include?(method)
+                  raise "signature for method #{method} is ambiguous, as it exists as both an instance and a class method."\
+                        'Please change names, as currently there is no way in the stanza, to specify one or the other'
+                end
                 coerce_params_for_instance(instance_method(method), type)
               elsif methods.include?(method)
                 coerce_params_for_class(method(method), type)
@@ -70,15 +73,11 @@ module Praxis
 
             def coerce_params_for_instance(method, type)
               around_method_name = "_coerce_params_for_#{method.name}"
-              ctx = [to_s, method.name].freeze
-              define_method(around_method_name) do |*args, &block|
-                loaded = type.load(*args, ctx)
-                errors = type.validate(loaded, ctx, nil)
-                # TODO: Throw a specific exception...
-                raise IncompatibleTypeForMethodArguments.new(errors: errors, method: method.name, klass: self) unless errors.empty?
-
-                block.yield(loaded)
-              end
+              instance_exec around_method_name: around_method_name,
+                            orig_method: method,
+                            type: type,
+                            ctx: [to_s, method.name].freeze,
+                            &CREATE_LOADER_METHOD
 
               # Set an around callback to call the defined method above
               around method.name, around_method_name
@@ -86,20 +85,30 @@ module Praxis
 
             def coerce_params_for_class(method, type)
               around_method_name = "_coerce_params_for_class_#{method.name}"
-              singleton_class.instance_eval do # Define an instance method in the eigenclass
-                ctx = [to_s, method.name].freeze
-                define_method(around_method_name) do |*args, &block|
-                  loaded = type.load(*args, ctx)
-                  errors = type.validate(loaded, ctx, nil)
-                  # TODO: Throw a specific exception...
-                  raise IncompatibleTypeForMethodArguments.new(errors: errors, method: method.name, klass: self) unless errors.empty?
-
-                  block.yield(loaded)
-                end
-              end
+              # Define an instance method in the eigenclass
+              singleton_class.instance_exec around_method_name: around_method_name,
+                                            orig_method: method,
+                                            type: type,
+                                            ctx: [to_s, method.name].freeze,
+                                            &CREATE_LOADER_METHOD
 
               # Set an around callback to call the defined method above
               around method.name, around_method_name
+            end
+
+            CREATE_LOADER_METHOD = proc do |around_method_name:, orig_method:, type:, ctx:|
+              has_args = orig_method.parameters.any? { |(argtype, _)| %i[req opt rest].include?(argtype) }
+              has_kwargs = orig_method.parameters.any? { |(argtype, _)| %i[keyreq keyrest].include?(argtype) }
+              raise "Typed signatures aren't supported for methods that have both kwargs and normal args: #{orig_method.name} of #{self.class}" if has_args && has_kwargs
+
+              define_method(around_method_name) do |*args, &block|
+                loaded = type.load(*args, ctx)
+                errors = type.validate(loaded, ctx, nil)
+                raise IncompatibleTypeForMethodArguments.new(errors: errors, method: orig_method.name, klass: self) unless errors.empty?
+
+                # Splat the args if it's a kwarg type method or pass the struct object as a single arg
+                has_kwargs ? block.yield(**loaded) : block.yield(loaded)
+              end
             end
           end
         end

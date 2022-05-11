@@ -180,4 +180,38 @@ describe Praxis::Mapper::Resource do
       expect(SimpleResource.wrap(record)).to be(OtherResource.wrap(record))
     end
   end
+
+  context 'calling typed methods' do
+    let(:resource) { TypedResource }
+    context 'class level ones' do
+      it 'kwarg methods get their args splatted in the top level' do
+        arg = resource.create(name: 'Praxis-licious', payload: { struct_param: { id: 1 } })
+        # Top level args are a hash (cause the typed methods will splat them before calling)
+        expect(arg).to be_kind_of Hash
+        # But structs beyond that are just the loaded types (which we can splat if we want to keep calling)
+        expect(arg[:payload]).to be_kind_of Attributor::Struct
+      end
+
+      it 'non-kwarg methods get a single arg' do
+        arg = resource.singlearg_create(name: 'Praxis-licious', payload: { struct_param: { id: 1 } })
+        # Single argument, instance of an Attributor Struct
+        expect(arg).to be_kind_of Attributor::Struct
+      end
+    end
+    context 'instance level ones' do
+      it 'kwarg methods get their args splatted in the top level' do
+        arg = resource.new({}).update!(string_param: 'Stringer', struct_param: { id: 1 })
+        # Top level args are a hash (cause the typed methods will splat them before calling)
+        expect(arg).to be_kind_of Hash
+        # But structs beyond that are just the loaded types (which we can splat if we want to keep calling)
+        expect(arg[:struct_param]).to be_kind_of Attributor::Struct
+      end
+
+      it 'non-kwarg methods get a single arg' do
+        arg = resource.new({}).singlearg_update!(string_param: 'Stringer', struct_param: { id: 1 })
+        # Single argument, instance of an Attributor Struct
+        expect(arg).to be_kind_of Attributor::Struct
+      end
+    end
+  end
 end

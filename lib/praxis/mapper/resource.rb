@@ -101,6 +101,10 @@ module Praxis
           calls[:after] = after_callbacks[method] if after_callbacks.key?(method)
 
           if method_defined?(method)
+            if methods.include?(method)
+              raise "Callback for method #{method} is ambiguous, as it exists as both an instance and a class method."\
+                    'Please change names, as currently there is no way in the callbacks, to specify one or the other'
+            end
             intercept_callbacks_for_instance(method, calls)
           elsif methods.include?(method)
             intercept_callbacks_for_class(method, calls)

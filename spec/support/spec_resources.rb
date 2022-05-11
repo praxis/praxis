@@ -208,7 +208,17 @@ class TypedResource < BaseResource
       attribute :id, Integer
     end
   end
-  def update!(payload)
+  def update!(**payload)
+    payload
+  end
+
+  signature(:singlearg_update!) do
+    attribute :string_param, String, null: false
+    attribute :struct_param do
+      attribute :id, Integer
+    end
+  end
+  def singlearg_update!(payload)
     payload
   end
 
@@ -217,7 +227,16 @@ class TypedResource < BaseResource
     attribute :payload, TypedResource.signature(:update!), required: true
   end
 
-  def self.create(payload)
+  def self.create(**payload)
+    payload
+  end
+
+  signature(:singlearg_create) do
+    attribute :name, String, regexp: /Praxis/
+    attribute :payload, TypedResource.signature(:update!), required: true
+  end
+
+  def self.singlearg_create(payload)
     payload
   end
 end

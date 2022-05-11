@@ -222,7 +222,15 @@ class TypedResource < BaseResource
     payload
   end
 
+  # Instance method: create, to make sure we support both an instance and a class method signature
   signature(:create) do
+    attribute :id, String
+  end
+  def create(id:)
+    id
+  end
+
+  signature('self.create') do
     attribute :name, String, regexp: /Praxis/
     attribute :payload, TypedResource.signature(:update!), required: true
   end
@@ -231,7 +239,7 @@ class TypedResource < BaseResource
     payload
   end
 
-  signature(:singlearg_create) do
+  signature('self.singlearg_create') do
     attribute :name, String, regexp: /Praxis/
     attribute :payload, TypedResource.signature(:update!), required: true
   end

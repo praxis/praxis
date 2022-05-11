@@ -29,8 +29,9 @@ module Praxis
                 const_set(:MethodSignatures, Module.new)
                 @signatures.each do |method, type|
                   # Also add a constant pointing to the signature type inside Signatures (and substitute ! for Bang, as that's not allowed in a constant)
+                  # For class Methods, also substitute .self for Self
                   # This helps with debugging, as we won't get anonymous struct classes, but we'll see these better names
-                  cleaned_name = method.to_s.gsub(/!/, '_bang')
+                  cleaned_name = method.to_s.gsub(/!/, '_bang').to_s.gsub(/^self./, 'self_')
                   self::MethodSignatures.const_set(cleaned_name.camelize.to_sym, type)
                   coerce_params_for method, type
                 end
@@ -39,7 +40,8 @@ module Praxis
               super
             end
 
-            def signature(method, &block)
+            def signature(method_name, &block)
+              method = method_name.to_sym
               @signatures ||= {}
               if block_given?
                 type =
@@ -58,16 +60,17 @@ module Praxis
             def coerce_params_for(method, type)
               raise "Argument type for #{method} could not be found. Did you define a `signature` stanza for it?" unless type
 
-              if method_defined?(method)
-                if methods.include?(method)
-                  raise "signature for method #{method} is ambiguous, as it exists as both an instance and a class method."\
-                        'Please change names, as currently there is no way in the stanza, to specify one or the other'
-                end
-                coerce_params_for_instance(instance_method(method), type)
-              elsif methods.include?(method)
-                coerce_params_for_class(method(method), type)
+              if method.start_with?('self.')
+                simple_name = method.to_s.gsub(/^self./, '').to_sym
+                # Look for a Class method
+                raise "Error building typed method signature: Method #{method} is not defined in class #{name}" unless methods.include?(simple_name)
+
+                coerce_params_for_class(method(simple_name), type)
               else
-                raise "Method #{method} not defined in #{name}. Make sure you define the coercion stanza after the methods have been defined"
+                # Look for an instance method
+                raise "Error building typed method signature: Method #{method} is not defined in class #{name}" unless method_defined?(method)
+
+                coerce_params_for_instance(instance_method(method), type)
               end
             end
 
@@ -92,8 +95,9 @@ module Praxis
                                             ctx: [to_s, method.name].freeze,
                                             &CREATE_LOADER_METHOD
 
-              # Set an around callback to call the defined method above
-              around method.name, around_method_name
+              # Set an around callback to call the defined method above (the callbacks need self. for class interceptors)
+              class_method_name = "self.#{method.name}"
+              around class_method_name.to_sym, around_method_name
             end
 
             CREATE_LOADER_METHOD = proc do |around_method_name:, orig_method:, type:, ctx:|

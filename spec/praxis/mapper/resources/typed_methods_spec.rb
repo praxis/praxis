@@ -16,8 +16,8 @@ describe Praxis::Mapper::Resources::TypedMethods do
       expect(TypedResource::MethodSignatures::UpdateBang).to_not be_nil
       expect(TypedResource::MethodSignatures::UpdateBang).to be TypedResource.signature(:update!)
 
-      expect(TypedResource::MethodSignatures::Create).to_not be_nil
-      expect(TypedResource::MethodSignatures::Create).to be TypedResource.signature(:create)
+      expect(TypedResource::MethodSignatures::SelfCreate).to_not be_nil
+      expect(TypedResource::MethodSignatures::SelfCreate).to be TypedResource.signature(:'self.create')
     end
 
     it 'Subsitutes a ! for a Bang when creating the constant' do
@@ -34,18 +34,31 @@ describe Praxis::Mapper::Resources::TypedMethods do
     # We are not creating more classes and signatures, simply checking that the ones created
     # for TypedResource in the spec_resource_files are correctly processed
     it 'defines it in the @signatures hash' do
-      expect(TypedResource.signatures.keys).to include(:create, :update!)
+      expect(TypedResource.signatures.keys).to match_array(
+        %i[
+          self.create
+          self.singlearg_create
+          create
+          update!
+          singlearg_update!
+        ]
+      )
+      expect(TypedResource.signature(:'self.create')).to be < Attributor::Struct
       expect(TypedResource.signature(:create)).to be < Attributor::Struct
       expect(TypedResource.signature(:update!)).to be < Attributor::Struct
     end
 
-    it 'holds the right definition for create' do
-      definition = TypedResource.signature(:create)
+    it 'holds the right definition for class create' do
+      definition = TypedResource.signature(:'self.create')
       expect(definition.attributes.keys).to eq %i[name payload]
       expect(definition.attributes[:payload].attributes.keys).to eq %i[string_param struct_param]
     end
 
-    it 'holds the right definition for create' do
+    it 'holds the right definition for instance create' do
+      definition = TypedResource.signature(:create)
+      expect(definition.attributes.keys).to eq %i[id]
+    end
+    it 'holds the right definition for update!' do
       definition = TypedResource.signature(:update!)
       expect(definition.attributes.keys).to eq %i[string_param struct_param]
       expect(definition.attributes[:struct_param].attributes.keys).to eq %i[id]
@@ -121,7 +134,7 @@ describe Praxis::Mapper::Resources::TypedMethods do
     end
 
     context 'class methods' do
-      let(:method) { :cmethod }
+      let(:method) { :'self.cmethod' }
       it 'creates the wrapper methods' do
         hook_coercer
         cwrappers = resource_class.methods.select { |m| m.to_s =~ /^_coerce_params_for_class_/ }
@@ -130,7 +143,7 @@ describe Praxis::Mapper::Resources::TypedMethods do
 
       it 'sets an around callback for them' do
         hook_coercer
-        expect(resource_class.around_callbacks[:cmethod]).to eq([:_coerce_params_for_class_cmethod])
+        expect(resource_class.around_callbacks[:'self.cmethod']).to eq([:_coerce_params_for_class_cmethod])
       end
 
       context 'when hooking in the callbacks' do

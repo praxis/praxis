@@ -100,24 +100,22 @@ module Praxis
           calls[:around] = around_callbacks[method] if around_callbacks.key?(method)
           calls[:after] = after_callbacks[method] if after_callbacks.key?(method)
 
-          if method_defined?(method)
-            if methods.include?(method)
-              raise "Callback for method #{method} is ambiguous, as it exists as both an instance and a class method."\
-                    'Please change names, as currently there is no way in the callbacks, to specify one or the other'
-            end
-            intercept_callbacks_for_instance(method, calls)
-          elsif methods.include?(method)
-            intercept_callbacks_for_class(method, calls)
+          if method.start_with?('self.')
+            # Look for a Class method
+            simple_name = method.to_s.gsub(/^self./, '').to_sym
+            raise "Error building callback: Method #{method} is not defined in class #{name}" unless methods.include?(simple_name)
+
+            intercept_callbacks_for_class(simple_name, calls)
           else
-            raise "No method found for callbacks #{method}"
+            # Look for an instance method
+            raise "Error building callback: Method #{method} is not defined in class #{name}" unless method_defined?(method)
+
+            intercept_callbacks_for_instance(method, calls)
           end
         end
       end
 
       def self.intercept_callbacks_for_instance(method, calls)
-        # orig = "orig_#{method}".to_sym
-        # alias_method orig, method
-
         has_args = instance_method(method).parameters.any? { |(type, _)| %i[req opt rest].include?(type) }
         themodule = if has_args
                       Module.new do

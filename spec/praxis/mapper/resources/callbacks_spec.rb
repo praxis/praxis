@@ -40,5 +40,17 @@ describe Praxis::Mapper::Resources::Callbacks do
         expect(subject.record.around_count).to eq(1151)
       end
     end
+
+    context 'using functions only args' do
+      subject { resource.argsonly('hi') }
+      it 'around' do
+        # 50, just for the only filter
+        expect(subject.record.around_count).to eq(50)
+      end
+      after do
+        # one for the the around filter and one for the actual methodr
+        expect(subject.record.name).to eq('hi-hi')
+      end
+    end
   end
 end

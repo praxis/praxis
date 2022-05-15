@@ -186,6 +186,17 @@ class SimpleResource < BaseResource
     self
   end
 
+  around(:argsonly, :do_around_argsonly)
+  def do_around_argsonly(name)
+    record.around_count += 50
+    record.name += "#{name}"
+    yield(name)
+  end
+  def argsonly(name)
+    record.name += "-#{name}"
+    self
+  end
+
   # Adds 1000 to the around count, plus whatever has been accumulated in before_count
   def update!(number:)
     record.around_count += number + record.before_count

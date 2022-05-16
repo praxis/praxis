@@ -189,9 +189,10 @@ class SimpleResource < BaseResource
   around(:argsonly, :do_around_argsonly)
   def do_around_argsonly(name)
     record.around_count += 50
-    record.name += "#{name}"
+    record.name += name.to_s
     yield(name)
   end
+
   def argsonly(name)
     record.name += "-#{name}"
     self

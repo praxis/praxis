@@ -193,7 +193,7 @@ describe Praxis::Mapper::Resource do
       end
 
       it 'non-kwarg methods get a single arg' do
-        arg = resource.singlearg_create({name: 'Praxis-licious', payload: { struct_param: { id: 1 } }})
+        arg = resource.singlearg_create({ name: 'Praxis-licious', payload: { struct_param: { id: 1 } } })
         # Single argument, instance of an Attributor Struct
         expect(arg).to be_kind_of Attributor::Struct
       end
@@ -208,7 +208,7 @@ describe Praxis::Mapper::Resource do
       end
 
       it 'non-kwarg methods get a single arg' do
-        arg = resource.new({}).singlearg_update!({string_param: 'Stringer', struct_param: { id: 1 }})
+        arg = resource.new({}).singlearg_update!({ string_param: 'Stringer', struct_param: { id: 1 } })
         # Single argument, instance of an Attributor Struct
         expect(arg).to be_kind_of Attributor::Struct
       end

@@ -92,10 +92,10 @@ module Praxis
       def self.hookup_callbacks
         return unless ancestors.include?(Praxis::Mapper::Resources::Callbacks)
 
-        affected_methods = (before_callbacks.keys + after_callbacks.keys + around_callbacks.keys).uniq
-        # TODO!! Only create 1 prepended module for all methods!!!
         instance_module = nil
         class_module = nil
+
+        affected_methods = (before_callbacks.keys + after_callbacks.keys + around_callbacks.keys).uniq
         affected_methods&.each do |method|
           calls = {}
           calls[:before] = before_callbacks[method] if before_callbacks.key?(method)
@@ -234,9 +234,10 @@ module Praxis
       end
 
       def self.define_accessor(name)
-        ivar_name = if name.to_s =~ /\?/
+        ivar_name = case name.to_s
+                    when /\?/
                       "is_#{name.to_s[0..-2]}"
-                    elsif name.to_s =~ /!/
+                    when /!/
                       "#{name.to_s[0..-2]}_bang"
                     else
                       name.to_s

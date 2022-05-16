@@ -1,6 +1,8 @@
 # Praxis Changelog
 
 ## next
+
+## 2.0.pre.22
   * Introduced Resource callbacks (an includeable concern). Callbacks allow you to define methods or blocks to be executed `before`, `after` or `around` any existing method in the resource. Class-level callbacks are defined with `self.xxxxx`. These methods will be executed within the instance of the resource (i.e., in the same context of the original) and must be defined with the same parameter signature. For around methods, only blocks can be used, and to call the original (inner) one, one needs to yield.
   * Introduced QueryMethods for resources (an includeable concern). QueryMethods expose handy querying methods (`.get`, `.get!`, `.all`, `.first` and `.last` ) which will reach into the underlying ORM (i.e., right now, only ActiveModelCompat is supported) to perform the desired loading of data (and subsequent wrapping of results in resource instances).
     * For ActiveRecord `.get` takes a condition hash that will translate to `.find_by`, and `.all` gets a condition hash that will translate to `.where`. 

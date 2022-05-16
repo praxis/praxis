@@ -191,7 +191,9 @@ module Praxis
 
       def self.intercept_callbacks_for_class(method, calls)
         has_args = method(method).parameters.any? { |(type, _)| %i[req opt rest].include?(type) }
-        themodule = if has_args
+        has_kwargs = method(method).parameters.any? { |(type, _)| %i[keyreq keyrest].include?(type) }
+
+        themodule = if has_args && has_kwargs
                       Module.new do
                         # Setup the method to take both args and  kwargs
                         define_method(method) do |*args, **kwargs|
@@ -209,6 +211,28 @@ module Praxis
                                    end
                           calls[:after]&.each do |target|
                             target.is_a?(Symbol) ? send(target, *args, **kwargs) : instance_exec(*args, **kwargs, &target)
+                          end
+                          result
+                        end
+                      end
+                    elsif has_args && !has_kwargs
+                      Module.new do
+                        # Setup the method to take only args and NO kwargs
+                        define_method(method) do |*args|
+                          calls[:before]&.each do |target|
+                            target.is_a?(Symbol) ? send(target, *args) : instance_exec(*args, &target)
+                          end
+                          orig_call = proc { |*a| super(*a) }
+                          result = if calls[:around].presence
+                                     # TODO: This can be a nested loop of sends, without procs...?
+                                     calls[:around].inject(orig_call) do |inner, target|
+                                       proc { |*a| send(target, *a, &inner) }
+                                     end.call(*args)
+                                   else
+                                     super(*args)
+                                   end
+                          calls[:after]&.each do |target|
+                            target.is_a?(Symbol) ? send(target, *args) : instance_exec(*args, &target)
                           end
                           result
                         end

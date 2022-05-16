@@ -109,7 +109,7 @@ describe Praxis::Mapper::Resources::TypedMethods do
       it 'creates the wrapper methods' do
         hook_coercer
         iwrappers = resource_class.instance_methods.select { |m| m.to_s =~ /^_coerce_params_for_/ }
-        expect(iwrappers).to eq [:_coerce_params_for_imethod_args, :_coerce_params_for_imethod_kwargs]
+        expect(iwrappers).to match_array [:_coerce_params_for_imethod_args, :_coerce_params_for_imethod_kwargs]
       end
 
       it 'sets an around callback for them' do
@@ -156,7 +156,7 @@ describe Praxis::Mapper::Resources::TypedMethods do
       it 'creates the wrapper methods' do
         hook_coercer
         cwrappers = resource_class.methods.select { |m| m.to_s =~ /^_coerce_params_for_class_/ }
-        expect(cwrappers).to eq [:_coerce_params_for_class_cmethod_args, :_coerce_params_for_class_cmethod_kwargs]
+        expect(cwrappers).to match_array [:_coerce_params_for_class_cmethod_args, :_coerce_params_for_class_cmethod_kwargs]
       end
 
       it 'sets an around callback for them' do

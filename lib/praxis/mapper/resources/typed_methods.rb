@@ -105,13 +105,24 @@ module Praxis
               has_kwargs = orig_method.parameters.any? { |(argtype, _)| %i[keyreq keyrest].include?(argtype) }
               raise "Typed signatures aren't supported for methods that have both kwargs and normal args: #{orig_method.name} of #{self.class}" if has_args && has_kwargs
 
-              define_method(around_method_name) do |*args, &block|
-                loaded = type.load(*args, ctx)
-                errors = type.validate(loaded, ctx, nil)
-                raise IncompatibleTypeForMethodArguments.new(errors: errors, method: orig_method.name, klass: self) unless errors.empty?
-
-                # Splat the args if it's a kwarg type method or pass the struct object as a single arg
-                has_kwargs ? block.yield(**loaded) : block.yield(loaded)
+              if has_args
+                define_method(around_method_name) do |arg, &block|
+                  loaded = type.load(arg, ctx)
+                  errors = type.validate(loaded, ctx, nil)
+                  raise IncompatibleTypeForMethodArguments.new(errors: errors, method: orig_method.name, klass: self) unless errors.empty?
+  
+                  # pass the struct object as a single arg
+                  block.yield(loaded)
+                end
+              else
+                define_method(around_method_name) do |**args, &block|
+                  loaded = type.load(args, ctx)
+                  errors = type.validate(loaded, ctx, nil)
+                  raise IncompatibleTypeForMethodArguments.new(errors: errors, method: orig_method.name, klass: self) unless errors.empty?
+  
+                  # Splat the args if it's a kwarg type method
+                  block.yield(**loaded)
+                end
               end
             end
           end

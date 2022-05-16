@@ -69,18 +69,26 @@ describe Praxis::Mapper::Resources::TypedMethods do
     let(:resource_class) do
       Class.new(Praxis::Mapper::Resource) do
         include Praxis::Mapper::Resources::TypedMethods
-        def imethod(args)
+        def imethod_args(args)
           args
         end
 
-        def self.cmethod(args)
+        def self.cmethod_args(args)
+          args
+        end
+
+        def imethod_kwargs(**args)
+          args
+        end
+
+        def self.cmethod_kwargs(**args)
           args
         end
       end
     end
 
-    let(:hook_coercer) { resource_class.coerce_params_for(method, type) }
-    # Note, we're associating the same type signature for both imethod and cmethod!
+    let(:hook_coercer) { methods.each {|method| resource_class.coerce_params_for(method, type)} }
+    # Note, we're associating the same type signature for both imethod and cmethod signatures!
     let(:type) do
       Class.new(Attributor::Struct) do
         attributes do
@@ -97,16 +105,17 @@ describe Praxis::Mapper::Resources::TypedMethods do
       expect(our_wrappers).to be_empty
     end
     context 'instance methods' do
-      let(:method) { :imethod }
+      let(:methods) { [:imethod_args, :imethod_kwargs] }
       it 'creates the wrapper methods' do
         hook_coercer
         iwrappers = resource_class.instance_methods.select { |m| m.to_s =~ /^_coerce_params_for_/ }
-        expect(iwrappers).to eq [:_coerce_params_for_imethod]
+        expect(iwrappers).to eq [:_coerce_params_for_imethod_args, :_coerce_params_for_imethod_kwargs]
       end
 
       it 'sets an around callback for them' do
         hook_coercer
-        expect(resource_class.around_callbacks[:imethod]).to eq([:_coerce_params_for_imethod])
+        expect(resource_class.around_callbacks[:imethod_args]).to eq([:_coerce_params_for_imethod_args])
+        expect(resource_class.around_callbacks[:imethod_kwargs]).to eq([:_coerce_params_for_imethod_kwargs])
       end
 
       context 'when hooking in the callbacks' do
@@ -117,15 +126,24 @@ describe Praxis::Mapper::Resources::TypedMethods do
         context 'calls the wrapper to validate and load' do
           it 'fails if invalid (id is required)' do
             expect do
-              resource_class.new(nil).imethod(name: 'Praxis')
+              resource_class.new(nil).imethod_args({name: 'Praxis'})
             end.to raise_error(
               Praxis::Mapper::Resources::IncompatibleTypeForMethodArguments,
-              /.imethod.id is required/
+              /.imethod_args.id is required/
+            )
+            expect do
+              resource_class.new(nil).imethod_kwargs(name: 'Praxis')
+            end.to raise_error(
+              Praxis::Mapper::Resources::IncompatibleTypeForMethodArguments,
+              /.imethod_kwargs.id is required/
             )
           end
 
           it 'succeeds and returns the coerced struct if compatible' do
-            result = resource_class.new(nil).imethod(id: '1', name: 'Praxis')
+            result = resource_class.new(nil).imethod_args({id: '1', name: 'Praxis'})
+            expect(result[:id]).to eq(1) # Coerces to Integer!
+            expect(result[:name]).to eq('Praxis')
+            result = resource_class.new(nil).imethod_kwargs(id: '1', name: 'Praxis')
             expect(result[:id]).to eq(1) # Coerces to Integer!
             expect(result[:name]).to eq('Praxis')
           end
@@ -134,16 +152,18 @@ describe Praxis::Mapper::Resources::TypedMethods do
     end
 
     context 'class methods' do
-      let(:method) { :'self.cmethod' }
+      let(:methods) { [:'self.cmethod_args', :'self.cmethod_kwargs'] }
       it 'creates the wrapper methods' do
         hook_coercer
         cwrappers = resource_class.methods.select { |m| m.to_s =~ /^_coerce_params_for_class_/ }
-        expect(cwrappers).to eq [:_coerce_params_for_class_cmethod]
+        expect(cwrappers).to eq [:_coerce_params_for_class_cmethod_args, :_coerce_params_for_class_cmethod_kwargs]
       end
 
       it 'sets an around callback for them' do
         hook_coercer
-        expect(resource_class.around_callbacks[:'self.cmethod']).to eq([:_coerce_params_for_class_cmethod])
+        expect(resource_class.around_callbacks[:'self.cmethod_args']).to eq([:_coerce_params_for_class_cmethod_args])
+        expect(resource_class.around_callbacks[:'self.cmethod_kwargs']).to eq([:_coerce_params_for_class_cmethod_kwargs])
+
       end
 
       context 'when hooking in the callbacks' do
@@ -154,15 +174,24 @@ describe Praxis::Mapper::Resources::TypedMethods do
         context 'calls the wrapper to validate and load' do
           it 'fails if invalid (id is required)' do
             expect do
-              resource_class.cmethod(name: 'Praxis')
+              resource_class.cmethod_args({name: 'Praxis'})
             end.to raise_error(
               Praxis::Mapper::Resources::IncompatibleTypeForMethodArguments,
-              /.cmethod.id is required/
+              /.cmethod_args.id is required/
+            )
+            expect do
+              resource_class.cmethod_kwargs(name: 'Praxis')
+            end.to raise_error(
+              Praxis::Mapper::Resources::IncompatibleTypeForMethodArguments,
+              /.cmethod_kwargs.id is required/
             )
           end
 
           it 'succeeds and returns the coerced struct if compatible' do
-            result = resource_class.cmethod(id: '1', name: 'Praxis')
+            result = resource_class.cmethod_args({id: '1', name: 'Praxis'})
+            expect(result[:id]).to eq(1) # Coerces to Integer!
+            expect(result[:name]).to eq('Praxis')
+            result = resource_class.cmethod_kwargs(id: '1', name: 'Praxis')
             expect(result[:id]).to eq(1) # Coerces to Integer!
             expect(result[:name]).to eq('Praxis')
           end

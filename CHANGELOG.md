@@ -1,6 +1,15 @@
 # Praxis Changelog
 
 ## next
+  * Introduced Resource callbacks (an includeable concern). Callbacks allow you to define methods or blocks to be executed `before`, `after` or `around` any existing method in the resource. Class-level callbacks are defined with `self.xxxxx`. These methods will be executed within the instance of the resource (i.e., in the same context of the original) and must be defined with the same parameter signature. For around methods, only blocks can be used, and to call the original (inner) one, one needs to yield.
+  * Introduced QueryMethods for resources (an includeable concern). QueryMethods expose handy querying methods (`.get`, `.get!`, `.all`, `.first` and `.last` ) which will reach into the underlying ORM (i.e., right now, only ActiveModelCompat is supported) to perform the desired loading of data (and subsequent wrapping of results in resource instances).
+    * For ActiveRecord `.get` takes a condition hash that will translate to `.find_by`, and `.all` gets a condition hash that will translate to `.where`. 
+    * `.get!` is a `.get` but that will raise a `Praxis::Mapper::ResourceNotFound` exception if nothing was found.
+    * There is an `.including(<spec>)` function that can be use to preload the underlying associations. I.e., the `<spec>` argument will translate to `.includes(<spec>)` in ActiveRecord.
+  * Introduced method signatures and validations for resources.
+    * One can define a method signature with the `signature(<name>)` stanza, passing a block defining Attributor parameters. For instance method signatures, the `<name>` is just a symbol with the name of the method. For class level methods use a string, and prepend `self.` to it (i.e., `self.create`).
+    * Signatures can only work for methods that either have a single argument (taken as a whole hash), or that have only keyword arguments (i.e., no mixed args and kwargs). It would be basically impossible to validate that combo against an Attributor Struct.
+    * The calls to typed methods will be intercepted (using an around callback), and the incoming parameters will be validated against the Attributor Struct defined in the siguature, coerced if necessary and passed onto the original method. If the incoming parameters fail validation, a `IncompatibleTypeForMethodArguments` exception will be thrown.
 
 ## 2.0.pre.21
   * Fix nullable attribute in OpenApi generation

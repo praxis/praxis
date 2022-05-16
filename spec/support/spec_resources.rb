@@ -77,6 +77,12 @@ class YamlArrayModel < OpenStruct
   end
 end
 
+class TypedModel < OpenStruct
+  def self._praxis_associations
+    {}
+  end
+end
+
 # A set of resource classes for use in specs
 class BaseResource < Praxis::Mapper::Resource
   def href
@@ -100,6 +106,8 @@ class ParentResource < BaseResource
 end
 
 class SimpleResource < BaseResource
+  include Praxis::Mapper::Resources::Callbacks
+
   model SimpleModel
 
   resource_delegate other_model: [:other_attribute]
@@ -123,8 +131,132 @@ class SimpleResource < BaseResource
   property :no_deps, dependencies: []
 
   property :deep_nested_deps, dependencies: ['parent.simple_children.other_model.parent.display_name']
+
+  before(:update!, :do_before_update)
+  around(:update!, :do_around_update_nested)
+  around(:update!, :do_around_update)
+  # Define an after as a proc
+  after(:update!) do |number:|
+    _unused = number
+    record.after_count += 1
+  end
+
+  def do_before_update(number:)
+    _unused = number
+    record.before_count += 1
+  end
+
+  def do_around_update_nested(number:)
+    record.around_count += 100
+    yield(number: number)
+  end
+
+  def do_around_update(number:)
+    record.around_count += 50
+    yield(number: number)
+  end
+
+  around(:change_name, :do_around_change_name)
+  after(:change_name, :do_after_change_name)
+  # Define a before as a proc
+  before(:change_name) do |name, force:|
+    _unused = force
+    record.before_count += 1
+    record.name = name
+    record.force = false # Force always false in before
+  end
+
+  def do_after_change_name(name, force:)
+    _unused = force
+    record.after_count += 1
+    record.name += "-#{name}"
+  end
+
+  def do_around_change_name(name, force:)
+    record.around_count += 50
+
+    record.name += "-#{name}"
+    yield(name, force: force)
+  end
+
+  # Appends the name and overrides the force
+  def change_name(name, force:)
+    record.name += "-#{name}"
+    record.force = force
+    self
+  end
+
+  around(:argsonly, :do_around_argsonly)
+  def do_around_argsonly(name)
+    record.around_count += 50
+    record.name += name.to_s
+    yield(name)
+  end
+
+  def argsonly(name)
+    record.name += "-#{name}"
+    self
+  end
+
+  # Adds 1000 to the around count, plus whatever has been accumulated in before_count
+  def update!(number:)
+    record.around_count += number + record.before_count
+    self
+  end
 end
 
 class YamlArrayResource < BaseResource
   model YamlArrayModel
+end
+
+class TypedResource < BaseResource
+  include Praxis::Mapper::Resources::TypedMethods
+
+  model TypedModel
+
+  signature(:update!) do
+    attribute :string_param, String, null: false
+    attribute :struct_param do
+      attribute :id, Integer
+    end
+  end
+  def update!(**payload)
+    payload
+  end
+
+  signature(:singlearg_update!) do
+    attribute :string_param, String, null: false
+    attribute :struct_param do
+      attribute :id, Integer
+    end
+  end
+  def singlearg_update!(payload)
+    payload
+  end
+
+  # Instance method: create, to make sure we support both an instance and a class method signature
+  signature(:create) do
+    attribute :id, String
+  end
+  def create(id:)
+    id
+  end
+
+  signature('self.create') do
+    attribute :name, String, regexp: /Praxis/
+    attribute :payload, TypedResource.signature(:update!), required: true
+  end
+
+  def self.create(**payload)
+    payload
+  end
+
+  signature('self.singlearg_create') do
+    attribute :name, String, regexp: /Praxis/
+    attribute :payload, TypedResource.signature(:update!), required: true
+  end
+
+  def self.singlearg_create(payload)
+    payload
+  end
 end

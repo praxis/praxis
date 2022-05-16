@@ -136,6 +136,13 @@ module Praxis
   module Mapper
     autoload :Resource, 'praxis/mapper/resource'
     autoload :SelectorGenerator, 'praxis/mapper/selector_generator'
+
+    module Resources
+      autoload :Callbacks, 'praxis/mapper/resources/callbacks'
+      autoload :QueryMethods, 'praxis/mapper/resources/query_methods'
+      autoload :TypedMethods, 'praxis/mapper/resources/typed_methods'
+      autoload :QueryProxy, 'praxis/mapper/resources/query_proxy'
+    end
   end
 
   # Avoid loading responses (and templates) lazily as they need to be registered in time

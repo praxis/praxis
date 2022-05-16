@@ -80,6 +80,27 @@ module Praxis
           end
         end
 
+        # Compatible reader accessors
+        def _get(condition)
+          find_by(condition)
+        end
+
+        def _all(conditions = {})
+          where(conditions)
+        end
+
+        def _add_includes(base, includes)
+          base.includes(includes) # includes(nil) seems to have no effect
+        end
+
+        def _first
+          first
+        end
+
+        def _last
+          last
+        end
+
         private
 
         def local_columns_used_for_the_association(type, assoc_reflection)

@@ -125,12 +125,13 @@ module Praxis
                           calls[:before]&.each do |target|
                             target.is_a?(Symbol) ? send(target, *args, **kwargs) : instance_exec(*args, **kwargs, &target)
                           end
+
                           orig_call = proc { |*a, **kw| super(*a, **kw) }
+                          @around_chain ||= calls[:around].inject(orig_call) do |inner, target|
+                            proc { |*a, **kw| send(target, *a, **kw, &inner) }
+                          end
                           result = if calls[:around].presence
-                                     # TODO: This can be a nested loop of sends, without procs...?
-                                     calls[:around].inject(orig_call) do |inner, target|
-                                       proc { |*a, **kw| send(target, *a, **kw, &inner) }
-                                     end.call(*args, **kwargs)
+                                     @around_chain.call(*args, **kwargs)
                                    else
                                      super(*args, **kwargs)
                                    end
@@ -148,11 +149,11 @@ module Praxis
                             target.is_a?(Symbol) ? send(target, **kwargs) : instance_exec(**kwargs, &target)
                           end
                           orig_call = proc { |**kw| super(**kw) }
+                          @around_chain ||= calls[:around].inject(orig_call) do |inner, target|
+                            proc { |**kw| send(target, **kw, &inner) }
+                          end
                           result = if calls[:around].presence
-                                     # TODO: This can be a nested loop of sends, without procs...?
-                                     calls[:around].inject(orig_call) do |inner, target|
-                                       proc { |**kw| send(target, **kw, &inner) }
-                                     end.call(**kwargs)
+                                     @around_chain.call(**kwargs)
                                    else
                                      super(**kwargs)
                                    end
@@ -171,11 +172,12 @@ module Praxis
                             target.is_a?(Symbol) ? send(target, *args) : instance_exec(*args, &target)
                           end
                           orig_call = proc { |*a| super(*a) }
+                          @around_chain ||= calls[:around].inject(orig_call) do |inner, target|
+                            proc { |*a| send(target, *a, &inner) }
+                          end
                           result = if calls[:around].presence
                                      # TODO: This can be a nested loop of sends, without procs...?
-                                     calls[:around].inject(orig_call) do |inner, target|
-                                       proc { |*a| send(target, *a, &inner) }
-                                     end.call(*args)
+                                     @around_chain.call(*args)
                                    else
                                      super(*args)
                                    end

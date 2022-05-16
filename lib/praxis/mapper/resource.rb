@@ -105,18 +105,20 @@ module Praxis
           if method.start_with?('self.')
             # Look for a Class method
             simple_name = method.to_s.gsub(/^self./, '').to_sym
-            raise "Error building callback: Method #{method} is not defined in class #{name}" unless methods.include?(simple_name)
+            raise "Error building callback: Class-level method #{method} is not defined in class #{name}" unless methods.include?(simple_name)
 
             class_module ||= Module.new
+
             has_args = method(simple_name).parameters.any? { |(type, _)| %i[req opt rest].include?(type) }
             has_kwargs = method(simple_name).parameters.any? { |(type, _)| %i[keyreq keyrest].include?(type) }
 
             create_override_module(mod: class_module, method: simple_name, calls: calls, has_args: has_args, has_kwargs: has_kwargs)
           else
             # Look for an instance method
-            raise "Error building callback: Method #{method} is not defined in class #{name}" unless method_defined?(method)
+            raise "Error building callback: Instance method #{method} is not defined in class #{name}" unless method_defined?(method)
 
             instance_module ||= Module.new
+
             has_args = instance_method(method).parameters.any? { |(type, _)| %i[req opt rest].include?(type) }
             has_kwargs = instance_method(method).parameters.any? { |(argtype, _)| %i[keyreq keyrest].include?(argtype) }
 

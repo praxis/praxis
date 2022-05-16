@@ -3,7 +3,7 @@ language: ruby
 rvm:
   - 2.6
   - 2.7
-  # - 3.1 # Not available in TravisCI out of the box yet
+  - 3.1 # Not available in TravisCI out of the box yet
 script:
   - bundle exec rspec spec
 branches:

@@ -108,21 +108,13 @@ module Praxis
             raise "Error building callback: Class-level method #{method} is not defined in class #{name}" unless methods.include?(simple_name)
 
             class_module ||= Module.new
-
-            has_args = method(simple_name).parameters.any? { |(type, _)| %i[req opt rest].include?(type) }
-            has_kwargs = method(simple_name).parameters.any? { |(type, _)| %i[keyreq keyrest].include?(type) }
-
-            create_override_module(mod: class_module, method: simple_name, calls: calls, has_args: has_args, has_kwargs: has_kwargs)
+            create_override_module(mod: class_module, method: method(simple_name), calls: calls)
           else
             # Look for an instance method
             raise "Error building callback: Instance method #{method} is not defined in class #{name}" unless method_defined?(method)
 
             instance_module ||= Module.new
-
-            has_args = instance_method(method).parameters.any? { |(type, _)| %i[req opt rest].include?(type) }
-            has_kwargs = instance_method(method).parameters.any? { |(argtype, _)| %i[keyreq keyrest].include?(argtype) }
-
-            create_override_module(mod: instance_module, method: method, calls: calls, has_args: has_args, has_kwargs: has_kwargs)
+            create_override_module(mod: instance_module, method: instance_method(method), calls: calls)
           end
         end
         # Prepend the created instance and/or class modules if there were any functions in them
@@ -155,7 +147,6 @@ module Praxis
         end
       end
 
-      # OVERRIDEN FOR NOW!!!
       def self.get(condition)
         record = model.get(condition)
 
@@ -336,11 +327,14 @@ module Praxis
       # There are mostly 3 flavors, which dictate how to define the procs (to make sure we play nicely
       # with ruby's arguments and all). Method with only args, with only kwords, and with both
       # Note: if procs could be defined with the (...) syntax, this could be more DRY and simple...
-      def self.create_override_module(mod:, method:, calls:, has_args:, has_kwargs:)
+      def self.create_override_module(mod:, method:, calls:)
+        has_args = method.parameters.any? { |(type, _)| %i[req opt rest].include?(type) }
+        has_kwargs = method.parameters.any? { |(type, _)| %i[keyreq keyrest].include?(type) }
+
         mod.class_eval do
           if has_args && has_kwargs
             # Setup the method to take both args and  kwargs
-            define_method(method) do |*args, **kwargs|
+            define_method(method.name.to_sym) do |*args, **kwargs|
               calls[:before]&.each do |target|
                 target.is_a?(Symbol) ? send(target, *args, **kwargs) : instance_exec(*args, **kwargs, &target)
               end
@@ -361,7 +355,7 @@ module Praxis
             end
           elsif has_kwargs && !has_args
             # Setup the method to only take kwargs
-            define_method(method) do |**kwargs|
+            define_method(method.name.to_sym) do |**kwargs|
               calls[:before]&.each do |target|
                 target.is_a?(Symbol) ? send(target, **kwargs) : instance_exec(**kwargs, &target)
               end
@@ -381,7 +375,7 @@ module Praxis
             end
           else
             # Setup the method to only take args
-            define_method(method) do |*args|
+            define_method(method.name.to_sym) do |*args|
               calls[:before]&.each do |target|
                 target.is_a?(Symbol) ? send(target, *args) : instance_exec(*args, &target)
               end

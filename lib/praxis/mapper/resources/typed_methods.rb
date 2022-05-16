@@ -104,6 +104,7 @@ module Praxis
               has_args = orig_method.parameters.any? { |(argtype, _)| %i[req opt rest].include?(argtype) }
               has_kwargs = orig_method.parameters.any? { |(argtype, _)| %i[keyreq keyrest].include?(argtype) }
               raise "Typed signatures aren't supported for methods that have both kwargs and normal args: #{orig_method.name} of #{self.class}" if has_args && has_kwargs
+
               if has_args
                 define_method(around_method_name) do |arg, &block|
                   loaded = type.load(arg, ctx)
@@ -118,7 +119,7 @@ module Praxis
                   loaded = type.load(args, ctx)
                   errors = type.validate(loaded, ctx, nil)
                   raise IncompatibleTypeForMethodArguments.new(errors: errors, method: orig_method.name, klass: self) unless errors.empty?
-  
+
                   # Splat the args if it's a kwarg type method
                   block.yield(**loaded)
                 end

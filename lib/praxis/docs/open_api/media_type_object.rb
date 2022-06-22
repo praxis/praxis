@@ -26,8 +26,19 @@ module Praxis
           # NOTE2: we should just create a $ref here unless it's an anon mediatype...
           return {} if type.is_a? SimpleMediaType # NOTE: skip if it's a SimpleMediaType?? ... is that correct?
 
-          the_schema = if type.anonymous? || !(type < Praxis::MediaType) # Avoid referencing  custom/simple Types? (i.e., just MTs)
-                         SchemaObject.new(info: type).dump_schema(shallow: false, allow_ref: false)
+          the_schema = if type.anonymous? || !(type < Praxis::MediaType)
+                         # Avoid referencing custom/simple types (i.e. just MTs). As a corner case,
+                         # dig into collections (which are anonymous) provided their member is not.
+                         # This isn't germane to content attributes, but is necessary to ensure that we visit every
+                         # non-anonymous type so that our emitted scheme covers the whole "surface area" of all
+                         # actions.
+                         underlying_type = type
+                         underlying_type = underlying_type.member_type while underlying_type < Attributor::Collection
+
+                         SchemaObject.new(info: type).dump_schema(
+                           shallow: false,
+                           allow_ref: type < Attributor::Collection && !underlying_type.anonymous?
+                         )
                        else
                          SchemaObject.new(info: type).dump_schema(shallow: true, allow_ref: true)
                        end

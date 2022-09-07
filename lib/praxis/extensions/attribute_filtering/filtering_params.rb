@@ -250,7 +250,8 @@ module Praxis
             next unless item[:value].presence
 
             fuzzy_match = attr_filters[:fuzzy_match]
-            errors << "Fuzzy matching for #{attr_name} is not allowed (yet '*' was found in the value)" if item[:fuzzy] && !item[:fuzzy].empty? && !fuzzy_match
+            # If fuzzy matches aren't allowed, but there is one passed in (or in the case of a multimatch, any of the ones in it), we disallow it
+            errors << "Fuzzy matching for #{attr_name} is not allowed (yet '*' was found in the value)" if item[:fuzzy] && !fuzzy_match && !(item[:fuzzy].is_a?(Array) && item[:fuzzy].compact.empty?)
           end
         end
 
@@ -258,7 +259,29 @@ module Praxis
         def dump
           parsed_array.each_with_object([]) do |item, arr|
             field = item[:name]
-            arr << "#{field}#{item[:op]}#{item[:value]}"
+            value = \
+              if item[:value].is_a?(Array)
+                item[:value].map.with_index do |i, idx|
+                  case item[:fuzzy][idx]
+                  when nil
+                    i
+                  when :start
+                    "*#{i}"
+                  when :end
+                    "#{i}*"
+                  end
+                end.join(',')
+              else
+                case item[:fuzzy]
+                when nil
+                  item[:value]
+                when :start
+                  "*#{item[:value]}"
+                when :end
+                  "#{item[:value]}*"
+                end
+              end
+            arr << "#{field}#{item[:op]}#{value}"
           end.join('&')
         end
 

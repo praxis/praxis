@@ -22,7 +22,7 @@ module Praxis
           base = klass.model._add_includes(klass.model, @_includes) # includes(nil) seems to have no effect
           record = base._get(condition)
 
-          record.nil? ? nil : klass.wrap(record)
+          record.nil? ? nil : klass.for_record(record)
         end
 
         def get!(condition)

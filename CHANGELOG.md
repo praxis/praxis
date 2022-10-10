@@ -2,6 +2,15 @@
 
 ## next
 
+## 2.0.pre.24
+ Assorted set of fixes and cleanup:
+  * better forwarding signature for query methods
+  * Fix the way with which to decide how to wrap an association (based on Enumerable isn't right, as Hashes are Enumerable as well). Wrapping decision
+    is now made based on the association type, and not the shape of the resulting type.
+  * Built handling of some multivalue and/or fuzzy matching cases in filtering params
+  * unrestrict mustermann's dependent version
+  * Support options and even passing a full type (instead of a block) in signature definitions (TypedMethods for resources)
+
 ## 2.0.pre.22
   * Small fix in OpenAPI doc generation, which would detect and report more output types, even if they are only defined within the
     children of anonymous types.

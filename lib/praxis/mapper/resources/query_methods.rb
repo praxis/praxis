@@ -13,8 +13,8 @@ module Praxis
             QueryProxy.new(klass: self).including(args)
           end
 
-          def all(args = {})
-            QueryProxy.new(klass: self).all(args)
+          def all(...)
+            QueryProxy.new(klass: self).all(...)
           end
 
           def get(args)

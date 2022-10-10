@@ -40,17 +40,25 @@ module Praxis
               super
             end
 
-            def signature(method_name, &block)
+            # It can take options to be passed to the attribute's block of the constructed struct
+            # It can take an already existing struct instead of a block/options
+            def signature(method_name, same_as_type = nil, **opts, &block)
               method = method_name.to_sym
               @signatures ||= {}
+              raise "signature definition for #{method_name}: need to pass either an existing type or a block, not both" if block_given? && same_as_type
+
               if block_given?
                 type =
                   Class.new(Attributor::Struct) do
-                    attributes do
+                    attributes(**opts) do
                       instance_eval(&block)
                     end
                   end
                 @signatures[method] = type
+              elsif same_as_type
+                raise "Options for signature definition for #{method_name} are not supported when passing an already existing type" unless opts.empty?
+
+                @signatures[method] = same_as_type
               else
                 @signatures[method]
               end

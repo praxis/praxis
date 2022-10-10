@@ -177,13 +177,24 @@ module Praxis
         return unless association_resource_class
 
         memoized_variables << name
+
+        # Add the call to wrap (for true collections) or simply for_record if it's a n:1 association
+        wrapping = \
+          case association_spec.fetch(:type)
+          when :one_to_many, :many_to_many
+            "@__#{name} ||= #{association_resource_class}.wrap(records)"
+          else
+            "@__#{name} ||= #{association_resource_class}.for_record(records)"
+          end
+
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{name}
           return @__#{name} if instance_variable_defined?("@__#{name}")
 
           records = record.#{name}
           return nil if records.nil?
-          @__#{name} ||= #{association_resource_class}.wrap(records)
+
+          #{wrapping}
         end
         RUBY
       end

@@ -278,12 +278,46 @@ describe Praxis::Extensions::AttributeFiltering::FilteringParams do
             expect(subject.first).to match(/Fuzzy matching for content is not allowed/)
           end
         end
+        context 'given a fuzzy string in only one of the values' do
+          let(:filters_string) { 'content=IAmNotFuzzy,IAmAString*' }
+          it 'errors out' do
+            expect(subject).to_not be_empty
+            expect(subject.first).to match(/Fuzzy matching for content is not allowed/)
+          end
+        end
         context 'given a non-fuzzy string' do
           let(:filters_string) { 'content=IAmAString' }
           it 'validates properly' do
             expect(subject).to be_empty
           end
         end
+        context 'given a non-fuzzy string for a multivalue' do
+          let(:filters_string) { 'content=IAmAString,IAmAnotherString' }
+          it 'validates properly' do
+            expect(subject).to be_empty
+          end
+        end
+      end
+    end
+  end
+
+  context '.dump' do
+    context 'round trips for different types' do
+      it 'round trips for different types of values and operators' do
+        str = 'one=11&two!=22&three>=33&four<=4&five<5&six>6&seven!&eight!!'
+        expect(described_class.load(str).dump).to eq(str)
+      end
+      it 'round trips for multivalues' do
+        str = 'filtername=1,2,3'
+        expect(described_class.load(str).dump).to eq(str)
+      end
+      it 'round trips for fuzzies' do
+        str = 'filtername=file*'
+        expect(described_class.load(str).dump).to eq(str)
+      end
+      it 'round trips for fuzzies in multivalues' do
+        str = 'filtername=1,*2,3*'
+        expect(described_class.load(str).dump).to eq(str)
       end
     end
   end

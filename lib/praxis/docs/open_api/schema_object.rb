@@ -43,7 +43,13 @@ module Praxis
               h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
               h.merge!(type: 'array', items: items)
             else # Attributor::Struct, etc
-              props = type.attributes.transform_values do |definition|
+              required_attributes = (type.describe[:requirements] || []).filter { |r| r[:type] == :all }.map { |r| r[:attributes] }.flatten.compact.uniq
+              props = type.attributes.transform_values.with_index do |definition, index|
+                # if type has an attribute in its requirements all, then it should be marked as required here
+                field_name = type.attributes.keys[index]
+                if required_attributes.include?(field_name)
+                  definition.options.merge!(required: true)
+                end
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
               h = { type: :object, properties: props } # TODO: Example?
@@ -60,6 +66,10 @@ module Praxis
           if @attribute_options[:null]
             h[:nullable] = @attribute_options[:null]
             h[:enum] = h[:enum] + [nil] if h[:enum] && !h[:enum].include?(nil)
+          end
+          # Required: Mostly for request bodies
+          if @attribute_options[:required]
+            h[:required] = true
           end
 
           h

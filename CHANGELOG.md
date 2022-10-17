@@ -1,6 +1,7 @@
 # Praxis Changelog
 
 ## next
+  * Improve surfacing of requirement attributes in Structs for OpenApi generated documentation
 
 ## 2.0.pre.24
  Assorted set of fixes and cleanup:

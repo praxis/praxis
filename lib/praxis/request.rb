@@ -123,11 +123,23 @@ module Praxis
       return unless action.params
 
       self.params = action.params.load(raw_params, context)
+      return unless action.sister_post_action && content_type
+
+      raw = if (handler = Praxis::Application.instance.handlers[content_type.handler_name])
+              handler.parse(raw_payload)
+            else
+              # TODO: is this a good default?
+              raw_payload
+            end
+      loaded_payload = action.sister_post_action.payload.load(raw, context, content_type: content_type.to_s)
+      self.params = params.merge(loaded_payload)
     end
 
     def load_payload(context)
       return unless action.payload
       return if content_type.nil?
+
+      return if action.sister_post_action # Do not load payloads for a special GET action with a sister post one...(cause we've loaded into the params)
 
       raw = if (handler = Praxis::Application.instance.handlers[content_type.handler_name])
               handler.parse(raw_payload)

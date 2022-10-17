@@ -28,9 +28,13 @@ class PeopleResource
     routing do
       get ''
     end
+    params do
+      attribute :filters, String
+    end
   end
 
   action :show do
+    create_post_version # Create an equivalent action named 'show_with_post' with the payload matching this action's parameters (except :id)
     description 'show description'
     routing do
       get '/:id'

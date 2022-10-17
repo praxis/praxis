@@ -292,6 +292,71 @@ describe Praxis::ActionDefinition do
     end
   end
 
+  context 'create_post_version' do
+    it 'exposes the add_post_equivalent boolean' do
+      subject.instance_eval do
+        create_post_version
+      end
+      expect(subject.sister_post_action).to be_truthy
+    end
+    it 'does NOT expose the add_post_equivalent boolean when create_post_version is not called' do
+      expect(subject).to_not receive(:create_post_version)
+      expect(subject.sister_post_action).to be_nil
+    end
+  end
+
+  context 'creating a duplicate action with POST' do
+    let(:action_name) { :index }
+    let(:endpoint_definition) do
+      Class.new do
+        include Praxis::EndpointDefinition
+
+        def self.name
+          'FooBar'
+        end
+
+        version '1.0'
+        prefix '/foobars/hello_world'
+        action_defaults do
+          headers { header 'Inherited', String }
+          params  { attribute :inherited, String }
+        end
+      end
+    end
+    let(:action) do
+      Praxis::ActionDefinition.new(action_name, endpoint_definition) do
+        routing { get '/:one' }
+        headers { header 'X_REQUESTED_WITH', 'XMLHttpRequest' }
+        params  { attribute :one, String }
+        response :ok, media_type: SpecMediaType, headers: { 'Foo' => 'Bar' }, location: %r{/some/thing}
+      end
+    end
+    subject { action.clone_action_as_post }
+
+    it 'changes the route to a post and well-known route' do
+      route = subject.route
+      expect(route.verb).to eq('POST')
+      expect(route.path.to_s).to eq(action.route.path.to_s + "/actions/#{action_name}")
+    end
+    it 'sets the name postfixed with "with_post"' do
+      expect(subject.name).to eq("#{action_name}_with_post".to_sym)
+    end
+
+    it 'sets the payload to contain all the original param ones, except the required URL ones' do
+      expect(subject.payload.attributes.keys).to eq(action.params.attributes.keys - [:one])
+      expect(subject.params.attributes.keys).to eq([:one])
+    end
+
+    it 'keeps the same headers and response definitions' do
+      expect(subject.headers).to eq(action.headers)
+      expect(subject.responses).to eq(action.responses)
+    end
+
+    it 'links the get and post sister actions appropriately' do
+      expect(subject.sister_get_action).to be(action)
+      expect(action.sister_post_action).to be(subject)
+    end
+  end
   context 'with a base_path and base_params on ApiDefinition' do
     # Without getting a fresh new ApiDefinition it is very difficult to test stuff using the Singleton
     # So for some tests we're gonna create a new instance and work with it to avoid the singleton issues

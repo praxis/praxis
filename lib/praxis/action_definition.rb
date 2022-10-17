@@ -11,11 +11,15 @@
 
 module Praxis
   class ActionDefinition
-    attr_reader :name, :endpoint_definition, :api_definition, :route, :responses, :traits
-
+    attr_reader :endpoint_definition, :api_definition, :route, :responses, :traits
+    
     # opaque hash of user-defined medata, used to decorate the definition,
     # and also available in the generated JSON documents
     attr_reader :metadata
+
+    # Setter/reader for a possible 'sister' action that is defined as post, and has the payload with the same structure as this GET action
+    # (with the exception of the params in the path attributes)
+    attr_accessor :name, :sister_post_action, :sister_get_action
 
     class << self
       attr_accessor :doc_decorations
@@ -312,9 +316,72 @@ module Praxis
       metadata[:doc_visibility] = :none
     end
 
+    def create_post_version
+      self.sister_post_action = true # Just true to mark it for now (needs to be lazily evaled)
+    end
+
     # [DEPRECATED] - Warn of the change of method name for the transition
     def resource_definition
       raise 'Praxis::ActionDefinition does not use `resource_definition` any longer. Use `endpoint_definition` instead.'
+    end
+
+    def clone_action_as_post
+      action_name = name
+      cloned = clone_action_as(name: "#{action_name}_with_post")
+    
+      # route
+      raise "Only GET actions support the 'create_post_version' DSL. Action #{action_name} is a #{rt.verb}" unless route.verb == 'GET'
+
+      orig_path = @routing_config.route.prefixed_path
+      cloned.instance_eval do
+        routing {
+          # Double slash, as we do know the complete prefixed orig path at this point and we don't want the prefix to be applied again...
+          post "/#{orig_path}/actions/#{action_name}"
+        }
+      end
+
+      # Payload
+      raise "Using create_post_version for an action requires the GET payload to be empty. Action #{name} has a payload defined" unless payload.nil?
+
+      route_params = route.path.named_captures.keys.collect(&:to_sym)
+      params_in_route = []
+      params_in_query = []
+      cloned.params.type.attributes.each do |k, val|
+        if route_params.include? k
+          params_in_route.push k
+        else
+          params_in_query.push k
+        end
+      end
+
+      cloned._internal_set(
+        payload: cloned.params.duplicate(type: params.type.slice_clone(*params_in_query)),
+        params: cloned.params.duplicate(type: params.type.slice_clone(*params_in_route))
+      )
+      cloned.sister_get_action = self
+      self.sister_post_action = cloned
+      cloned
+    end
+
+    def clone_action_as(name:)
+      cloned = clone
+      cloned.instance_eval do
+        @name = name.to_sym
+        @description = @description.clone
+        @metadata = @metadata.clone
+        @params = @params.clone
+        @responses = @responses.clone
+        @route = @route.clone
+        @routing_config = @routing_config.clone
+        @sister_post_action = @sister_post_action.clone
+        @traits = @traits.clone
+      end
+      cloned
+    end
+
+    def _internal_set(**args)
+      @payload = args[:payload] if args.key?(:payload)
+      @params = args[:params] if args.key?(:params)
     end
   end
 end

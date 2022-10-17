@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'rubocop'
-
+gem 'attributor', path: '/Users/blanquer/dev/praxis/attributor'
 group :test do
   gem 'builder'
 

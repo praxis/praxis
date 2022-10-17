@@ -12,7 +12,7 @@ describe Praxis::EndpointDefinition do
 
   its(:prefix) { should eq('/people') }
 
-  its(:actions) { should have(2).items }
+  its(:actions) { should have(3).items } # Two real actions, and a post version of the GET
   its(:metadata) { should_not have_key(:doc_visibility) }
 
   context '.describe' do
@@ -21,7 +21,7 @@ describe Praxis::EndpointDefinition do
     its([:description]) { should eq(endpoint_definition.description) }
     its([:media_type]) { should eq(endpoint_definition.media_type.describe(true)) }
 
-    its([:actions]) { should have(2).items }
+    its([:actions]) { should have(3).items }  # Two real actions, and a post version of the GET
     its([:metadata]) { should be_kind_of(Hash) }
     its([:traits]) { should eq [:test] }
     it { should_not have_key(:parent) }
@@ -69,6 +69,27 @@ describe Praxis::EndpointDefinition do
           end
         end
       end.to raise_error(ArgumentError, /Action names must be defined using symbols/)
+    end
+    context 'create_post_version' do
+      it 'duplicates the show action with a sister _with_post one' do
+        action_names = endpoint_definition.actions.keys
+        expect(action_names).to match_array(%i[index show show_with_post])
+      end
+      it 'sets the duplicated action to be a POST, with a /actions/show postfix' do
+        expect(endpoint_definition.actions[:show_with_post].route.verb).to eq('POST')
+        expect(endpoint_definition.actions[:show_with_post].route.prefixed_path).to eq('/people/:id/actions/show')
+      end
+      it 'it sets its payload to match the original action params (except any params in the URL path)' do
+        payload_for_show_with_post = endpoint_definition.actions[:show_with_post].payload.attributes
+        params_for_show = endpoint_definition.actions[:show].params.attributes
+        expect(payload_for_show_with_post.keys).to eq(params_for_show.keys - [:id])
+
+        # params_for_show_with_post = endpoint_definition.actions[:show_with_post].params.attributes
+      end
+      it 'it sets its params to only contain the the original action params that were in the URL' do
+        params_for_show_with_post = endpoint_definition.actions[:show_with_post].params.attributes
+        expect(params_for_show_with_post.keys).to eq([:id])
+      end
     end
   end
 

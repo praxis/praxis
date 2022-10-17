@@ -223,7 +223,16 @@ module Praxis
         raise ArgumentError, 'can not create ActionDefinition without block' unless block_given?
         raise ArgumentError, "Action names must be defined using symbols (Got: #{name} (of type #{name.class}))" unless name.is_a? Symbol
 
-        @actions[name] = ActionDefinition.new(name, self, &block)
+        action = ActionDefinition.new(name, self, &block)
+        if action.sister_post_action
+          # Save the finalization of the twin POST actions once we've loaded the endpoint definition
+          on_finalize do
+            # Create the sister POST action with a payload matching the original params
+            post_action = action.clone_action_as_post
+            @actions[post_action.name] = post_action
+          end
+        end
+        @actions[name] = action
       end
 
       def description(text = nil)

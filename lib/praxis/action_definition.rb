@@ -316,8 +316,8 @@ module Praxis
       metadata[:doc_visibility] = :none
     end
 
-    def create_post_version
-      self.sister_post_action = true # Just true to mark it for now (needs to be lazily evaled)
+    def enable_large_params_proxy_action(at: true)
+      self.sister_post_action = at # Just true to mark it for now (needs to be lazily evaled)
     end
 
     # [DEPRECATED] - Warn of the change of method name for the transition
@@ -325,23 +325,22 @@ module Praxis
       raise 'Praxis::ActionDefinition does not use `resource_definition` any longer. Use `endpoint_definition` instead.'
     end
 
-    def clone_action_as_post
+    def clone_action_as_post(at:)
       action_name = name
       cloned = clone_action_as(name: "#{action_name}_with_post")
-    
-      # route
-      raise "Only GET actions support the 'create_post_version' DSL. Action #{action_name} is a #{rt.verb}" unless route.verb == 'GET'
 
-      orig_path = @routing_config.route.prefixed_path
+      # route
+      raise "Only GET actions support the 'enable_large_params_proxy_action' DSL. Action #{action_name} is a #{rt.verb}" unless route.verb == 'GET'
+
       cloned.instance_eval do
         routing {
           # Double slash, as we do know the complete prefixed orig path at this point and we don't want the prefix to be applied again...
-          post "/#{orig_path}/actions/#{action_name}"
+          post "/#{at}"
         }
       end
 
       # Payload
-      raise "Using create_post_version for an action requires the GET payload to be empty. Action #{name} has a payload defined" unless payload.nil?
+      raise "Using enable_large_params_proxy_action for an action requires the GET payload to be empty. Action #{name} has a payload defined" unless payload.nil?
 
       route_params = route.path.named_captures.keys.collect(&:to_sym)
       params_in_route = []

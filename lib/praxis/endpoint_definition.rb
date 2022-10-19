@@ -225,10 +225,21 @@ module Praxis
 
         action = ActionDefinition.new(name, self, &block)
         if action.sister_post_action
+          post_path = \
+            if action.sister_post_action == true
+              "#{action.route.prefixed_path}/actions/#{action.name}"
+            elsif action.sister_post_action.start_with?('//')
+              action.sister_post_action # Avoid appending prefix
+            else
+              # Make sure to cleanup the leading '/' if any, as we're always adding it below
+              cleaned_path = action.sister_post_action.start_with?('/') ? action.sister_post_action[1..-1] : action.sister_post_action
+              "#{action.route.prefixed_path}/#{cleaned_path}"
+            end
+
           # Save the finalization of the twin POST actions once we've loaded the endpoint definition
           on_finalize do
             # Create the sister POST action with a payload matching the original params
-            post_action = action.clone_action_as_post
+            post_action = action.clone_action_as_post(at: post_path)
             @actions[post_action.name] = post_action
           end
         end

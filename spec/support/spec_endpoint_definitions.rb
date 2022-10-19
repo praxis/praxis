@@ -24,6 +24,7 @@ class PeopleResource
   prefix '/people'
 
   action :index do
+    enable_large_params_proxy_action at: '/some/custom/path'
     description 'index description'
     routing do
       get ''
@@ -34,7 +35,7 @@ class PeopleResource
   end
 
   action :show do
-    create_post_version # Create an equivalent action named 'show_with_post' with the payload matching this action's parameters (except :id)
+    enable_large_params_proxy_action # Create an equivalent action named 'show_with_post' with the payload matching this action's parameters (except :id)
     description 'show description'
     routing do
       get '/:id'

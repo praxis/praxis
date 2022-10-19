@@ -14,18 +14,20 @@ namespace :praxis do
     rows = []
     Praxis::Application.instance.endpoint_definitions.each do |endpoint_definition|
       endpoint_definition.actions.each do |name, action|
+        ctrl_method = action.sister_get_action ? action.sister_get_action.name : name
         method = begin
-          endpoint_definition.controller.instance_method(name)
+          endpoint_definition.controller.instance_method(ctrl_method)
         rescue StandardError
           nil
         end
 
-        method_name = method ? "#{method.owner.name}##{method.name}" : 'n/a'
+        implementation = method ? "#{method.owner.name}##{method.name}" : 'n/a'
+        implementation = "Proxied to -> #{implementation}" if action.sister_get_action
 
         row = {
           resource: endpoint_definition.name,
           action: name,
-          implementation: method_name
+          implementation: implementation
         }
 
         if action.route

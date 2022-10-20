@@ -354,8 +354,8 @@ module Praxis
       end
 
       cloned._internal_set(
-        payload: cloned.params.duplicate(type: params.type.slice_clone(*params_in_query)),
-        params: cloned.params.duplicate(type: params.type.slice_clone(*params_in_route))
+        payload: cloned.params.duplicate(type: params.type.clone.slice!(*params_in_query)),
+        params: cloned.params.duplicate(type: params.type.clone.slice!(*params_in_route))
       )
       cloned.sister_get_action = self
       self.sister_post_action = cloned

@@ -12,7 +12,7 @@
 module Praxis
   class ActionDefinition
     attr_reader :endpoint_definition, :api_definition, :route, :responses, :traits
-    
+
     # opaque hash of user-defined medata, used to decorate the definition,
     # and also available in the generated JSON documents
     attr_reader :metadata
@@ -333,10 +333,10 @@ module Praxis
       raise "Only GET actions support the 'enable_large_params_proxy_action' DSL. Action #{action_name} is a #{rt.verb}" unless route.verb == 'GET'
 
       cloned.instance_eval do
-        routing {
+        routing do
           # Double slash, as we do know the complete prefixed orig path at this point and we don't want the prefix to be applied again...
           post "/#{at}"
-        }
+        end
       end
 
       # Payload
@@ -345,7 +345,7 @@ module Praxis
       route_params = route.path.named_captures.keys.collect(&:to_sym)
       params_in_route = []
       params_in_query = []
-      cloned.params.type.attributes.each do |k, val|
+      cloned.params.type.attributes.each do |k, _val|
         if route_params.include? k
           params_in_route.push k
         else

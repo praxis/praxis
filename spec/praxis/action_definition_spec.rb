@@ -306,7 +306,7 @@ describe Praxis::ActionDefinition do
   end
 
   context 'creating a duplicate action with POST' do
-    let(:action) { PeopleResource.actions[:show]}
+    let(:action) { PeopleResource.actions[:show] }
     let(:post_action_path) { action.route.path.to_s + "/actions/#{action.name}" }
     subject { action.clone_action_as_post(at: post_action_path) }
 

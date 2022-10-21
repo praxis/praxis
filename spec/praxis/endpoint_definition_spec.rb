@@ -12,7 +12,7 @@ describe Praxis::EndpointDefinition do
 
   its(:prefix) { should eq('/people') }
 
-  its(:actions) { should have(4).items }  # Two real actions, and two post versions of the GET
+  its(:actions) { should have(4).items } # Two real actions, and two post versions of the GET
   its(:metadata) { should_not have_key(:doc_visibility) }
 
   context '.describe' do

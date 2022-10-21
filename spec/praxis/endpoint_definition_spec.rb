@@ -12,7 +12,7 @@ describe Praxis::EndpointDefinition do
 
   its(:prefix) { should eq('/people') }
 
-  its(:actions) { should have(4).items }  # Two real actions, and twp post version of the GET
+  its(:actions) { should have(4).items }  # Two real actions, and two post versions of the GET
   its(:metadata) { should_not have_key(:doc_visibility) }
 
   context '.describe' do
@@ -21,7 +21,7 @@ describe Praxis::EndpointDefinition do
     its([:description]) { should eq(endpoint_definition.description) }
     its([:media_type]) { should eq(endpoint_definition.media_type.describe(true)) }
 
-    its([:actions]) { should have(4).items }  # Two real actions, and twp post version of the GET
+    its([:actions]) { should have(4).items }  # Two real actions, and two post versions of the GET
     its([:metadata]) { should be_kind_of(Hash) }
     its([:traits]) { should eq [:test] }
     it { should_not have_key(:parent) }
@@ -87,13 +87,11 @@ describe Praxis::EndpointDefinition do
           expect(endpoint_definition.actions[:index_with_post].route.prefixed_path).to eq('/people/some/custom/path')
         end
       end
-        
+
       it 'it sets its payload to match the original action params (except any params in the URL path)' do
         payload_for_show_with_post = endpoint_definition.actions[:show_with_post].payload.attributes
         params_for_show = endpoint_definition.actions[:show].params.attributes
         expect(payload_for_show_with_post.keys).to eq(params_for_show.keys - [:id])
-
-        # params_for_show_with_post = endpoint_definition.actions[:show_with_post].params.attributes
       end
       it 'it sets its params to only contain the the original action params that were in the URL' do
         params_for_show_with_post = endpoint_definition.actions[:show_with_post].params.attributes

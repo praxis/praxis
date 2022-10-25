@@ -67,7 +67,6 @@ module Praxis
           end
           # Required: Mostly for request bodies
           h[:required] = true if @attribute_options[:required]
-
           h
 
           # # TODO: FIXME: return a generic object type if the passed info was weird.

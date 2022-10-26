@@ -12,7 +12,7 @@ describe Praxis::EndpointDefinition do
 
   its(:prefix) { should eq('/people') }
 
-  its(:actions) { should have(2).items }
+  its(:actions) { should have(4).items } # Two real actions, and two post versions of the GET
   its(:metadata) { should_not have_key(:doc_visibility) }
 
   context '.describe' do
@@ -21,7 +21,7 @@ describe Praxis::EndpointDefinition do
     its([:description]) { should eq(endpoint_definition.description) }
     its([:media_type]) { should eq(endpoint_definition.media_type.describe(true)) }
 
-    its([:actions]) { should have(2).items }
+    its([:actions]) { should have(4).items }  # Two real actions, and two post versions of the GET
     its([:metadata]) { should be_kind_of(Hash) }
     its([:traits]) { should eq [:test] }
     it { should_not have_key(:parent) }
@@ -69,6 +69,34 @@ describe Praxis::EndpointDefinition do
           end
         end
       end.to raise_error(ArgumentError, /Action names must be defined using symbols/)
+    end
+    context 'enable_large_params_proxy_action' do
+      it 'duplicates the show action with a sister _with_post one' do
+        action_names = endpoint_definition.actions.keys
+        expect(action_names).to match_array(%i[index show show_with_post index_with_post])
+      end
+      context 'defaults the exposed path for the POST action "' do
+        it 'to add a prefix of "actions/<action_name' do
+          expect(endpoint_definition.actions[:show_with_post].route.verb).to eq('POST')
+          expect(endpoint_definition.actions[:show_with_post].route.prefixed_path).to eq('/people/:id/actions/show')
+        end
+      end
+      context 'allows to specify the exposed path with the at: argument' do
+        it 'will use /people/some/custom/path postfix (cause at: parameter was "some/custom/path")' do
+          expect(endpoint_definition.actions[:index_with_post].route.verb).to eq('POST')
+          expect(endpoint_definition.actions[:index_with_post].route.prefixed_path).to eq('/people/some/custom/path')
+        end
+      end
+
+      it 'it sets its payload to match the original action params (except any params in the URL path)' do
+        payload_for_show_with_post = endpoint_definition.actions[:show_with_post].payload.attributes
+        params_for_show = endpoint_definition.actions[:show].params.attributes
+        expect(payload_for_show_with_post.keys).to eq(params_for_show.keys - [:id])
+      end
+      it 'it sets its params to only contain the the original action params that were in the URL' do
+        params_for_show_with_post = endpoint_definition.actions[:show_with_post].params.attributes
+        expect(params_for_show_with_post.keys).to eq([:id])
+      end
     end
   end
 

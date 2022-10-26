@@ -13,10 +13,10 @@ module Praxis
         end
 
         def call(request)
-          request.action = @action
           dispatcher = Dispatcher.current(application: @application)
-
-          dispatcher.dispatch(@controller, @action, request)
+          # Switch to the sister get action if configured that way
+          action = @action.sister_get_action || @action
+          dispatcher.dispatch(@controller, action, request)
         end
       end
 

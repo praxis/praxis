@@ -69,6 +69,7 @@ module Praxis
 
     def dispatch(controller_class, action, request)
       @controller = controller_class.new(request)
+      request.action = action
       @action = action
       @request = request
 

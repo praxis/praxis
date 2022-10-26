@@ -47,9 +47,7 @@ module Praxis
               props = type.attributes.transform_values.with_index do |definition, index|
                 # if type has an attribute in its requirements all, then it should be marked as required here
                 field_name = type.attributes.keys[index]
-                if required_attributes.include?(field_name)
-                  definition.options.merge!(required: true)
-                end
+                definition.options.merge!(required: true) if required_attributes.include?(field_name)
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
               h = { type: :object, properties: props } # TODO: Example?
@@ -68,9 +66,7 @@ module Praxis
             h[:enum] = h[:enum] + [nil] if h[:enum] && !h[:enum].include?(nil)
           end
           # Required: Mostly for request bodies
-          if @attribute_options[:required]
-            h[:required] = true
-          end
+          h[:required] = true if @attribute_options[:required]
 
           h
 

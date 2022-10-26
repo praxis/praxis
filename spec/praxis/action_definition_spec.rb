@@ -292,6 +292,49 @@ describe Praxis::ActionDefinition do
     end
   end
 
+  context 'enable_large_params_proxy_action' do
+    it 'exposes the add_post_equivalent boolean' do
+      subject.instance_eval do
+        enable_large_params_proxy_action
+      end
+      expect(subject.sister_post_action).to be_truthy
+    end
+    it 'does NOT expose the add_post_equivalent boolean when enable_large_params_proxy_action is not called' do
+      expect(subject).to_not receive(:enable_large_params_proxy_action)
+      expect(subject.sister_post_action).to be_nil
+    end
+  end
+
+  context 'creating a duplicate action with POST' do
+    let(:action) { PeopleResource.actions[:show] }
+    let(:post_action_path) { action.route.path.to_s + "/actions/#{action.name}" }
+    subject { action.clone_action_as_post(at: post_action_path) }
+
+    it 'changes the route to a post and well-known route' do
+      route = subject.route
+      expect(route.verb).to eq('POST')
+      expect(route.path.to_s).to eq(post_action_path)
+    end
+    it 'sets the name postfixed with "with_post"' do
+      expect(subject.name).to eq("#{action.name}_with_post".to_sym)
+    end
+
+    it 'sets the payload to contain all the original param ones, except the required URL ones' do
+      expect(subject.payload.attributes.keys).to eq(action.params.attributes.keys - [:id])
+      expect(subject.params.attributes.keys).to eq([:id])
+    end
+
+    it 'keeps the same headers and response definitions' do
+      expect(subject.headers).to eq(action.headers)
+      expect(subject.responses).to eq(action.responses)
+    end
+
+    it 'links the get and post sister actions appropriately' do
+      expect(subject.sister_get_action).to be(action)
+      expect(action.sister_post_action).to be(subject)
+    end
+  end
+
   context 'with a base_path and base_params on ApiDefinition' do
     # Without getting a fresh new ApiDefinition it is very difficult to test stuff using the Singleton
     # So for some tests we're gonna create a new instance and work with it to avoid the singleton issues

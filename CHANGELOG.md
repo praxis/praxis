@@ -1,6 +1,8 @@
 # Praxis Changelog
 
 ## next
+
+## 2.0.pre.25
   * Improve surfacing of requirement attributes in Structs for OpenApi generated documentation
   * Introduction of a new `dsl enable_large_params_proxy_action` for GET verb action definitions. When used, two things will happen:
     * A new POST verb equivalent action will be defined:

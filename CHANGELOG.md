@@ -2,6 +2,15 @@
 
 ## next
   * Improve surfacing of requirement attributes in Structs for OpenApi generated documentation
+  * Introduction of a new `dsl enable_large_params_proxy_action` for GET verb action definitions. When used, two things will happen:
+    * A new POST verb equivalent action will be defined:
+      * It will have a `payload` matching the shape of the original GET's params (with the exception of any param that was originally in the URL)
+      * By default, the route for this new POST request is gonna have the same URL as the original GET action, but appending `/actions/<action_name>` to it. This can be customized by passing the path with the `at:` parameter of the DSL. I.e., `enable_large_params_proxy_action at: /actions/myspecialname` will change the generated path (can use the `//...` syntax to not include the prefix defined for the endpoint). NOTE: this route needs to be compatible with any params that might be defined for the URL (i.e., `:id` and such).
+      * This action will be fully visible and fully documented in the API generated docs. However, it will not need to have a corresponding controller implementation since it will special-forward it to the original GET action switching the parameters for the payload.
+    * Specifically, upon receiving a request to the POST equivalent action, Praxis will detect it is a special action and will:
+      * use directly the original action (i.e., will do the before/after filters and call the controller's method)
+      * will load the parameters for the action from the incoming payload
+    * This functionality is to allow having a POST counterpart to any GET requests that require long query strings, and for which the client cannot use a payload bodies (i.e,. Browser JS clients cannot send payload on GET requests).
 
 ## 2.0.pre.24
  Assorted set of fixes and cleanup:

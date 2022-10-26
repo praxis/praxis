@@ -14,6 +14,15 @@
   * Performance improvement:
     * Cache praxis associations' computation for ActiveRecord (so no communication with AR or DB happens after that)
   * Performance improvement: Use OJ as the (faster) default JSON renderer.
+  * Introduce batch computation of resource attributes: This defines an optional DSL (`batch_computed`) to enable easier calculation of expensive attributes that can be calculated much more efficiently in group:
+    * The new DSL takes an attribute name (Symbol), options and an implementation block that is able to get a list of resource instances (a hash of them, indexed by id) and perform the computation for all of them at once.
+    * Defining an attribute this way, resources can be used to be much more efficiently to calculate values that can be retrieved much more efficiently in bulk, and/or that depend on other resources of the same type to do so (i.e., things that to calculate that attribute for one single resource can be greatly amortized by doing it for many).
+    * The provided block to calculate the value of the attribute for a collection of resources of the same type is stored as a method inside an inner module of the resource class called BatchProcessors
+    * The class level method is callable through `::BatchProcessors.<property_name>(rows_by_id: xxx)`. The rows_by_id: parameter has resource 'ids' as keys, and the resource instances themselves a values
+    * By default an instance method of the same `<property_name>` name will also be created, with a default implementation that will call the `BatchProcessor.<property_name>` with only its instance id and instance, and will return only its result from it.
+    * If creating the helper instance method is not desired, one can pass `with_instance_method: false` when defining the batched_computed block. This might be necessary if we want to define the method ourselves, or in cases where the resource itself has an 'id' property that is not called 'id' (in which case the implementation would not be correct as it uses the `id` property of the resource). If that's the case, disable the creation, and add your own instance method that uses the defined BatchProcessor method passing the right parameters.
+    * It is also possible to query which attributes for a resource class are batch computed. This is done through .batched_attributes (which returns and array of symbol names)
+    * NOTE: Defining batch_computed attributes needs to be done before finalization
 
 ## 2.0.pre.24
  Assorted set of fixes and cleanup:

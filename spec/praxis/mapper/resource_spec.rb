@@ -226,10 +226,10 @@ describe Praxis::Mapper::Resource do
       it 'connects the class level method to the proc, returning results for all ids' do
         inner_constant = subject.class.const_get(:BatchProcessors)
         two = SimpleResource.new(SimpleModel.new(id: 111, name: 'smallshoe'))
-        by_id = {subject.id => subject, two.id => two}
+        by_id = { subject.id => subject, two.id => two }
         expected_batch_result = {
           103 => 'BATCH_COMPUTED_bigfoot',
-          111 => 'BATCH_COMPUTED_smallshoe',
+          111 => 'BATCH_COMPUTED_smallshoe'
         }
         expect(inner_constant.computed_name(rows_by_id: by_id)).to eq(expected_batch_result)
       end

@@ -11,6 +11,9 @@
       * use directly the original action (i.e., will do the before/after filters and call the controller's method)
       * will load the parameters for the action from the incoming payload
     * This functionality is to allow having a POST counterpart to any GET requests that require long query strings, and for which the client cannot use a payload bodies (i.e,. Browser JS clients cannot send payload on GET requests).
+  * Performance improvement:
+    * Cache praxis associations' computation for ActiveRecord (so no communication with AR or DB happens after that)
+  * Performance improvement: Use OJ as the (faster) default JSON renderer.
 
 ## 2.0.pre.24
  Assorted set of fixes and cleanup:

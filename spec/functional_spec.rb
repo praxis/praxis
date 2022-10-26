@@ -122,7 +122,7 @@ describe 'Functional specs' do
       'id' => 2,
       'junk' => 'foo',
       'other_params' => {
-        'some_date' => '2012-12-21T00:00:00+00:00',
+        'some_date' => '2012-12-21T00:00:00.000+00:00',
         'fail_filter' => false
       },
       'payload' => {

@@ -9,5 +9,6 @@ group :test do
   gem 'builder'
 
   gem 'link_header'
+  gem 'oj'
   gem 'parslet'
 end

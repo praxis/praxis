@@ -28,9 +28,13 @@ module Praxis
         end
 
         def _praxis_associations
+          # Memoize the hash in the model, to avoid recomputing expensive AR reflection lookups
+          # NOTE: should this be finalized with the resources? or do we know if all associations and such that are needed here will never change?
+          return @_praxis_associations if @_praxis_associations
+
           orig = reflections.clone
 
-          orig.each_with_object({}) do |(k, v), hash|
+          @_praxis_associations = orig.each_with_object({}) do |(k, v), hash|
             # Assume an 'id' primary key if the system is initializing without AR connected
             # (or without the tables created). This probably means that it's a rake task initializing or so...
             pkey = \

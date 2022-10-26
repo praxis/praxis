@@ -214,4 +214,48 @@ describe Praxis::Mapper::Resource do
       end
     end
   end
+
+  context 'batch computed attributes' do
+    context 'default case' do
+      subject { SimpleResource.new(SimpleModel.new(id: 103, name: 'bigfoot')) }
+      it 'creates the class level method inside the BatchProcessors const in the class' do
+        inner_constant = subject.class.const_get(:BatchProcessors)
+        expect(inner_constant).to be_truthy
+        expect(inner_constant.method(:computed_name)).to be_truthy
+      end
+      it 'connects the class level method to the proc, returning results for all ids' do
+        inner_constant = subject.class.const_get(:BatchProcessors)
+        two = SimpleResource.new(SimpleModel.new(id: 111, name: 'smallshoe'))
+        by_id = { subject.id => subject, two.id => two }
+        expected_batch_result = {
+          103 => 'BATCH_COMPUTED_bigfoot',
+          111 => 'BATCH_COMPUTED_smallshoe'
+        }
+        expect(inner_constant.computed_name(rows_by_id: by_id)).to eq(expected_batch_result)
+      end
+      it 'creates the optional instance method with the same name (by default)' do
+        expect(subject.method(:computed_name)).to be_truthy
+      end
+      it 'connects the instance method to call the proc, returning only its id result' do
+        expect(subject.computed_name).to eq('BATCH_COMPUTED_bigfoot')
+      end
+    end
+
+    context 'disabling instance method creation' do
+      subject { ParentResource.new(SimpleModel.new(id: 3, name: 'papa')) }
+      it 'still creates the class level method inside the BatchProcessors const in the class' do
+        inner_constant = subject.class.const_get(:BatchProcessors)
+        expect(inner_constant).to be_truthy
+        expect(inner_constant.method(:computed_display)).to be_truthy
+      end
+      it 'doe NOT create the optional instance' do
+        expect(subject.methods).to_not include(:computed_display)
+      end
+    end
+
+    it 'can retrieve which attribute names are batched' do
+      expect(SimpleResource.batched_attributes).to eq([:computed_name])
+      expect(ParentResource.batched_attributes).to eq([:computed_display])
+    end
+  end
 end

@@ -42,6 +42,7 @@ module Praxis
                        end
 
           @properties = superclass.properties.clone
+          @registered_batch_computations = {} # hash of attribute_name -> {proc: , with_instance_method: }
           @_filters_map = {}
           @memoized_variables = []
         end
@@ -63,12 +64,46 @@ module Praxis
         properties[name] = { dependencies: dependencies, through: through }
       end
 
+      def self.batch_computed(attribute, with_instance_method: true, &block)
+        raise "This resource (#{name})is already finalized. Defining batch_computed attributes needs to be done before finalization" if @finalized
+        raise 'It is necessary to pass a block when using the batch_computed method' unless block_given?
+
+        required_params = block.parameters.select { |t, _n| t == :keyreq }.map { |_a, b| b }.uniq
+        raise 'The block for batch_computed can only accept one required kw param named :rows_by_id' unless required_params == [:rows_by_id]
+
+        @registered_batch_computations[attribute.to_sym] = { proc: block.to_proc, with_instance_method: with_instance_method }
+      end
+
+      def self.batched_attributes
+        @registered_batch_computations.keys
+      end
+
       def self._finalize!
         finalize_resource_delegates
+        define_batch_processors
         define_model_accessors
 
         hookup_callbacks
         super
+      end
+
+      def self.define_batch_processors
+        return unless @registered_batch_computations.presence
+
+        const_set(:BatchProcessors, Module.new)
+        @registered_batch_computations.each do |name, opts|
+          self::BatchProcessors.module_eval do
+            define_singleton_method(name, opts[:proc])
+          end
+          next unless opts[:with_instance_method]
+
+          # Define the instance method for it to call the batch processor...passing its 'id' and value
+          # This can be turned off by setting :with_instance_method, in case the 'id' of a resource
+          # it is not called 'id' (simply define an instance method similar to this one below)
+          define_method(name) do
+            self.class::BatchProcessors.send(name, rows_by_id: { id => self })[id]
+          end
+        end
       end
 
       def self.finalize_resource_delegates

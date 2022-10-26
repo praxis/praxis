@@ -103,6 +103,15 @@ class ParentResource < BaseResource
   model ParentModel
 
   property :display_name, dependencies: %i[simple_name id other_attribute]
+
+  def display_name
+    "#{id}-#{name}"
+  end
+  batch_computed(:computed_display, with_instance_method: false) do |rows_by_id:|
+    rows_by_id.transform_values do |v|
+      "BATCH_COMPUTED_#{v.display_name}"
+    end
+  end
 end
 
 class SimpleResource < BaseResource
@@ -114,6 +123,12 @@ class SimpleResource < BaseResource
 
   def other_resource
     other_model
+  end
+
+  batch_computed(:computed_name) do |rows_by_id:|
+    rows_by_id.transform_values do |v|
+      "BATCH_COMPUTED_#{v.name}"
+    end
   end
 
   property :aliased_method, dependencies: %i[column1 other_model]

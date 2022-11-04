@@ -14,8 +14,14 @@ module Praxis
 
         def call(request)
           dispatcher = Dispatcher.current(application: @application)
-          # Switch to the sister get action if configured that way
-          action = @action.sister_get_action || @action
+          # Switch to the sister get action if configured that way (and mark the request as forwarded)
+          action = \
+            if @action.sister_get_action
+              request.forwarded_from_action = @action
+              @action.sister_get_action
+            else
+              @action
+            end
           dispatcher.dispatch(@controller, action, request)
         end
       end

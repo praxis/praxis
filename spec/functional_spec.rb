@@ -111,8 +111,30 @@ describe 'Functional specs' do
         end
       end
     end
+    context 'with a valid request but misusing request content-type' do
+      it 'is still successful and does not get confused about the sister post action' do
+        the_body = StringIO.new('') # This is a GET request passing a body
+        get '/api/clouds/1/instances?api_version=1.0', nil, 'rack.input' => the_body, 'CONTENT_TYPE' => 'application/json', 'global_session' => session
+        expect(last_response.status).to eq(200)
+        expect(last_response.headers['Content-Type']).to(
+          eq('application/vnd.acme.instance;type=collection')
+        )
+      end
+    end
   end
 
+  context 'index using POST sister action' do
+    context 'with a valid request' do
+      it 'is successful and round trips the content type we pass in the body' do
+        payload = { response_content_type: 'application/vnd.acme.instance; type=collection; other=thing' }
+        post '/api/clouds/1/instances/actions/index_using_post?api_version=1.0', JSON.dump(payload), 'CONTENT_TYPE' => 'application/json', 'global_session' => session
+        expect(last_response.status).to eq(200)
+        expect(last_response.headers['Content-Type']).to(
+          eq(payload[:response_content_type])
+        )
+      end
+    end
+  end
   it 'works' do
     the_body = StringIO.new('{}') # This is a funny, GET request expecting a body
     get '/api/clouds/1/instances/2?junk=foo&api_version=1.0', nil, 'rack.input' => the_body, 'CONTENT_TYPE' => 'application/json', 'global_session' => session

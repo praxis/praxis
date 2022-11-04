@@ -24,6 +24,8 @@ module ApiResources
     end
 
     action :index do
+      enable_large_params_proxy_action at: '/actions/index_using_post'
+
       routing do
         get ''
       end

@@ -3,7 +3,7 @@
 module Praxis
   class Request < Praxis.request_superclass
     attr_reader :env, :query
-    attr_accessor :route_params, :action, :headers, :params, :payload
+    attr_accessor :route_params, :action, :headers, :params, :payload, :forwarded_from_action
 
     PATH_VERSION_PREFIX = '/v'
     CONTENT_TYPE_NAME = 'CONTENT_TYPE'
@@ -123,15 +123,16 @@ module Praxis
       return unless action.params
 
       self.params = action.params.load(raw_params, context)
-      return unless action.sister_post_action && content_type
+      return unless forwarded_from_action && content_type
 
+      # If it is coming from a forwarded action, and has a content type, let's parse it, and merge it to the params as well
       raw = if (handler = Praxis::Application.instance.handlers[content_type.handler_name])
               handler.parse(raw_payload)
             else
               # TODO: is this a good default?
               raw_payload
             end
-      loaded_payload = action.sister_post_action.payload.load(raw, context, content_type: content_type.to_s)
+      loaded_payload = forwarded_from_action.payload.load(raw, context, content_type: content_type.to_s)
       self.params = params.merge(loaded_payload)
     end
 

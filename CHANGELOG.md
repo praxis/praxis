@@ -2,9 +2,12 @@
 
 ## next
 
+## 2.0.pre.26
+  * Make POST action forwarding more robust against technically malformed GET requests with no body but passing `Content-Type`. This could cause issues when using the `enable_large_params_proxy_action` DSL.
+
 ## 2.0.pre.25
   * Improve surfacing of requirement attributes in Structs for OpenApi generated documentation
-  * Introduction of a new `dsl enable_large_params_proxy_action` for GET verb action definitions. When used, two things will happen:
+  * Introduction of a new dsl `enable_large_params_proxy_action` for GET verb action definitions. When used, two things will happen:
     * A new POST verb equivalent action will be defined:
       * It will have a `payload` matching the shape of the original GET's params (with the exception of any param that was originally in the URL)
       * By default, the route for this new POST request is gonna have the same URL as the original GET action, but appending `/actions/<action_name>` to it. This can be customized by passing the path with the `at:` parameter of the DSL. I.e., `enable_large_params_proxy_action at: /actions/myspecialname` will change the generated path (can use the `//...` syntax to not include the prefix defined for the endpoint). NOTE: this route needs to be compatible with any params that might be defined for the URL (i.e., `:id` and such).

@@ -14,7 +14,7 @@ module Praxis
           query.where("#{attr} > ?", value)
         end
 
-        def self.order(query, order)
+        def self.order(query, order, _selectors)
           return query unless order
 
           order_clause = order.map do |spec_hash|

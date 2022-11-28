@@ -44,6 +44,7 @@ module Praxis
           @properties = superclass.properties.clone
           @registered_batch_computations = {} # hash of attribute_name -> {proc: , with_instance_method: }
           @_filters_map = {}
+          @_order_map = {}
           @memoized_variables = []
         end
       end
@@ -322,6 +323,21 @@ module Praxis
           end
       end
 
+      def self.order_mapping(definition = nil)
+        if definition.nil?
+          @_order_map ||= {} # initialize to empty hash by default
+          return @_order_map
+        end
+
+        @_order_map = \
+          case definition
+          when Hash
+            definition
+          else
+            raise 'Resource.orders_mapping only allows a hash'
+          end
+      end
+
       def self.craft_filter_query(base_query, filters:)
         if filters
           raise "To use API filtering, you must define the mapping of api-names to resource properties (using the `filters_mapping` method in #{self})" unless @_filters_map
@@ -342,15 +358,15 @@ module Praxis
         base_query
       end
 
-      def self.craft_pagination_query(base_query, pagination:)
+      def self.craft_pagination_query(base_query, pagination:, selectors:)
         handler_klass = model._pagination_query_builder_class
         return base_query unless handler_klass && (pagination.paginator || pagination.order)
 
         # Gather and save the count if required
         pagination.total_count = handler_klass.count(base_query.dup) if pagination.paginator&.total_count
 
-        base_query = handler_klass.order(base_query, pagination.order)
-        handler_klass.paginate(base_query, pagination)
+        base_query = handler_klass.order(base_query, pagination.order, root_resource: selectors.resource)
+        handler_klass.paginate(base_query, pagination, root_resource: selectors.resource)
       end
 
       def initialize(record)

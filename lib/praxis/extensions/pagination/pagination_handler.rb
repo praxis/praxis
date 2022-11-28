@@ -6,7 +6,7 @@ module Praxis
       class PaginationHandler
         class PaginationException < RuntimeError; end
 
-        def self.paginate(query, pagination)
+        def self.paginate(query, pagination, root_resource:)
           return query unless pagination.paginator
 
           paginator = pagination.paginator
@@ -18,7 +18,7 @@ module Praxis
                 # i.e., We can be smart about allowing the main sort field matching the pagination one (in case you want to sub-order in a custom way)
                 oclause = if pagination.order.nil? || pagination.order.empty? # No ordering specified => use ascending based on the "by" field
                             direction = :asc
-                            order(query, [{ asc: paginator.by }])
+                            order(query, [{ asc: paginator.by }], root_resource: root_resource)
                           else
                             first_ordering = pagination.order.items.first
                             direction = first_ordering.keys.first
@@ -32,7 +32,7 @@ module Praxis
                                     "When paginating by a field value, one cannot specify the 'order' clause " \
                                     "unless the clause's primary field matches the pagination field."
                             end
-                            order(query, pagination.order)
+                            order(query, pagination.order, root_resource: root_resource)
                           end
 
                 if paginator.from

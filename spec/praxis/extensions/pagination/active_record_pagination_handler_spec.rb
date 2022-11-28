@@ -43,7 +43,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
     end
   end
 
-  let(:query) { ActiveBook }
+  let(:query) { ActiveBook.includes(:author) }
   let(:table) { ActiveBook.table_name }
   let(:paginator_params) { nil }
   let(:order_params) { nil }
@@ -52,7 +52,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
   end
 
   context '.paginate' do
-    subject { described_class.paginate(query, pagination) }
+    subject { described_class.paginate(query, pagination, root_resource: ActiveBookResource) }
 
     context 'empty struct' do
       let(:paginator_params) { nil }
@@ -113,7 +113,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
   end
 
   context '.order' do
-    subject { described_class.order(query, pagination.order) }
+    subject { described_class.order(query, pagination.order, root_resource: ActiveBookResource) }
 
     it 'does not change the query with an empty struct' do
       expect(subject).to be(query)
@@ -127,5 +127,32 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
                     ::ActiveBook.order(simple_name: :desc, id: :asc)
     it_behaves_like 'sorts_the_same', '-simple_name,-id',
                     ::ActiveBook.order(simple_name: :desc, id: :desc)
+
+    context 'inner joining authors' do
+      let(:query) { ActiveBook.joins(:author) }
+      it_behaves_like 'sorts_the_same', '-author.name',
+                      ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc)
+    end
+
+    context 'with mapped order fields' do
+      it_behaves_like 'sorts_the_same', 'name', # name => simple_name
+                      ::ActiveBook.order(simple_name: :asc)
+
+      context 'with deeper joins that map names' do
+        let(:query) { ActiveBook.joins(:author) }
+        context 'of intermediate associations (writer => author)' do
+          it_behaves_like 'sorts_the_same', '-writer.name',
+                          ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc)
+        end
+        context 'of leaf properties (display_name => name)' do
+          it_behaves_like 'sorts_the_same', '-author.display_name',
+                          ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc)
+        end
+        context 'of both intermediate and leaf properties ((writer => author AND display_name => name)' do
+          it_behaves_like 'sorts_the_same', '-writer.display_name',
+                          ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc)
+        end
+      end
+    end
   end
 end

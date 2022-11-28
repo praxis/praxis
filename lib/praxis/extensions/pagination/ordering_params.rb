@@ -25,12 +25,16 @@ module Praxis
         class DSLCompiler < Attributor::DSLCompiler
           def by_fields(*fields)
             requested = fields.map(&:to_sym)
-            non_matching = requested - target.media_type.attributes.keys
-            unless non_matching.empty?
-              raise "Error, you've requested to order by fields that do not exist in the mediatype!\n" \
-              "The following #{non_matching.size} field/s do not exist in media type #{target.media_type.name} :\n" +
-                    non_matching.join(',').to_s
+
+            errors = []
+            requested.each do |field|
+              if (failed_field = self.class.validate_field(target.media_type, field.to_s.split('.').map(&:to_sym)))
+                errors += ["Cannot order by field: '#{field}'. It seems that the '#{failed_field}' attribute is not defined in the current Type structure."]
+              end
             end
+
+            raise errors.join('\n') unless errors.empty?
+
             target.fields_allowed = requested
           end
 
@@ -42,6 +46,21 @@ module Praxis
               # nothing, that's the default
             else
               raise "Error: unknown parameter for the 'enforce_for' : #{which}. Only :all or :first are allowed"
+            end
+          end
+
+          def self.validate_field(mt, path)
+            main, rest = path
+            next_attribute = mt.respond_to?(:member_attribute) ? mt.member_type.attributes[main] : mt.attributes[main]
+
+            if next_attribute
+              if rest.nil?
+                return nil
+              else
+                validate_field(next_attribute.type, rest)
+              end
+            else
+              return main
             end
           end
         end

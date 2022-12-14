@@ -339,14 +339,16 @@ module Praxis
       end
 
       def self.craft_filter_query(base_query, filters:)
+        klass_builder = nil
         if filters
           raise "To use API filtering, you must define the mapping of api-names to resource properties (using the `filters_mapping` method in #{self})" unless @_filters_map
 
           debug = Praxis::Application.instance.config.mapper.debug_queries
-          base_query = model._filter_query_builder_class.new(query: base_query, model: model, filters_map: @_filters_map, debug: debug).generate(filters)
+          filter_builder = model._filter_query_builder_class.new(query: base_query, model: model, filters_map: @_filters_map, debug: debug)
+          base_query = filter_builder.generate(filters)
         end
 
-        base_query
+        { query: base_query, builder: filter_builder }
       end
 
       def self.craft_field_selection_query(base_query, selectors:)
@@ -358,14 +360,14 @@ module Praxis
         base_query
       end
 
-      def self.craft_pagination_query(base_query, pagination:, selectors:)
+      def self.craft_pagination_query(base_query, pagination:, selectors:, filter_builder:)
         handler_klass = model._pagination_query_builder_class
         return base_query unless handler_klass && (pagination.paginator || pagination.order)
 
         # Gather and save the count if required
         pagination.total_count = handler_klass.count(base_query.dup) if pagination.paginator&.total_count
 
-        base_query = handler_klass.order(base_query, pagination.order, root_resource: selectors.resource)
+        base_query = handler_klass.order(base_query, pagination.order, root_resource: selectors.resource, filter_builder: filter_builder)
         handler_klass.paginate(base_query, pagination, root_resource: selectors.resource)
       end
 

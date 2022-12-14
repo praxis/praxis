@@ -56,4 +56,27 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
       expect(rel1rel2.children.keys).to be_empty
     end
   end
+  context '#dump_mappings' do
+    subject { described_class.new(filters).dump_mappings }
+    it 'works' do
+      h = {
+        'one' => [],
+        'rel1.a1' => [
+          'rel1'
+        ],
+        'rel1.a2' => [
+          'rel1'
+        ],
+        'rel1.rel2.b1' => [
+          'rel1',
+          'rel2'
+        ],
+        'rel1.rel2.b2' => [
+          'rel1',
+          'rel2'
+        ]
+      }
+      expect(subject).to eq(h)
+    end
+  end
 end

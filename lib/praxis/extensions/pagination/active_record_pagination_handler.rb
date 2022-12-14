@@ -15,21 +15,37 @@ module Praxis
           query.where(query.table[attr].gt(value))
         end
 
-        def self.order(query, order, root_resource:)
+        def self.order(query, order, root_resource:, filter_builder: )
           return query unless order
 
           query = query.reorder('')
           order.each do |spec_hash|
             direction, string = spec_hash.first
-            resource, mapped_name = _locate_pair(root_resource, string.to_s.split('.').map(&:to_sym))
-            # NOTE: We are simply using the direct table name of the inner joined field
-            # if there are multiple preloaded tables in the query, we might be using the
-            # wrong name/alias if we were meant to order by that other one...
+require 'pry'
+binding.pry
+            string_components = string.to_s.split('.')
+            resource, mapped_name = _locate_pair(root_resource, string_components.map(&:to_sym))
+
+            # Check if the 'path' (without the final column name) is something we have in our filters already
+            # and if so, get the alias we've assigned to it as a way to reference that directly
+            path_without_column = string_components[0..-2].join('.')
+            table_alias = filter_builder.resulting_filter_aliases[path_without_column]
+
+            # If we don't have used the 'path' already for a filter alias, we'll default to the simple table name
+            # NOTE: if we haven't used an alias from the filters, this might be incorrect!
+            # That is because if the total query had more than one of that same preloaded table, AR will select
+            # it own alias and we might be using the wrong one if we were meant to order by that other one...
             # The complexity of having to figure that out in AR (with how messy the alias
             # are handled) with the low likelyhood of these cases happenning is screaming
             # to leave it as is...and wait to see if this is something we really want to fix later on
-            query = query.references(resource.model.table_name.to_sym) # Ensure we join the table we're sorting by...
-            query = query.order("#{resource.model.table_name}.#{mapped_name}" => direction)
+            prefix = table_alias || resource.model.table_name
+
+            quoted_prefix = quote_column_path(query: query, prefix: prefix, column_name: mapped_name)
+            order_clause = ActiveRecord::Base.sanitize_sql_array("#{quoted_prefix} #{direction}")
+
+            # TODO: Do we need to ensure we have a 'reference' to that table so that AR preloads it?
+            # query = query.references(prefix.to_sym) TODO: need to build the right object...a symbol might not do for references
+            query = query.order(Arel.sql(order_clause))
           end
           query
         end
@@ -46,12 +62,23 @@ module Praxis
           query.limit(limit)
         end
 
+        def self.quote_column_path(query:, prefix:, column_name:)
+          c = query.connection
+          quoted_column = c.quote_column_name(column_name)
+          if prefix
+            quoted_table = c.quote_table_name(prefix)
+            "#{quoted_table}.#{quoted_column}"
+          else
+            quoted_column
+          end
+        end
+
         # Based off of a root resource and an incoming path of dot-separated attributes...
         # find the leaf attribute and its associated resource (including mapping names of associations/attributes along the way)
         # as defined by the `order_mapping` stanzas of resources
         def self._locate_pair(resource, path)
-          main, rest = path
-          mapped_name = resource.order_mapping[main] || main
+          main, *rest = path
+          mapped_name = resource.order_mapping[main.to_sym] || main
 
           association = resource.model._praxis_associations[mapped_name.to_sym]
           if association

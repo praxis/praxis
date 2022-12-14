@@ -18,7 +18,7 @@ module Praxis
             next if components.empty?
 
             if components.size == 1
-              @conditions << hash.slice(:name, :op, :value, :fuzzy, :node_object)
+              @conditions << hash.slice(:name, :op, :value, :fuzzy, :node_object, :orig_name)
             else
               children_data[components.first] ||= []
               children_data[components.first] << hash
@@ -33,6 +33,43 @@ module Praxis
             hash[name] = self.class.new(sub_filters, path: path + [name])
           end
         end
+
+        # Dump the mapping of a filter dotted string, to the resulting path
+        # This can be used by other parts (i.e., sorting functions) to know which filters map to which aliases
+        def dump_mappings
+          self.class.innerdump(conditions, children, path, {})
+        end
+
+        def self.innerdump(conditions, children, path, accum)
+          require 'pry'
+          binding.pry
+
+          conditions.each{ |cond|
+            # Need to only get the path to the attribute, but without it
+            # For null or not null associations, there is no attribute name in the filter already
+            relation_path = \
+              if(['!','!!'].include?(cond[:op]))
+                cond[:orig_name].to_s
+              else
+                cond[:orig_name].to_s.split('.')[0..-2].join('.')
+              end
+            accum[relation_path] = path unless relation_path.empty?
+          }
+          children.each do |(name,node)|
+            innerdump(node.conditions, node.children, path + [name], accum)
+          end
+          accum
+        end
+        # def self.innerdump(conditions, children, path, accum)
+        #   prefix = path == [''] ? [] : path # Delete empty string component path if that's how it arrives here
+        #   conditions.each{ |cond| 
+        #     accum[(prefix + [cond[:name]]).join('.')] = prefix
+        #   }
+        #   children.each do |(name,node)|
+        #     innerdump(node.conditions, node.children, path + [name], accum)
+        #   end
+        #   accum
+        # end
       end
     end
   end

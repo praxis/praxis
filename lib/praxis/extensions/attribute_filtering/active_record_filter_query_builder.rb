@@ -25,7 +25,7 @@ module Praxis
 
       class ActiveRecordFilterQueryBuilder
         REFERENCES_STRING_SEPARATOR = '/'
-        attr_reader :model, :filters_map
+        attr_reader :model, :filters_map, :resulting_filter_aliases
 
         # Base query to build upon
         def initialize(query:, model:, filters_map:, debug: false)
@@ -33,8 +33,10 @@ module Praxis
           @initial_query = query
           @model = model
           @filters_map = filters_map
+          @treenode = nil
           @logger = debug ? Logger.new($stdout) : nil
           @active_record_version_maj = ActiveRecord.gem_version.segments[0]
+          @resulting_filter_aliases = nil # Gets the table/alias used for any given filter name
         end
 
         def debug_query(msg, query)
@@ -44,6 +46,13 @@ module Praxis
         def generate(filters)
           # Resolve the names and values first, based on filters_map
           root_node = _convert_to_treenode(filters)
+          # Save the aliases that will result from the applied filters
+          require 'pry'
+          binding.pry
+          @resulting_filter_aliases = root_node.dump_mappings.each_with_object({}) do |(filter_name, path), result|
+            table_alias_name = path == [ALIAS_TABLE_PREFIX] ? model.table_name : path.join(REFERENCES_STRING_SEPARATOR)
+            result[filter_name] = table_alias_name
+          end
           crafted = craft_filter_query(root_node, for_model: @model)
           debug_query('SQL due to filters: ', crafted.all)
           crafted
@@ -307,10 +316,10 @@ module Praxis
                 # Result could be an array of hashes (each hash has name/op/value to identify a condition)
                 result_from_proc = result.is_a?(Array) ? result : [result]
                 # Make sure we tack on the node object associated with the filter
-                result_from_proc.map { |hash| hash.merge(node_object: filter[:node_object]) }
+                result_from_proc.map { |hash| hash.merge(node_object: filter[:node_object], orig_name: filter[:name]) }
               else
                 # For non-procs there's only 1 filter and 1 value (we're just overriding the mapped value)
-                [filter.merge(name: mapped_value)]
+                [filter.merge(name: mapped_value, orig_name: filter[:name])]
               end
             resolved_array += bindings_array
           end

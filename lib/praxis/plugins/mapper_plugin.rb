@@ -53,11 +53,13 @@ module Praxis
 
           filters = request.params.filters if request.params.respond_to?(:filters)
           # Handle filters
-          base_query = domain_model.craft_filter_query(base_query, filters: filters)
+          crafter = domain_model.craft_filter_query(base_query, filters: filters)
+          base_query = crafter[:query]
+          filter_builder = crafter[:builder]
           # Handle field and nested field selection
           base_query = domain_model.craft_field_selection_query(base_query, selectors: selector_generator.selectors)
           # handle pagination and ordering if the pagination extention is included
-          base_query = domain_model.craft_pagination_query(base_query, pagination: _pagination, selectors: selector_generator.selectors) if respond_to?(:_pagination)
+          base_query = domain_model.craft_pagination_query(base_query, pagination: _pagination, selectors: selector_generator.selectors, filter_builder: filter_builder) if respond_to?(:_pagination)
 
           base_query
         end

@@ -218,11 +218,12 @@ module Praxis
               field = field.to_sym
               next if self.class.fields_allowed.include?(field)
 
-              errors << if self.class.media_type.attributes.key?(field)
-                          "Ordering by field \'#{field}\' is disallowed. Ordering is only allowed using the following fields: " +
+              field_path = field.to_s.split('.').map(&:to_sym)
+              errors << if valid_attribute_path?(self.class.media_type, field_path)
+                          "Ordering by field \'#{field}\' in media type #{self.class.media_type.name} is disallowed. Ordering is only allowed using the following fields: " +
                           self.class.fields_allowed.map { |f| "\'#{f}\'" }.join(', ').to_s
                         else
-                          "Ordering by field \'#{field}\' is not possible as this field does not exist in " \
+                          "Ordering by field \'#{field}\' is not possible as this field is not reachable from " \
                           "media type #{self.class.media_type.name}"
                         end
             end
@@ -244,6 +245,17 @@ module Praxis
 
         def each(&block)
           items.each(&block)
+        end
+
+        # Looks up if the given path (with symbol attribute names at each component) is actually
+        # a valid path from the given mediatype
+        def valid_attribute_path?(media_type, path)
+          first, *rest = path
+          if (attribute = media_type.attributes[first])
+            rest.empty? ? true : valid_attribute_path?(attribute.type, rest)
+          else
+            false
+          end
         end
       end
     end

@@ -21,8 +21,6 @@ module Praxis
           query = query.reorder('')
           order.each do |spec_hash|
             direction, string = spec_hash.first
-require 'pry'
-binding.pry
             string_components = string.to_s.split('.')
             resource, mapped_name = _locate_pair(root_resource, string_components.map(&:to_sym))
 

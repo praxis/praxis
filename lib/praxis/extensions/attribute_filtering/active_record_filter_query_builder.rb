@@ -47,8 +47,6 @@ module Praxis
           # Resolve the names and values first, based on filters_map
           root_node = _convert_to_treenode(filters)
           # Save the aliases that will result from the applied filters
-          require 'pry'
-          binding.pry
           @resulting_filter_aliases = root_node.dump_mappings.each_with_object({}) do |(filter_name, path), result|
             table_alias_name = path == [ALIAS_TABLE_PREFIX] ? model.table_name : path.join(REFERENCES_STRING_SEPARATOR)
             result[filter_name] = table_alias_name
@@ -316,10 +314,10 @@ module Praxis
                 # Result could be an array of hashes (each hash has name/op/value to identify a condition)
                 result_from_proc = result.is_a?(Array) ? result : [result]
                 # Make sure we tack on the node object associated with the filter
-                result_from_proc.map { |hash| hash.merge(node_object: filter[:node_object], orig_name: filter[:name]) }
+                result_from_proc.map { |hash| hash.merge(node_object: filter[:node_object], orig_name: filter[:name]) } # Original name is the best we can do
               else
                 # For non-procs there's only 1 filter and 1 value (we're just overriding the mapped value)
-                [filter.merge(name: mapped_value, orig_name: filter[:name])]
+                [filter.merge(name: mapped_value, orig_name: mapped_value)]
               end
             resolved_array += bindings_array
           end

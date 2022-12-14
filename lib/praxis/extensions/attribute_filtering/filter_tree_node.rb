@@ -41,14 +41,11 @@ module Praxis
         end
 
         def self.innerdump(conditions, children, path, accum)
-          require 'pry'
-          binding.pry
-
           conditions.each{ |cond|
             # Need to only get the path to the attribute, but without it
             # For null or not null associations, there is no attribute name in the filter already
             relation_path = \
-              if(['!','!!'].include?(cond[:op]))
+              if ['!', '!!'].include?(cond[:op])
                 cond[:orig_name].to_s
               else
                 cond[:orig_name].to_s.split('.')[0..-2].join('.')

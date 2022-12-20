@@ -213,6 +213,29 @@ describe Praxis::Mapper::SelectorGenerator do
         end
         it_behaves_like 'a proper selector'
       end
+      context 'Aliased underlying associations follows any nested fields...' do
+        let(:fields) do
+          {
+            parent_id: true,
+            aliased_association: {
+              display_name: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            columns: [:other_model_id, :parent_id, :simple_name],
+            tracks: {
+              other_model: {
+                model: OtherModel,
+                columns: [:id, :name]
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
     end
 
     context 'string associations' do
@@ -355,5 +378,6 @@ describe Praxis::Mapper::SelectorGenerator do
         it_behaves_like 'a proper selector'
       end
     end
+
   end
 end

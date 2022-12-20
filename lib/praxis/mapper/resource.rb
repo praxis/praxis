@@ -60,8 +60,10 @@ module Praxis
         end
       end
 
-      def self.property(name, dependencies: nil, through: nil)
-        properties[name] = { dependencies: dependencies, through: through }
+      # The `as:` can be used for properties that correspond to an underlying association of a different name. With this the selector generator, is able to not only add 
+      # any extra dependencies needed for the property, but it also follow and pass any incoming nested fields when necessary (as opposed to only add dependencies and discard nested fields)
+      def self.property(name, dependencies: nil, through: nil, as: name)
+        properties[name] = { dependencies: dependencies, through: through, as: as}
       end
 
       def self.batch_computed(attribute, with_instance_method: true, &block)

@@ -1,6 +1,7 @@
 # Praxis Changelog
 
 ## next
+  * Introduce a new `as:` option for resource's `property`, to allow for a property aliasing an underlying association of a different name. With this fix, the selector generator, is able to not only add any extra dependencies needed, but also add the aliased underlying association including any nested fields that are required.
 
 ## 2.0.pre.26
   * Make POST action forwarding more robust against technically malformed GET requests with no body but passing `Content-Type`. This could cause issues when using the `enable_large_params_proxy_action` DSL.

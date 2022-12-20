@@ -125,6 +125,10 @@ class SimpleResource < BaseResource
     other_model
   end
 
+  def aliased_association
+    other_model
+  end
+
   batch_computed(:computed_name) do |rows_by_id:|
     rows_by_id.transform_values do |v|
       "BATCH_COMPUTED_#{v.name}"
@@ -146,6 +150,7 @@ class SimpleResource < BaseResource
   property :no_deps, dependencies: []
 
   property :deep_nested_deps, dependencies: ['parent.simple_children.other_model.parent.display_name']
+  property :aliased_association, as: :other_model, dependencies: [:name]
 
   before(:update!, :do_before_update)
   around(:update!, :do_around_update_nested)

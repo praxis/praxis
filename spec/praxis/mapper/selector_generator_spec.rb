@@ -225,11 +225,11 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: [:other_model_id, :parent_id, :simple_name],
+            columns: %i[other_model_id parent_id simple_name],
             tracks: {
               other_model: {
                 model: OtherModel,
-                columns: [:id, :name]
+                columns: %i[id name]
               }
             }
           }
@@ -378,6 +378,5 @@ describe Praxis::Mapper::SelectorGenerator do
         it_behaves_like 'a proper selector'
       end
     end
-
   end
 end

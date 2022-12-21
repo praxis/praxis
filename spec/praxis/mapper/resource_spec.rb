@@ -5,6 +5,8 @@ require 'spec_helper'
 describe Praxis::Mapper::Resource do
   let(:parent_record) { ParentModel.new(id: 100, name: 'george sr') }
   let(:parent_records) { [ParentModel.new(id: 101, name: 'georgia'), ParentModel.new(id: 102, name: 'georgina')] }
+  let(:other_model) { OtherModel.new(name: 'other george') }
+
   let(:record) { SimpleModel.new(id: 103, name: 'george xvi') }
   let(:model) { SimpleModel }
 
@@ -16,15 +18,19 @@ describe Praxis::Mapper::Resource do
       subject(:properties) { resource.properties }
 
       it 'includes directly-set properties' do
-        expect(properties[:other_resource]).to eq(dependencies: [:other_model], through: nil)
+        expect(properties[:other_resource]).to eq(dependencies: [:other_model], through: nil, as: :other_resource)
+      end
+
+      it 'includes aliases as well if different from name' do
+        expect(properties[:aliased_association]).to eq(dependencies: [:name], through: nil, as: :other_model)
       end
 
       it 'inherits from a superclass' do
-        expect(properties[:href]).to eq(dependencies: [:id], through: nil)
+        expect(properties[:href]).to eq(dependencies: [:id], through: nil, as: :href)
       end
 
       it 'properly overrides a property from the parent' do
-        expect(properties[:name]).to eq(dependencies: [:simple_name], through: nil)
+        expect(properties[:name]).to eq(dependencies: [:simple_name], through: nil, as: :name)
       end
     end
   end
@@ -104,6 +110,19 @@ describe Praxis::Mapper::Resource do
 
         parents.each { |parent| expect(parent).to be_kind_of(ParentResource) }
         expect(parents.collect(&:record)).to match_array(parent_records)
+      end
+    end
+
+    context 'for aliased properties' do
+      before { expect(record).to receive(:other_model).and_return(other_model) }
+      it 'skips creation of aliased method if the resource already has it defined' do
+        expect(subject.overriden_aliased_association).to be_kind_of(OtherModel) # Our override return a bare model
+        expect(subject.method(:overriden_aliased_association).source_location).to_not include(%r{/mapper/resource.rb$}) # Not created by us
+      end
+
+      it 'creates the aliased method name, instead of the property name' do
+        expect(subject.aliased_association).to be_kind_of(OtherResource) # Calling the other generated method also wraps it
+        expect(subject.method(:aliased_association).source_location).to include(%r{/mapper/resource.rb$}) # created by us
       end
     end
   end

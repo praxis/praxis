@@ -125,8 +125,10 @@ class SimpleResource < BaseResource
     other_model
   end
 
-  def aliased_association
-    other_model
+  def overriden_aliased_association
+    # My custom override (instead of the auto-generated delegator)
+    # For fun, we'll just return the raw model, without wrapping it in the resource
+    record.other_model
   end
 
   batch_computed(:computed_name) do |rows_by_id:|
@@ -151,6 +153,7 @@ class SimpleResource < BaseResource
 
   property :deep_nested_deps, dependencies: ['parent.simple_children.other_model.parent.display_name']
   property :aliased_association, as: :other_model, dependencies: [:name]
+  property :overriden_aliased_association, as: :other_model, dependencies: [:name]
 
   before(:update!, :do_before_update)
   around(:update!, :do_around_update_nested)

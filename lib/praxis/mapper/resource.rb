@@ -121,8 +121,24 @@ module Praxis
       def self.define_model_accessors
         return if model.nil?
 
+        define_aliased_methods
+
         model._praxis_associations.each do |k, v|
           define_model_association_accessor(k, v) unless instance_methods.include? k
+        end
+      end
+
+      def self.define_aliased_methods
+        with_different_alias_name = properties.reject { |name, opts| name == opts[:as] }
+        with_different_alias_name.each do |prop_name, opts|
+          next if instance_methods.include? prop_name
+
+          # Straight call to another association method (that we will generate automatically in our association accessors)
+          module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            def #{prop_name}
+              #{opts[:as]}
+            end
+          RUBY
         end
       end
 

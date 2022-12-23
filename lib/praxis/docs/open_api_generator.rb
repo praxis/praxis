@@ -117,10 +117,10 @@ module Praxis
           openapi: '3.0.2',
           info: info_object.dump,
           servers: [server_object.dump],
-          paths: paths_object.dump
+          paths: paths_object.dump,
+          security: [] # NOTE: No security definitions in Praxis. Leave it empty, to not anger linters
           # responses: {}, #TODO!! what do we get here? the templates?...need to transform to "Responses Definitions Object"
           # securityDefinitions: {}, # NOTE: No security definitions in Praxis
-          # security: [], # NOTE: No security definitions in Praxis
         }
 
         # Create the top level tags by:

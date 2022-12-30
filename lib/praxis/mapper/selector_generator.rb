@@ -68,7 +68,14 @@ module Praxis
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
           aliased_as = resource.properties[name][:as]
-          add_association(aliased_as, fields) if resource.model._praxis_associations[aliased_as]
+          if aliased_as == :self
+            # Special keyword to add itself as the association, but still continue procesing the fields
+            # This is useful when we expose resource fields tucked inside another sub-struct, this way
+            # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
+            add(fields)
+          elsif resource.model._praxis_associations[aliased_as]
+            add_association(aliased_as, fields)
+          end
         end
         dependencies&.each do |dependency|
           # To detect recursion, let's allow mapping depending fields to the same name of the property

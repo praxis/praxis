@@ -155,6 +155,8 @@ class SimpleResource < BaseResource
   property :aliased_association, as: :other_model, dependencies: [:name]
   property :overriden_aliased_association, as: :other_model, dependencies: [:name]
 
+  property :sub_struct, as: :self, dependencies: [:alway_necessary_attribute]
+
   before(:update!, :do_before_update)
   around(:update!, :do_around_update_nested)
   around(:update!, :do_around_update)

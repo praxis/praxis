@@ -73,8 +73,18 @@ module Praxis
             # This is useful when we expose resource fields tucked inside another sub-struct, this way
             # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
             add(fields)
-          elsif resource.model._praxis_associations[aliased_as]
-            add_association(aliased_as, fields)
+          else
+            first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
+
+            extended_fields = \
+              if rest.empty?
+                fields
+              else
+                rest.reverse.inject(fields) do |accum, prop|
+                  { prop => accum }
+                end
+              end
+            add_association(first, extended_fields) if resource.model._praxis_associations[first]
           end
         end
         dependencies&.each do |dependency|

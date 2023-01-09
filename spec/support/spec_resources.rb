@@ -154,6 +154,7 @@ class SimpleResource < BaseResource
   property :deep_nested_deps, dependencies: ['parent.simple_children.other_model.parent.display_name']
   property :aliased_association, as: :other_model, dependencies: [:name]
   property :overriden_aliased_association, as: :other_model, dependencies: [:name]
+  property :deep_aliased_association, as: 'parent.simple_children' , dependencies: [:name]
 
   property :sub_struct, as: :self, dependencies: [:alway_necessary_attribute]
 

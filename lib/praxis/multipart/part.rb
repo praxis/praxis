@@ -254,5 +254,10 @@ module Praxis
     ensure
       self.content_type = original_content_type
     end
+
+    def self.dump_for_openapi(example_part)
+      # TODO: This needs to be structured as OpenAPI requires it
+      raise "dumping a part for open api not implemented yet"
+    end
   end
 end

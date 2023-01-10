@@ -31,7 +31,7 @@ module Praxis
 
         def dump_schema(shallow: false, allow_ref: false)
           # We will dump schemas for mediatypes by simply creating a reference to the components' section
-          if type < Attributor::Container
+          if type < Attributor::Container && ! (type < Praxis::Types::MultipartArray)
             if (type < Praxis::Blueprint || type < Attributor::Model) && allow_ref && !type.anonymous?
               # TODO: Do we even need a description?
               h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
@@ -55,7 +55,8 @@ module Praxis
                 # definition.options.merge!(required: true) if required_attributes.include?(field_name)
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
-              h = { type: :object, properties: props } # TODO: Example?
+              h = { type: :object}
+              h[:properties] = props if props.presence
               h[:required] = required_attributes unless required_attributes.empty?
             end
           else

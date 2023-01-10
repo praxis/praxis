@@ -236,6 +236,55 @@ describe Praxis::Mapper::SelectorGenerator do
         end
         it_behaves_like 'a proper selector'
       end
+      context 'Deep aliased underlying associations also follows any nested fields at the end of the chain...' do
+        let(:fields) do
+          {
+            parent_id: true,
+            deep_aliased_association: {
+              name: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            columns: %i[parent_id simple_name], # No added_column, as it does not follow the dotted reference as properties, just associations
+            tracks: {
+              parent: {
+                model: ParentModel,
+                columns: %i[id],
+                tracks: {
+                  simple_children: {
+                    model: SimpleModel,
+                    columns: %i[parent_id simple_name]
+                  }
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
+      context 'Using self for the underlying association: follows any nested fields skipping the association name and still applies dependencies' do
+        let(:fields) do
+          {
+            parent_id: true,
+            sub_struct: {
+              display_name: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            # Parent_id is because we asked for it at the top
+            # display_name because we asked for it under sub_struct, but it is marked as :self
+            # alway_necessary_attribute because it is a dependency of sub_struct
+            columns: %i[parent_id display_name alway_necessary_attribute]
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
     end
 
     context 'string associations' do

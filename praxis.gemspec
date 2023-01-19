@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   spec.executables << 'praxis'
 
   spec.add_dependency 'activesupport', '>= 3'
-  spec.add_dependency 'attributor', '>= 6.4'
+  spec.add_dependency 'attributor', '>= 6.5'
   spec.add_dependency 'mime', '~> 0'
   spec.add_dependency 'mustermann', '>=1.1'
   spec.add_dependency 'rack', '>= 1'

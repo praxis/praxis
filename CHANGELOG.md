@@ -1,6 +1,10 @@
 # Praxis Changelog
 
 ## next
+
+## 2.0.pre.29
+  * Assorted set of fixes to generate cleaner and more compliant OpenApi documents.
+    * Mostly in the area of multipart generation, and requirements and nullability for OpenApi 3.0
 ## 2.0.pre.28
   * Enhance the mapper's Resource property to allow for a couple more powerful options using the `as:` keyword:
     * `as: :self` will provide a way to map any further incoming fields on top of the already existing object. This is useful when we want to expose some properties for a resource, grouped within a sub structure, but that in reality they exist directly in the resource's underlying model (i.e., to organize the information of the model in a more structured/groupable way).

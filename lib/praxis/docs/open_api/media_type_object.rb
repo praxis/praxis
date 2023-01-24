@@ -45,15 +45,22 @@ module Praxis
 
           if example_payload
             examples_by_content_type = {}
-            rendered_payload = example_payload.dump
+            # We don't need to provide top-level examples for a multipart payload...each part
+            # will provide its own example (and assembling a proper structured example for the whole
+            # body isn't necessarily trivial based on the spec)
+            # If we need to, someday, we can create the rendered_paylod by calling MultipartArray.self.dump_for_openapi
+            # and properly complete that code to generate the appropriate thing, including the encoding etc...
+            unless type < Praxis::Types::MultipartArray
+              rendered_payload = example_payload.dump
 
-            example_handlers.each do |spec|
-              content_type, handler_name = spec.first
-              handler = Praxis::Application.instance.handlers[handler_name]
-              # ReDoc is not happy to display json generated outputs when served as JSON...wtf?
-              generated = handler.generate(rendered_payload)
-              final = handler_name == 'json' ? JSON.parse(generated) : generated
-              examples_by_content_type[content_type] = final
+              example_handlers.each do |spec|
+                content_type, handler_name = spec.first
+                handler = Praxis::Application.instance.handlers[handler_name]
+                # ReDoc is not happy to display json generated outputs when served as JSON...wtf?
+                generated = handler.generate(rendered_payload)
+                final = handler_name == 'json' ? JSON.parse(generated) : generated
+                examples_by_content_type[content_type] = final
+              end
             end
           end
 

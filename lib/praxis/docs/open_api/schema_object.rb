@@ -31,7 +31,7 @@ module Praxis
 
         def dump_schema(shallow: false, allow_ref: false)
           # We will dump schemas for mediatypes by simply creating a reference to the components' section
-          if type < Attributor::Container
+          if type < Attributor::Container && ! (type < Praxis::Types::MultipartArray)
             if (type < Praxis::Blueprint || type < Attributor::Model) && allow_ref && !type.anonymous?
               # TODO: Do we even need a description?
               h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
@@ -47,10 +47,11 @@ module Praxis
               props = type.attributes.transform_values.with_index do |definition, index|
                 # if type has an attribute in its requirements all, then it should be marked as required here
                 field_name = type.attributes.keys[index]
-                definition.options.merge!(required: true) if required_attributes.include?(field_name)
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
-              h = { type: :object, properties: props } # TODO: Example?
+              h = { type: :object}
+              h[:properties] = props if props.presence
+              h[:required] = required_attributes unless required_attributes.empty?
             end
           else
             # OpenApi::SchemaObject.new(info:target).dump_schema(allow_ref: allow_ref, shallow: shallow)
@@ -61,12 +62,8 @@ module Praxis
 
           # Tag on OpenAPI specific requirements that aren't already added in the underlying JSON schema model
           # Nullable: (it seems we need to ensure there is a null option to the enum, if there is one)
-          if @attribute_options[:null]
-            h[:nullable] = @attribute_options[:null]
-            h[:enum] = h[:enum] + [nil] if h[:enum] && !h[:enum].include?(nil)
-          end
-          # Required: Mostly for request bodies
-          h[:required] = true if @attribute_options[:required]
+          is_nullable = @attribute_options[:null]
+          h[:nullable] = true if is_nullable
           h
 
           # # TODO: FIXME: return a generic object type if the passed info was weird.

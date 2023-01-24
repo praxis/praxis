@@ -197,7 +197,7 @@ module Praxis
             encoding[key_to_use]['headers'] = headers_attribute.as_json_schema(example: part_example.headers)
           end
 
-          hash[:properties] = props
+          hash[:properties] = props if props.presence
           hash[:encoding] = encoding unless encoding.empty?
         end
         hash
@@ -369,6 +369,10 @@ module Praxis
 
         all_entities = parts.join("\r\n--#{boundary}\r\n")
         "--#{boundary}\r\n#{all_entities}\r\n--#{boundary}--\r\n"
+      end
+
+      def self.dump_for_openapi(example)
+        example.map {|part| MultipartPart.dump_for_openapi(part)}
       end
     end
   end

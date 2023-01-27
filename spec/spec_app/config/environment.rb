@@ -33,7 +33,18 @@ Praxis::Application.configure do |application|
 
   application.bootloader.use SimpleAuthenticationPlugin, config_file: 'config/authentication.yml'
   application.bootloader.use AuthorizationPlugin
-
+  application.bootloader.use Praxis::Plugins::MapperPlugin
+  application.bootloader.use Praxis::Plugins::PaginationPlugin,
+                             **{
+                               # max_items: 500,  # Unlimited by default,
+                               # default_page_size: 100,
+                               # paging_default_mode: {by: :id},
+                               # disallow_paging_by_default: false,
+                               # disallow_cursor_by_default: false,
+                               # sorting: {
+                               #   enforce_all_fields: true
+                               # }
+                             }
   # enable "development-mode" options
   application.config.praxis.validate_responses = true
   application.config.praxis.validate_response_bodies = true
@@ -58,6 +69,7 @@ Praxis::Application.configure do |application|
       map :app, 'app/' do
         map :models, 'models/**/*'
         map :concerns, '**/concerns/**/*'
+        map :resources, '**/resources/**/*'
         map :controllers, '**/controllers/**/*'
         map :responses, '**/responses/**/*'
       end

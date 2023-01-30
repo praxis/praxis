@@ -344,7 +344,7 @@ module Praxis
             if ref && ['!', '!!'].include?(condition[:op])
               cp = (nodetree.path + [condition[:name].to_s]).join(REFERENCES_STRING_SEPARATOR)
               conditions += [condition.merge(column_prefix: cp, model: model, parent_reflection: ref)]
-              h[condition[:name]] = {}
+              h[condition[:name].to_s] = {}
             else
               # Save the parent reflection where the condition applies as well (used later to get assoc keys)
               conditions += [condition.merge(column_prefix: column_prefix, model: model, parent_reflection: parent_reflection)]

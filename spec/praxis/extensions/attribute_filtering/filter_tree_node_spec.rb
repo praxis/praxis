@@ -8,12 +8,12 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
   let(:dummy_object) { double('Fake NodeObject') }
   let(:filters) do
     [
-      { name: 'one', op: '>', value: 1, node_object: dummy_object },
-      { name: 'one', op: '<', value: 10 },
-      { name: 'rel1.a1', op: '=', value: 1 },
-      { name: 'rel1.a2', op: '=', value: 2 },
-      { name: 'rel1.rel2.b1', op: '=', value: 11 },
-      { name: 'rel1.rel2.b2', op: '=', value: 12, node_object: dummy_object }
+      { name: 'one', op: '>', value: 1, node_object: dummy_object, orig_name: 'uno' },
+      { name: 'one', op: '<', value: 10, orig_name: 'uno' },
+      { name: 'rel1.a1', op: '=', value: 1, orig_name: 'rel1.a1' },
+      { name: 'rel1.a2', op: '=', value: 2, orig_name: 'rel1.a2' },
+      { name: 'rel1.rel2.b1', op: '=', value: 11, orig_name: 'rel1.rel2.b1' },
+      { name: 'rel1.rel2.b2', op: '=', value: 12, node_object: dummy_object, orig_name: 'rel1.rel2.b2' }
     ]
   end
   context 'initialization' do
@@ -60,7 +60,7 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
     subject { described_class.new(filters).dump_mappings }
     it 'works' do
       h = {
-        'one' => [],
+        'uno' => [],
         'rel1.a1' => [
           'rel1'
         ],

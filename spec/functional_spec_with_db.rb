@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative 'praxis/extensions/support/spec_resources_active_model'
 
 describe 'Functional specs with connected DB' do
   def app

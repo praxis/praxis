@@ -2,31 +2,26 @@
 
 require 'spec_helper'
 
-require_relative '../support/spec_resources_active_model'
 require 'praxis/extensions/pagination'
 
-class Book < Praxis::MediaType
-  attributes do
-    attribute :id, Integer
-    attribute :simple_name, String
-    attribute :category_uuid, String
-  end
-end
-Book.finalize!
-BookPaginationParamsAttribute = Attributor::Attribute.new(Praxis::Types::PaginationParams.for(Book)) do
-  max_items 3
-  page_size 2
-  #   disallow :paging
-  default by: :id
-end
-
-BookOrderingParamsAttribute = Attributor::Attribute.new(Praxis::Types::OrderingParams.for(Book)) do
-  enforce_for :all
-end
-
 describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
+  let(:book_pagination_params_attribute) do
+    Attributor::Attribute.new(Praxis::Types::PaginationParams.for(Book)) do
+      max_items 3
+      page_size 2
+      #   disallow :paging
+      default by: :id
+    end
+  end
+  
+  let(:book_ordering_params_attribute) do
+    Attributor::Attribute.new(Praxis::Types::OrderingParams.for(Book)) do
+      enforce_for :all
+    end
+  end
+
   shared_examples 'sorts_the_same' do |op, expected|
-    let(:order_params) { BookOrderingParamsAttribute.load(op) }
+    let(:order_params) { book_ordering_params_attribute.load(op) }
     it do
       loaded_ids = subject.all.map(&:id)
       expected_ids = expected.all.map(&:id)
@@ -35,7 +30,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
   end
 
   shared_examples 'paginates_the_same' do |par, expected|
-    let(:paginator_params) { BookPaginationParamsAttribute.load(par) }
+    let(:paginator_params) { book_pagination_params_attribute.load(par) }
     it do
       loaded_ids = subject.all.map(&:id)
       expected_ids = expected.all.map(&:id)
@@ -93,7 +88,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
     end
 
     context 'including order' do
-      let(:order_params) { BookOrderingParamsAttribute.load(op_string) }
+      let(:order_params) { book_ordering_params_attribute.load(op_string) }
 
       context 'when compatible with cursor' do
         let(:op_string) { 'id' }
@@ -104,7 +99,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
 
       context 'when incompatible with cursor' do
         let(:op_string) { 'id' }
-        let(:paginator_params) { BookPaginationParamsAttribute.load('by=simple_name,items=3') }
+        let(:paginator_params) { book_pagination_params_attribute.load('by=simple_name,items=3') }
         it do
           expect { subject.all }.to raise_error(described_class::PaginationException, /is incompatible with pagination/)
         end

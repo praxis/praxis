@@ -2,8 +2,6 @@
 
 require 'spec_helper'
 
-require_relative '../support/spec_resources_active_model'
-
 describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
   let(:selector_fields) do
     {

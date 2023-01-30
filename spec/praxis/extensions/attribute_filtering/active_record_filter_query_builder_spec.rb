@@ -2,7 +2,6 @@
 
 require 'spec_helper'
 
-require_relative '../support/spec_resources_active_model'
 require 'praxis/extensions/attribute_filtering'
 require 'praxis/extensions/attribute_filtering/active_record_filter_query_builder'
 
@@ -54,8 +53,6 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
     context 'with no filters' do
       let(:filters_string) { '' }
       it 'does not modify the query' do
-        require 'pry'
-        binding.pry
         expect(subject).to be(base_query)
       end
     end

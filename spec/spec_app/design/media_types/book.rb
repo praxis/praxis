@@ -4,9 +4,13 @@ class Book < Praxis::MediaType
   identifier 'application/vnd.acme.book'
 
   domain_model 'Resources::Book'
+
   attributes do
     attribute :id, Integer
     attribute :name, String
+    attribute :simple_name, String # ????????
+    attribute :category_uuid, String
+
     # belongs_to :category, class_name: 'ActiveCategory', foreign_key: :category_uuid, primary_key: :uuid
     attribute :author, Author
 

@@ -2,9 +2,6 @@
 
 require 'spec_helper'
 require_relative '../../../support/spec_media_types'
-Praxis::Blueprint.finalize!
-
-
 
 describe Praxis::Extensions::Pagination::OrderingParams do
   let(:blog_ordering_type) { Praxis::Types::OrderingParams.for(Blog) }

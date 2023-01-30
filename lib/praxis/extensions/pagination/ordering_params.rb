@@ -251,6 +251,8 @@ module Praxis
         # a valid path from the given mediatype
         def valid_attribute_path?(media_type, path)
           first, *rest = path
+          # Get the member type if this is a collection
+          media_type = media_type.member_type if media_type.respond_to?(:member_attribute)
           if (attribute = media_type.attributes[first])
             rest.empty? ? true : valid_attribute_path?(attribute.type, rest)
           else

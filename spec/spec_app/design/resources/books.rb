@@ -12,8 +12,12 @@ module ApiResources
       params do
         attribute :fields, Praxis::Types::FieldSelector.for(Book), description: 'Fields with which to render the result.'
         attribute :filters, Praxis::Types::FilteringParams.for(Book) do
-          filter 'author.name', using: %w[= !=], fuzzy: true
+          filter 'author.name', using: %w[= != !], fuzzy: true
           filter 'tags.name', using: %w[= !=]
+          filter 'author.id', using: %w[= !=]
+        end
+        attribute :order, Praxis::Extensions::Pagination::OrderingParams.for(Book) do
+          by_fields :id, 'author.name'
         end
       end
       response :ok, media_type: Praxis::Collection.of(Book)

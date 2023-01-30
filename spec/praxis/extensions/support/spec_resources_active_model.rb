@@ -43,7 +43,7 @@ def create_tables
   end
 end
 
-create_tables
+# create_tables
 
 class ActiveBook < ActiveRecord::Base
   include Praxis::Mapper::ActiveModelCompat

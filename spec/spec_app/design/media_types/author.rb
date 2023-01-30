@@ -5,6 +5,7 @@ class Author < Praxis::MediaType
 
   domain_model 'Resources::Author'
   attributes do
+    attribute :id, Integer
     attribute :name, String
   end
 end

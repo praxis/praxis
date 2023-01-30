@@ -36,6 +36,7 @@ module Praxis
             # The complexity of having to figure that out in AR (with how messy the alias
             # are handled) with the low likelyhood of these cases happenning is screaming
             # to leave it as is...and wait to see if this is something we really want to fix later on
+            # NOTE: If we build the automatic inclusion of fake filters (just for joining) based on what ordering we want, we are ok here.
             prefix = table_alias || resource.model.table_name
 
             quoted_prefix = quote_column_path(query: query, prefix: prefix, column_name: mapped_name)

@@ -27,6 +27,9 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
   shared_examples 'subject_matches_sql' do |expected_sql|
     it do
       gen_sql = subject.all.to_sql
+      puts "SQL:\n#{gen_sql}"
+      puts "EXP:\n#{expected_sql}"
+
       # Strip blank at the beggining (and end) of every line
       # ...and recompose it by adding an extra space at the beginning of each one instead
       exp = expected_sql.split(/\n/).map do |line|
@@ -51,6 +54,8 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
     context 'with no filters' do
       let(:filters_string) { '' }
       it 'does not modify the query' do
+        require 'pry'
+        binding.pry
         expect(subject).to be(base_query)
       end
     end
@@ -348,7 +353,7 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
       SQL
 
       context 'adds multiple where clauses for same nested relationship join (instead of multiple joins with 1 clause each)' do
-        let(:filters_string) { 'taggings.label=primary|taggings.tag_id=2' }
+        let(:filters_string) { 'taggings!&(taggings.label=primary|taggings.tag_id=2)' }
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:taggings).where('active_taggings.label' => 'primary')
                                                            .or(ActiveBook.joins(:taggings).where('active_taggings.tag_id' => 2))
         it_behaves_like 'subject_matches_sql', <<~SQL

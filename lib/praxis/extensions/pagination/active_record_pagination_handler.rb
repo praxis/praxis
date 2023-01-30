@@ -27,7 +27,7 @@ module Praxis
             # Check if the 'path' (without the final column name) is something we have in our filters already
             # and if so, get the alias we've assigned to it as a way to reference that directly
             path_without_column = string_components[0..-2].join('.')
-            table_alias = filter_builder && filter_builder.resulting_filter_aliases[path_without_column]
+            table_alias = filter_builder && filter_builder.aliases_by_association[path_without_column]
 
             # If we don't have used the 'path' already for a filter alias, we'll default to the simple table name
             # NOTE: if we haven't used an alias from the filters, this might be incorrect!

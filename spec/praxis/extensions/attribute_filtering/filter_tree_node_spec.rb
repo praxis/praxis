@@ -10,12 +10,12 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
     [
       { name: 'one', op: '>', value: 1, node_object: dummy_object, orig_name: 'uno' },
       { name: 'one', op: '<', value: 10, orig_name: 'uno' },
-      { name: 'rel1', op: '!', value: nil, orig_name: 'rel1' },
       { name: 'rel1.a1', op: '=', value: 1, orig_name: 'rel1.a1' },
       { name: 'rel1.a2', op: '=', value: 2, orig_name: 'rel1.a2' },
-      { name: 'rel1.rel2', op: '!', value: nil, orig_name: 'rel1.rel2' },
       { name: 'rel1.rel2.b1', op: '=', value: 11, orig_name: 'rel1.rel2.b1' },
       { name: 'rel1.rel2.b2', op: '=', value: 12, node_object: dummy_object, orig_name: 'rel1.rel2.b2' },
+      { name: 'rel3', op: '!', value: nil, orig_name: 'origrel3' },
+      { name: 'rel4.rel5', op: '!', value: nil, orig_name: 'origrel4.origrel5' },
     ]
   end
   context 'initialization' do
@@ -26,9 +26,9 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
       expect(subject.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
                                                                                  { name: 'one', op: '>', value: 1 },
                                                                                  { name: 'one', op: '<', value: 10 },
-                                                                                 { name: 'rel1', op: '!', value: nil },
+                                                                                 { name: 'rel3', op: '!', value: nil },
                                                                                ])
-      expect(subject.children.keys).to eq(['rel1'])
+      expect(subject.children.keys).to eq(['rel1', 'rel4'])
       expect(subject.children['rel1']).to be_kind_of(described_class)
     end
 
@@ -41,11 +41,10 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
     it 'recursively holds the conditions and the children of their children in a TreeNode' do
       rel1 = subject.children['rel1']
       expect(rel1.path).to eq(['rel1'])
-      expect(rel1.conditions.size).to eq(3)
+      expect(rel1.conditions.size).to eq(2)
       expect(rel1.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
                                                                               { name: 'a1', op: '=', value: 1 },
                                                                               { name: 'a2', op: '=', value: 2 },
-                                                                              { name: 'rel2', op: '!', value: nil }
                                                                             ])
       expect(rel1.children.keys).to eq(['rel2'])
       expect(rel1.children['rel2']).to be_kind_of(described_class)
@@ -58,27 +57,34 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
                                                                                   { name: 'b2', op: '=', value: 12 }
                                                                                 ])
       expect(rel1rel2.children.keys).to be_empty
+
+      # ! operators have the condition on the association, not the leaf (i.e,. have a condition, no children)
+      rel4 = subject.children['rel4']
+      expect(rel4.path).to eq(['rel4'])
+      expect(rel4.conditions.size).to eq(1)
+      expect(rel4.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
+                                                                              { name: 'rel5', op: '!', value: nil },
+                                                                            ])
+      expect(rel4.children.keys).to be_empty
     end
   end
-  context '#dump_mappings' do
-    subject { described_class.new(filters).dump_mappings }
+  context '.aliases_by_association' do
+    subject { described_class.new(filters).aliases_by_association }
     it 'works' do
-      # Note it does NOT include any of the ! or !! filters
       h = {
-        'uno' => [],
-        'rel1.a1' => [
+        'rel1' => [
           'rel1'
         ],
-        'rel1.a2' => [
-          'rel1'
-        ],
-        'rel1.rel2.b1' => [
+        'rel1.rel2' => [
           'rel1',
           'rel2'
         ],
-        'rel1.rel2.b2' => [
-          'rel1',
-          'rel2'
+        'origrel3' => [
+          'rel3'
+        ],
+        'origrel4.origrel5' => [
+          'rel4',
+          'rel5'
         ]
       }
       expect(subject).to eq(h)

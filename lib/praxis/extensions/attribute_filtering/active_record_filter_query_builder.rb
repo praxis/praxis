@@ -25,7 +25,7 @@ module Praxis
 
       class ActiveRecordFilterQueryBuilder
         REFERENCES_STRING_SEPARATOR = '/'
-        attr_reader :model, :filters_map, :resulting_filter_aliases
+        attr_reader :model, :filters_map, :aliases_by_association
 
         # Base query to build upon
         def initialize(query:, model:, filters_map:, debug: false)
@@ -36,7 +36,7 @@ module Praxis
           @treenode = nil
           @logger = debug ? Logger.new($stdout) : nil
           @active_record_version_maj = ActiveRecord.gem_version.segments[0]
-          @resulting_filter_aliases = nil # Gets the table/alias used for any given filter name
+          @aliases_by_association = nil # Gets the table/alias used for any given filter dotted path (without the leaf)
         end
 
         def debug_query(msg, query)
@@ -47,9 +47,9 @@ module Praxis
           # Resolve the names and values first, based on filters_map
           root_node = _convert_to_treenode(filters)
           # Save the aliases that will result from the applied filters
-          @resulting_filter_aliases = root_node.dump_mappings.each_with_object({}) do |(filter_name, path), result|
+          @aliases_by_association = root_node.aliases_by_association.each_with_object({}) do |(dotted_name, path), result|
             table_alias_name = path == [ALIAS_TABLE_PREFIX] ? model.table_name : path.join(REFERENCES_STRING_SEPARATOR)
-            result[filter_name] = table_alias_name
+            result[dotted_name] = table_alias_name
           end
           crafted = craft_filter_query(root_node, for_model: @model)
           debug_query('SQL due to filters: ', crafted.all)

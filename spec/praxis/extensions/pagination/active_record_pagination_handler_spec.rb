@@ -144,8 +144,8 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
                           ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc)
         end
         context 'of both intermediate and leaf properties ((writer => author AND display_name => name)' do
-          it_behaves_like 'sorts_the_same', '-writer.display_name',
-                          ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc)
+          it_behaves_like 'sorts_the_same', '-writer.display_name,author.id,',
+                          ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc, 'active_authors.id': :asc)
         end
       end
     end

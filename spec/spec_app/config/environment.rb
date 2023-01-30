@@ -55,6 +55,8 @@ Praxis::Application.configure do |application|
     LowBudgetMutex.instance.after_app_controllers_called
   end
   application.bootloader.after :app do
+    # application.config.mapper.debug_queries = true # Enable this to see debug info about the query builder and plan
+
     raise 'After sub-stage hooks not working!' unless LowBudgetMutex.instance.after_app_controllers == :worked
   end
 

@@ -19,8 +19,16 @@ namespace :praxis do
     IRB.conf[:MAIN_CONTEXT] = IRB::Irb.new.context
     require "irb/ext/multi-irb"
 
-    # Use some special initialization magic to ensure that 'self' in the
-    # IRB session refers to Praxis::Application.instance.
+    # Remove main object from prompt (its stringify is not useful)
+    nickname = File.basename(::Praxis::Application.instance.root)
+    IRB.conf[:PROMPT][:DEFAULT] = {
+      PROMPT_I: "%N(#{nickname}):%03n:%i> ",
+      PROMPT_N: "%N(#{nickname}):%03n:%i> ",
+      PROMPT_S: "%N(#{nickname}):%03n:%i%l ",
+      PROMPT_C: "%N(#{nickname}):%03n:%i* "
+    }
+
+    # Set the IRB main object.
     IRB.irb(nil, Praxis::Application.instance)
   end
 end

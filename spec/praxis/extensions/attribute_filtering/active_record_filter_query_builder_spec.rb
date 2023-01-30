@@ -26,8 +26,6 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
   shared_examples 'subject_matches_sql' do |expected_sql|
     it do
       gen_sql = subject.all.to_sql
-      puts "SQL:\n#{gen_sql}"
-      puts "EXP:\n#{expected_sql}"
 
       # Strip blank at the beggining (and end) of every line
       # ...and recompose it by adding an extra space at the beginning of each one instead

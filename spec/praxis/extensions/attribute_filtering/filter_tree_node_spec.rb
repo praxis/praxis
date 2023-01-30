@@ -10,20 +10,23 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
     [
       { name: 'one', op: '>', value: 1, node_object: dummy_object, orig_name: 'uno' },
       { name: 'one', op: '<', value: 10, orig_name: 'uno' },
+      { name: 'rel1', op: '!', value: nil, orig_name: 'rel1' },
       { name: 'rel1.a1', op: '=', value: 1, orig_name: 'rel1.a1' },
       { name: 'rel1.a2', op: '=', value: 2, orig_name: 'rel1.a2' },
+      { name: 'rel1.rel2', op: '!', value: nil, orig_name: 'rel1.rel2' },
       { name: 'rel1.rel2.b1', op: '=', value: 11, orig_name: 'rel1.rel2.b1' },
-      { name: 'rel1.rel2.b2', op: '=', value: 12, node_object: dummy_object, orig_name: 'rel1.rel2.b2' }
+      { name: 'rel1.rel2.b2', op: '=', value: 12, node_object: dummy_object, orig_name: 'rel1.rel2.b2' },
     ]
   end
   context 'initialization' do
     subject { described_class.new(filters) }
     it 'holds the top conditions and the child in a TreeNode' do
       expect(subject.path).to eq([])
-      expect(subject.conditions.size).to eq(2)
+      expect(subject.conditions.size).to eq(3)
       expect(subject.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
                                                                                  { name: 'one', op: '>', value: 1 },
-                                                                                 { name: 'one', op: '<', value: 10 }
+                                                                                 { name: 'one', op: '<', value: 10 },
+                                                                                 { name: 'rel1', op: '!', value: nil },
                                                                                ])
       expect(subject.children.keys).to eq(['rel1'])
       expect(subject.children['rel1']).to be_kind_of(described_class)
@@ -38,10 +41,11 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
     it 'recursively holds the conditions and the children of their children in a TreeNode' do
       rel1 = subject.children['rel1']
       expect(rel1.path).to eq(['rel1'])
-      expect(rel1.conditions.size).to eq(2)
+      expect(rel1.conditions.size).to eq(3)
       expect(rel1.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
                                                                               { name: 'a1', op: '=', value: 1 },
-                                                                              { name: 'a2', op: '=', value: 2 }
+                                                                              { name: 'a2', op: '=', value: 2 },
+                                                                              { name: 'rel2', op: '!', value: nil }
                                                                             ])
       expect(rel1.children.keys).to eq(['rel2'])
       expect(rel1.children['rel2']).to be_kind_of(described_class)
@@ -59,6 +63,7 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
   context '#dump_mappings' do
     subject { described_class.new(filters).dump_mappings }
     it 'works' do
+      # Note it does NOT include any of the ! or !! filters
       h = {
         'uno' => [],
         'rel1.a1' => [

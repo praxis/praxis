@@ -28,6 +28,7 @@ module Praxis
           @children = children_data.each_with_object({}) do |(name, arr), hash|
             sub_filters = arr.map do |item|
               _parent, *rest = item[:name].to_s.split('.')
+              # NOTE: The orig_name becomes untouched, so it has the FULL PATH of the original name...unless the name, that we're scoping to the path
               item.merge(name: rest.join('.'))
             end
             hash[name] = self.class.new(sub_filters, path: path + [name])
@@ -42,31 +43,14 @@ module Praxis
 
         def self.innerdump(conditions, children, path, accum)
           conditions.each{ |cond|
-            # Need to only get the path to the attribute, but without it
-            # For null or not null associations, there is no attribute name in the filter already
-            relation_path = \
-              if ['!', '!!'].include?(cond[:op])
-                cond[:orig_name].to_s
-              else
-                cond[:orig_name].to_s.split('.')[0..-2].join('.')
-              end
-            accum[relation_path] = path unless relation_path.empty?
+            # Skip dumping the filters that have no leaf value (! and !! operators) and they're special and do not really have a single value to order/compare by
+            accum[cond[:orig_name].to_s] = path unless ['!', '!!'].include?(cond[:op])
           }
           children.each do |(name,node)|
             innerdump(node.conditions, node.children, path + [name], accum)
           end
           accum
         end
-        # def self.innerdump(conditions, children, path, accum)
-        #   prefix = path == [''] ? [] : path # Delete empty string component path if that's how it arrives here
-        #   conditions.each{ |cond| 
-        #     accum[(prefix + [cond[:name]]).join('.')] = prefix
-        #   }
-        #   children.each do |(name,node)|
-        #     innerdump(node.conditions, node.children, path + [name], accum)
-        #   end
-        #   accum
-        # end
       end
     end
   end

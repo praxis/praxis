@@ -6,8 +6,6 @@ class Books < BaseClass
   implements ApiResources::Books
   include Praxis::Extensions::Rendering
 
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
-
   def model_class
     ActiveBook
   end

@@ -36,7 +36,7 @@ module Praxis
           @treenode = nil
           @logger = debug ? Logger.new($stdout) : nil
           @active_record_version_maj = ActiveRecord.gem_version.segments[0]
-          @aliases_by_association = nil # Gets the table/alias used for any given filter dotted path (without the leaf)
+          @aliases_by_association = {} # Gets the table/alias used for any given filter dotted path (without the leaf)
         end
 
         def debug_query(msg, query)
@@ -46,20 +46,71 @@ module Praxis
         def generate(filters)
           # Resolve the names and values first, based on filters_map
           root_node = _convert_to_treenode(filters)
-          # Save the aliases that will result from the applied filters
-          @aliases_by_association = root_node.aliases_by_association.each_with_object({}) do |(dotted_name, path), result|
-            table_alias_name = path == [ALIAS_TABLE_PREFIX] ? model.table_name : path.join(REFERENCES_STRING_SEPARATOR)
-            result[dotted_name] = table_alias_name
-          end
+          
+          # @aliases_by_association = root_node.aliases_by_association.each_with_object({}) do |(dotted_name, path), result|
+          #   table_alias_name = path == [ALIAS_TABLE_PREFIX] ? model.table_name : path.join(REFERENCES_STRING_SEPARATOR)
+          #   result[dotted_name] = table_alias_name
+          # end
           crafted = craft_filter_query(root_node, for_model: @model)
           debug_query('SQL due to filters: ', crafted.all)
           crafted
+        end
+
+
+        def save_condition_alias(cond, hash)
+          # => {:name=>"name",
+          #   :op=>"=",
+          #   :value=>"red",
+          #   :fuzzy=>nil,
+          #   :node_object=>
+          #    #<Praxis::Extensions::AttributeFiltering::FilteringParams::Condition:0x00007faa995967f8
+          #     @fuzzies=nil,
+          #     @name=:"tags.taggings.tag.name",
+          #     @op="=",
+          #     @parent_group=
+          #      #<Praxis::Extensions::AttributeFiltering::FilteringParams::ConditionGroup:0x00007faa99596a00
+          #       @items=
+          #        [#<Praxis::Extensions::AttributeFiltering::FilteringParams::Condition:0x00007faa99596988
+          #          @fuzzies=nil,
+          #          @name=:"author.id",
+          #          @op="=",
+          #          @parent_group=#<Praxis::Extensions::AttributeFiltering::FilteringParams::ConditionGroup:0x00007faa99596a00 ...>,
+          #          @values="1">,
+          #         #<Praxis::Extensions::AttributeFiltering::FilteringParams::Condition:0x00007faa995967f8 ...>],
+          #       @parent_group=nil,
+          #       @type=:and>,
+          #     @values="red">,
+          #   :orig_name=>:"tags.taggings.tag.name",
+          #   :column_prefix=>"/tags/taggings/tag",
+          #   :model=>ActiveTag(id: integer, name: string),
+          #   :parent_reflection=>
+          #    #<ActiveRecord::Reflection::BelongsToReflection:0x00007faafc99bae8
+          #     @active_record=ActiveTagging(id: integer, book_id: integer, tag_id: integer, label: string),
+          #     @class_name="ActiveTag",
+          #     @constructable=true,
+          #     @counter_cache_column=nil,
+          #     @foreign_key="tag_id",
+          #     @inverse_name=nil,
+          #     @klass=ActiveTag(id: integer, name: string),
+          #     @name=:tag,
+          #     @options={:class_name=>"ActiveTag", :foreign_key=>:tag_id},
+          #     @plural_name="tags",
+          #     @scope=nil>}
+          hash[cond[:orig_name].to_s] = cond[:column_prefix].to_s
+        end
+        def save_aliases(conditions)
+          @aliases_by_association =
+          conditions.each_with_object({}) do |cond, hash|
+            save_condition_alias(cond, hash) unless cond[:parent_reflection].nil?
+          end
         end
 
         def craft_filter_query(nodetree, for_model:)
           result = _compute_joins_and_conditions_data(nodetree, model: for_model, parent_reflection: nil)
           return @initial_query if result[:conditions].empty?
 
+          # Save the aliases that will result from the applied filters
+          save_aliases(result[:conditions])
           # Find the root group (usually an AND group) but can be an OR group, or nil if there's only 1 condition
           root_parent_group = result[:conditions].first[:node_object].parent_group || result[:conditions].first[:node_object]
           root_parent_group = root_parent_group.parent_group until root_parent_group.parent_group.nil?

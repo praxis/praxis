@@ -13,8 +13,11 @@ module ApiResources
         attribute :fields, Praxis::Types::FieldSelector.for(Book), description: 'Fields with which to render the result.'
         attribute :filters, Praxis::Types::FilteringParams.for(Book) do
           filter 'author.name', using: %w[= != !], fuzzy: true
+          filter 'author', using: %w[! !!]
           filter 'tags.name', using: %w[= !=]
           filter 'author.id', using: %w[= !=]
+          filter 'id', using: %w[= !=]
+          filter 'tags.taggings.tag.name', using: %w[= !=]
         end
         attribute :order, Praxis::Extensions::Pagination::OrderingParams.for(Book) do
           by_fields :id, 'author.name'

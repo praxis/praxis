@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-
+ActiveRecord::Base.logger = Logger.new(STDOUT)
 describe 'Functional specs with connected DB' do
   def app
     Praxis::Application.instance
@@ -41,46 +41,60 @@ describe 'Functional specs with connected DB' do
     end
 
     context 'with ordering' do
-      context 'by simple attribute' do
+      context 'by direct attribute' do
         let(:order_q) { '-id' }
         it 'is successful' do
           expect(subject).to be_successful
-          expect(parsed_response.map{|book| book[:id]}).to eq ActiveBook.distinct.order('id DESC').pluck(:id)
+          expect(parsed_response.map { |book| book[:id] }).to eq ActiveBook.distinct.order('id DESC').pluck(:id)
         end
       end
-      context 'by nexted attribute (but without any fields or filter using the attribute)' do
+      context 'by nested attribute (but without any fields or filter using the attribute)' do
         let(:order_q) { '-author.name' }
         it 'is successful' do
           expect(subject).to be_successful
           ids = ActiveBook.distinct.left_outer_joins(:author).order('active_authors.name DESC').pluck(:id)
 
-          expect(parsed_response.map{|book| book[:id]}).to eq ids
+          expect(parsed_response.map { |book| book[:id] }).to eq ids
         end
       end
-      context 'by nexted attribute (with fields using the same association, but not the same leaf)' do
-        let(:order_q) { '-author.name' }
-        let(:fields_q) { 'id,author{id}' }
-        it {expect(subject).to be_successful}
-      end
+      context 'combined with filters' do
+        context 'by nested attribute (with fields using the same association, but not the same leaf)' do
+          let(:order_q) { '-author.name' }
+          let(:fields_q) { 'id,author{id}' }
+          it { expect(subject).to be_successful }
+        end
 
-      context 'by nexted attribute (with a filter using the same association, but not the same leaf)' do
-        let(:order_q) { '-author.name' }
-        let(:filters_q) { 'author.id=1' }
-        it {expect(subject).to be_successful}
-      end
+        context 'TESTING!!!' do
+          let(:order_q) { '-author.name' }
+          let(:filters_q) { 'author.id=1&tags.taggings.tag.name=red' }
+          it { expect(subject).to be_successful }
+        end
 
-      context 'by nexted attribute (with a filter using the same association AND the same leaf)' do
-        let(:order_q) { '-author.name' }
-        let(:filters_q) { 'author.name=Author1' }
-        it {expect(subject).to be_successful}
-      end
+        context 'by nested attribute (with a filter using the same association, but not the same leaf)' do
+          let(:order_q) { '-author.name' }
+          let(:filters_q) { 'author.id=1' }
+          it { expect(subject).to be_successful }
+        end
 
-      context 'Using ! does not make the order use the alias???' do
-        let(:order_q) { '-author.name' }
-        let(:filters_q) { 'author.name!' }
-        it {expect(subject).to be_successful}
-      end
+        context 'by nested attribute (with a filter using the same association AND the same leaf)' do
+          let(:order_q) { '-author.name' }
+          let(:filters_q) { 'author.name=Author1' }
+          it { expect(subject).to be_successful }
+        end
 
+        context 'Using ! on a leaf also makes the order use the alias' do
+          let(:order_q) { '-author.name' }
+          let(:filters_q) { 'author.name!' }
+          it { expect(subject).to be_successful }
+        end
+
+        context 'Using ! on an overlapping association also makes the order use the alias' do
+          let(:order_q) { '-author.name' }
+          # let(:filters_q) { 'author!' }
+          let(:filters_q) { 'id=1&author!&author.name!&tags.name=red' }
+          it { expect(subject).to be_successful }
+        end
+      end
       pending 'using a base query that has direct joins on the same table...' do
       end
     end

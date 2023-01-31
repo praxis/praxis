@@ -52,8 +52,8 @@ module Praxis
         def self.aliases_by_association(conditions, children, path, accum)
           conditions.each{ |cond|
             if ['!', '!!'].include?(cond[:op])
-              orig_assoc = cond[:orig_name]
-              assoc_path = path + [cond[:name]]
+              orig_assoc = cond[:orig_name].to_s
+              assoc_path = path + [cond[:name].to_s]
             else
               orig_assoc = cond[:orig_name].to_s.split('.')[0..-2].join('.')
               assoc_path = path.dup

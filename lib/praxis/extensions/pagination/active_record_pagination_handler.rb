@@ -15,7 +15,7 @@ module Praxis
           query.where(query.table[attr].gt(value))
         end
 
-        def self.order(query, order, root_resource:, filter_builder: nil)
+        def self.order(query, order, root_resource:)
           return query unless order
 
           query = query.reorder('')
@@ -42,7 +42,7 @@ module Praxis
               query = query.left_outer_joins(info[:includes]).references(refval)
             end
 
-            quoted_prefix = quote_column_path(query: query, prefix: column_prefix, column_name: info[:attribute])
+            quoted_prefix = AttributeFiltering::ActiveRecordFilterQueryBuilder.quote_column_path(query: query, prefix: column_prefix, column_name: info[:attribute])
             order_clause = Arel.sql(ActiveRecord::Base.sanitize_sql_array("#{quoted_prefix} #{direction}"))
             query = query.order(order_clause)
           end
@@ -59,17 +59,6 @@ module Praxis
 
         def self.limit(query, limit)
           query.limit(limit)
-        end
-
-        def self.quote_column_path(query:, prefix:, column_name:)
-          c = query.connection
-          quoted_column = c.quote_column_name(column_name)
-          if prefix
-            quoted_table = c.quote_table_name(prefix)
-            "#{quoted_table}.#{quoted_column}"
-          else
-            quoted_column
-          end
         end
 
         # Based off of a root resource and an incoming path of dot-separated attributes...
@@ -95,8 +84,6 @@ module Praxis
             # Since it is not an association, must be a column name
             { resource: resource, includes: {}, attribute: mapped_name }
           else
-            require 'pry'
-            binding.pry
             # Could not find an association and there are more components to cover...something's not right
             raise 'Error trying to map ordering components to the order_mapping of the resources. ' \
                   "Could not find a mapping for property: #{mapped_name} in resource #{resource.name}. Did you forget to add a mapping for it in the `order_mapping` stanza ?"

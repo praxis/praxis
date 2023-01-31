@@ -216,7 +216,7 @@ module Praxis
           if association_op
             neg = association_op == :not_null
             qr = quote_right_part(query: query, value: nil, column_object: association_key_column, negative: neg)
-            return query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: association_key_column)} #{qr}")
+            return query.where("#{quote_column_path(query: query, prefix: column_prefix, column_name: association_key_column.name)} #{qr}")
           end
 
           # Add an AND along with the condition, which ensures the left outter join 'exists' for it
@@ -226,7 +226,7 @@ module Praxis
           # NOTE: we don't need to do it for conditions applying to the root of the tree (there isn't a join to it)
           if association_key_column
             qr = quote_right_part(query: query, value: nil, column_object: association_key_column, negative: true)
-            query = query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: association_key_column)} #{qr}")
+            query = query.where("#{quote_column_path(query: query, prefix: column_prefix, column_name: association_key_column.name)} #{qr}")
           end
 
           case op
@@ -235,14 +235,14 @@ module Praxis
               add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'LIKE', value: likeval)
             else
               quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: false)
-              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
+              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_name: column_object.name)} #{quoted_right}")
             end
           when '!='
             if likeval
               add_safe_where(query: query, tab: column_prefix, col: column_object, op: 'NOT LIKE', value: likeval)
             else
               quoted_right = quote_right_part(query: query, value: value, column_object: column_object, negative: true)
-              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_object: column_object)} #{quoted_right}")
+              query.where("#{quote_column_path(query: query, prefix: column_prefix, column_name: column_object.name)} #{quoted_right}")
             end
           when '>'
             add_safe_where(query: query, tab: column_prefix, col: column_object, op: '>', value: value)
@@ -261,13 +261,13 @@ module Praxis
         # rubocop:disable Naming/MethodParameterName
         def self.add_safe_where(query:, tab:, col:, op:, value:)
           quoted_value = query.connection.quote_default_expression(value, col)
-          query.where("#{quote_column_path(query: query, prefix: tab, column_object: col)} #{op} #{quoted_value}")
+          query.where("#{quote_column_path(query: query, prefix: tab, column_name: col.name)} #{op} #{quoted_value}")
         end
         # rubocop:enable Naming/MethodParameterName
 
-        def self.quote_column_path(query:, prefix:, column_object:)
+        def self.quote_column_path(query:, prefix:, column_name:)
           c = query.connection
-          quoted_column = c.quote_column_name(column_object.name)
+          quoted_column = c.quote_column_name(column_name)
           if prefix
             quoted_table = c.quote_table_name(prefix)
             "#{quoted_table}.#{quoted_column}"

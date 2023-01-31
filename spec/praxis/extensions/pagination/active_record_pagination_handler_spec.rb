@@ -150,4 +150,63 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
       end
     end
   end
+
+  context '.association_info_for' do
+    let(:resource) { Resources::Book }
+    subject { described_class.association_info_for(resource, path.split('.')) }
+    context 'book -> author.name' do
+      let(:path) { 'author.name' }
+      it 'works' do
+        expect(subject).to eq({
+                                resource: Resources::Author,
+                                includes: { 'author' => {} },
+                                attribute: 'name'
+                              })
+      end
+    end
+
+    context 'book -> taggings.tag.name' do
+      let(:path) { 'taggings.tag.name' }
+      it 'works' do
+        expect(subject).to eq({
+                                resource: Resources::Tag,
+                                includes: { 'taggings' => { 'tag' => {} }},
+                                attribute: 'name'
+                              })
+      end
+    end
+    context 'book -> tags' do
+      let(:path) { 'tags' }
+      it 'works' do
+        expect(subject).to eq({
+                                resource: Resources::Tag,
+                                includes: { 'tags' => {} },
+                                attribute: nil
+                              })
+      end
+    end
+
+    context 'with mapped/aliased names' do
+      context 'book -> writer.name' do
+        let(:path) { 'writer.name' }
+        it 'works' do
+          expect(subject).to eq({
+                                  resource: Resources::Author,
+                                  includes: { 'author' => {} },
+                                  attribute: 'name'
+                                })
+        end
+      end
+      context 'book -> writer.name' do
+        let(:path) { 'writer.display_name' }
+        it 'works' do
+          expect(subject).to eq({
+                                  resource: Resources::Author,
+                                  includes: { 'author' => {} },
+                                  attribute: 'name'
+                                })
+        end
+      end
+    end
+  end
 end

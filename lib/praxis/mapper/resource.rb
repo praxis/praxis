@@ -332,7 +332,7 @@ module Praxis
         @_order_map = \
           case definition
           when Hash
-            definition
+            definition.transform_values(&:to_s)
           else
             raise 'Resource.orders_mapping only allows a hash'
           end

@@ -132,7 +132,7 @@ module Praxis
             # Mark where clause referencing the appropriate alias IF it's not the root table, as there is no association to reference
             # If we added root table as a reference, we better make sure it is not quoted, as it actually makes AR to see it as an
             # unmatched reference and eager loads the whole association (it means eager load ALL the things). Not good.
-            associated_query = associated_query.references(build_reference_value(column_prefix, query: associated_query)) unless for_model.table_name == column_prefix
+            associated_query = associated_query.references(self.class.build_reference_value(column_prefix, query: associated_query)) unless for_model.table_name == column_prefix
             self.class.add_clause(
               query: associated_query,
               column_prefix: column_prefix,
@@ -408,14 +408,14 @@ module Praxis
         maj, min, = ActiveRecord.gem_version.segments
         if maj == 5 || (maj == 6 && min.zero?)
           # In AR 6 (and 6.0) the references are simple strings
-          def build_reference_value(column_prefix, **_args)
+          def self.build_reference_value(column_prefix, **_args)
             column_prefix
           end
         else
           # The latest AR versions discard passing references to joins when they're not SqlLiterals ... so let's wrap it
           # with our class, so that it is a literal (already quoted), but that can still provide the expected "symbol" without quotes
           # so that our aliasing code can match it.
-          def build_reference_value(column_prefix, query:)
+          def self.build_reference_value(column_prefix, query:)
             QuasiSqlLiteral.new(quoted: query.connection.quote_table_name(column_prefix), symbolized: column_prefix.to_sym)
           end
         end

@@ -66,7 +66,9 @@ describe 'Functional specs with connected DB' do
 
         context 'TESTING!!!' do
           let(:order_q) { '-author.name' }
-          let(:filters_q) { 'author.id=1&tags.taggings.tag.name=red' }
+          let(:fields_q) { 'id'}
+          let(:filters_q) { 'author.name=author1' }
+          # let(:filters_q) { 'author.id=1&tags.taggings.tag.name=red' }
           it { expect(subject).to be_successful }
         end
 

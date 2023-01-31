@@ -8,6 +8,11 @@ module Resources
       name: :simple_name
     )
 
+    order_mapping(
+      name: 'simple_name',
+      writer: 'author'
+    )
+
     property :name, dependencies: [:simple_name]
     def name
       record.simple_name

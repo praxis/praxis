@@ -34,39 +34,6 @@ module Praxis
             hash[name] = self.class.new(sub_filters, path: path + [name])
           end
         end
-
-        def aliases_by_association
-          self.class.aliases_by_association(conditions, children, path, {})
-        end
-
-        # Returns a hash that maps the used associations from the filter conditions (i.e., original filter names without the final leaf)
-        # ...to the chosen alias for it (in the form of an array of components)
-        # For example: ORIG NAMES => translated assocs in an ordered array
-        # Filters for 'origrel1.origrel2.attribute_name=Foobar'
-        # {
-        #   'origrel1.origrel2' => ['rel1', 'rel2'],
-        # }
-        # assuming that the relationship names from the orig* names, have been filter_mapped to 'rel1' and 'rel2' respectively
-        # Note: the ! operators also exist in the map, despite having no leaf condition, obviously
-        # This is used in the sorting code to match a given sort string, to which aliased path to map it to.
-        def self.aliases_by_association(conditions, children, path, accum)
-          conditions.each{ |cond|
-            if ['!', '!!'].include?(cond[:op])
-              orig_assoc = cond[:orig_name].to_s
-              assoc_path = path + [cond[:name].to_s]
-            else
-              orig_assoc = cond[:orig_name].to_s.split('.')[0..-2].join('.')
-              assoc_path = path.dup
-            end
-
-            # Skip dumping the filters that have no leaf value (! and !! operators) and they're special and do not really have a single value to order/compare by
-            accum[orig_assoc] = assoc_path unless orig_assoc.empty?
-          }
-          children.each do |(name,node)|
-            aliases_by_association(node.conditions, node.children, path + [name], accum)
-          end
-          accum
-        end
       end
     end
   end

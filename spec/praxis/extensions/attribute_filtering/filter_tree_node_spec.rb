@@ -68,26 +68,4 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
       expect(rel4.children.keys).to be_empty
     end
   end
-  context '.aliases_by_association' do
-    subject { described_class.new(filters).aliases_by_association }
-    it 'works' do
-      h = {
-        'rel1' => [
-          'rel1'
-        ],
-        'rel1.rel2' => [
-          'rel1',
-          'rel2'
-        ],
-        'origrel3' => [
-          'rel3'
-        ],
-        'origrel4.origrel5' => [
-          'rel4',
-          'rel5'
-        ]
-      }
-      expect(subject).to eq(h)
-    end
-  end
 end

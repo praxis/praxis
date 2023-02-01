@@ -1,20 +1,22 @@
 # frozen_string_literal: true
 
-class Books < BaseClass
+require_relative 'base_class'
+
+class Authors < BaseClass
   include Praxis::Controller
 
-  implements ApiResources::Books
+  implements ApiResources::Authors
   include Praxis::Extensions::Rendering
 
   def model_class
-    ActiveBook
+    ActiveAuthor
   end
 
   def base_query
     # Make sure we add the distinct clause, that's what we always want for index requests
     # as we can have multiple copies of the same top level model if there were joins due
     # to manual conditions added, or simply conditions added when filters are used on related tables
-    model_class.distinct
+    model_class.distinct.joins(:books).where('active_books.simple_name LIKE ?', 'book%')
   end
 
   def index

@@ -7,5 +7,7 @@ class Author < Praxis::MediaType
   attributes do
     attribute :id, Integer
     attribute :name, String
+    attribute :display_name, String
+    attribute :books, Praxis::Collection.of(Book)
   end
 end

@@ -8,5 +8,9 @@ module Resources
       'display_name': 'name',
     )
     property :display_name, dependencies: [:name]
+
+    def display_name
+      record.name
+    end
   end
 end

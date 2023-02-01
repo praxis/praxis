@@ -7,7 +7,6 @@ module Praxis
         attr_reader :path, :conditions, :children
 
         # Parsed_filters is an Array of {name: X, op: Y, value: Z} ... exactly the format of the FilteringParams.load method
-        # It can also contain a :node_object and an :orig_name (that indicates the original name of the attribute before the mapping, if different)
         def initialize(parsed_filters, path: [])
           @path = path # Array that marks the tree 'path' to this node (with respect to the absolute root)
           @conditions = [] # Conditions to apply directly to this node
@@ -18,7 +17,7 @@ module Praxis
             next if components.empty?
 
             if components.size == 1
-              @conditions << hash.slice(:name, :op, :value, :fuzzy, :node_object, :orig_name)
+              @conditions << hash.slice(:name, :op, :value, :fuzzy, :node_object)
             else
               children_data[components.first] ||= []
               children_data[components.first] << hash

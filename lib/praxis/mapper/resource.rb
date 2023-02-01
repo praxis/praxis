@@ -358,14 +358,14 @@ module Praxis
         base_query
       end
 
-      def self.craft_pagination_query(base_query, pagination:, selectors:, filter_builder:)
+      def self.craft_pagination_query(base_query, pagination:, selectors:)
         handler_klass = model._pagination_query_builder_class
         return base_query unless handler_klass && (pagination.paginator || pagination.order)
 
         # Gather and save the count if required
         pagination.total_count = handler_klass.count(base_query.dup) if pagination.paginator&.total_count
 
-        base_query = handler_klass.order(base_query, pagination.order, root_resource: selectors.resource, filter_builder: filter_builder)
+        base_query = handler_klass.order(base_query, pagination.order, root_resource: selectors.resource)
         handler_klass.paginate(base_query, pagination, root_resource: selectors.resource)
       end
 

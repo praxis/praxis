@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+
 describe 'Functional specs with connected DB' do
   def app
     Praxis::Application.instance

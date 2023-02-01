@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 describe 'Functional specs for books with connected DB' do
   def app
@@ -98,8 +97,6 @@ describe 'Functional specs for books with connected DB' do
             it { expect(subject).to be_successful }
           end
         end
-        pending 'using a base query that has direct joins on the same table...' do
-        end
       end
     end
 
@@ -115,7 +112,7 @@ describe 'Functional specs for books with connected DB' do
     end
   end
 
-  context 'authors' do
+  context 'authors (which have a base query that joins itself)' do
     let(:filters_q) { '' }
     let(:fields_q) { '' }
     let(:order_q) { '' }
@@ -124,8 +121,10 @@ describe 'Functional specs for books with connected DB' do
     end
 
     context 'all authors' do
-      # Authors have a base query that restricts authors whom have books that start with 'book'
-      let(:base_query) { ActiveAuthor.joins(:books).where('active_books.simple_name LIKE ?', 'book%') }
+      # Authors have a base query that restricts authors whom have books that start with 'book' and that reach authors with id > 0
+      let(:base_query) do
+        ActiveAuthor.joins(books: :author).where('active_books.simple_name LIKE ?', 'book%').where('authors_active_books.id > ?', 0)
+      end
       it 'is successful' do
         expect(subject).to be_successful
         expect(subject.headers['Content-Type']).to eq('application/vnd.acme.author; type=collection')
@@ -136,6 +135,28 @@ describe 'Functional specs for books with connected DB' do
         context 'using direct attributes' do
           let(:order_q) { '-name,id' }
           it { expect(subject).to be_successful }
+        end
+        context 'using nested attributes' do
+          let(:order_q) { '-name,books.name' }
+          it 'is successful' do
+            expect(subject).to be_successful
+            ids = base_query.order('active_authors.name DESC', 'active_books.simple_name DESC').pluck(:id)
+
+            expect(parsed_response.map { |book| book[:id] }).to eq ids
+          end
+        end
+      end
+      context 'filtering and sorting' do
+        context 'using the same tables, including the base query one' do
+          let(:order_q) { '-name,books.name' }
+          let(:filters_q) { 'books.name!' }
+          let(:fields_q) { 'id,books{name}' }
+          it 'is successful' do
+            expect(subject).to be_successful
+            ids = base_query.order('active_authors.name DESC', 'active_books.simple_name DESC').pluck(:id)
+
+            expect(parsed_response.map { |book| book[:id] }).to eq ids
+          end
         end
       end
     end

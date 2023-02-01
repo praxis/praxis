@@ -4,6 +4,9 @@ module Resources
   class Author < Resources::Base
     model ::ActiveAuthor
 
+    filters_mapping(
+      'books.name': 'books.name',
+    )
     order_mapping(
       'display_name': 'name',
     )

@@ -33,7 +33,7 @@ module Praxis
               dotted.push(key)
               pointer = subhash
             end
-            column_prefix = dotted.empty? ? nil : ([''] + dotted).join(AttributeFiltering::ActiveRecordFilterQueryBuilder::REFERENCES_STRING_SEPARATOR)
+            column_prefix = dotted.empty? ? root_resource.model.table_name : ([''] + dotted).join(AttributeFiltering::ActiveRecordFilterQueryBuilder::REFERENCES_STRING_SEPARATOR)
 
             # If the sorting refers to a deeper association, make sure to add the join and the special reference
             if column_prefix

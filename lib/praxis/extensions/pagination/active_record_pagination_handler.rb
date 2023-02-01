@@ -63,11 +63,10 @@ module Praxis
 
         # Based off of a root resource and an incoming path of dot-separated attributes...
         # find the leaf attribute and its associated resource (including mapping names of associations/attributes along the way)
-        # as defined by the `order_mapping` stanzas of resources
-
-        # resource
-        # includes hash
-        # column_name
+        # as defined by the `order_mapping` stanzas of resources:
+        # resource: final resource the attribute is associated with
+        # includes: a hash in the shape of AR includes, where keys are strings (that is very important)
+        # column_name: final attribute name where this path leads to. Nil if the path ends at an association
         def self.association_info_for(resource, path)
           main, *rest = path
           mapped_name = resource.order_mapping[main.to_sym] || main

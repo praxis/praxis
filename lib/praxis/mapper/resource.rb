@@ -339,16 +339,14 @@ module Praxis
       end
 
       def self.craft_filter_query(base_query, filters:)
-        klass_builder = nil
         if filters
           raise "To use API filtering, you must define the mapping of api-names to resource properties (using the `filters_mapping` method in #{self})" unless @_filters_map
 
           debug = Praxis::Application.instance.config.mapper.debug_queries
-          filter_builder = model._filter_query_builder_class.new(query: base_query, model: model, filters_map: @_filters_map, debug: debug)
-          base_query = filter_builder.generate(filters)
+          base_query = model._filter_query_builder_class.new(query: base_query, model: model, filters_map: @_filters_map, debug: debug).generate(filters)
         end
 
-        { query: base_query, builder: filter_builder }
+        base_query
       end
 
       def self.craft_field_selection_query(base_query, selectors:)

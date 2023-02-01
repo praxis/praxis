@@ -74,13 +74,10 @@ module Praxis
 
           filters = request.params.filters if request.params.respond_to?(:filters)
           # Handle filters
-          crafter = domain_model.craft_filter_query(base_query, filters: filters)
-          base_query = crafter[:query]
-          filter_builder = crafter[:builder]
+          base_query = domain_model.craft_filter_query(base_query, filters: filters)
           # Handle field and nested field selection
           expanded = expanded_fields
-          
-          puts "EXPANDED: #{expanded}"
+
           # Ensure we have the order terms represented by either the fields, or the filters...
           order_specs = _pagination.order&.items || []
           order_specs.each do |spec|
@@ -91,12 +88,12 @@ module Praxis
               merge_path!(hash_path, expanded)
             end
           end
-          puts "MERGED: #{expanded}"
+
           # TODO: might want to modify the expanded fields based on ordering needs
           selectors = selector_generator(expanded).selectors
           base_query = domain_model.craft_field_selection_query(base_query, selectors: selectors)
           # handle pagination and ordering if the pagination extention is included
-          base_query = domain_model.craft_pagination_query(base_query, pagination: _pagination, selectors: selectors, filter_builder: filter_builder) if respond_to?(:_pagination)
+          base_query = domain_model.craft_pagination_query(base_query, pagination: _pagination, selectors: selectors) if respond_to?(:_pagination)
 
           base_query
         end

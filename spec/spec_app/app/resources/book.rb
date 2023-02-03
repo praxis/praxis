@@ -17,5 +17,10 @@ module Resources
     def name
       record.simple_name
     end
+
+    property :grouped, dependencies: [:simple_name, :category_uuid] # TODO: Dependency resolution should have kicked in when asking for 'grouped' without any inner ones...
+    def grouped
+      self
+    end
   end
 end

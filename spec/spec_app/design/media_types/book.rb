@@ -1,5 +1,14 @@
 # frozen_string_literal: true
 
+class BookGroup < Praxis::BlueprintGroup
+  domain_model 'Resources::Book'
+  attributes do
+    attribute :id, Integer
+    attribute :name, String
+    attribute :simple_name, String
+  end
+end
+
 class Book < Praxis::MediaType
   identifier 'application/vnd.acme.book'
 
@@ -18,5 +27,7 @@ class Book < Praxis::MediaType
     # has_many :primary_taggings, -> { where(label: 'primary') }, class_name: 'ActiveTagging', foreign_key: :book_id
     attribute :tags, Praxis::Collection.of(Tag)
     # has_many :primary_tags, class_name: 'ActiveTag', through: :primary_taggings, source: :tag
+
+    attribute :grouped, BookGroup
   end
 end

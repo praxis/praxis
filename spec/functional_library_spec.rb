@@ -109,6 +109,19 @@ describe 'Functional specs for books with connected DB' do
         expect(subject).to be_successful
         expect(parsed_response[:name]).to eq ActiveBook.find_by(id: 1).simple_name
       end
+
+      context 'with grouped attributes' do
+        let(:fields_q) { 'id,name,grouped{id,name}' }
+        it 'is successful' do
+          expect(subject).to be_successful
+          model = ActiveBook.find_by(id: 1)
+          require 'pry'
+          binding.pry
+          expect(parsed_response[:id]).to eq model.id
+          expect(parsed_response[:name]).to eq model.simple_name
+          expect(parsed_response[:grouped]).to eq ({ id: model.id, name: model.simple_name})
+        end
+      end
     end
   end
 

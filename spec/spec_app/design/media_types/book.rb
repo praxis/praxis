@@ -28,6 +28,9 @@ class Book < Praxis::MediaType
     attribute :tags, Praxis::Collection.of(Tag)
     # has_many :primary_tags, class_name: 'ActiveTag', through: :primary_taggings, source: :tag
 
-    attribute :grouped, BookGroup
+    attribute :grouped, Praxis::BlueprintGroup.for(Book) do
+      attribute :id
+      attribute :name
+    end
   end
 end

@@ -2,39 +2,77 @@
 
 module Praxis
   class BlueprintGroup < Blueprint
+    def self.constructable?
+      true
+    end
+    # Construct a new subclass, using attribute_definition to define attributes.
+    def self.construct(attribute_definition, options = {})
+      # if we're in a subclass of Struct, but not attribute_definition is provided, we're
+      # not REALLY trying to define a new struct. more than likely Collection is calling
+      # construct on us.
+      # unless self == Attributor::Struct || attribute_definition.nil?
+      #   raise AttributorException, 'can not construct from already-constructed Struct'
+      # end
+
+      # TODO: massage the options here to pull out only the relevant ones
+
+      # simply return Struct if we don't specify any sub-attributes....
+      return self if attribute_definition.nil?
+
+      # if options[:reference]
+      #   options.merge!(options[:reference].options) do |_key, oldval, _newval|
+      #     oldval
+      #   end
+      # end
+
+      reference_type = @media_type
+      # Construct a group-derived class with the given mediatype as the reference
+      ::Class.new(self) do
+        @reference  = reference_type
+        attributes(**options, &attribute_definition)
+      end
+    end
+
+    def self.for(media_type)
+      return media_type::AttributeGrouping if defined?(media_type::AttributeGrouping) # Cache the grouping class
+
+      ::Class.new(self) do
+        @media_type = media_type
+      end
+    end
+
     # def self.inherited(klass)
     #   super
     # end
 
     # Override default new behavior to support memoized creation through an IdentityMap
-    def self.new(object)
-      # # TODO: do we want to allow the identity map thing in the object?...maybe not.
-      # if @@caching_enabled
-      #   return cache[object] ||= begin
-      #     blueprint = allocate
-      #     blueprint.send(:initialize, object)
-      #     blueprint
-      #   end
-      # end
+    # def self.new(object)
+    #   # # TODO: do we want to allow the identity map thing in the object?...maybe not.
+    #   # if @@caching_enabled
+    #   #   return cache[object] ||= begin
+    #   #     blueprint = allocate
+    #   #     blueprint.send(:initialize, object)
+    #   #     blueprint
+    #   #   end
+    #   # end
+    #   blueprint = allocate
+    #   blueprint.send(:initialize, object)
+    #   blueprint
+    # end
 
-      blueprint = allocate
-      blueprint.send(:initialize, object)
-      blueprint
-    end
+    # def self.family
+    #   'hash'
+    # end
 
-    def self.family
-      'hash'
-    end
+    # def self.attributes(opts = {}, &block)
+    #   # Add the special self sauce here?
+    #   super
+    # end
 
-    def self.attributes(opts = {}, &block)
-      # Add the special self sauce here?
-      super
-    end
-
-    def self.check_option!(name, value)
-      # ???
-      Attributor::Struct.check_option!(name, value)
-    end
+    # def self.check_option!(name, value)
+    #   # ???
+    #   Attributor::Struct.check_option!(name, value)
+    # end
 
     def self.load(value, context = Attributor::DEFAULT_ROOT_CONTEXT, **options)
       super
@@ -56,21 +94,21 @@ module Praxis
       # end
     end
 
-    def self.validate(value, context = Attributor::DEFAULT_ROOT_CONTEXT, _attribute = nil)
-      raise ArgumentError, "Invalid context received (nil) while validating value of type #{name}" if context.nil?
+    # def self.validate(value, context = Attributor::DEFAULT_ROOT_CONTEXT, _attribute = nil)
+    #   raise ArgumentError, "Invalid context received (nil) while validating value of type #{name}" if context.nil?
 
-      context = [context] if context.is_a? ::String
+    #   context = [context] if context.is_a? ::String
 
-      raise ArgumentError, "Error validating #{Attributor.humanize_context(context)} as #{name} for an object of type #{value.class.name}." unless value.is_a?(self)
+    #   raise ArgumentError, "Error validating #{Attributor.humanize_context(context)} as #{name} for an object of type #{value.class.name}." unless value.is_a?(self)
 
-      value.validate(context)
-    end
+    #   value.validate(context)
+    # end
 
     # Internal finalize! logic
-    def self._finalize!
-      # TODO: define the 'attribute name' method and return self?
-      super
-    end
+    # def self._finalize!
+    #   # TODO: define the 'attribute name' method and return self?
+    #   super
+    # end
 
     
     # def self.define_attribute!
@@ -80,10 +118,10 @@ module Praxis
     #   const_set(:Struct, @attribute.type)
     # end
 
-    def initialize(object)
-      @object = object
-      @validating = false
-    end
+    # def initialize(object)
+    #   @object = object
+    #   @validating = false
+    # end
 
     # Render the wrapped data with the given fields (or using the default fieldset otherwise)
     def render(fields: self.class.default_fieldset, context: Attributor::DEFAULT_ROOT_CONTEXT, renderer: Renderer.new, **_opts)

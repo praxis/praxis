@@ -122,6 +122,17 @@ describe 'Functional specs for books with connected DB' do
           expect(parsed_response[:grouped]).to eq ({ id: model.id, name: model.simple_name})
         end
       end
+
+      context 'with prefixed attributes' do
+        let(:fields_q) { 'id,name,prefixed{id,name}' }
+        it 'is successful' do
+          expect(subject).to be_successful
+          model = ActiveBook.find_by(id: 1)
+          expect(parsed_response[:id]).to eq model.id
+          expect(parsed_response[:name]).to eq model.simple_name
+          expect(parsed_response[:prefixed]).to eq ({ id: model.id, name: model.simple_name})
+        end
+      end
     end
   end
 

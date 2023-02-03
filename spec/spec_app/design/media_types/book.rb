@@ -32,5 +32,10 @@ class Book < Praxis::MediaType
       attribute :id
       attribute :name
     end
+
+    attribute :prefixed, reference: Book do
+      attribute :id
+      attribute :name
+    end
   end
 end

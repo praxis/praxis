@@ -8,7 +8,7 @@ module Resources
     def self.for(names)
       Class.new(self) do
         
-        names.map(&:to_sym).each do |spec|
+        names.each do |spec|
           if spec.is_a? Symbol
             def_delegator :@target, spec
           else
@@ -45,8 +45,16 @@ module Resources
     end
 
     property :grouped, dependencies: [:simple_name, :category_uuid] # TODO: Dependency resolution should have kicked in when asking for 'grouped' without any inner ones...
+    def grouped_id
+      id
+    end
+    def grouped_name
+      name
+    end
     def grouped
-      @_grouped_fwd ||= Forwarderer.for([:id, :name])
+      @_grouped_fwd ||= Forwarderer.for([{grouped_id: :id}, {grouped_name: :name}])
+      require 'pry'
+      binding.pry
       @_grouped_fwd.new(self) # This shouldn't be a 'new' ... but a class new...
     end
 

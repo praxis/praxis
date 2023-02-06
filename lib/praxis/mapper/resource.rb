@@ -13,15 +13,34 @@ module Praxis
       end
     end
 
+    class ForwardingStruct
+      extend Forwardable
+      attr_accessor :target
+
+      def self.for(names)
+        Class.new(self) do
+          names.each do |(orig, forwarded)|
+            def_delegator :@target, forwarded, orig
+          end
+        end
+      end
+
+      def initialize(target)
+        @target = target
+      end
+    end
+
     class Resource
       extend Praxis::Finalizable
 
       attr_accessor :record
 
       @properties = {}
+      @property_groups = {}
+      @cached_forwarders = {}
 
       class << self
-        attr_reader :model_map, :properties
+        attr_reader :model_map, :properties, :property_groups, :cached_forwarders
         # Names of the memoizable things (without the @__ prefix)
         attr_accessor :memoized_variables
       end
@@ -42,6 +61,8 @@ module Praxis
                        end
 
           @properties = superclass.properties.clone
+          @property_groups = superclass.property_groups.clone
+          @cached_forwarders = superclass.cached_forwarders.clone
           @registered_batch_computations = {} # hash of attribute_name -> {proc: , with_instance_method: }
           @_filters_map = {}
           @_order_map = {}
@@ -67,6 +88,11 @@ module Praxis
         properties[name] = { dependencies: dependencies, through: through, as: as }
       end
 
+      # Saves the name of the group, and the associated mediatype where the group attributes are defined at
+      def self.property_group(name, media_type)
+        property_groups[name] = media_type
+      end
+
       def self.batch_computed(attribute, with_instance_method: true, &block)
         raise "This resource (#{name})is already finalized. Defining batch_computed attributes needs to be done before finalization" if @finalized
         raise 'It is necessary to pass a block when using the batch_computed method' unless block_given?
@@ -85,6 +111,7 @@ module Praxis
         finalize_resource_delegates
         define_batch_processors
         define_model_accessors
+        define_property_groups
 
         hookup_callbacks
         super
@@ -140,6 +167,29 @@ module Praxis
               #{opts[:as]}
             end
           RUBY
+        end
+      end
+
+      # Defines the dependencies and the method of a property group
+      # The dependencies are going to be defined as the methods that wrap the group's attributes i.e., 'group_attribute1'
+      # The method defined will return a ForwardingStruct object instance, that will simply define a method name for each existing property
+      # which simply calls the underlying 'group name' prefixed methods on the original object
+      # For example: if we have a group named 'grouping', which has 'name' and 'phone' attributes defined.
+      # - the property dependencies will be defined as: property :grouping, dependencies: [:name, :phone]
+      # - the 'grouping' method will return an instance object, that will respond to 'name' (and forward to 'grouping_name') and to 'phone'
+      #   (and forward to 'grouping_phone')
+      def self.define_property_groups
+        property_groups.each do |(name, media_type)|
+          name_mappings = media_type.attribute.attributes[name].type.attributes.keys.each_with_object({}) do |key, hash|
+            hash[key] = "#{name}_#{key}".to_sym
+          end
+          # Set a property for their dependencies using the "group"_"attribute"
+          property name, dependencies: name_mappings.values
+          @cached_forwarders[name] = ForwardingStruct.for(name_mappings)
+
+          define_method(name) do
+            self.class.cached_forwarders[name].new(self)
+          end
         end
       end
 
@@ -230,15 +280,16 @@ module Praxis
 
         return unless association_resource_class
 
+        association_resource_class_name = "::#{association_resource_class}" # Ensure we point at classes globally
         memoized_variables << name
 
         # Add the call to wrap (for true collections) or simply for_record if it's a n:1 association
         wrapping = \
           case association_spec.fetch(:type)
           when :one_to_many, :many_to_many
-            "@__#{name} ||= #{association_resource_class}.wrap(records)"
+            "@__#{name} ||= #{association_resource_class_name}.wrap(records)"
           else
-            "@__#{name} ||= #{association_resource_class}.for_record(records)"
+            "@__#{name} ||= #{association_resource_class_name}.for_record(records)"
           end
 
         module_eval <<-RUBY, __FILE__, __LINE__ + 1

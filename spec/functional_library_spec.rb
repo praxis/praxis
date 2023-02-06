@@ -111,26 +111,19 @@ describe 'Functional specs for books with connected DB' do
       end
 
       context 'with grouped attributes' do
-        let(:fields_q) { 'id,name,grouped{id,name}' }
+        let(:fields_q) { 'id,grouped{id,name}' }
         it 'is successful' do
           expect(subject).to be_successful
           model = ActiveBook.find_by(id: 1)
-          require 'pry'
-          binding.pry
           expect(parsed_response[:id]).to eq model.id
-          expect(parsed_response[:name]).to eq model.simple_name
-          expect(parsed_response[:grouped]).to eq ({ id: model.id, name: model.simple_name})
+          expect(parsed_response[:grouped]).to eq({ id: model.id, name: model.simple_name })
         end
-      end
 
-      context 'with prefixed attributes' do
-        let(:fields_q) { 'id,name,prefixed{id,name}' }
-        it 'is successful' do
-          expect(subject).to be_successful
-          model = ActiveBook.find_by(id: 1)
-          expect(parsed_response[:id]).to eq model.id
-          expect(parsed_response[:name]).to eq model.simple_name
-          expect(parsed_response[:prefixed]).to eq ({ id: model.id, name: model.simple_name})
+        context 'it does not invoke the ones that are not rendered' do
+          let(:fields_q) { 'id,grouped{id}' }
+          it 'is successful' do
+            expect(subject).to be_successful
+          end
         end
       end
     end

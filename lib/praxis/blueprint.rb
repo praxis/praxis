@@ -2,6 +2,18 @@
 
 module Praxis
   class Blueprint
+    class DSLCompiler < Attributor::HashDSLCompiler
+      # group DSL is meant to group a subset of attributes in the media type (instead of presenting all things flat)
+      # It will create a normal attribute, but as a BlueprintGroup, rather than a Struct, so that we can more easily
+      # pass in objects that respond to the right methods, and avoid a Struct loading them all in hash keys.
+      # For example, if there are computationally intensive attributes in the subset, we want to make sure those functions
+      # aren't invoked by just merely loading, and only really invoked when we've asked to render them
+      # It takes the name of the group, and passes the attributes block that needs to be a subset of the MediaType where the group resides
+      def group(name, **options, &block)
+        attribute(name, Praxis::BlueprintGroup.for(target.options[:reference]), **options, &block)
+      end
+    end
+
     # Simple helper class that can parse the `attribute :foobar` dsl into
     # an equivalent structure hash. Example:
     # do
@@ -91,7 +103,7 @@ module Praxis
 
         opts[:reference] = (reference || self)
 
-        @options.merge!(opts)
+        @options.merge!(opts.merge(dsl_compiler: DSLCompiler))
         @block = block
 
         return @attribute

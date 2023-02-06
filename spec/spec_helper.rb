@@ -48,7 +48,6 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods
 
   config.before(:suite) do
-    Praxis::Mapper::Resource.finalize!
     Praxis::Blueprint.caching_enabled = true
     Praxis::Application.instance.setup(root: 'spec/spec_app')
   end

@@ -1,32 +1,6 @@
 require_relative 'base'
 
 module Resources
-  class Forwarderer
-    extend Forwardable
-    attr_accessor :target
-
-    def self.for(names)
-      Class.new(self) do
-        
-        names.each do |spec|
-          if spec.is_a? Symbol
-            def_delegator :@target, spec
-          else
-            name = spec.keys.first
-            def_delegator :@target, name, spec[name]
-          end
-        end
-      end  
-    end
-    def initialize(target)
-      @target = target
-    end
-
-    def foo
-      target.name
-    end
-  end
-
   class Book < Resources::Base
     model ::ActiveBook
 
@@ -44,24 +18,28 @@ module Resources
       record.simple_name
     end
 
-    property :grouped, dependencies: [:simple_name, :category_uuid] # TODO: Dependency resolution should have kicked in when asking for 'grouped' without any inner ones...
+    property_group :grouped, ::Book
+
+    property :grouped_id, dependencies: [:id]
     def grouped_id
       id
     end
+
+    property :grouped_name, dependencies: [:name]
     def grouped_name
       name
     end
-    def grouped
-      @_grouped_fwd ||= Forwarderer.for([{grouped_id: :id}, {grouped_name: :name}])
-      require 'pry'
-      binding.pry
-      @_grouped_fwd.new(self) # This shouldn't be a 'new' ... but a class new...
+
+    property :grouped_moar_tags, dependencies: [:tags]
+    def grouped_moar_tags
+      tags
     end
 
     # The problem with this one is that we're essentially materializing the values when we do this (i.e., if 'simple_name' was an expensive thing, we'd be calculating it here)
     # If that's a field that we're asking for, that's fine...but if it's not, we're calculating something that we don't need at all.
     def prefixed
-      ::Book.attribute.attributes[:prefixed].type.new(id: id, name: simple_name)
+      type_from_mediatype = ::Book.attribute.attributes[:prefixed].type
+      type_from_mediatype.new(id: id, name: simple_name)
     end
   end
 end

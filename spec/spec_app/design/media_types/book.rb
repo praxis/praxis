@@ -1,14 +1,5 @@
 # frozen_string_literal: true
 
-class BookGroup < Praxis::BlueprintGroup
-  domain_model 'Resources::Book'
-  attributes do
-    attribute :id, Integer
-    attribute :name, String
-    attribute :simple_name, String
-  end
-end
-
 class Book < Praxis::MediaType
   identifier 'application/vnd.acme.book'
 

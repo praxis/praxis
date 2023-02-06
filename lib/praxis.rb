@@ -49,7 +49,7 @@ module Praxis
 
   # Sort of part of the old Blueprints gem...but they're really not scoped...
   autoload :Blueprint, 'praxis/blueprint'
-  autoload :BlueprintGroup, 'praxis/blueprint_group'
+  autoload :BlueprintAttributeGroup, 'praxis/blueprint_attribute_group'
   autoload :FieldExpander, 'praxis/field_expander'
   autoload :Renderer, 'praxis/renderer'
 

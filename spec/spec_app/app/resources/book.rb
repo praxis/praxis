@@ -34,12 +34,5 @@ module Resources
     def grouped_moar_tags
       tags
     end
-
-    # The problem with this one is that we're essentially materializing the values when we do this (i.e., if 'simple_name' was an expensive thing, we'd be calculating it here)
-    # If that's a field that we're asking for, that's fine...but if it's not, we're calculating something that we don't need at all.
-    def prefixed
-      type_from_mediatype = ::Book.attribute.attributes[:prefixed].type
-      type_from_mediatype.new(id: id, name: simple_name)
-    end
   end
 end

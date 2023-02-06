@@ -22,6 +22,7 @@ module Praxis
           names.each do |(orig, forwarded)|
             def_delegator :@target, forwarded, orig
           end
+          def_delegator :@target, :_resource
         end
       end
 

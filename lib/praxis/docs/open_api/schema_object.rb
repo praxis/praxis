@@ -33,9 +33,11 @@ module Praxis
           # We will dump schemas for mediatypes by simply creating a reference to the components' section
           if type < Attributor::Container && ! (type < Praxis::Types::MultipartArray)
             if (type < Praxis::Blueprint || type < Attributor::Model) && allow_ref && !type.anonymous?
-              # TODO: Do we even need a description?
-              h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
-
+              # TODO: Technically OpenAPI/JSON schema support passing a description when pointing to a $ref (to override it)
+              # However, it seems that UI browsers like redoc or elements have bugs where if that's done, they get into a loop and crash
+              # so for now, we're gonna avoid overriding the description until that is solved
+              # h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
+              h = {}
               Praxis::Docs::OpenApiGenerator.instance.register_seen_component(type)
               h.merge!('$ref' => "#/components/schemas/#{type.id}")
             elsif @collection

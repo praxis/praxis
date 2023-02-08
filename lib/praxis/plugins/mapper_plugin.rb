@@ -82,7 +82,6 @@ module Praxis
           #   merge_path!(hash_path, expanded_fields) unless expanded_fields.dig(*hash_path)
           # end
 
-          # TODO: might want to modify the expanded fields based on ordering needs
           selectors = selector_generator(expanded_fields).selectors
           base_query = domain_model.craft_field_selection_query(base_query, selectors: selectors)
           # handle pagination and ordering if the pagination extention is included

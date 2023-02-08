@@ -5,17 +5,24 @@ module Praxis
     class SelectorGeneratorNode
       attr_reader :select, :model, :resource, :tracks
 
-      def initialize(resource)
+      def initialize(resource, path: [])
         @resource = resource
 
         @select = Set.new
         @select_star = false
         @tracks = {}
+        @field_deps = Hash.new { |hash, key| hash[key] = Set.new }
+        @path = path
+
+        @mapping_property = nil # Current top level property mapped in this node
       end
 
       def add(fields)
         fields.each do |name, field|
+          @mapping_property = name unless @mapping_property
+
           map_property(name, field)
+          @mapping_property = nil
         end
         self
       end
@@ -41,7 +48,7 @@ module Praxis
         # Add the required columns in this model to make sure the association can be loaded
         association[:local_key_columns].each { |col| add_select(col) }
 
-        node = SelectorGeneratorNode.new(associated_resource)
+        node = SelectorGeneratorNode.new(associated_resource, path: @path + [name])
         unless association[:remote_key_columns].empty?
           # Make sure we add the required columns for this association to the remote model query
           fields = {} if fields == true
@@ -60,10 +67,12 @@ module Praxis
         return @select_star = true if name == :*
         return if @select_star
 
+        @field_deps[@mapping_property].add name
         @select.add name
       end
 
       def add_property(name, fields)
+        @field_deps[@mapping_property].add name
         dependencies = resource.properties[name][:dependencies]
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
@@ -72,7 +81,9 @@ module Praxis
             # Special keyword to add itself as the association, but still continue procesing the fields
             # This is useful when we expose resource fields tucked inside another sub-struct, this way
             # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
+            copy = @mapping_property
             add(fields)
+            @mapping_property = copy # restore the currently mapped property, cause 'add' will null it
           else
             first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
 
@@ -138,6 +149,7 @@ module Praxis
       def dump
         hash = {}
         hash[:model] = resource.model
+        hash[:field_deps] = @field_deps.transform_values(&:to_a)
         if !@select.empty? || @select_star
           hash[:columns] = @select_star ? [:*] : @select.to_a
         end

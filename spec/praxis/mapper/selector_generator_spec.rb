@@ -18,7 +18,11 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: %i[id foobar]
+            columns: %i[id foobar],
+            field_deps: {
+              id: %i[id],
+              foobar: %i[foobar]
+            }
           }
         end
         it_behaves_like 'a proper selector'
@@ -29,7 +33,11 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: %i[id simple_name]
+            columns: %i[id simple_name],
+            field_deps: {
+              id: %i[id],
+              name: %i[name nested_name simple_name]
+            }
           }
         end
         it_behaves_like 'a proper selector'
@@ -41,10 +49,16 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: [:other_model_id], # FK of the other_model association
+            field_deps: {
+              other_model: %i[other_model_id]
+            },
             tracks: {
               other_model: {
                 columns: [:id], # joining key for the association
-                model: OtherModel
+                model: OtherModel,
+                field_deps: {
+                  id: %i[id]
+                }
               }
             }
           }
@@ -58,10 +72,16 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: [:other_model_id], # FK of the other_model association
+            field_deps: {
+              other_resource: %i[other_resource other_model_id]
+            },
             tracks: {
               other_model: {
                 columns: [:id], # joining key for the association
-                model: OtherModel
+                model: OtherModel,
+                field_deps: {
+                  id: %i[id]
+                }
               }
             }
           }
@@ -74,10 +94,16 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: %i[column1 other_model_id], # other_model_id => because of the association
+            field_deps: {
+              aliased_method: %i[aliased_method column1 other_model_id]
+            },
             tracks: {
               other_model: {
                 columns: [:id], # joining key for the association
-                model: OtherModel
+                model: OtherModel,
+                field_deps: {
+                  id: %i[id]
+                }
               }
             }
           }
@@ -91,10 +117,16 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: %i[parent_id added_column],
+            field_deps: {
+              parent: %i[parent parent_id added_column]
+            },
             tracks: {
               parent: {
                 columns: [:id],
-                model: ParentModel
+                model: ParentModel,
+                field_deps: {
+                  id: %i[id]
+                }
               }
             }
           }
@@ -107,7 +139,10 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: [:*]
+            columns: [:*],
+            field_deps: {
+              everything: %i[everything]
+            }
           }
         end
         it_behaves_like 'a proper selector'
@@ -118,7 +153,10 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: %i[circular_dep column1] # allows to "expand" the dependency into itself + others
+            columns: %i[circular_dep column1], # allows to "expand" the dependency into itself + others
+            field_deps: {
+              circular_dep: %i[circular_dep column1]
+            }
           }
         end
         it_behaves_like 'a proper selector'
@@ -128,7 +166,10 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:fields) { { no_deps: true } }
         let(:selectors) do
           {
-            model: SimpleModel
+            model: SimpleModel,
+            field_deps: {
+              no_deps: %i[no_deps]
+            }
           }
         end
         it_behaves_like 'a proper selector'
@@ -148,10 +189,16 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: [:other_model_id],
+            field_deps: {
+              other_model: %i[other_model_id]
+            },
             tracks: {
               other_model: {
                 model: OtherModel,
-                columns: [:id]
+                columns: [:id],
+                field_deps: {
+                  id: %i[id]
+                }
               }
             }
           }
@@ -171,10 +218,16 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: [:other_model_id],
+            field_deps: {
+              other_resource: %i[other_resource other_model_id]
+            },
             tracks: {
               other_model: {
                 model: OtherModel,
-                columns: [:id]
+                columns: [:id],
+                field_deps: {
+                  id: %i[id]
+                }
               }
             }
           }
@@ -197,14 +250,23 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: %i[parent_id added_column],
+            field_deps: {
+              everything_from_parent: %i[everything_from_parent parent_id],
+              parent: %i[parent added_column parent_id]
+            },
             tracks: {
               parent: {
                 model: ParentModel,
                 columns: [:*],
+                field_deps: { # TODO: empty field deps is a bit odd
+                },
                 tracks: {
                   simple_children: {
                     model: SimpleModel,
-                    columns: [:parent_id]
+                    columns: [:parent_id],
+                    field_deps: { # TODO: parent_id isn't a field, so while true it is a bit odd to see here
+                      parent_id: [:parent_id]
+                    }
                   }
                 }
               }
@@ -226,10 +288,18 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: %i[other_model_id parent_id simple_name],
+            field_deps: {
+              parent_id: %i[parent_id],
+              aliased_association: %i[aliased_association other_model_id name nested_name simple_name]
+            },
             tracks: {
               other_model: {
                 model: OtherModel,
-                columns: %i[id name]
+                columns: %i[id name],
+                field_deps: {
+                  id: %i[id],
+                  display_name: %i[display_name name]
+                }
               }
             }
           }
@@ -249,14 +319,26 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: %i[parent_id simple_name], # No added_column, as it does not follow the dotted reference as properties, just associations
+            field_deps: {
+              parent_id: %i[parent_id],
+              deep_aliased_association: %i[deep_aliased_association parent_id name nested_name simple_name]
+            },
             tracks: {
               parent: {
                 model: ParentModel,
                 columns: %i[id],
+                field_deps: {
+                  simple_children: %i[id],
+                  id: %i[id]
+                },
                 tracks: {
                   simple_children: {
                     model: SimpleModel,
-                    columns: %i[parent_id simple_name]
+                    columns: %i[parent_id simple_name],
+                    field_deps: {
+                      parent_id: %i[parent_id],
+                      name: %i[name nested_name simple_name]
+                    }
                   }
                 }
               }
@@ -280,7 +362,11 @@ describe Praxis::Mapper::SelectorGenerator do
             # Parent_id is because we asked for it at the top
             # display_name because we asked for it under sub_struct, but it is marked as :self
             # alway_necessary_attribute because it is a dependency of sub_struct
-            columns: %i[parent_id display_name alway_necessary_attribute]
+            columns: %i[parent_id display_name alway_necessary_attribute],
+            field_deps: {
+              parent_id: %i[parent_id],
+              sub_struct: %i[sub_struct alway_necessary_attribute display_name]
+            }
           }
         end
         it_behaves_like 'a proper selector'
@@ -294,10 +380,17 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: [:other_model_id],
+            field_deps: {
+              direct_other_name: %i[direct_other_name other_model_id]
+            },
             tracks: {
               other_model: {
                 model: OtherModel,
-                columns: %i[id name]
+                columns: %i[id name],
+                field_deps: {
+                  id: %i[id],
+                  name: %i[name]
+                }
               }
             }
           }
@@ -311,10 +404,17 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: [:other_model_id],
+            field_deps: {
+              aliased_other_name: %i[aliased_other_name other_model_id]
+            },
             tracks: {
               other_model: {
                 model: OtherModel,
-                columns: %i[id name]
+                columns: %i[id name],
+                field_deps: {
+                  id: %i[id],
+                  display_name: %i[display_name name]
+                }
               }
             }
           }
@@ -328,10 +428,15 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: [:parent_id],
+            field_deps: {
+              everything_from_parent: %i[everything_from_parent parent_id]
+            },
             tracks: {
               parent: {
                 model: ParentModel,
-                columns: [:*]
+                columns: [:*],
+                field_deps: {
+                }
               }
             }
           }
@@ -347,10 +452,16 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: [:other_model_id], # FK of the other_model association
+            field_deps: {
+              other_model: %i[other_model_id]
+            },
             tracks: {
               other_model: {
                 columns: [:id],
-                model: OtherModel
+                model: OtherModel,
+                field_deps: {
+                  id: %i[id]
+                }
               }
             }
           }
@@ -364,10 +475,16 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: ParentModel,
             columns: [:id], # No FKs in the source model for one_to_many
+            field_deps: {
+              simple_children: %i[id]
+            },
             tracks: {
               simple_children: {
                 columns: [:parent_id],
-                model: SimpleModel
+                model: SimpleModel,
+                field_deps: {
+                  parent_id: %i[parent_id]
+                },
               }
             }
           }
@@ -381,10 +498,16 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: OtherModel,
             columns: [:id], # join key in the source model for many_to_many (where the middle table points to)
+            field_deps: {
+              simple_models: %i[id]
+            },
             tracks: {
               simple_models: {
                 columns: [:id], # join key in the target model for many_to_many (where the middle table points to)
-                model: SimpleModel
+                model: SimpleModel,
+                field_deps: {
+                  id: %i[id]
+                },
               }
             }
           }
@@ -398,22 +521,41 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             columns: [:parent_id],
+            field_deps: {
+              deep_nested_deps: %i[deep_nested_deps parent_id]
+            },
             tracks: {
               parent: {
                 model: ParentModel,
                 columns: [:id], # No FKs in the source model for one_to_many
+                field_deps: {
+                  id: %i[id],
+                  simple_children: %i[id]
+                },
                 tracks: {
                   simple_children: {
                     columns: %i[parent_id other_model_id],
                     model: SimpleModel,
+                    field_deps: {
+                      other_model: %i[other_model_id],
+                      parent_id: %i[parent_id]
+                    },
                     tracks: {
                       other_model: {
                         model: OtherModel,
                         columns: %i[id parent_id],
+                        field_deps: {
+                          id: %i[id],
+                          parent: %i[parent_id]
+                        },
                         tracks: {
                           parent: {
                             model: ParentModel,
-                            columns: %i[id simple_name other_attribute]
+                            columns: %i[id simple_name other_attribute],
+                            field_deps: {
+                              id: %i[id],
+                              display_name: %i[display_name simple_name id other_attribute]
+                            }
                           }
                         }
                       }

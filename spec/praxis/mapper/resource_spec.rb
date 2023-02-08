@@ -30,7 +30,7 @@ describe Praxis::Mapper::Resource do
       end
 
       it 'properly overrides a property from the parent' do
-        expect(properties[:name]).to eq(dependencies: [:simple_name], through: nil, as: :name)
+        expect(properties[:name]).to eq(dependencies: [:nested_name], through: nil, as: :name)
       end
     end
   end

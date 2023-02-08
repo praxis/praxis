@@ -142,7 +142,8 @@ class SimpleResource < BaseResource
 
   property :parent, dependencies: %i[parent added_column]
 
-  property :name, dependencies: [:simple_name]
+  property :name, dependencies: [:nested_name]
+  property :nested_name, dependencies: [:simple_name]
   property :direct_other_name, dependencies: ['other_model.name']
   property :aliased_other_name, dependencies: ['other_model.display_name']
 

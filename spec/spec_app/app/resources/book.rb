@@ -13,8 +13,14 @@ module Resources
       writer: 'author'
     )
 
-    property :name, dependencies: [:simple_name]
+    # Make name go through another nested property, before getting to simple_name
+    property :name, dependencies: [:nested_name]
     def name
+      nested_name
+    end
+
+    property :nested_name, dependencies: [:simple_name]
+    def nested_name
       record.simple_name
     end
 

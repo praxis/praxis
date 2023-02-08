@@ -24,6 +24,20 @@ describe 'Functional specs for books with connected DB' do
         end
       end
 
+      context 'with deep fields including a group' do
+        let(:fields_q) { 'id,name,author{name,books{name}},tags,grouped{name,moar_tags}' }
+        it 'is successful' do
+          expect(subject).to be_successful
+          first_book = parsed_response.first
+          expect(first_book.keys).to match_array(%i[id name author tags grouped])
+          expect(first_book[:author].keys).to match_array(%i[name books])
+          expect(first_book[:grouped].keys).to match_array(%i[name moar_tags])
+          expect(first_book[:grouped][:name]).to eq(first_book[:name])
+          # grouped.moar_tags is exactly the same result as tags, but tucked in a group with a different name
+          expect(first_book[:grouped][:moar_tags]).to eq(first_book[:tags])
+        end
+      end
+
       context 'with deep filters' do
         let(:filters_q) { 'author.name=author*' }
         it 'is successful' do

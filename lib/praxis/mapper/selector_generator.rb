@@ -5,15 +5,13 @@ module Praxis
     class SelectorGeneratorNode
       attr_reader :select, :model, :resource, :tracks
 
-      def initialize(resource, path: [])
+      def initialize(resource)
         @resource = resource
 
         @select = Set.new
         @select_star = false
         @tracks = {}
         @field_deps = Hash.new { |hash, key| hash[key] = Set.new }
-        @path = path
-
         @mapping_property = nil # Current top level property mapped in this node
       end
 
@@ -48,7 +46,7 @@ module Praxis
         # Add the required columns in this model to make sure the association can be loaded
         association[:local_key_columns].each { |col| add_select(col) }
 
-        node = SelectorGeneratorNode.new(associated_resource, path: @path + [name])
+        node = SelectorGeneratorNode.new(associated_resource)
         unless association[:remote_key_columns].empty?
           # Make sure we add the required columns for this association to the remote model query
           fields = {} if fields == true

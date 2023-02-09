@@ -174,6 +174,34 @@ describe Praxis::Mapper::SelectorGenerator do
         end
         it_behaves_like 'a proper selector'
       end
+
+      context 'a true substructure object', focus: true do
+        let(:fields) do
+          {
+            true_struct: {
+              # name: true,
+              sub_id: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            # Parent_id is because we asked for it at the top
+            # display_name because we asked for it under sub_struct, but it is marked as :self
+            # alway_necessary_attribute because it is a dependency of sub_struct
+            columns: %i[simple_name id],
+            field_deps: {
+              # true_struct: %i[true_struct name nested_name simple_name sub_id id]
+              true_struct: {
+                name: %i[name nested_name simple_name],
+                sub_id: %i[sub_id id]
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
     end
 
     context 'nested tracking' do

@@ -82,7 +82,7 @@ module Praxis
           #   merge_path!(hash_path, expanded_fields) unless expanded_fields.dig(*hash_path)
           # end
 
-          selectors = selector_generator(expanded_fields).selectors
+          selectors = selector_generator.selectors
           base_query = domain_model.craft_field_selection_query(base_query, selectors: selectors)
           # handle pagination and ordering if the pagination extention is included
           base_query = domain_model.craft_pagination_query(base_query, pagination: _pagination, selectors: selectors) if respond_to?(:_pagination)
@@ -90,7 +90,7 @@ module Praxis
           base_query
         end
 
-        def selector_generator(expanded_fields)
+        def selector_generator
           return unless media_type.respond_to?(:domain_model) &&
                         media_type.domain_model < Praxis::Mapper::Resource
 

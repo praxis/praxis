@@ -3,7 +3,7 @@
 module Praxis
   module Mapper
     class SelectorGeneratorNode
-      attr_reader :select, :model, :resource, :tracks
+      attr_reader :select, :model, :resource, :tracks, :field_deps
 
       def initialize(resource)
         @resource = resource
@@ -11,16 +11,15 @@ module Praxis
         @select = Set.new
         @select_star = false
         @tracks = {}
-        @field_deps = Hash.new { |hash, key| hash[key] = Set.new }
-        @mapping_property = nil # Current top level property mapped in this node
+        @field_deps = Hash.new { |hash, key| hash[key] = Hash.new  { |hash, key| hash[key] = Hash.new } }
+        @mapping_property = [] # Current top level property mapped in this node
       end
 
       def add(fields)
         fields.each do |name, field|
-          @mapping_property = name unless @mapping_property
-
+          @mapping_property.push name
           map_property(name, field)
-          @mapping_property = nil
+          @mapping_property = []
         end
         self
       end
@@ -65,12 +64,13 @@ module Praxis
         return @select_star = true if name == :*
         return if @select_star
 
-        @field_deps[@mapping_property].add name
+        #@field_deps.dig(*@mapping_property)[name] = true
         @select.add name
       end
 
       def add_property(name, fields)
-        @field_deps[@mapping_property].add name
+        puts "ADDING PROPERTY DEP: #{@mapping_property.join('/')} -> #{name}"
+        # @field_deps.dig(*@mapping_property)[name] = true
         dependencies = resource.properties[name][:dependencies]
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
@@ -102,7 +102,14 @@ module Praxis
           if dependency == name
             add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
           else
-            apply_dependency(dependency)
+            if fields.is_a?(Hash) && fields[dependency]
+              copy = @mapping_property.dup
+              @mapping_property.push dependency
+              apply_dependency(dependency, fields[dependency])
+              @mapping_property = copy # restore the currently mapped property, cause 'add' will null it
+            else
+              apply_dependency(dependency)
+            end
           end
         end
 
@@ -116,10 +123,10 @@ module Praxis
         add_association(head, new_fields)
       end
 
-      def apply_dependency(dependency)
+      def apply_dependency(dependency, fields=true)
         case dependency
         when Symbol
-          map_property(dependency, true)
+          map_property(dependency, fields)
         when String
           head, *tail = dependency.split('.').collect(&:to_sym)
           raise 'String dependencies can not be singular' if tail.nil?
@@ -147,7 +154,7 @@ module Praxis
       def dump
         hash = {}
         hash[:model] = resource.model
-        hash[:field_deps] = @field_deps.transform_values(&:to_a)
+        hash[:field_deps] = @field_deps #.transform_values(&:to_a)
         if !@select.empty? || @select_star
           hash[:columns] = @select_star ? [:*] : @select.to_a
         end
@@ -159,6 +166,8 @@ module Praxis
     # Generates a set of selectors given a resource and
     # list of resource attributes.
     class SelectorGenerator
+      attr_reader :root
+
       # Entry point
       def add(resource, fields)
         @root = SelectorGeneratorNode.new(resource)

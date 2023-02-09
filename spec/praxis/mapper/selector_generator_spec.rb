@@ -199,18 +199,12 @@ describe Praxis::Mapper::SelectorGenerator do
             # Parent_id is because we asked for it at the top
             # display_name because we asked for it under sub_struct, but it is marked as :self
             # alway_necessary_attribute because it is a dependency of sub_struct
-            columns: %i[simple_name id alway_necessary_attribute],
+            columns: %i[simple_name id],
             field_deps: {
               true_struct: {
-                _subtree_deps: %i[true_struct alway_necessary_attribute name nested_name simple_name sub_id sub_sub_id id],
-                name: {
-                  _subtree_deps: %i[name nested_name simple_name],
-                },
+                name: %i[name nested_name simple_name],
                 sub_id: {
-                  _subtree_deps: %i[sub_id sub_sub_id id],
-                  sub_sub_id: {
-                    _subtree_deps: %i[sub_sub_id id]
-                  }
+                  sub_sub_id: %i[sub_sub_id id]
                 }
               }
             }
@@ -230,15 +224,10 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: %i[id simple_name],
+            columns: %i[id],
             field_deps: {
               agroup: {
-                # Note that all the 3 name dependencies are here at the top, because agroup depends on name
-                # If 'name' had been requested, they would be tucked into sub fields
-                _subtree_deps: %i[agroup agroup_id id name nested_name simple_name],
-                id: {
-                  _subtree_deps: %i[agroup_id id]
-                }
+                id: %i[agroup_id id]
               }
             }
           }
@@ -246,6 +235,7 @@ describe Praxis::Mapper::SelectorGenerator do
         it_behaves_like 'a proper selector'
       end
 
+      # PROPERLY FIXED WITHOUR THE ROLLUP AND CONDITIONAL PATHING
       context 'a property group substructure object', focus: true do
         let(:resource) { Resources::Book }
         let(:fields) do
@@ -259,16 +249,11 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: ::ActiveBook,
-            # Parent_id is because we asked for it at the top
-            # display_name because we asked for it under sub_struct, but it is marked as :self
-            # alway_necessary_attribute because it is a dependency of sub_struct
             columns: %i[simple_name],
             field_deps: {
               grouped: {
-                _subtree_deps: %i[grouped name grouped_name nested_name simple_name grouped_id id],
-                name: {
-                  _subtree_deps: %i[name grouped_name nested_name simple_name]
-                }
+                name: %i[name grouped_name nested_name simple_name]
+                # NO id or group_id or tags of any sort should be traversed and appear, as we didn't ask for them
               }
             }
           }

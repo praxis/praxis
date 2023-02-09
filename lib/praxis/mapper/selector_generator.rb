@@ -19,6 +19,7 @@ module Praxis
           return name if parent.nil?
           "#{parent.path_name}.#{name}"
         end
+
         def add_field(name)
           @fields[name] = FieldDependenciesNode.new(name: name, parent: self)
         end
@@ -28,11 +29,18 @@ module Praxis
         end
 
         def dump
-          h = @deps.empty? ? {} : { _subtree_deps: @deps.to_a }
-          @fields.each do |name, node|
-            h[name] = node.dump
+          if @fields.empty? #leaf node
+            @deps.to_a
+          else
+            @fields.transform_values do |node|
+              node.dump
+            end
           end
-          h
+          # h = @deps.empty? ? {} : { _subtree_deps: @deps.to_a }
+          # @fields.each do |name, node|
+          #   h[name] = node.dump
+          # end
+          # h
         end
 
         def rollup
@@ -116,7 +124,7 @@ module Praxis
       end
 
       def add_property(name, fields)
-        @field_node.add_dep(name)
+        @field_node.add_dep(name) if fields == true # Only add dependencies for leaves
         dependencies = resource.properties[name][:dependencies]
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
@@ -158,26 +166,25 @@ module Praxis
             add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
           else
             if fields.is_a?(Hash)
+              # Don't even bother adding the dependency if this is a subhash, and there's no match for it (conditional dependency)
               if fields[dependency] 
                 dep_matches_field = true
                 sub_field_name = dependency
               elsif is_within_a_property_group && prefixed_fields.keys.include?(dependency)
                 dep_matches_field = true
                 sub_field_name = prefixed_fields[dependency]
+              else
+                dep_matches_field = false
+              end
+              # dep_matches_field = (fields != true) && (fields[dependency] || (is_within_a_property_group && prefixed_fields.keys.include?(dependency)))
+              if dep_matches_field
+                # We know this dependency matches a field ... so set it in the path in case it ends up
+                # being a property
+                @field_node = @field_node.add_field(sub_field_name) # Mark it as orig name
+                apply_dependency(dependency, fields[sub_field_name])
+                @field_node = @field_node.parent # restore the parent node since we're done with the sub field
               end
             else
-              dep_matches_field = false
-            end
-            # dep_matches_field = (fields != true) && (fields[dependency] || (is_within_a_property_group && prefixed_fields.keys.include?(dependency)))
-            if fields.is_a?(Hash) && dep_matches_field
-              puts "MATCH: #{dependency} #{fields} [#{@field_node.path_name}]"
-              # We know this dependency matches a field ... so set it in the path in case it ends up
-              # being a property
-              @field_node = @field_node.add_field(sub_field_name) # Mark it as orig name
-              apply_dependency(dependency, fields[sub_field_name])
-              @field_node = @field_node.parent # restore the parent node since we're done with the sub field
-            else
-              puts "NOMATCH: #{dependency} #{fields} [#{@field_node.path_name}]"
               apply_dependency(dependency)
             end
           end
@@ -242,7 +249,7 @@ module Praxis
       def add(resource, fields)
         @root = SelectorGeneratorNode.new(resource)
         @root.add(fields)
-        @root.rollup_deps
+        # @root.rollup_deps
         self
       end
 

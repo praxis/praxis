@@ -9,7 +9,10 @@ describe Praxis::Mapper::SelectorGenerator do
   context '#add' do
     let(:resource) { SimpleResource }
     shared_examples 'a proper selector' do
-      it { expect(generator.add(resource, fields).selectors.dump).to be_deep_equal selectors }
+      it { 
+        puts JSON.pretty_generate(generator.add(resource, fields).selectors.dump)
+        expect(generator.add(resource, fields).selectors.dump).to be_deep_equal selectors
+      }
     end
 
     context 'basic combos' do
@@ -179,8 +182,10 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:fields) do
           {
             true_struct: {
-              # name: true,
-              sub_id: true
+              name: true,
+              sub_id: {
+                sub_sub_id: true
+              }
             }
           }
         end
@@ -190,12 +195,19 @@ describe Praxis::Mapper::SelectorGenerator do
             # Parent_id is because we asked for it at the top
             # display_name because we asked for it under sub_struct, but it is marked as :self
             # alway_necessary_attribute because it is a dependency of sub_struct
-            columns: %i[simple_name id],
+            columns: %i[simple_name id alway_necessary_attribute],
             field_deps: {
-              # true_struct: %i[true_struct name nested_name simple_name sub_id id]
               true_struct: {
-                name: %i[name nested_name simple_name],
-                sub_id: %i[sub_id id]
+                _subtree_deps: %i[alway_necessary_attribute name nested_name simple_name sub_id sub_sub id],
+                name: {
+                  _subtree_deps: %i[name nested_name simple_name],
+                },
+                sub_id: {
+                  _subtree_deps: %i[sub_id sub_sub id],
+                  sub_id: {
+                    _subtree_deps: %i[sub_sub_id id]
+                  }
+                }
               }
             }
           }

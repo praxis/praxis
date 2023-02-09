@@ -11,7 +11,31 @@ module Praxis
         @select = Set.new
         @select_star = false
         @tracks = {}
-        @field_deps = Hash.new { |hash, key| hash[key] = Hash.new  { |hash, key| hash[key] = Hash.new } }
+        @field_deps = Hash.new do |hash, key| 
+          if key == :_subtree_deps
+            hash[key] = Set.new
+          else
+            hash[key] = Hash.new do |hash, key|
+              if key == :_subtree_deps
+                hash[key] = Set.new
+              else
+                hash[key] = Hash.new do |hash, key|
+                  if key == :_subtree_deps
+                    hash[key] = Set.new
+                  else
+                    hash[key] = Hash.new do |hash, key|
+                      if key == :_subtree_deps
+                        hash[key] = Set.new
+                      else
+                        hash[key] = Hash.new  { |hash, key| hash[key] = Hash.new }
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
         @mapping_property = [] # Current top level property mapped in this node
       end
 
@@ -64,12 +88,23 @@ module Praxis
         return @select_star = true if name == :*
         return if @select_star
 
-        #@field_deps.dig(*@mapping_property)[name] = true
+        puts "ADDING SELECT: #{@mapping_property.join('/')} -> #{name}"
+        @field_deps.dig(*@mapping_property)[:_subtree_deps] ||= Set.new
+        @field_deps.dig(*@mapping_property)[:_subtree_deps].add(name)
         @select.add name
       end
 
       def add_property(name, fields)
-        puts "ADDING PROPERTY DEP: #{@mapping_property.join('/')} -> #{name}"
+        puts "ADDING PROP: #{@mapping_property.join('/')} -> #{name}"
+        @field_deps.dig(*@mapping_property)[:_subtree_deps] ||= Set.new
+        @field_deps.dig(*@mapping_property)[:_subtree_deps].add(name)
+        # Here "name" IS a property, and hopefully we've only sent it here if it matches the field name??
+        # NO...if it comes from the initial add, yes, cause it loops over fields...
+        # If it coms from apply dependency...hmmm
+        # puts "ADDING PROPERTY DEP: #{@mapping_property.join('/')} -> #{name} (fields: #{fields})"
+        puts "YES!!! SAVE: #{@mapping_property.join('/')}" if @mapping_property.last == name
+        rollup_deps = @mapping_property.last == name
+        # ...but what do we save? ... 'true?' ... the list of deps? ...
         # @field_deps.dig(*@mapping_property)[name] = true
         dependencies = resource.properties[name][:dependencies]
         # Always add the underlying association if we're overriding the name...
@@ -103,16 +138,26 @@ module Praxis
             add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
           else
             if fields.is_a?(Hash) && fields[dependency]
-              copy = @mapping_property.dup
+              # We know this dependency matches a field ... so set it in the path in case it ends up
+              # being a property
               @mapping_property.push dependency
               apply_dependency(dependency, fields[dependency])
-              @mapping_property = copy # restore the currently mapped property, cause 'add' will null it
+              @mapping_property.pop  # restore the currently mapped property, cause 'add' will null it
             else
               apply_dependency(dependency)
             end
           end
         end
 
+        if rollup_deps 
+          this_mapping = @field_deps.dig(*@mapping_property)
+          other = this_mapping.keys - [:_subtree_deps]
+          unless other.empty?
+            other.each do |subfield|
+              this_mapping[:_subtree_deps].merge(this_mapping[subfield][:_subtree_deps])
+            end
+          end
+        end
         head, *tail = resource.properties[name][:through]
         return if head.nil?
 

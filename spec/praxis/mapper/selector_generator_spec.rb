@@ -178,7 +178,11 @@ describe Praxis::Mapper::SelectorGenerator do
         it_behaves_like 'a proper selector'
       end
 
-      context 'a true substructure object', focus: true do
+      context 'a true substructure object' do
+        # This assumes that the properties are properly prefixed from the struct
+        # For nicer naming, use a property group where these prefixed properties will be
+        # done automatically AND the generator will try to find them as such
+        # NOTE: We could probably try to do that for real structs as well...not necessarily groups
         let(:fields) do
           {
             true_struct: {
@@ -207,6 +211,36 @@ describe Praxis::Mapper::SelectorGenerator do
                   sub_sub_id: {
                     _subtree_deps: %i[sub_sub_id id]
                   }
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
+
+      context 'a property group substructure object', focus: true do
+        let(:resource) { Resources::Book }
+        let(:fields) do
+          {
+            grouped: {
+              # id: true,
+              name: true,
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: ::ActiveBook,
+            # Parent_id is because we asked for it at the top
+            # display_name because we asked for it under sub_struct, but it is marked as :self
+            # alway_necessary_attribute because it is a dependency of sub_struct
+            columns: %i[simple_name],
+            field_deps: {
+              grouped: {
+                _subtree_deps: %i[grouped name grouped_name nested_name simple_name],
+                name: {
+                  _subtree_deps: %i[name grouped_name nested_name simple_name]
                 }
               }
             }

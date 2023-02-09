@@ -3,10 +3,10 @@
 module Praxis
   module Mapper
     class SelectorGeneratorNode
-      attr_reader :select, :model, :resource, :tracks, :field_deps
+      attr_reader :select, :model, :resource, :tracks, :field_node
 
       class FieldDependenciesNode
-        attr_reader :parent, :name, :deps
+        attr_reader :parent, :name, :deps, :fields
 
         def initialize(name: nil, parent: nil)
           @name = name
@@ -138,24 +138,36 @@ module Praxis
             add_association(first, extended_fields) if resource.model._praxis_associations[first]
           end
         end
-        dependencies&.each do |dependency|
-          # To detect recursion, let's allow mapping depending fields to the same name of the property
-          # but properly detecting if it's a real association...in which case we've already added it above
-          if dependency == name
-            add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
-          else
-            if fields.is_a?(Hash) && fields[dependency]
-              # We know this dependency matches a field ... so set it in the path in case it ends up
-              # being a property
-              @field_node = @field_node.add_field(dependency)
-              apply_dependency(dependency, fields[dependency])
-              @field_node = @field_node.parent # restore the parent node since we're done with the sub field
+        if fields.is_a?(Hash) && resource.property_groups[name] 
+          # It is a property group!
+          prefixed_fields = fields.keys.each_with_object({}) do |k,h|
+             h["#{name}_#{k}".to_sym] = k # Prepend the group name to fields
+          end
+          matching_deps = dependencies & prefixed_fields.keys
+          matching_deps.each do |dependency|
+            @field_node = @field_node.add_field(prefixed_fields[dependency])
+            apply_dependency(dependency, fields[dependency])
+            @field_node = @field_node.parent # restore the parent node since we're done with the sub field
+          end
+        else
+          dependencies&.each do |dependency|
+            # To detect recursion, let's allow mapping depending fields to the same name of the property
+            # but properly detecting if it's a real association...in which case we've already added it above
+            if dependency == name
+              add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
             else
-              apply_dependency(dependency)
+              if fields.is_a?(Hash) && fields[dependency]
+                # We know this dependency matches a field ... so set it in the path in case it ends up
+                # being a property
+                @field_node = @field_node.add_field(dependency)
+                apply_dependency(dependency, fields[dependency])
+                @field_node = @field_node.parent # restore the parent node since we're done with the sub field
+              else
+                apply_dependency(dependency)
+              end
             end
           end
         end
-
         head, *tail = resource.properties[name][:through]
         return if head.nil?
 

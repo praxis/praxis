@@ -5,7 +5,7 @@ module Praxis
     class SelectorGeneratorNode
       attr_reader :select, :model, :resource, :tracks, :field_deps
 
-      class DepNode
+      class FieldDependenciesNode
         attr_reader :parent, :name, :deps
 
         def initialize(name: nil, parent: nil)
@@ -16,16 +16,15 @@ module Praxis
         end
 
         def add_field(name)
-          @fields[name] = DepNode.new(name: name, parent: self)
-          @fields[name]
+          @fields[name] = FieldDependenciesNode.new(name: name, parent: self)
         end
 
         def add_dep(dep_name)
           @deps.add dep_name
         end
-        
+
         def dump
-          h = { _subtree_deps: @deps.to_a }
+          h = @deps.empty? ? {} : { _subtree_deps: @deps.to_a }
           @fields.each do |name, node|
             h[name] = node.dump
           end
@@ -36,8 +35,10 @@ module Praxis
           return if @fields.empty?
 
           @fields.each do |_name, node|
+            # Force rollup downstream
             node.rollup
-            @deps.merge(node.deps)
+            # No need to rollup to the root node (there no field for the 'top')
+            @deps.merge(node.deps) unless parent.nil?
           end
         end
       end
@@ -48,33 +49,7 @@ module Praxis
         @select = Set.new
         @select_star = false
         @tracks = {}
-        @field_node = DepNode.new
-        # @field_deps = Hash.new do |hash, key| 
-        #   if key == :_subtree_deps
-        #     hash[key] = Set.new
-        #   else
-        #     hash[key] = Hash.new do |hash, key|
-        #       if key == :_subtree_deps
-        #         hash[key] = Set.new
-        #       else
-        #         hash[key] = Hash.new do |hash, key|
-        #           if key == :_subtree_deps
-        #             hash[key] = Set.new
-        #           else
-        #             hash[key] = Hash.new do |hash, key|
-        #               if key == :_subtree_deps
-        #                 hash[key] = Set.new
-        #               else
-        #                 hash[key] = Hash.new  { |hash, key| hash[key] = Hash.new }
-        #               end
-        #             end
-        #           end
-        #         end
-        #       end
-        #     end
-        #   end
-        # end
-        @mapping_property = [] # Current top level property mapped in this node
+        @field_node = FieldDependenciesNode.new
       end
 
       def rollup_deps
@@ -130,25 +105,14 @@ module Praxis
         return @select_star = true if name == :*
         return if @select_star
 
-        puts "ADDING SELECT: #{@mapping_property.join('/')} -> #{name}"
+        # NOTE: Not sure if we need to add methods that aren't properties (commenting line below)
+        # If we do that, the lists are smaller, but what if there are methods that we want to detect that do not have a property?
         @field_node.add_dep(name)
-        # @field_deps.dig(*@mapping_property)[:_subtree_deps] ||= Set.new
-        # @field_deps.dig(*@mapping_property)[:_subtree_deps].add(name)
         @select.add name
       end
 
       def add_property(name, fields)
-        puts "ADDING PROP: #{@mapping_property.join('/')} -> #{name}"
         @field_node.add_dep(name)
-        # @field_deps.dig(*@mapping_property)[:_subtree_deps] ||= Set.new
-        # @field_deps.dig(*@mapping_property)[:_subtree_deps].add(name)
-        # Here "name" IS a property, and hopefully we've only sent it here if it matches the field name??
-        # NO...if it comes from the initial add, yes, cause it loops over fields...
-        # If it coms from apply dependency...hmmm
-        # puts "ADDING PROPERTY DEP: #{@mapping_property.join('/')} -> #{name} (fields: #{fields})"
-        puts "YES!!! SAVE: #{@mapping_property.join('/')}" if @mapping_property.last == name
-        # ...but what do we save? ... 'true?' ... the list of deps? ...
-        # @field_deps.dig(*@mapping_property)[name] = true
         dependencies = resource.properties[name][:dependencies]
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
@@ -185,7 +149,7 @@ module Praxis
               # being a property
               @field_node = @field_node.add_field(dependency)
               apply_dependency(dependency, fields[dependency])
-              @field_node = @field_node.parent  # restore the currently mapped property, cause 'add' will null it
+              @field_node = @field_node.parent # restore the parent node since we're done with the sub field
             else
               apply_dependency(dependency)
             end

@@ -23,8 +23,8 @@ describe Praxis::Mapper::SelectorGenerator do
             model: SimpleModel,
             columns: %i[id foobar],
             field_deps: {
-              id: %i[id],
-              foobar: %i[foobar]
+              id: { _subtree_deps: %i[id]},
+              foobar: { _subtree_deps: %i[foobar]}
             }
           }
         end
@@ -38,8 +38,8 @@ describe Praxis::Mapper::SelectorGenerator do
             model: SimpleModel,
             columns: %i[id simple_name],
             field_deps: {
-              id: %i[id],
-              name: %i[name nested_name simple_name]
+              id: { _subtree_deps: %i[id]},
+              name: { _subtree_deps: %i[name nested_name simple_name] }
             }
           }
         end
@@ -53,14 +53,14 @@ describe Praxis::Mapper::SelectorGenerator do
             model: SimpleModel,
             columns: [:other_model_id], # FK of the other_model association
             field_deps: {
-              other_model: %i[other_model_id]
+              other_model: { _subtree_deps: %i[other_model_id] }
             },
             tracks: {
               other_model: {
                 columns: [:id], # joining key for the association
                 model: OtherModel,
                 field_deps: {
-                  id: %i[id]
+                  id: { _subtree_deps: %i[id] }
                 }
               }
             }
@@ -76,14 +76,14 @@ describe Praxis::Mapper::SelectorGenerator do
             model: SimpleModel,
             columns: [:other_model_id], # FK of the other_model association
             field_deps: {
-              other_resource: %i[other_resource other_model_id]
+              other_resource: { _subtree_deps: %i[other_resource other_model_id] }
             },
             tracks: {
               other_model: {
                 columns: [:id], # joining key for the association
                 model: OtherModel,
                 field_deps: {
-                  id: %i[id]
+                  id: { _subtree_deps: %i[id] }
                 }
               }
             }
@@ -197,7 +197,6 @@ describe Praxis::Mapper::SelectorGenerator do
             # alway_necessary_attribute because it is a dependency of sub_struct
             columns: %i[simple_name id alway_necessary_attribute],
             field_deps: {
-              _subtree_deps: %i[true_struct alway_necessary_attribute name nested_name simple_name sub_id sub_sub_id id],
               true_struct: {
                 _subtree_deps: %i[true_struct alway_necessary_attribute name nested_name simple_name sub_id sub_sub_id id],
                 name: {

@@ -5,45 +5,87 @@ module Praxis
     class SelectorGeneratorNode
       attr_reader :select, :model, :resource, :tracks, :field_deps
 
+      class DepNode
+        attr_reader :parent, :name, :deps
+
+        def initialize(name: nil, parent: nil)
+          @name = name
+          @parent = parent
+          @fields = {}
+          @deps = Set.new
+        end
+
+        def add_field(name)
+          @fields[name] = DepNode.new(name: name, parent: self)
+          @fields[name]
+        end
+
+        def add_dep(dep_name)
+          @deps.add dep_name
+        end
+        
+        def dump
+          h = { _subtree_deps: @deps.to_a }
+          @fields.each do |name, node|
+            h[name] = node.dump
+          end
+          h
+        end
+
+        def rollup
+          return if @fields.empty?
+
+          @fields.each do |_name, node|
+            node.rollup
+            @deps.merge(node.deps)
+          end
+        end
+      end
+
       def initialize(resource)
         @resource = resource
 
         @select = Set.new
         @select_star = false
         @tracks = {}
-        @field_deps = Hash.new do |hash, key| 
-          if key == :_subtree_deps
-            hash[key] = Set.new
-          else
-            hash[key] = Hash.new do |hash, key|
-              if key == :_subtree_deps
-                hash[key] = Set.new
-              else
-                hash[key] = Hash.new do |hash, key|
-                  if key == :_subtree_deps
-                    hash[key] = Set.new
-                  else
-                    hash[key] = Hash.new do |hash, key|
-                      if key == :_subtree_deps
-                        hash[key] = Set.new
-                      else
-                        hash[key] = Hash.new  { |hash, key| hash[key] = Hash.new }
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-        end
+        @field_node = DepNode.new
+        # @field_deps = Hash.new do |hash, key| 
+        #   if key == :_subtree_deps
+        #     hash[key] = Set.new
+        #   else
+        #     hash[key] = Hash.new do |hash, key|
+        #       if key == :_subtree_deps
+        #         hash[key] = Set.new
+        #       else
+        #         hash[key] = Hash.new do |hash, key|
+        #           if key == :_subtree_deps
+        #             hash[key] = Set.new
+        #           else
+        #             hash[key] = Hash.new do |hash, key|
+        #               if key == :_subtree_deps
+        #                 hash[key] = Set.new
+        #               else
+        #                 hash[key] = Hash.new  { |hash, key| hash[key] = Hash.new }
+        #               end
+        #             end
+        #           end
+        #         end
+        #       end
+        #     end
+        #   end
+        # end
         @mapping_property = [] # Current top level property mapped in this node
+      end
+
+      def rollup_deps
+        @field_node.rollup
       end
 
       def add(fields)
         fields.each do |name, field|
-          @mapping_property.push name
+          @field_node = @field_node.add_field(name)
           map_property(name, field)
-          @mapping_property = []
+          @field_node = @field_node.parent if @field_node.parent
         end
         self
       end
@@ -89,21 +131,22 @@ module Praxis
         return if @select_star
 
         puts "ADDING SELECT: #{@mapping_property.join('/')} -> #{name}"
-        @field_deps.dig(*@mapping_property)[:_subtree_deps] ||= Set.new
-        @field_deps.dig(*@mapping_property)[:_subtree_deps].add(name)
+        @field_node.add_dep(name)
+        # @field_deps.dig(*@mapping_property)[:_subtree_deps] ||= Set.new
+        # @field_deps.dig(*@mapping_property)[:_subtree_deps].add(name)
         @select.add name
       end
 
       def add_property(name, fields)
         puts "ADDING PROP: #{@mapping_property.join('/')} -> #{name}"
-        @field_deps.dig(*@mapping_property)[:_subtree_deps] ||= Set.new
-        @field_deps.dig(*@mapping_property)[:_subtree_deps].add(name)
+        @field_node.add_dep(name)
+        # @field_deps.dig(*@mapping_property)[:_subtree_deps] ||= Set.new
+        # @field_deps.dig(*@mapping_property)[:_subtree_deps].add(name)
         # Here "name" IS a property, and hopefully we've only sent it here if it matches the field name??
         # NO...if it comes from the initial add, yes, cause it loops over fields...
         # If it coms from apply dependency...hmmm
         # puts "ADDING PROPERTY DEP: #{@mapping_property.join('/')} -> #{name} (fields: #{fields})"
         puts "YES!!! SAVE: #{@mapping_property.join('/')}" if @mapping_property.last == name
-        rollup_deps = @mapping_property.last == name
         # ...but what do we save? ... 'true?' ... the list of deps? ...
         # @field_deps.dig(*@mapping_property)[name] = true
         dependencies = resource.properties[name][:dependencies]
@@ -114,9 +157,9 @@ module Praxis
             # Special keyword to add itself as the association, but still continue procesing the fields
             # This is useful when we expose resource fields tucked inside another sub-struct, this way
             # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
-            copy = @mapping_property
+            copy = @field_node
             add(fields)
-            @mapping_property = copy # restore the currently mapped property, cause 'add' will null it
+            @field_node = copy # restore the currently mapped property, cause 'add' will null it
           else
             first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
 
@@ -140,24 +183,15 @@ module Praxis
             if fields.is_a?(Hash) && fields[dependency]
               # We know this dependency matches a field ... so set it in the path in case it ends up
               # being a property
-              @mapping_property.push dependency
+              @field_node = @field_node.add_field(dependency)
               apply_dependency(dependency, fields[dependency])
-              @mapping_property.pop  # restore the currently mapped property, cause 'add' will null it
+              @field_node = @field_node.parent  # restore the currently mapped property, cause 'add' will null it
             else
               apply_dependency(dependency)
             end
           end
         end
 
-        if rollup_deps 
-          this_mapping = @field_deps.dig(*@mapping_property)
-          other = this_mapping.keys - [:_subtree_deps]
-          unless other.empty?
-            other.each do |subfield|
-              this_mapping[:_subtree_deps].merge(this_mapping[subfield][:_subtree_deps])
-            end
-          end
-        end
         head, *tail = resource.properties[name][:through]
         return if head.nil?
 
@@ -199,7 +233,7 @@ module Praxis
       def dump
         hash = {}
         hash[:model] = resource.model
-        hash[:field_deps] = @field_deps #.transform_values(&:to_a)
+        hash[:field_deps] = @field_node.dump
         if !@select.empty? || @select_star
           hash[:columns] = @select_star ? [:*] : @select.to_a
         end
@@ -217,6 +251,7 @@ module Praxis
       def add(resource, fields)
         @root = SelectorGeneratorNode.new(resource)
         @root.add(fields)
+        @root.rollup_deps
         self
       end
 

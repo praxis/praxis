@@ -197,14 +197,15 @@ describe Praxis::Mapper::SelectorGenerator do
             # alway_necessary_attribute because it is a dependency of sub_struct
             columns: %i[simple_name id alway_necessary_attribute],
             field_deps: {
+              _subtree_deps: %i[true_struct alway_necessary_attribute name nested_name simple_name sub_id sub_sub_id id],
               true_struct: {
-                _subtree_deps: %i[alway_necessary_attribute name nested_name simple_name sub_id sub_sub id],
+                _subtree_deps: %i[true_struct alway_necessary_attribute name nested_name simple_name sub_id sub_sub_id id],
                 name: {
                   _subtree_deps: %i[name nested_name simple_name],
                 },
                 sub_id: {
-                  _subtree_deps: %i[sub_id sub_sub id],
-                  sub_id: {
+                  _subtree_deps: %i[sub_id sub_sub_id id],
+                  sub_sub_id: {
                     _subtree_deps: %i[sub_sub_id id]
                   }
                 }

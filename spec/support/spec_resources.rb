@@ -159,9 +159,10 @@ class SimpleResource < BaseResource
 
   property :sub_struct, as: :self, dependencies: [:alway_necessary_attribute]
   
-  # property :true_struct, dependencies: [:name, :sub_id]
-  property :true_struct, dependencies: [:sub_id]
-  property :sub_id, dependencies: [:id]
+  property :true_struct, dependencies: [:alway_necessary_attribute, :name, :sub_id]
+  # property :true_struct, dependencies: [:sub_id]
+  property :sub_id, dependencies: [:sub_sub_id]
+  property :sub_sub_id, dependencies: [:id]
 
   before(:update!, :do_before_update)
   around(:update!, :do_around_update_nested)

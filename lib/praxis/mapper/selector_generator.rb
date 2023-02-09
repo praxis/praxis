@@ -15,6 +15,10 @@ module Praxis
           @deps = Set.new
         end
 
+        def path_name
+          return name if parent.nil?
+          "#{parent.path_name}.#{name}"
+        end
         def add_field(name)
           @fields[name] = FieldDependenciesNode.new(name: name, parent: self)
         end
@@ -138,36 +142,47 @@ module Praxis
             add_association(first, extended_fields) if resource.model._praxis_associations[first]
           end
         end
-        if fields.is_a?(Hash) && resource.property_groups[name] 
-          # It is a property group!
-          prefixed_fields = fields.keys.each_with_object({}) do |k,h|
-             h["#{name}_#{k}".to_sym] = k # Prepend the group name to fields
+        is_within_a_property_group = fields != true #resource.property_groups[name]
+        prefixed_fields = \
+          if fields == true
+            {}
+          else
+            fields.keys.each_with_object({}) do |k,h|
+              h["#{name}_#{k}".to_sym] = k # Prepend the group name to fields
+            end
           end
-          matching_deps = dependencies & prefixed_fields.keys
-          matching_deps.each do |dependency|
-            @field_node = @field_node.add_field(prefixed_fields[dependency])
-            apply_dependency(dependency, fields[dependency])
-            @field_node = @field_node.parent # restore the parent node since we're done with the sub field
-          end
-        else
-          dependencies&.each do |dependency|
-            # To detect recursion, let's allow mapping depending fields to the same name of the property
-            # but properly detecting if it's a real association...in which case we've already added it above
-            if dependency == name
-              add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
-            else
-              if fields.is_a?(Hash) && fields[dependency]
-                # We know this dependency matches a field ... so set it in the path in case it ends up
-                # being a property
-                @field_node = @field_node.add_field(dependency)
-                apply_dependency(dependency, fields[dependency])
-                @field_node = @field_node.parent # restore the parent node since we're done with the sub field
-              else
-                apply_dependency(dependency)
+        dependencies&.each do |dependency|
+          # To detect recursion, let's allow mapping depending fields to the same name of the property
+          # but properly detecting if it's a real association...in which case we've already added it above
+          if dependency == name
+            add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
+          else
+            if fields.is_a?(Hash)
+              if fields[dependency] 
+                dep_matches_field = true
+                sub_field_name = dependency
+              elsif is_within_a_property_group && prefixed_fields.keys.include?(dependency)
+                dep_matches_field = true
+                sub_field_name = prefixed_fields[dependency]
               end
+            else
+              dep_matches_field = false
+            end
+            # dep_matches_field = (fields != true) && (fields[dependency] || (is_within_a_property_group && prefixed_fields.keys.include?(dependency)))
+            if fields.is_a?(Hash) && dep_matches_field
+              puts "MATCH: #{dependency} #{fields} [#{@field_node.path_name}]"
+              # We know this dependency matches a field ... so set it in the path in case it ends up
+              # being a property
+              @field_node = @field_node.add_field(sub_field_name) # Mark it as orig name
+              apply_dependency(dependency, fields[sub_field_name])
+              @field_node = @field_node.parent # restore the parent node since we're done with the sub field
+            else
+              puts "NOMATCH: #{dependency} #{fields} [#{@field_node.path_name}]"
+              apply_dependency(dependency)
             end
           end
         end
+
         head, *tail = resource.properties[name][:through]
         return if head.nil?
 

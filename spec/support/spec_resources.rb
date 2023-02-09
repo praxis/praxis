@@ -164,6 +164,9 @@ class SimpleResource < BaseResource
   property :sub_id, dependencies: [:sub_sub_id]
   property :sub_sub_id, dependencies: [:id]
 
+  property :agroup, dependencies: [:agroup_id, :name]
+  property :agroup_id, dependencies: [:id]
+
   before(:update!, :do_before_update)
   around(:update!, :do_around_update_nested)
   around(:update!, :do_around_update)

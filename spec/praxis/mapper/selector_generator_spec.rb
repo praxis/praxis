@@ -219,6 +219,33 @@ describe Praxis::Mapper::SelectorGenerator do
         it_behaves_like 'a proper selector'
       end
 
+      context 'a true substructure object without prefixing' do
+        let(:fields) do
+          {
+            agroup: {
+              id: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            columns: %i[id simple_name],
+            field_deps: {
+              agroup: {
+                # Note that all the 3 name dependencies are here at the top, because agroup depends on name
+                # If 'name' had been requested, they would be tucked into sub fields
+                _subtree_deps: %i[agroup agroup_id id name nested_name simple_name],
+                id: {
+                  _subtree_deps: %i[agroup_id id]
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
+
       context 'a property group substructure object', focus: true do
         let(:resource) { Resources::Book }
         let(:fields) do
@@ -238,7 +265,7 @@ describe Praxis::Mapper::SelectorGenerator do
             columns: %i[simple_name],
             field_deps: {
               grouped: {
-                _subtree_deps: %i[grouped name grouped_name nested_name simple_name],
+                _subtree_deps: %i[grouped name grouped_name nested_name simple_name grouped_id id],
                 name: {
                   _subtree_deps: %i[name grouped_name nested_name simple_name]
                 }

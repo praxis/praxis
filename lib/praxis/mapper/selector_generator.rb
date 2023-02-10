@@ -32,8 +32,9 @@ module Praxis
           if @fields.empty? #leaf node
             @deps.to_a
           else
-            @fields.transform_values do |node|
-              node.dump
+            @fields.each_with_object({}) do |(name,node), h|
+              dumped = node.dump
+              h[name] = dumped unless dumped.empty?
             end
           end
           # h = @deps.empty? ? {} : { _subtree_deps: @deps.to_a }
@@ -89,6 +90,9 @@ module Praxis
       end
 
       def add_association(name, fields)
+        puts "ASSOC: #{name} #{fields}"
+        # require 'pry'
+        # binding.pry
         association = resource.model._praxis_associations.fetch(name) do
           raise "missing association for #{resource} with name #{name}"
         end
@@ -124,30 +128,46 @@ module Praxis
       end
 
       def add_property(name, fields)
+        puts "PROP: #{name} #{fields}"
+        # require 'pry'
+        # binding.pry
         @field_node.add_dep(name) if fields == true # Only add dependencies for leaves
         dependencies = resource.properties[name][:dependencies]
+        property_processed = false
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
           aliased_as = resource.properties[name][:as]
-          if aliased_as == :self
-            # Special keyword to add itself as the association, but still continue procesing the fields
-            # This is useful when we expose resource fields tucked inside another sub-struct, this way
-            # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
-            copy = @field_node
-            add(fields)
-            @field_node = copy # restore the currently mapped property, cause 'add' will null it
-          else
-            first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
+          if aliased_as
+            if aliased_as == :self
+              # Special keyword to add itself as the association, but still continue procesing the fields
+              # This is useful when we expose resource fields tucked inside another sub-struct, this way
+              # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
+              copy = @field_node
+              add(fields)
+              @field_node = copy # restore the currently mapped property, cause 'add' will null it
+              property_processed = true
+            else
+              first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
 
-            extended_fields = \
-              if rest.empty?
-                fields
-              else
-                rest.reverse.inject(fields) do |accum, prop|
-                  { prop => accum }
+              extended_fields = \
+                if rest.empty?
+                  fields
+                else
+                  rest.reverse.inject(fields) do |accum, prop|
+                    { prop => accum }
+                  end
                 end
+              if resource.model._praxis_associations[first]
+                add_association(first, extended_fields) 
+                property_processed = true
               end
-            add_association(first, extended_fields) if resource.model._praxis_associations[first]
+            end
+          else
+            # Not aliased ... but if there is an existing association for the propety name, we add it
+            if resource.model._praxis_associations[name]
+              add_association(name, fields) 
+              property_processed = false
+            end
           end
         end
         is_within_a_property_group = fields != true #resource.property_groups[name]
@@ -159,34 +179,51 @@ module Praxis
               h["#{name}_#{k}".to_sym] = k # Prepend the group name to fields
             end
           end
-        dependencies&.each do |dependency|
-          # To detect recursion, let's allow mapping depending fields to the same name of the property
-          # but properly detecting if it's a real association...in which case we've already added it above
-          if dependency == name
-            add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
-          else
-            if fields.is_a?(Hash)
-              # Don't even bother adding the dependency if this is a subhash, and there's no match for it (conditional dependency)
-              if fields[dependency] 
-                dep_matches_field = true
-                sub_field_name = dependency
-              elsif is_within_a_property_group && prefixed_fields.keys.include?(dependency)
-                dep_matches_field = true
-                sub_field_name = prefixed_fields[dependency]
-              else
-                dep_matches_field = false
-              end
-              # dep_matches_field = (fields != true) && (fields[dependency] || (is_within_a_property_group && prefixed_fields.keys.include?(dependency)))
-              if dep_matches_field
-                # We know this dependency matches a field ... so set it in the path in case it ends up
-                # being a property
-                @field_node = @field_node.add_field(sub_field_name) # Mark it as orig name
-                apply_dependency(dependency, fields[sub_field_name])
-                @field_node = @field_node.parent # restore the parent node since we're done with the sub field
-              end
+        unless property_processed
+          #If it was an "as" association and we processed, we're gonna ignore the dependencies as they should have
+          # been processed within the context of the association
+          matched_sub_deps = 0
+          dependencies&.each do |dependency|
+            # To detect recursion, let's allow mapping depending fields to the same name of the property
+            # but properly detecting if it's a real association...in which case we've already added it above
+            if dependency == name
+              add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
             else
-              apply_dependency(dependency)
+              if fields.is_a?(Hash)
+                # Don't even bother adding the dependency if this is a subhash, and there's no match for it (conditional dependency)
+                if fields[dependency]
+                  # We could match an existing property without the prefix...but that might be weird if it
+                  # actually exists in the parent...maybe it is fine...? but need to think about it.
+                  dep_matches_field = true
+                  matched_sub_deps += 1
+                  sub_field_name = dependency
+                elsif is_within_a_property_group && prefixed_fields.keys.include?(dependency)
+                  dep_matches_field = true
+                  matched_sub_deps += 1
+                  sub_field_name = prefixed_fields[dependency]
+                else
+                  dep_matches_field = false
+                end
+                # dep_matches_field = (fields != true) && (fields[dependency] || (is_within_a_property_group && prefixed_fields.keys.include?(dependency)))
+                if dep_matches_field
+                  # We know this dependency matches a field ... so set it in the path in case it ends up
+                  # being a property
+                  @field_node = @field_node.add_field(sub_field_name) # Mark it as orig name
+                  apply_dependency(dependency, fields[sub_field_name])
+                  @field_node = @field_node.parent # restore the parent node since we're done with the sub field
+                else
+                  # Uncommenting this fixes the spec: 
+                  #       context 'Aliased resources disregard any nested fields...' do
+                  # But really, we want to avoid other dependencies slipping through a subhash
+                  # Maybe we need to figure out how to discard the hash earlier...or perhaps we do not allow 
+                  # the spec case of being able to pass in a subhash without having matching subkeys (either we try to match or we don't)?
+                  # apply_dependency(dependency) # Nothing was matched...let's simply apply the dep without fields
+                end
+              else
+                apply_dependency(dependency)
+              end
             end
+            puts "Discarded all dependencies cause no matching prefixed properties!!!!" if matched_sub_deps == 0 && fields.is_a?(Hash)
           end
         end
 
@@ -208,7 +245,7 @@ module Praxis
           head, *tail = dependency.split('.').collect(&:to_sym)
           raise 'String dependencies can not be singular' if tail.nil?
 
-          add_association(head, tail.reverse.inject({}) { |hash, dep| { dep => hash } })
+          add_association(head, tail.reverse.inject(true) { |hash, dep| { dep => hash } })
         end
       end
 

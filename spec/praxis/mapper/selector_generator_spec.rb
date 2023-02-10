@@ -10,8 +10,9 @@ describe Praxis::Mapper::SelectorGenerator do
     let(:resource) { SimpleResource }
     shared_examples 'a proper selector' do
       it { 
-        puts JSON.pretty_generate(generator.add(resource, fields).selectors.dump)
-        expect(generator.add(resource, fields).selectors.dump).to be_deep_equal selectors
+        dumped = generator.add(resource, fields).selectors.dump
+        puts JSON.pretty_generate(dumped)
+        expect(dumped).to be_deep_equal selectors
       }
     end
 
@@ -23,8 +24,8 @@ describe Praxis::Mapper::SelectorGenerator do
             model: SimpleModel,
             columns: %i[id foobar],
             field_deps: {
-              id: { _subtree_deps: %i[id]},
-              foobar: { _subtree_deps: %i[foobar]}
+              id: %i[id],
+              foobar: %i[foobar]
             }
           }
         end
@@ -38,8 +39,8 @@ describe Praxis::Mapper::SelectorGenerator do
             model: SimpleModel,
             columns: %i[id simple_name],
             field_deps: {
-              id: { _subtree_deps: %i[id]},
-              name: { _subtree_deps: %i[name nested_name simple_name] }
+              id: %i[id],
+              name: %i[name nested_name simple_name]
             }
           }
         end
@@ -53,14 +54,14 @@ describe Praxis::Mapper::SelectorGenerator do
             model: SimpleModel,
             columns: [:other_model_id], # FK of the other_model association
             field_deps: {
-              other_model: { _subtree_deps: %i[other_model_id] }
+              other_model: %i[other_model_id]
             },
             tracks: {
               other_model: {
                 columns: [:id], # joining key for the association
                 model: OtherModel,
                 field_deps: {
-                  id: { _subtree_deps: %i[id] }
+                  id: %i[id]
                 }
               }
             }
@@ -76,14 +77,14 @@ describe Praxis::Mapper::SelectorGenerator do
             model: SimpleModel,
             columns: [:other_model_id], # FK of the other_model association
             field_deps: {
-              other_resource: { _subtree_deps: %i[other_resource other_model_id] }
+              other_resource:%i[other_resource other_model_id]
             },
             tracks: {
               other_model: {
                 columns: [:id], # joining key for the association
                 model: OtherModel,
                 field_deps: {
-                  id: { _subtree_deps: %i[id] }
+                  id: %i[id]
                 }
               }
             }
@@ -102,7 +103,7 @@ describe Praxis::Mapper::SelectorGenerator do
             },
             tracks: {
               other_model: {
-                columns: [:id], # joining key for the association
+                columns: [:id], # joining key for the association 
                 model: OtherModel,
                 field_deps: {
                   id: %i[id]
@@ -224,7 +225,7 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: %i[id],
+            columns: %i[id], # No name of any sort processed here, despite :name being a dep for agroup
             field_deps: {
               agroup: {
                 id: %i[agroup_id id]
@@ -235,25 +236,61 @@ describe Praxis::Mapper::SelectorGenerator do
         it_behaves_like 'a proper selector'
       end
 
-      # PROPERLY FIXED WITHOUR THE ROLLUP AND CONDITIONAL PATHING
-      context 'a property group substructure object', focus: true do
+      context 'a property group substructure object, but asking only 1 of the subfields' do
         let(:resource) { Resources::Book }
         let(:fields) do
           {
             grouped: {
               # id: true,
               name: true,
+              # moar_tags
             }
           }
         end
         let(:selectors) do
           {
             model: ::ActiveBook,
-            columns: %i[simple_name],
+            # No tags or tag tracking, despite the grouped prop has that dependency (but we didn't ask for it)
+            columns: %i[simple_name], 
             field_deps: {
               grouped: {
                 name: %i[name grouped_name nested_name simple_name]
                 # NO id or group_id or tags of any sort should be traversed and appear, as we didn't ask for them
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
+      context 'a property group substructure object, but asking only a subset of fields (including an association)' do
+        let(:resource) { Resources::Book }
+        let(:fields) do
+          {
+            grouped: {
+              id: true,
+              #name: true,
+              moar_tags: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: ::ActiveBook,
+            # No tags or tag tracking, despite the grouped prop has that dependency (but we didn't ask for it)
+            columns: %i[id],
+            field_deps: {
+              grouped: {
+                id: %i[grouped_id id],
+                moar_tags: %i[grouped_moar_tags id]
+              }
+            },
+            tracks: {
+              tags: {
+                model: ActiveTag,
+                columns: [:id],
+                field_deps: {
+                  id: %i[id]
+                }
               }
             }
           }
@@ -292,29 +329,18 @@ describe Praxis::Mapper::SelectorGenerator do
         it_behaves_like 'a proper selector'
       end
 
-      context 'Aliased resources disregard any nested fields...' do
+      context 'Aliased resources disregard any nested fields...if they do not match a prefixed prop' do
         let(:fields) do
           {
             other_resource: {
-              id: true
+              display_name: true # Does not match any prop with 'other_resource_display_name' So no deps processed!
             }
           }
         end
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: [:other_model_id],
             field_deps: {
-              other_resource: %i[other_resource other_model_id]
-            },
-            tracks: {
-              other_model: {
-                model: OtherModel,
-                columns: [:id],
-                field_deps: {
-                  id: %i[id]
-                }
-              }
             }
           }
         end
@@ -335,10 +361,12 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: %i[parent_id added_column],
+            # columns: %i[parent_id added_column], #TODO: added_column is discarded when there's childen...is that right if it's an inner relationship? Perhaps...
+            columns: %i[parent_id],
             field_deps: {
               everything_from_parent: %i[everything_from_parent parent_id],
-              parent: %i[parent added_column parent_id]
+              # parent: %i[parent parent_id]
+              parent: %i[parent_id]
             },
             tracks: {
               parent: {
@@ -373,10 +401,13 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: %i[other_model_id parent_id simple_name],
+            # columns: %i[other_model_id parent_id simple_name], NO, display_name is only processed in the aliased association!
+            columns: %i[other_model_id parent_id],
             field_deps: {
               parent_id: %i[parent_id],
-              aliased_association: %i[aliased_association other_model_id name nested_name simple_name]
+              # aliased_association: %i[aliased_association other_model_id name nested_name simple_name] NO! it is an association!
+              # TODO: the aliased association...should be here? or not?...good question
+              aliased_association: %i[other_model_id]
             },
             tracks: {
               other_model: {
@@ -404,10 +435,10 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: %i[parent_id simple_name], # No added_column, as it does not follow the dotted reference as properties, just associations
+            columns: %i[parent_id],
             field_deps: {
               parent_id: %i[parent_id],
-              deep_aliased_association: %i[deep_aliased_association parent_id name nested_name simple_name]
+              deep_aliased_association: %i[parent_id]
             },
             tracks: {
               parent: {
@@ -438,7 +469,7 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             parent_id: true,
             sub_struct: {
-              display_name: true
+              name: true
             }
           }
         end
@@ -446,12 +477,13 @@ describe Praxis::Mapper::SelectorGenerator do
           {
             model: SimpleModel,
             # Parent_id is because we asked for it at the top
-            # display_name because we asked for it under sub_struct, but it is marked as :self
-            # alway_necessary_attribute because it is a dependency of sub_struct
-            columns: %i[parent_id display_name alway_necessary_attribute],
+            # simple_name because we asked for it under sub_struct, but it is marked as :self
+            columns: %i[parent_id simple_name],
             field_deps: {
               parent_id: %i[parent_id],
-              sub_struct: %i[sub_struct alway_necessary_attribute display_name]
+              sub_struct: {
+                name: %i[name nested_name simple_name]
+              }
             }
           }
         end

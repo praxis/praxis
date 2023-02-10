@@ -83,10 +83,15 @@ module Praxis
         end
       end
 
-      # The `as:` can be used for properties that correspond to an underlying association of a different name. With this the selector generator, is able to not only add
-      # any extra dependencies needed for the property, but it also follow and pass any incoming nested fields when necessary (as opposed to only add dependencies and discard nested fields)
-      def self.property(name, dependencies: nil, through: nil, as: name) # rubocop:disable Naming/MethodParameterName
-        properties[name] = { dependencies: dependencies, through: through, as: as }
+      # The `as:` can be used for properties that correspond to an underlying association of a different name. With this the selector generator, is able to
+      # follow and pass any incoming nested fields when necessary (as opposed to only add dependencies and discard nested fields)
+      def self.property(name, dependencies: nil, through: nil, as: nil) # rubocop:disable Naming/MethodParameterName
+        h = { dependencies: dependencies, through: through }
+        if as
+          raise 'Cannot use dependencies for a property when using the "as:" keyword' if dependencies.presence
+          h.merge!({ as: as })
+        end
+        properties[name] = h
       end
 
       # Saves the name of the group, and the associated mediatype where the group attributes are defined at

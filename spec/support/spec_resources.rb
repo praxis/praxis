@@ -153,13 +153,13 @@ class SimpleResource < BaseResource
   property :no_deps, dependencies: []
 
   property :deep_nested_deps, dependencies: ['parent.simple_children.other_model.parent.display_name']
-  property :aliased_association, as: :other_model, dependencies: [:name]
-  property :overriden_aliased_association, as: :other_model, dependencies: [:name]
-  property :deep_aliased_association, as: 'parent.simple_children' , dependencies: [:name]
+  property :aliased_association, as: :other_model
+  property :overriden_aliased_association, as: :other_model
+  property :deep_aliased_association, as: 'parent.simple_children'
 
-  property :sub_struct, as: :self, dependencies: [:alway_necessary_attribute]
-  
-  property :true_struct, dependencies: [:alway_necessary_attribute, :name, :sub_id]
+  property :sub_struct, as: :self
+
+  property :true_struct, dependencies: [:name, :sub_id]
   # property :true_struct, dependencies: [:sub_id]
   property :sub_id, dependencies: [:sub_sub_id]
   property :sub_sub_id, dependencies: [:id]

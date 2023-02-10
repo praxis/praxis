@@ -71,7 +71,7 @@ module Praxis
           filters = request.params.filters if request.params.respond_to?(:filters)
           # Handle filters
           base_query = domain_model.craft_filter_query(base_query, filters: filters)
-          
+
           # Handle field and nested field selection
           # Ensure we have the order terms represented by either the fields, or the filters...
           # order_specs = _pagination.order&.items || []

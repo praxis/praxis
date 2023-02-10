@@ -36,9 +36,6 @@ module Resources
       name
     end
 
-    property :grouped_moar_tags, dependencies: [:tags]
-    def grouped_moar_tags
-      tags
-    end
+    property :grouped_moar_tags, as: :tags
   end
 end

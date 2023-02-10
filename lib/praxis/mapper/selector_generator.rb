@@ -79,6 +79,9 @@ module Praxis
       end
 
       def map_property(name, fields)
+        puts "PROP #{name} -> FIELDS: #{fields == true ? 'ALL' : fields.keys}"
+        # require 'pry'
+        # binding.pry
         praxis_compat_model = resource.model&.respond_to?(:_praxis_associations)
         if resource.properties.key?(name)
           add_property(name, fields)
@@ -90,9 +93,6 @@ module Praxis
       end
 
       def add_association(name, fields)
-        puts "ASSOC: #{name} #{fields}"
-        # require 'pry'
-        # binding.pry
         association = resource.model._praxis_associations.fetch(name) do
           raise "missing association for #{resource} with name #{name}"
         end
@@ -128,9 +128,6 @@ module Praxis
       end
 
       def add_property(name, fields)
-        puts "PROP: #{name} #{fields}"
-        # require 'pry'
-        # binding.pry
         @field_node.add_dep(name) if fields == true # Only add dependencies for leaves
         dependencies = resource.properties[name][:dependencies]
         property_processed = false
@@ -182,7 +179,8 @@ module Praxis
         unless property_processed
           #If it was an "as" association and we processed, we're gonna ignore the dependencies as they should have
           # been processed within the context of the association
-          matched_sub_deps = 0
+          matched_fields = []
+          matched_deps = []
           dependencies&.each do |dependency|
             # To detect recursion, let's allow mapping depending fields to the same name of the property
             # but properly detecting if it's a real association...in which case we've already added it above
@@ -190,17 +188,19 @@ module Praxis
               add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
             else
               if fields.is_a?(Hash)
-                # Don't even bother adding the dependency if this is a subhash, and there's no match for it (conditional dependency)
-                if fields[dependency]
+                # Let's try to match the prefixed one first (we don't want to pickup the direct name one, if there's a prefixed setup for it)
+                if is_within_a_property_group && prefixed_fields.keys.include?(dependency)
+                  dep_matches_field = true
+                  sub_field_name = prefixed_fields[dependency]
+                  matched_fields.push(sub_field_name)
+                  matched_deps.push(dependency)
+                elsif fields[dependency]
                   # We could match an existing property without the prefix...but that might be weird if it
                   # actually exists in the parent...maybe it is fine...? but need to think about it.
                   dep_matches_field = true
-                  matched_sub_deps += 1
                   sub_field_name = dependency
-                elsif is_within_a_property_group && prefixed_fields.keys.include?(dependency)
-                  dep_matches_field = true
-                  matched_sub_deps += 1
-                  sub_field_name = prefixed_fields[dependency]
+                  matched_fields.push(sub_field_name)
+                  matched_deps.push(dependency)
                 else
                   dep_matches_field = false
                 end
@@ -212,18 +212,26 @@ module Praxis
                   apply_dependency(dependency, fields[sub_field_name])
                   @field_node = @field_node.parent # restore the parent node since we're done with the sub field
                 else
-                  # Uncommenting this fixes the spec: 
-                  #       context 'Aliased resources disregard any nested fields...' do
-                  # But really, we want to avoid other dependencies slipping through a subhash
-                  # Maybe we need to figure out how to discard the hash earlier...or perhaps we do not allow 
-                  # the spec case of being able to pass in a subhash without having matching subkeys (either we try to match or we don't)?
-                  # apply_dependency(dependency) # Nothing was matched...let's simply apply the dep without fields
+                  # Don't even bother adding the dependency if this is a subhash, and there's no match for it (conditional dependency)
                 end
               else
                 apply_dependency(dependency)
               end
             end
-            puts "Discarded all dependencies cause no matching prefixed properties!!!!" if matched_sub_deps == 0 && fields.is_a?(Hash)
+          end
+          if dependencies && fields.is_a?(Hash) && fields.size > matched_fields.size
+            puts "Discarded all dependencies cause no matching prefixed properties!!!! (FIELDS: #{fields.keys}) -> MATCHED: #{matched_fields}" 
+            # NOTE: We could add a field to enable/raise when this happens...this will make sure all props are processed when
+            # not all of the subfields are matched
+            begin
+              (dependencies - matched_deps).each do |dep|
+                apply_dependency(dep)
+              end
+            rescue => e
+              require 'pry'
+              binding.pry
+              puts 'asdfa'
+            end
           end
         end
 
@@ -287,6 +295,8 @@ module Praxis
         @root = SelectorGeneratorNode.new(resource)
         @root.add(fields)
         # @root.rollup_deps
+        # require 'pry'
+        # binding.pry
         self
       end
 

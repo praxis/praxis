@@ -89,6 +89,7 @@ module Praxis
         h = { dependencies: dependencies, through: through }
         if as
           raise 'Cannot use dependencies for a property when using the "as:" keyword' if dependencies.presence
+
           h.merge!({ as: as })
         end
         properties[name] = h
@@ -163,7 +164,8 @@ module Praxis
       end
 
       def self.define_aliased_methods
-        with_different_alias_name = properties.reject { |name, opts| name == opts[:as] }
+        with_different_alias_name = properties.reject { |name, opts| name == opts[:as] || opts[:as].nil? }
+
         with_different_alias_name.each do |prop_name, opts|
           next if instance_methods.include? prop_name
 

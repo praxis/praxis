@@ -276,7 +276,7 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: ::ActiveBook,
-            # No tags or tag tracking, despite the grouped prop has that dependency (but we didn't ask for it)
+            # No name type columns or fields as we haven't asked for it
             columns: %i[id],
             field_deps: {
               grouped: {
@@ -290,6 +290,47 @@ describe Praxis::Mapper::SelectorGenerator do
                 columns: [:id],
                 field_deps: {
                   id: %i[id]
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
+
+      context 'a property group substructure object, but asking only a subset of fields, going deep in an association' do
+        let(:resource) { Resources::Book }
+        let(:fields) do
+          {
+            grouped: {
+              id: true,
+              #name: true,
+              moar_tags: {
+                name: true,
+                label: true
+              }
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: ::ActiveBook,
+            # No name type columns or fields as we haven't asked for it
+            columns: %i[id],
+            field_deps: {
+              grouped: {
+                id: %i[grouped_id id],
+                moar_tags: %i[id]
+              }
+            },
+            tracks: {
+              tags: {
+                model: ActiveTag,
+                columns: %i[id name label],
+                field_deps: {
+                  id: %i[id],
+                  name: %i[name],
+                  label: %i[label]
                 }
               }
             }

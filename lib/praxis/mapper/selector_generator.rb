@@ -79,7 +79,7 @@ module Praxis
       end
 
       def map_property(name, fields)
-        puts "PROP #{name} -> FIELDS: #{fields == true ? 'ALL' : fields.keys}"
+        # puts "PROP #{name} -> FIELDS: #{fields == true ? 'ALL' : fields.keys}"
         # require 'pry'
         # binding.pry
         praxis_compat_model = resource.model&.respond_to?(:_praxis_associations)
@@ -127,6 +127,50 @@ module Praxis
         @select.add name
       end
 
+def ORIG_add_property(name, fields)
+  dependencies = resource.properties[name][:dependencies]
+  # Always add the underlying association if we're overriding the name...
+  if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
+    aliased_as = resource.properties[name][:as]
+    if aliased_as == :self
+      # Special keyword to add itself as the association, but still continue procesing the fields
+      # This is useful when we expose resource fields tucked inside another sub-struct, this way
+      # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
+      add(fields)
+    else
+      first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
+
+      extended_fields = \
+        if rest.empty?
+          fields
+        else
+          rest.reverse.inject(fields) do |accum, prop|
+            { prop => accum }
+          end
+        end
+      add_association(first, extended_fields) if resource.model._praxis_associations[first]
+    end
+  end
+  dependencies&.each do |dependency|
+    # To detect recursion, let's allow mapping depending fields to the same name of the property
+    # but properly detecting if it's a real association...in which case we've already added it above
+    if dependency == name
+      add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
+    else
+      apply_dependency(dependency)
+    end
+  end
+
+  head, *tail = resource.properties[name][:through]
+  return if head.nil?
+
+  new_fields = tail.reverse.inject(fields) do |thing, step|
+    { step => thing }
+  end
+
+  add_association(head, new_fields)
+end
+
       def add_property(name, fields)
         @field_node.add_dep(name) if fields == true # Only add dependencies for leaves
         dependencies = resource.properties[name][:dependencies]
@@ -167,70 +211,90 @@ module Praxis
             end
           end
         end
-        is_within_a_property_group = fields != true #resource.property_groups[name]
-        prefixed_fields = \
-          if fields == true
-            {}
-          else
-            fields.keys.each_with_object({}) do |k,h|
-              h["#{name}_#{k}".to_sym] = k # Prepend the group name to fields
+        # If we have a property group, and the subfields want to selectively restrict what to depend on
+        if fields != true && resource.property_groups[name]
+          prefixed_fields = \
+            if fields == true
+              {}
+            else
+              fields.keys.each_with_object({}) do |k,h|
+                h["#{name}_#{k}".to_sym] = k # Prepend the group name to fields
+              end
+            end
+
+          # Try to match all inner fields
+          prefixed_fields.each do |prefixedname, origfieldname|
+            if dependencies.include?(prefixedname)
+              # Match!
+              @field_node = @field_node.add_field(origfieldname) # Mark it as orig name
+              apply_dependency(prefixedname, fields[origfieldname])
+              @field_node = @field_node.parent # restore the parent node since we're done with the sub field
             end
           end
-        unless property_processed
           #If it was an "as" association and we processed, we're gonna ignore the dependencies as they should have
           # been processed within the context of the association
-          matched_fields = []
-          matched_deps = []
+          # matched_fields = []
+          # matched_deps = []
+          # dependencies&.each do |dependency|
+          #   # To detect recursion, let's allow mapping depending fields to the same name of the property
+          #   # but properly detecting if it's a real association...in which case we've already added it above
+          #   if dependency == name
+          #     add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name) #????
+          #   else
+          #     if fields.is_a?(Hash)
+          #       # Let's try to match the prefixed one first (we don't want to pickup the direct name one, if there's a prefixed setup for it)
+          #       if is_within_a_property_group && prefixed_fields.keys.include?(dependency)
+          #         dep_matches_field = true
+          #         sub_field_name = prefixed_fields[dependency]
+          #         matched_fields.push(sub_field_name)
+          #         matched_deps.push(dependency)
+          #       elsif fields[dependency]
+          #         # We could match an existing property without the prefix...but that might be weird if it
+          #         # actually exists in the parent...maybe it is fine...? but need to think about it.
+          #         dep_matches_field = true
+          #         sub_field_name = dependency
+          #         matched_fields.push(sub_field_name)
+          #         matched_deps.push(dependency)
+          #       else
+          #         dep_matches_field = false
+          #       end
+          #       # dep_matches_field = (fields != true) && (fields[dependency] || (is_within_a_property_group && prefixed_fields.keys.include?(dependency)))
+          #       if dep_matches_field
+          #         # We know this dependency matches a field ... so set it in the path in case it ends up
+          #         # being a property
+          #         @field_node = @field_node.add_field(sub_field_name) # Mark it as orig name
+          #         apply_dependency(dependency, fields[sub_field_name])
+          #         @field_node = @field_node.parent # restore the parent node since we're done with the sub field
+          #       else
+          #         # Don't even bother adding the dependency if this is a subhash, and there's no match for it (conditional dependency)
+          #       end
+          #     else
+          #       apply_dependency(dependency)
+          #     end
+          #   end
+          #   if dependencies && fields.is_a?(Hash) && fields.size > matched_fields.size
+          #     puts "Discarded all dependencies cause no matching prefixed properties!!!! (FIELDS: #{fields.keys}) -> MATCHED: #{matched_fields}" 
+          #     # NOTE: We could add a field to enable/raise when this happens...this will make sure all props are processed when
+          #     # not all of the subfields are matched
+          #     begin
+          #       (dependencies - matched_deps).each do |dep|
+          #         apply_dependency(dep)
+          #       end
+          #     rescue => e
+          #       require 'pry'
+          #       binding.pry
+          #       puts 'asdfa'
+          #     end
+          #   end
+          # end
+        else # ORIG CODE : process all dependencies
           dependencies&.each do |dependency|
             # To detect recursion, let's allow mapping depending fields to the same name of the property
             # but properly detecting if it's a real association...in which case we've already added it above
             if dependency == name
               add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
             else
-              if fields.is_a?(Hash)
-                # Let's try to match the prefixed one first (we don't want to pickup the direct name one, if there's a prefixed setup for it)
-                if is_within_a_property_group && prefixed_fields.keys.include?(dependency)
-                  dep_matches_field = true
-                  sub_field_name = prefixed_fields[dependency]
-                  matched_fields.push(sub_field_name)
-                  matched_deps.push(dependency)
-                elsif fields[dependency]
-                  # We could match an existing property without the prefix...but that might be weird if it
-                  # actually exists in the parent...maybe it is fine...? but need to think about it.
-                  dep_matches_field = true
-                  sub_field_name = dependency
-                  matched_fields.push(sub_field_name)
-                  matched_deps.push(dependency)
-                else
-                  dep_matches_field = false
-                end
-                # dep_matches_field = (fields != true) && (fields[dependency] || (is_within_a_property_group && prefixed_fields.keys.include?(dependency)))
-                if dep_matches_field
-                  # We know this dependency matches a field ... so set it in the path in case it ends up
-                  # being a property
-                  @field_node = @field_node.add_field(sub_field_name) # Mark it as orig name
-                  apply_dependency(dependency, fields[sub_field_name])
-                  @field_node = @field_node.parent # restore the parent node since we're done with the sub field
-                else
-                  # Don't even bother adding the dependency if this is a subhash, and there's no match for it (conditional dependency)
-                end
-              else
-                apply_dependency(dependency)
-              end
-            end
-          end
-          if dependencies && fields.is_a?(Hash) && fields.size > matched_fields.size
-            puts "Discarded all dependencies cause no matching prefixed properties!!!! (FIELDS: #{fields.keys}) -> MATCHED: #{matched_fields}" 
-            # NOTE: We could add a field to enable/raise when this happens...this will make sure all props are processed when
-            # not all of the subfields are matched
-            begin
-              (dependencies - matched_deps).each do |dep|
-                apply_dependency(dep)
-              end
-            rescue => e
-              require 'pry'
-              binding.pry
-              puts 'asdfa'
+              apply_dependency(dependency)
             end
           end
         end

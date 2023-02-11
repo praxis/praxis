@@ -180,14 +180,11 @@ describe Praxis::Mapper::SelectorGenerator do
       end
 
       context 'a true substructure object' do
-        # This assumes that the properties are properly prefixed from the struct
-        # For nicer naming, use a property group where these prefixed properties will be
-        # done automatically AND the generator will try to find them as such
-        # NOTE: We could probably try to do that for real structs as well...not necessarily groups
+        # once we hit true_struct, we know it is not a property group, so we'll bring ALL the inner dependencies
+        # even if the fields required are only a subset of it
         let(:fields) do
           {
             true_struct: {
-              name: true,
               sub_id: {
                 sub_sub_id: true
               }
@@ -202,19 +199,14 @@ describe Praxis::Mapper::SelectorGenerator do
             # alway_necessary_attribute because it is a dependency of sub_struct
             columns: %i[simple_name id],
             field_deps: {
-              true_struct: {
-                name: %i[name nested_name simple_name],
-                sub_id: {
-                  sub_sub_id: %i[sub_sub_id id]
-                }
-              }
+              true_struct: %i[name nested_name simple_name sub_id sub_sub_id id] 
             }
           }
         end
         it_behaves_like 'a proper selector'
       end
 
-      context 'a true substructure object without prefixing' do
+      context 'a true substructure object trying to prefix like a property group (is still treated as a struct loading it all)' do
         let(:fields) do
           {
             agroup: {
@@ -225,11 +217,9 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            columns: %i[id], # No name of any sort processed here, despite :name being a dep for agroup
+            columns: %i[id simple_name], # No name of any sort processed here, despite :name being a dep for agroup
             field_deps: {
-              agroup: {
-                id: %i[agroup_id id]
-              }
+              agroup: %i[agroup_id id agroup_name name nested_name simple_name]
             }
           }
         end
@@ -370,7 +360,7 @@ describe Praxis::Mapper::SelectorGenerator do
         it_behaves_like 'a proper selector'
       end
 
-      context 'Aliased resources disregard any nested fields...if they do not match a prefixed prop' do
+      context 'Aliased resources disregard any nested fields' do
         let(:fields) do
           {
             other_resource: {
@@ -381,7 +371,18 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
+            columns: %i[other_model_id],
             field_deps: {
+              other_resource: %i[other_model_id]
+            },
+            tracks: {
+              other_model: {
+                model: OtherModel,
+                columns: [:id],
+                field_deps: {
+                  id: %i[id]
+                }
+              }
             }
           }
         end
@@ -402,12 +403,10 @@ describe Praxis::Mapper::SelectorGenerator do
         let(:selectors) do
           {
             model: SimpleModel,
-            # columns: %i[parent_id added_column], #TODO: added_column is discarded when there's childen...is that right if it's an inner relationship? Perhaps...
-            columns: %i[parent_id],
+            columns: %i[parent_id added_column],
             field_deps: {
               everything_from_parent: %i[everything_from_parent parent_id],
-              # parent: %i[parent parent_id]
-              parent: %i[parent_id]
+              parent: %i[parent_id added_column]
             },
             tracks: {
               parent: {

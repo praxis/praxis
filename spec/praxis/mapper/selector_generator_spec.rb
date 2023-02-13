@@ -9,11 +9,10 @@ describe Praxis::Mapper::SelectorGenerator do
   context '#add' do
     let(:resource) { SimpleResource }
     shared_examples 'a proper selector' do
-      it { 
+      it do
         dumped = generator.add(resource, fields).selectors.dump
-        puts JSON.pretty_generate(dumped)
         expect(dumped).to be_deep_equal selectors
-      }
+      end
     end
 
     context 'basic combos' do

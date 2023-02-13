@@ -147,6 +147,11 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
           it_behaves_like 'sorts_the_same', '-writer.display_name,author.id,',
                           ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc, 'active_authors.id': :asc)
         end
+        context 'of deep associations' do
+          it_behaves_like 'sorts_the_same', '-writer.books.name,author.id',
+                          ::ActiveBook.joins(author: :books).references(:author, 'books_active_authors')
+                                      .order('books_active_authors.simple_name': :desc, 'active_authors.id': :asc)
+        end
       end
     end
   end

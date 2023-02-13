@@ -15,11 +15,6 @@ module Praxis
           @deps = Set.new
         end
 
-        def path_name
-          return name if parent.nil?
-          "#{parent.path_name}.#{name}"
-        end
-
         def add_field(name)
           @fields[name] = FieldDependenciesNode.new(name: name, parent: self)
         end
@@ -28,8 +23,9 @@ module Praxis
           @deps.add dep_name
         end
 
+        # For spec/debugging purposes only
         def dump
-          if @fields.empty? #leaf node
+          if @fields.empty? # leaf node
             @deps.to_a
           else
             @fields.each_with_object({}) do |(name,node), h|
@@ -37,36 +33,15 @@ module Praxis
               h[name] = dumped unless dumped.empty?
             end
           end
-          # h = @deps.empty? ? {} : { _subtree_deps: @deps.to_a }
-          # @fields.each do |name, node|
-          #   h[name] = node.dump
-          # end
-          # h
-        end
-
-        def rollup
-          return if @fields.empty?
-
-          @fields.each do |_name, node|
-            # Force rollup downstream
-            node.rollup
-            # No need to rollup to the root node (there no field for the 'top')
-            @deps.merge(node.deps) unless parent.nil?
-          end
         end
       end
 
       def initialize(resource)
         @resource = resource
-
         @select = Set.new
         @select_star = false
         @tracks = {}
         @field_node = FieldDependenciesNode.new
-      end
-
-      def rollup_deps
-        @field_node.rollup
       end
 
       def add(fields)
@@ -79,9 +54,6 @@ module Praxis
       end
 
       def map_property(name, fields)
-        # puts "PROP #{name} -> FIELDS: #{fields == true ? 'ALL' : fields.keys}"
-        # require 'pry'
-        # binding.pry
         praxis_compat_model = resource.model&.respond_to?(:_praxis_associations)
         if resource.properties.key?(name)
           add_property(name, fields)
@@ -127,54 +99,9 @@ module Praxis
         @select.add name
       end
 
-def ORIG_add_property(name, fields)
-  dependencies = resource.properties[name][:dependencies]
-  # Always add the underlying association if we're overriding the name...
-  if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
-    aliased_as = resource.properties[name][:as]
-    if aliased_as == :self
-      # Special keyword to add itself as the association, but still continue procesing the fields
-      # This is useful when we expose resource fields tucked inside another sub-struct, this way
-      # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
-      add(fields)
-    else
-      first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
-
-      extended_fields = \
-        if rest.empty?
-          fields
-        else
-          rest.reverse.inject(fields) do |accum, prop|
-            { prop => accum }
-          end
-        end
-      add_association(first, extended_fields) if resource.model._praxis_associations[first]
-    end
-  end
-  dependencies&.each do |dependency|
-    # To detect recursion, let's allow mapping depending fields to the same name of the property
-    # but properly detecting if it's a real association...in which case we've already added it above
-    if dependency == name
-      add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
-    else
-      apply_dependency(dependency)
-    end
-  end
-
-  head, *tail = resource.properties[name][:through]
-  return if head.nil?
-
-  new_fields = tail.reverse.inject(fields) do |thing, step|
-    { step => thing }
-  end
-
-  add_association(head, new_fields)
-end
-
       def add_property(name, fields)
         @field_node.add_dep(name) if fields == true # Only add dependencies for leaves
         dependencies = resource.properties[name][:dependencies]
-        property_processed = false
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
           aliased_as = resource.properties[name][:as]
@@ -186,7 +113,6 @@ end
               copy = @field_node
               add(fields)
               @field_node = copy # restore the currently mapped property, cause 'add' will null it
-              property_processed = true
             else
               first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
 
@@ -198,96 +124,26 @@ end
                     { prop => accum }
                   end
                 end
-              if resource.model._praxis_associations[first]
-                add_association(first, extended_fields) 
-                property_processed = true
-              end
+              add_association(first, extended_fields) if resource.model._praxis_associations[first]
             end
-          else
+          elsif resource.model._praxis_associations[name]
             # Not aliased ... but if there is an existing association for the propety name, we add it
-            if resource.model._praxis_associations[name]
-              add_association(name, fields) 
-              property_processed = false
-            end
+            add_association(name, fields)
           end
         end
         # If we have a property group, and the subfields want to selectively restrict what to depend on
         if fields != true && resource.property_groups[name]
-          prefixed_fields = \
-            if fields == true
-              {}
-            else
-              fields.keys.each_with_object({}) do |k,h|
-                h["#{name}_#{k}".to_sym] = k # Prepend the group name to fields
-              end
-            end
-
+          # Prepend the group name to fields if it's an inner hash
+          prefixed_fields = fields == true ? {} : fields.keys.each_with_object({}) {|k,h| h["#{name}_#{k}".to_sym] = k }
           # Try to match all inner fields
           prefixed_fields.each do |prefixedname, origfieldname|
-            if dependencies.include?(prefixedname)
-              # Match!
-              @field_node = @field_node.add_field(origfieldname) # Mark it as orig name
-              apply_dependency(prefixedname, fields[origfieldname])
-              @field_node = @field_node.parent # restore the parent node since we're done with the sub field
-            end
+            next unless dependencies.include?(prefixedname)
+
+            @field_node = @field_node.add_field(origfieldname) # Mark it as orig name
+            apply_dependency(prefixedname, fields[origfieldname])
+            @field_node = @field_node.parent # restore the parent node since we're done with the sub field
           end
-          #If it was an "as" association and we processed, we're gonna ignore the dependencies as they should have
-          # been processed within the context of the association
-          # matched_fields = []
-          # matched_deps = []
-          # dependencies&.each do |dependency|
-          #   # To detect recursion, let's allow mapping depending fields to the same name of the property
-          #   # but properly detecting if it's a real association...in which case we've already added it above
-          #   if dependency == name
-          #     add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name) #????
-          #   else
-          #     if fields.is_a?(Hash)
-          #       # Let's try to match the prefixed one first (we don't want to pickup the direct name one, if there's a prefixed setup for it)
-          #       if is_within_a_property_group && prefixed_fields.keys.include?(dependency)
-          #         dep_matches_field = true
-          #         sub_field_name = prefixed_fields[dependency]
-          #         matched_fields.push(sub_field_name)
-          #         matched_deps.push(dependency)
-          #       elsif fields[dependency]
-          #         # We could match an existing property without the prefix...but that might be weird if it
-          #         # actually exists in the parent...maybe it is fine...? but need to think about it.
-          #         dep_matches_field = true
-          #         sub_field_name = dependency
-          #         matched_fields.push(sub_field_name)
-          #         matched_deps.push(dependency)
-          #       else
-          #         dep_matches_field = false
-          #       end
-          #       # dep_matches_field = (fields != true) && (fields[dependency] || (is_within_a_property_group && prefixed_fields.keys.include?(dependency)))
-          #       if dep_matches_field
-          #         # We know this dependency matches a field ... so set it in the path in case it ends up
-          #         # being a property
-          #         @field_node = @field_node.add_field(sub_field_name) # Mark it as orig name
-          #         apply_dependency(dependency, fields[sub_field_name])
-          #         @field_node = @field_node.parent # restore the parent node since we're done with the sub field
-          #       else
-          #         # Don't even bother adding the dependency if this is a subhash, and there's no match for it (conditional dependency)
-          #       end
-          #     else
-          #       apply_dependency(dependency)
-          #     end
-          #   end
-          #   if dependencies && fields.is_a?(Hash) && fields.size > matched_fields.size
-          #     puts "Discarded all dependencies cause no matching prefixed properties!!!! (FIELDS: #{fields.keys}) -> MATCHED: #{matched_fields}" 
-          #     # NOTE: We could add a field to enable/raise when this happens...this will make sure all props are processed when
-          #     # not all of the subfields are matched
-          #     begin
-          #       (dependencies - matched_deps).each do |dep|
-          #         apply_dependency(dep)
-          #       end
-          #     rescue => e
-          #       require 'pry'
-          #       binding.pry
-          #       puts 'asdfa'
-          #     end
-          #   end
-          # end
-        else # ORIG CODE : process all dependencies
+        else # not a property group: process all dependencies
           dependencies&.each do |dependency|
             # To detect recursion, let's allow mapping depending fields to the same name of the property
             # but properly detecting if it's a real association...in which case we've already added it above
@@ -358,9 +214,6 @@ end
       def add(resource, fields)
         @root = SelectorGeneratorNode.new(resource)
         @root.add(fields)
-        # @root.rollup_deps
-        # require 'pry'
-        # binding.pry
         self
       end
 

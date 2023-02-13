@@ -5,7 +5,7 @@ require_relative '../../../support/spec_media_types'
 
 describe Praxis::Extensions::Pagination::OrderingParams do
   let(:blog_ordering_type) { Praxis::Types::OrderingParams.for(Blog) }
-  
+
   context '#validate' do
     context 'full enforcement and nested relationships' do
       let(:order_attr) do
@@ -55,7 +55,7 @@ describe Praxis::Extensions::Pagination::OrderingParams do
         Attributor::Attribute.new(blog_ordering_type)
       end
       it 'allows any attribute of the mediatype' do
-        ['id', 'name', 'href', 'description'].each do |str|
+        %w[id name href description].each do |str|
           expect(order_attr.load(str).validate).to be_empty
         end
       end

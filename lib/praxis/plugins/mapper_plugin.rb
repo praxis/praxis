@@ -47,23 +47,6 @@ module Praxis
           include Praxis::Extensions::FieldExpansion
         end
 
-        # Converts [:a, :b, :c] to { a: { b: :c} }
-        def to_hash_path(components)
-          first, *rest = components
-          rest.empty? ? first : { first => to_hash_path(rest) }
-        end
-
-        # Modify in place the passed hash, by properly adding the hash path keys into it, without deleting existing data
-        def merge_path!(hash_path, hash)
-          top = hash_path.keys.first
-          if hash[top].is_a?(Hash) # key exists in hash and it is not the final leaf
-            merge_path!(hash_path[top], hash[top])
-          else
-            hash[top] = hash_path[top]
-          end
-          hash
-        end
-
         def build_query(base_query)
           domain_model = media_type&.domain_model
           raise "No domain model defined for #{name}. Cannot use the attribute filtering helpers without it" unless domain_model
@@ -71,16 +54,6 @@ module Praxis
           filters = request.params.filters if request.params.respond_to?(:filters)
           # Handle filters
           base_query = domain_model.craft_filter_query(base_query, filters: filters)
-
-          # Handle field and nested field selection
-          # Ensure we have the order terms represented by either the fields, or the filters...
-          # order_specs = _pagination.order&.items || []
-          # order_specs.each do |spec|
-          #   name = spec.values.first
-          #   component_array = name.split('.').map(&:to_sym) + [true] # Leaf's values are true
-          #   hash_path = to_hash_path(component_array) # Convert to deep hash
-          #   merge_path!(hash_path, expanded_fields) unless expanded_fields.dig(*hash_path)
-          # end
 
           selectors = selector_generator.selectors
           base_query = domain_model.craft_field_selection_query(base_query, selectors: selectors)

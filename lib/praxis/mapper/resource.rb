@@ -13,6 +13,7 @@ module Praxis
       end
     end
 
+    # Simple Object that will respond to a set of methods, by simply delegating to the target (will also delegate _resource)
     class ForwardingStruct
       extend Forwardable
       attr_accessor :target
@@ -83,8 +84,9 @@ module Praxis
         end
       end
 
-      # The `as:` can be used for properties that correspond to an underlying association of a different name. With this the selector generator, is able to
+      # The `as:` can be used for properties that correspond to an underlying association of a different name. With this, the selector generator, is able to
       # follow and pass any incoming nested fields when necessary (as opposed to only add dependencies and discard nested fields)
+      # No dependencies are allowed to be defined if `as:` is used (as the dependencies should be defined at the final aliased property)
       def self.property(name, dependencies: nil, through: nil, as: nil) # rubocop:disable Naming/MethodParameterName
         h = { dependencies: dependencies, through: through }
         if as
@@ -188,12 +190,12 @@ module Praxis
       #   (and forward to 'grouping_phone')
       def self.define_property_groups
         property_groups.each do |(name, media_type)|
-          name_mappings = media_type.attribute.attributes[name].type.attributes.keys.each_with_object({}) do |key, hash|
+          # Set a property for their dependencies using the "group"_"attribute"
+          prefixed_property_deps = media_type.attribute.attributes[name].type.attributes.keys.each_with_object({}) do |key, hash|
             hash[key] = "#{name}_#{key}".to_sym
           end
-          # Set a property for their dependencies using the "group"_"attribute"
-          property name, dependencies: name_mappings.values
-          @cached_forwarders[name] = ForwardingStruct.for(name_mappings)
+          property name, dependencies: prefixed_property_deps.values
+          @cached_forwarders[name] = ForwardingStruct.for(prefixed_property_deps)
 
           define_method(name) do
             self.class.cached_forwarders[name].new(self)

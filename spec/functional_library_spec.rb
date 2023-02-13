@@ -79,14 +79,6 @@ describe 'Functional specs for books with connected DB' do
             it { expect(subject).to be_successful }
           end
 
-          context 'TESTING!!!' do
-            let(:order_q) { '-author.name' }
-            let(:fields_q) { 'id'}
-            let(:filters_q) { 'author.name=author1' }
-            # let(:filters_q) { 'author.id=1&tags.taggings.tag.name=red' }
-            it { expect(subject).to be_successful }
-          end
-
           context 'by nested attribute (with a filter using the same association, but not the same leaf)' do
             let(:order_q) { '-author.name' }
             let(:filters_q) { 'author.id=1' }

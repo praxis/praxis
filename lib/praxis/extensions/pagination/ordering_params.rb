@@ -29,10 +29,9 @@ module Praxis
             errors = []
             requested.each do |field|
               if (failed_field = self.class.validate_field(target.media_type, field.to_s.split('.').map(&:to_sym)))
-                errors += ["Cannot order by field: '#{field}'. It seems that the '#{failed_field}' attribute is not defined in the current Type structure."]
+                errors += ["Cannot order by field: '#{field}'. It seems that the '#{failed_field}' attribute is not defined in the current #{target.media_type} structure (or its subtree)."]
               end
             end
-
             raise errors.join('\n') unless errors.empty?
 
             target.fields_allowed = requested
@@ -49,19 +48,15 @@ module Praxis
             end
           end
 
-          def self.validate_field(mt, path)
+          def self.validate_field(type, path)
             main, rest = path
-            next_attribute = mt.respond_to?(:member_attribute) ? mt.member_type.attributes[main] : mt.attributes[main]
+            next_attribute = type.respond_to?(:member_attribute) ? type.member_type.attributes[main] : type.attributes[main]
 
-            if next_attribute
-              if rest.nil?
-                return nil
-              else
-                validate_field(next_attribute.type, rest)
-              end
-            else
-              return main
-            end
+            return main unless next_attribute
+
+            return nil if rest.nil?
+
+            validate_field(next_attribute.type, rest)
           end
         end
 

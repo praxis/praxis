@@ -27,7 +27,6 @@ module Praxis
           @children = children_data.each_with_object({}) do |(name, arr), hash|
             sub_filters = arr.map do |item|
               _parent, *rest = item[:name].to_s.split('.')
-              # NOTE: The orig_name becomes untouched, so it has the FULL PATH of the original name...unless the name, that we're scoping to the path
               item.merge(name: rest.join('.'))
             end
             hash[name] = self.class.new(sub_filters, path: path + [name])

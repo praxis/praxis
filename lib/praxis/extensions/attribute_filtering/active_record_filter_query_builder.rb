@@ -307,7 +307,7 @@ module Praxis
                 # Result could be an array of hashes (each hash has name/op/value to identify a condition)
                 result_from_proc = result.is_a?(Array) ? result : [result]
                 # Make sure we tack on the node object associated with the filter
-                result_from_proc.map { |hash| hash.merge(node_object: filter[:node_object]) } # Original name is the best we can do
+                result_from_proc.map { |hash| hash.merge(node_object: filter[:node_object]) }
               else
                 # For non-procs there's only 1 filter and 1 value (we're just overriding the mapped value)
                 [filter.merge(name: mapped_value)]

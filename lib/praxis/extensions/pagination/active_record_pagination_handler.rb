@@ -25,13 +25,13 @@ module Praxis
 
             # Convert the includes path (it is not a tree), to a column prefix
             pointer = info[:includes]
+
             dotted = []
             loop do
               break if pointer.empty?
 
-              key, subhash = pointer.first
+              key, pointer = pointer.first
               dotted.push(key)
-              pointer = subhash
             end
             column_prefix = dotted.empty? ? root_resource.model.table_name : ([''] + dotted).join(AttributeFiltering::ActiveRecordFilterQueryBuilder::REFERENCES_STRING_SEPARATOR)
 

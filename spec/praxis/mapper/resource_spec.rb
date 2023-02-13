@@ -18,19 +18,19 @@ describe Praxis::Mapper::Resource do
       subject(:properties) { resource.properties }
 
       it 'includes directly-set properties' do
-        expect(properties[:other_resource]).to eq(dependencies: [:other_model], through: nil, as: :other_resource)
+        expect(properties[:other_resource]).to eq(dependencies: [:other_model], through: nil)
       end
 
       it 'includes aliases as well if different from name' do
-        expect(properties[:aliased_association]).to eq(dependencies: [:name], through: nil, as: :other_model)
+        expect(properties[:aliased_association]).to eq(dependencies: nil, through: nil, as: :other_model)
       end
 
       it 'inherits from a superclass' do
-        expect(properties[:href]).to eq(dependencies: [:id], through: nil, as: :href)
+        expect(properties[:href]).to eq(dependencies: [:id], through: nil)
       end
 
       it 'properly overrides a property from the parent' do
-        expect(properties[:name]).to eq(dependencies: [:nested_name], through: nil, as: :name)
+        expect(properties[:name]).to eq(dependencies: [:nested_name], through: nil)
       end
     end
   end

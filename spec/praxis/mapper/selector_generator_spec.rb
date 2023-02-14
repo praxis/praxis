@@ -11,6 +11,7 @@ describe Praxis::Mapper::SelectorGenerator do
     shared_examples 'a proper selector' do
       it do
         dumped = generator.add(resource, fields).selectors.dump
+        puts JSON.pretty_generate(dumped)
         expect(dumped).to be_deep_equal selectors
       end
     end
@@ -76,7 +77,10 @@ describe Praxis::Mapper::SelectorGenerator do
             model: SimpleModel,
             columns: [:other_model_id], # FK of the other_model association
             field_deps: {
-              other_resource:%i[other_resource other_model_id]
+              # Needs other_model! (so we can match it to a track)...
+              # But it is weird, as it is not an :as or a property_group ...
+              # So how would we use it in the bulk loader search ? ...
+              other_resource: %i[other_resource other_model_id]
             },
             tracks: {
               other_model: {
@@ -462,6 +466,7 @@ describe Praxis::Mapper::SelectorGenerator do
         end
         it_behaves_like 'a proper selector'
       end
+
       context 'Deep aliased underlying associations also follows any nested fields at the end of the chain...' do
         let(:fields) do
           {
@@ -477,6 +482,9 @@ describe Praxis::Mapper::SelectorGenerator do
             columns: %i[parent_id],
             field_deps: {
               parent_id: %i[parent_id],
+              # This one, should end up telling us that it is aliased to parent=>simpl_chilren,
+              # But if any of them is aliased...we should reflect it as well...
+              # i.e., computing n 'as' even with dotted strings...should keep track of the unrolling...
               deep_aliased_association: %i[parent_id]
             },
             tracks: {
@@ -503,6 +511,182 @@ describe Praxis::Mapper::SelectorGenerator do
         end
         it_behaves_like 'a proper selector'
       end
+
+      context 'NEW TESTING', focus: true do
+        context 'TESTING single direct field' do
+          let(:fields) do
+            {
+              simple_name: true
+            }
+          end
+          let(:selectors) do
+            {
+              model: SimpleModel,
+              columns: %i[simple_name],
+              field_deps: {
+                simple_name: %i[simple_name]
+              }
+            }
+          end
+          it_behaves_like 'a proper selector'
+        end
+
+        context 'TESTING single property field multiple with deps' do
+          let(:fields) do
+            {
+              multi_column: true
+            }
+          end
+          let(:selectors) do
+            {
+              model: SimpleModel,
+              columns: %i[column1 simple_name],
+              field_deps: {
+                multi_column: %i[multi_column column1 simple_name]
+              }
+            }
+          end
+          it_behaves_like 'a proper selector'
+        end
+
+        context 'TESTING single aliased property which is not an association' do
+          let(:fields) do
+            {
+              name: true
+            }
+          end
+          let(:selectors) do
+            {
+              model: SimpleModel,
+              columns: %i[simple_name],
+              field_deps: {
+                name: %i[name nested_name simple_name]
+              }
+            }
+          end
+          it_behaves_like 'a proper selector'
+        end
+
+        context 'TESTING single aliased property with fields TRUE that points to an association' do
+          let(:fields) do
+            {
+              other_resource: true
+            }
+          end
+          let(:selectors) do
+            {
+              model: SimpleModel,
+              columns: %i[other_model_id],
+              field_deps: {
+                other_resource: { other_model: true}
+              },
+              tracks: {
+                other_model: {
+                  model: OtherModel,
+                  columns: %i[id]
+                }
+              }
+            }
+          end
+          it_behaves_like 'a proper selector'
+        end
+      end
+
+      context 'TESTING' do
+        # let(:fields) do
+        # {
+        #   aliased_association: {
+        #     name: true # direct field
+        #   }
+        # }
+        let(:fields) do
+          {
+            deep_overriden_aliased_association: {
+              simple_name: true # direct field
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            columns: %i[parent_id],
+            field_deps: {
+              parent_id: %i[parent_id],
+              # This one, should end up telling us that it is aliased to parent=>simpl_chilren,
+              # But if any of them is aliased...we should reflect it as well...
+              # i.e., computing n 'as' even with dotted strings...should keep track of the unrolling...
+              deep_overriden_aliased_association: {parent: :simple_children}
+            },
+            tracks: {
+              parent: {
+                model: ParentModel,
+                columns: %i[id],
+                field_deps: {
+                  simple_children: %i[id],
+                  id: %i[id]
+                },
+                tracks: {
+                  simple_children: {
+                    model: SimpleModel,
+                    columns: %i[parent_id simple_name],
+                    field_deps: {
+                      parent_id: %i[parent_id],
+                      name: %i[name nested_name simple_name]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
+
+      # context 'Deep aliased underlying associations also follows any nested fields at the end of the chain...including aliases in the path' do
+      #   let(:fields) do
+      #     {
+      #       # parent_id: true,
+      #       deep_overriden_aliased_association: {
+      #         name: true
+      #       }
+      #     }
+      #   end
+      #   let(:selectors) do
+      #     {
+      #       model: SimpleModel,
+      #       columns: %i[parent_id],
+      #       field_deps: {
+      #         parent_id: %i[parent_id],
+      #         # This one, should end up telling us that it is aliased to parent=>simpl_chilren,
+      #         # But if any of them is aliased...we should reflect it as well...
+      #         # i.e., computing n 'as' even with dotted strings...should keep track of the unrolling...
+      #         deep_overriden_aliased_association: {parent: :simple_children}
+      #       },
+      #       tracks: {
+      #         parent: {
+      #           model: ParentModel,
+      #           columns: %i[id],
+      #           field_deps: {
+      #             simple_children: %i[id],
+      #             id: %i[id]
+      #           },
+      #           tracks: {
+      #             simple_children: {
+      #               model: SimpleModel,
+      #               columns: %i[parent_id simple_name],
+      #               field_deps: {
+      #                 parent_id: %i[parent_id],
+      #                 name: %i[name nested_name simple_name]
+      #               }
+      #             }
+      #           }
+      #         }
+      #       }
+      #     }
+      #   end
+      #   it_behaves_like 'a proper selector'
+      # end
+
       context 'Using self for the underlying association: follows any nested fields skipping the association name and still applies dependencies' do
         let(:fields) do
           {

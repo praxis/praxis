@@ -103,6 +103,7 @@ class ParentResource < BaseResource
   model ParentModel
 
   property :display_name, dependencies: %i[simple_name id other_attribute]
+  property :aliased_simple_children, as: :simple_children
 
   def display_name
     "#{id}-#{name}"
@@ -137,6 +138,7 @@ class SimpleResource < BaseResource
     end
   end
 
+  property :multi_column, dependencies: %i[column1 simple_name]
   property :aliased_method, dependencies: %i[column1 other_model]
   property :other_resource, dependencies: [:other_model]
 
@@ -156,6 +158,8 @@ class SimpleResource < BaseResource
   property :aliased_association, as: :other_model
   property :overriden_aliased_association, as: :other_model
   property :deep_aliased_association, as: 'parent.simple_children'
+  property :aliased_parent, as: :parent
+  property :deep_overriden_aliased_association, as: 'parent.aliased_simple_children' # TODO!!! if I change it to 'aliased_parent.aliased_simple_children' things come empty!!!
 
   property :sub_struct, as: :self
 

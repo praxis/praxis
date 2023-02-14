@@ -4,22 +4,46 @@ module Praxis
   module Mapper
     class SelectorGeneratorNode
       attr_reader :select, :model, :resource, :tracks, :field_node
+      
 
       class FieldDependenciesNode
-        attr_reader :parent, :name, :deps, :fields
+        attr_reader :parent, :name, :deps, :fields, :stack
+        attr_accessor :is_an_as
 
         def initialize(name: nil, parent: nil)
           @name = name
           @parent = parent
           @fields = {}
           @deps = Set.new
+
+          @stack = []
+          # puts "CREATED NODE: #{self.path_name}"
+          @is_an_as = false
+        end
+
+        def path_name
+          return name if parent.nil?
+          "#{parent.path_name}.#{name}"
         end
 
         def add_field(name)
+          # puts "#{self.path_name} ADDING FIELD: #{name}"
           @fields[name] = FieldDependenciesNode.new(name: name, parent: self)
         end
 
+        def push_chain_assoc(assoc_name)
+          puts "#{self.path_name} FOLLOW ASSOC: #{assoc_name} for node: #{self.name}"
+          @stack.push assoc_name
+        end
+
+        def unfollow_assoc(assoc_name)
+          puts "#{self.path_name} UNFOLLOW ASSOC: #{assoc_name} for node: #{self.name}"
+          last = @stack.pop assoc_name
+          raise 'BAD!' unless last == assoc_name
+        end
+
         def add_dep(dep_name)
+          puts "#{self.path_name} ADDING DEP: #{dep_name} for node: #{self.name}"
           @deps.add dep_name
         end
 
@@ -45,12 +69,23 @@ module Praxis
       end
 
       def add(fields)
+        puts "ADD: ############################### for #{resource} adding #{fields}"
         fields.each do |name, field|
-          @field_node = @field_node.add_field(name)
-          map_property(name, field)
-          @field_node = @field_node.parent if @field_node.parent
+          add_field(name, field)
         end
+        puts "DONE ADD: ########################## for #{resource} with #{fields}"
         self
+      end
+
+      def add_field(fieldname, subfields)
+        @field_node = @field_node.add_field(fieldname)
+        puts "START ADDING FIELD #{fieldname} => #{subfields}"
+        map_property(fieldname, subfields)
+        puts "DONE ADDING FIELD #{fieldname} => #{subfields}"
+        # TODO: Maybe rollup and or compact to the parent, depending on what the state/type of the field we just added?
+        # require 'pry'
+        # binding.pry
+        @field_node = @field_node.parent if @field_node.parent
       end
 
       def map_property(name, fields)
@@ -62,6 +97,7 @@ module Praxis
         else
           add_select(name)
         end
+
       end
 
       def add_association(name, fields)
@@ -85,7 +121,16 @@ module Praxis
         end
 
         node.add(fields) unless fields == true
-
+# require 'pry'
+# binding.pry
+        # In here we have the field node from the node (inner) object, and we have the field node from this SelectoGenerator (field_node)
+        # We need to properly merge/rollup things.
+        # if field_node.is_an_as rollup the stack from the node.field_node
+        # mark it in the currently processed field...
+        if field_node.is_an_as
+          puts ">>>>>>>>>>> SETTING: FIELD #{field_node.name} to follow tracks: #{field_node.stack}->#{node.field_node.stack}"
+          node.field_node
+        end
         merge_track(name, node)
       end
 
@@ -96,16 +141,37 @@ module Praxis
         # NOTE: Not sure if we need to add methods that aren't properties (commenting line below)
         # If we do that, the lists are smaller, but what if there are methods that we want to detect that do not have a property?
         @field_node.add_dep(name)
+        puts "     --> SELECT #{name} for current field"
         @select.add name
       end
 
+      # def follow_until_not_as(components)
+      #   i = 0
+      #   final = nil
+      #   loop do
+      #     if components.size == 1
+
+      #     end
+      #     assoc = resource.model._praxis_associations[components[i]]
+      #     last_res = follow_until_not_as(components[i+1..-1])
+          
+      #     i += 1
+      #   end
+      #   last_res
+      # end
+
+      # We know name is a property...
       def add_property(name, fields)
-        @field_node.add_dep(name) if fields == true # Only add dependencies for leaves
+        puts "Adding PROPERTY: #{name} with FIELDS: #{fields}"
+        @field_node.add_dep(name)
+        # @field_node.add_dep(name) if fields == true # Only add dependencies for leaves
         dependencies = resource.properties[name][:dependencies]
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
           aliased_as = resource.properties[name][:as]
           if aliased_as
+            puts "PROPERTY with AS! #{name} -> #{aliased_as}"
+            @field_node.is_an_as = true
             if aliased_as == :self
               # Special keyword to add itself as the association, but still continue procesing the fields
               # This is useful when we expose resource fields tucked inside another sub-struct, this way
@@ -124,11 +190,30 @@ module Praxis
                     { prop => accum }
                   end
                 end
-              add_association(first, extended_fields) if resource.model._praxis_associations[first]
+              # require 'pry'
+              # binding.pry
+              if resource.model._praxis_associations[first]
+                puts "Following assoc for: #{first} with FIELDS: #{extended_fields}"
+                @field_node.push_chain_assoc(first)
+                # require 'pry'
+                # binding.pry
+                add_association(first, extended_fields)
+                require 'pry'
+                binding.pry
+                puts 'asdfa'
+              end
+              # @field_node.unfollow_assoc(first)
             end
+            puts "PROPERTY with AS (END)! #{name} -> #{aliased_as}"
+            # NOTE: This skips potentially the 'through' association bits below, refactor to have that into account
+            return
           elsif resource.model._praxis_associations[name]
+            require 'pry'
+            binding.pry
             # Not aliased ... but if there is an existing association for the propety name, we add it
             add_association(name, fields)
+            # NOTE: This skips potentially the 'through' association bits below, refactor to have that into account
+            return
           end
         end
         # If we have a property group, and the subfields want to selectively restrict what to depend on

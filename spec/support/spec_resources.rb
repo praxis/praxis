@@ -141,11 +141,15 @@ class SimpleResource < BaseResource
   property :multi_column, dependencies: %i[column1 simple_name]
   property :aliased_method, dependencies: %i[column1 other_model]
   property :other_resource, dependencies: [:other_model]
+  
+  property :aliased_association, as: :other_model
+  property :deep_aliased_association, as: 'parent.simple_children'
 
   property :parent, dependencies: %i[parent added_column]
 
   property :name, dependencies: [:nested_name]
   property :nested_name, dependencies: [:simple_name]
+
   property :direct_other_name, dependencies: ['other_model.name']
   property :aliased_other_name, dependencies: ['other_model.display_name']
 
@@ -155,9 +159,9 @@ class SimpleResource < BaseResource
   property :no_deps, dependencies: []
 
   property :deep_nested_deps, dependencies: ['parent.simple_children.other_model.parent.display_name']
-  property :aliased_association, as: :other_model
+  
   property :overriden_aliased_association, as: :other_model
-  property :deep_aliased_association, as: 'parent.simple_children'
+  
   property :aliased_parent, as: :parent
   property :deep_overriden_aliased_association, as: 'parent.aliased_simple_children' # TODO!!! if I change it to 'aliased_parent.aliased_simple_children' things come empty!!!
 

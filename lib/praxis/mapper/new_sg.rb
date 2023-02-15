@@ -46,13 +46,17 @@ module Praxis
       # }
 
       class FieldDependenciesNode
-        attr_reader :deps
+        attr_reader :deps, :fields
+        attr_accessor :references, :last_forwarded
+
         def initialize(name:)
           @name = name
           @fields = Hash.new do |hash, key|
             hash[key] = FieldDependenciesNode.new(name: key)
           end
           @deps = Set.new
+          @references = nil
+          @last_forwarded = nil
           # We could translate the path to the actual pointer to the fields hash object but then the 'pop' is a bit more difficult
           # OR maybe we leave it like that, but we also have the direct pointer of the current field for lookups
           @current_field = []
@@ -71,6 +75,12 @@ module Praxis
           pointer.deps.add name
         end
 
+        # This should be a single thing no? i.e., set_reference ... instead of an array...
+        def set_reference(selector_node)
+          pointer = @current_field.empty? ? @fields[true] : @fields.dig(*@current_field)
+          pointer.references = selector_node
+        end
+
         def [](*path)
           @fields.dig(*path)
         end
@@ -78,11 +88,16 @@ module Praxis
         # For spec/debugging purposes only
         def dump
           hash = {}
-          hash[true] = @deps.to_a unless @deps.empty?
-          @fields.each_with_object(hash) do |(name,node), h|
+          hash[:deps] = @deps.to_a unless @deps.empty?
+          unless @references.nil?
+            hash[:references] = "Linked to resource: #{@references.resource}"
+          end
+          field_deps = @fields.each_with_object({}) do |(name,node), h|
             dumped = node.dump
             h[name] = dumped unless dumped.empty?
           end
+          hash[:fields] = field_deps unless field_deps.empty?
+          hash
         end
       end
 
@@ -99,23 +114,40 @@ module Praxis
         fields.each do |name, field|
           fields_node.start_field(name)
           map_property(name, field)
+          if resource.properties[name] && resource.properties[name][:as]
+            puts "Ending property #{name} as a Forwarder"
+            # fields_node.last_forwarded= fields_node[name].references
+            # require 'pry'
+            # binding.pry
+            # puts 'asdfa'
+          end
           fields_node.end_field
         end
         self
       end
 
       def map_property(name, fields)
+        puts "MAPPING PROPERTY: #{name} (fields: #{fields})"
         praxis_compat_model = resource.model&.respond_to?(:_praxis_associations)
         if resource.properties.key?(name)
-          add_property(name, fields)
+          if resource.properties[name][:as]
+            add_fwding_property(name, fields)
+            fields_node.set_reference(fields_node.last_forwarded)
+            # fields_node.last_forwarded = nil
+          else
+            add_property(name, fields)
+          end
+          fields_node.add_local_dep(name)
         elsif praxis_compat_model && resource.model._praxis_associations.key?(name)
           add_association(name, fields)
+          # Single association properties are also pointing to the corresponding tracked SelectorGeneratorNode
+          fields_node.set_reference(tracks[name])
         else
           add_select(name)
         end
       end
 
-      def add_association(name, fields)
+      def add_association(name, fields, forwarding: false)
         association = resource.model._praxis_associations.fetch(name) do
           raise "missing association for #{resource} with name #{name}"
         end
@@ -123,7 +155,7 @@ module Praxis
         raise "Whoops! could not find a resource associated with model #{association[:model]} (root resource #{resource})" unless associated_resource
 
         # Add the required columns in this model to make sure the association can be loaded
-        association[:local_key_columns].each { |col| add_select(col) }
+        association[:local_key_columns].each { |col| add_select(col, add_field: false) }
 
         node = SelectorGeneratorNode.new(associated_resource)
         unless association[:remote_key_columns].empty?
@@ -136,23 +168,29 @@ module Praxis
         end
 
         node.add(fields) unless fields == true
-
+        
+        # Track the forwarding if we know it is so
+        if forwarding
+          fields_node.last_forwarded = node.fields_node.last_forwarded || node
+        end
         merge_track(name, node)
+        node
       end
 
-      def add_select(name)
+      def add_select(name, add_field: true)
         return @select_star = true if name == :*
         return if @select_star
 
-        @fields_node.add_local_dep(name)
+        # Do not add a field dependency, if we know we're just adding a Local/FK constraint
+        @fields_node.add_local_dep(name) if add_field 
         @select.add name
       end
 
-      def add_property(name, fields)
-        dependencies = resource.properties[name][:dependencies]
+      def add_fwding_property(name, fields)
+        puts "ADDING FWDING PROPERTY: #{name} (fields: #{fields})"
+        aliased_as = resource.properties[name][:as]
         # Always add the underlying association if we're overriding the name...
-        if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
-          aliased_as = resource.properties[name][:as]
+        if resource.model&.respond_to?(:_praxis_associations) # NECESSARY???
           if aliased_as == :self
             # Special keyword to add itself as the association, but still continue procesing the fields
             # This is useful when we expose resource fields tucked inside another sub-struct, this way
@@ -169,6 +207,37 @@ module Praxis
                   { prop => accum }
                 end
               end
+
+            add_association(first, extended_fields,  forwarding: true) if resource.model._praxis_associations[first]
+          end
+        end
+      end
+
+      def add_property(name, fields)
+        puts "ADDING PROPERTY: #{name} (fields: #{fields})"
+        dependencies = resource.properties[name][:dependencies]
+        # Always add the underlying association if we're overriding the name...
+        if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
+          aliased_as = resource.properties[name][:as]
+          raise "CANNOT BE!!" if aliased_as
+          if aliased_as == :self
+            # Special keyword to add itself as the association, but still continue procesing the fields
+            # This is useful when we expose resource fields tucked inside another sub-struct, this way
+            # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
+            add(fields)
+          else
+            first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
+
+            extended_fields = \
+              if rest.empty?
+                fields
+              else
+                rest.reverse.inject(fields) do |accum, prop|
+                  { prop => accum }
+                end
+              end
+
+            
             add_association(first, extended_fields) if resource.model._praxis_associations[first]
           end
         end
@@ -193,6 +262,7 @@ module Praxis
       end
 
       def apply_dependency(dependency)
+        puts "APPLYING DEPENDENCY: #{dependency}"
         case dependency
         when Symbol
           map_property(dependency, true)
@@ -218,6 +288,8 @@ module Praxis
         else
           tracks[track_name] = node
         end
+        # Necessary?... don't think so
+        fields_node.last_forwarded = node.fields_node.last_forwarded unless fields_node.last_forwarded
       end
 
       def dump
@@ -226,8 +298,8 @@ module Praxis
         if !@select.empty? || @select_star
           hash[:columns] = @select_star ? [:*] : @select.to_a
         end
+        hash[:field_deps] = @fields_node.dump
         hash[:tracks] = @tracks.transform_values(&:dump) unless @tracks.empty?
-        hash[:fields] = @fields_node.dump
         hash
       end
     end
@@ -239,6 +311,8 @@ module Praxis
       def add(resource, fields)
         @root = SelectorGeneratorNode.new(resource)
         @root.add(fields)
+        require 'pry'
+        binding.pry
         self
       end
 

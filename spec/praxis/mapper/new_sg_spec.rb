@@ -371,7 +371,7 @@ describe Praxis::Mapper::SelectorGenerator do
               {
                 model: ::ActiveBook,
                 # No tags or tag tracking, despite the grouped prop has that dependency (but we didn't ask for it)
-                columns: %i[simple_name], # TODO: why id?
+                columns: %i[simple_name],
                 field_deps: {
                   fields: {
                     grouped: {
@@ -382,6 +382,63 @@ describe Praxis::Mapper::SelectorGenerator do
                         }
                       }
                       # NO id or group_id or tags of any sort should be traversed and appear, as we didn't ask for them
+                    }
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
+
+          context 'a property group substructure object, but asking only a subset of fields, going deep in an association' do
+            let(:resource) { Resources::Book }
+            let(:fields) do
+              {
+                grouped: {
+                  id: true,
+                  #name: true,
+                  moar_tags: {
+                    # name: true,
+                    label: true
+                  }
+                }
+              }
+            end
+            let(:selectors) do
+              {
+                model: ::ActiveBook,
+                # No tags or tag tracking, despite the grouped prop has that dependency (but we didn't ask for it)
+                columns: %i[id],
+                field_deps: {
+                  fields: {
+                    grouped: {
+                      deps: %i[grouped],
+                      fields: {
+                        id: {
+                          deps: %i[grouped_id id]
+                        },
+                        moar_tags: {
+                          deps: %i[grouped_moar_tags],
+                          references: 'Linked to resource: Resources::Tag'
+                        }
+                      }
+                      # NO name of any other name related things
+                    }
+                  }
+                },
+                tracks: {
+                  tags: {
+                    model: ActiveTag,
+                    columns: %i[id label],
+                    field_deps: {
+                      fields: {
+                        id: {
+                          deps: %i[id]
+                        },
+                        label: {
+                          deps: %i[label]
+                        }
+                      }
                     }
                   }
                 }

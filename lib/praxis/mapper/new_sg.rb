@@ -2,7 +2,38 @@
 
 module Praxis
   module Mapper
+    module SelectorGeneratorNodeDebugger
+      def add(fields)
+        puts "ADD fields: #{fields}"
+        super
+      end
+      def map_property(name, fields)
+        puts "MAP PROP #{name} fields: #{fields}"
+        super
+      end
+      def add_association(name, fields, forwarding: false)
+        puts "ADD ASSOCIATION #{name} fields: #{fields} (forwarding: #{forwarding})"
+        super
+      end
+      def add_select(name, add_field: true)
+        puts "ADD SELECT #{name} (add field: #{add_field})"
+        super
+      end
+      def add_fwding_property(name, fields)
+        puts "ADD FWD ASSOC #{name} fields: #{fields}"
+        super
+      end
+      def add_property(name, fields)
+        puts "ADD PROP #{name} fields: #{fields}"
+        super
+      end
+      def apply_dependency(dependency, fields=true)
+        puts "APPLY DEP #{dependency} fields: #{fields}"
+        super
+      end
+    end
     class SelectorGeneratorNode
+      prepend SelectorGeneratorNodeDebugger
       attr_reader :select, :model, :resource, :tracks, :fields_node
 
       # FieldDependenciesNode, attached to a SelectorGeneratorNode, which will contain, for every field passed in (not properties, but fields), the
@@ -71,6 +102,7 @@ module Praxis
         end
 
         def add_local_dep(name)
+          #return if name == @current_field.last # We know, that a given field would depend on a property of the same name, so no need to add it
           pointer = @current_field.empty? ? @fields[true] : @fields.dig(*@current_field)
           pointer.deps.add name
         end
@@ -118,7 +150,7 @@ module Praxis
           fields_node.start_field(name)
           map_property(name, field)
           if resource.properties[name] && resource.properties[name][:as]
-            puts "Ending property #{name} as a Forwarder"
+            # puts "Ending property #{name} as a Forwarder"
             # fields_node.last_forwarded= fields_node[name].references
             # require 'pry'
             # binding.pry
@@ -130,7 +162,6 @@ module Praxis
       end
 
       def map_property(name, fields)
-        puts "MAPPING PROPERTY: #{name} (fields: #{fields})"
         praxis_compat_model = resource.model&.respond_to?(:_praxis_associations)
         if resource.properties.key?(name)
           if resource.properties[name][:as]
@@ -151,6 +182,7 @@ module Praxis
       end
 
       def add_association(name, fields, forwarding: false)
+        puts "**************SWITCHING TO ASSOCIATION: #{name} *****************"
         association = resource.model._praxis_associations.fetch(name) do
           raise "missing association for #{resource} with name #{name}"
         end
@@ -177,6 +209,7 @@ module Praxis
           fields_node.last_forwarded = node.fields_node.last_forwarded || node
         end
         merge_track(name, node)
+        puts "------------------ENDING ASSOCIATION: #{name} -------------------------"
         node
       end
 
@@ -190,7 +223,6 @@ module Praxis
       end
 
       def add_fwding_property(name, fields)
-        puts "ADDING FWDING PROPERTY: #{name} (fields: #{fields})"
         aliased_as = resource.properties[name][:as]
         # Always add the underlying association if we're overriding the name...
         if resource.model&.respond_to?(:_praxis_associations) # NECESSARY???
@@ -217,7 +249,6 @@ module Praxis
       end
 
       def add_property(name, fields)
-        puts "ADDING PROPERTY: #{name} (fields: #{fields})"
         dependencies = resource.properties[name][:dependencies]
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
@@ -246,6 +277,7 @@ module Praxis
         end
         # If we have a property group, and the subfields want to selectively restrict what to depend on
         if fields != true && resource.property_groups[name]
+          puts ">>>>>>>>>>>>>>>>FOUND A PROPERTY GROUP for #{name}"
           # Prepend the group name to fields if it's an inner hash
           prefixed_fields = fields == true ? {} : fields.keys.each_with_object({}) {|k,h| h["#{name}_#{k}".to_sym] = k }
           # Try to match all inner fields
@@ -256,15 +288,15 @@ module Praxis
             apply_dependency(prefixedname, fields[origfieldname])
             fields_node.end_field
           end
-        end
-
-        dependencies&.each do |dependency|
-          # To detect recursion, let's allow mapping depending fields to the same name of the property
-          # but properly detecting if it's a real association...in which case we've already added it above
-          if dependency == name
-            add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
-          else
-            apply_dependency(dependency)
+        else
+          dependencies&.each do |dependency|
+            # To detect recursion, let's allow mapping depending fields to the same name of the property
+            # but properly detecting if it's a real association...in which case we've already added it above
+            if dependency == name
+              add_select(name) unless praxis_compat_model && resource.model._praxis_associations.key?(name)
+            else
+              apply_dependency(dependency)
+            end
           end
         end
 
@@ -279,7 +311,6 @@ module Praxis
       end
 
       def apply_dependency(dependency, fields=true)
-        puts "APPLYING DEPENDENCY: #{dependency}"
         case dependency
         when Symbol
           map_property(dependency, fields)
@@ -328,8 +359,8 @@ module Praxis
       def add(resource, fields)
         @root = SelectorGeneratorNode.new(resource)
         @root.add(fields)
-        require 'pry'
-        binding.pry
+        # require 'pry'
+        # binding.pry
         self
       end
 

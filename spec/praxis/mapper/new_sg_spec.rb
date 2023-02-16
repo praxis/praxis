@@ -86,6 +86,7 @@ describe Praxis::Mapper::SelectorGenerator do
                 field_deps: {
                   fields: {
                     aliased_association: {
+                      deps: [:aliased_association],
                       references: 'Linked to resource: OtherResource'
                     }
                   }
@@ -120,6 +121,7 @@ describe Praxis::Mapper::SelectorGenerator do
                 field_deps: {
                   fields: {
                     deep_overriden_aliased_association: {
+                      deps: [:deep_overriden_aliased_association],
                       references: 'Linked to resource: SimpleResource'
                     }
                   }
@@ -131,6 +133,7 @@ describe Praxis::Mapper::SelectorGenerator do
                     field_deps: {
                       fields: {
                         aliased_simple_children: {
+                          deps: [:aliased_simple_children],
                           references: 'Linked to resource: SimpleResource'
                         },
                         id: {
@@ -368,13 +371,11 @@ describe Praxis::Mapper::SelectorGenerator do
               {
                 model: ::ActiveBook,
                 # No tags or tag tracking, despite the grouped prop has that dependency (but we didn't ask for it)
-                columns: %i[simple_name id], # TODO: why id?
+                columns: %i[simple_name], # TODO: why id?
                 field_deps: {
                   fields: {
                     grouped: {
-                      # NO!!! the 'top'/true computation shouldn't happen...only the selected fields!!! no ids, or tag shennanigans
-                      deps: %i[id grouped_id name grouped_name nested_name simple_name grouped_moar_tags grouped], 
-                      references: '??? Tags should not be picked up',
+                      deps: %i[grouped],
                       fields: {
                         name: {
                           deps: %i[grouped_name name nested_name simple_name]

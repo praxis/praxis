@@ -368,11 +368,18 @@ describe Praxis::Mapper::SelectorGenerator do
               {
                 model: ::ActiveBook,
                 # No tags or tag tracking, despite the grouped prop has that dependency (but we didn't ask for it)
-                columns: %i[simple_name], 
+                columns: %i[simple_name id], # TODO: why id?
                 field_deps: {
                   fields: {
                     grouped: {
-                      name: %i[name grouped_name nested_name simple_name]
+                      # NO!!! the 'top'/true computation shouldn't happen...only the selected fields!!! no ids, or tag shennanigans
+                      deps: %i[id grouped_id name grouped_name nested_name simple_name grouped_moar_tags grouped], 
+                      references: '??? Tags should not be picked up',
+                      fields: {
+                        name: {
+                          deps: %i[grouped_name name nested_name simple_name]
+                        }
+                      }
                       # NO id or group_id or tags of any sort should be traversed and appear, as we didn't ask for them
                     }
                   }

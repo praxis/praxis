@@ -81,6 +81,9 @@ module Praxis
           pointer.references = selector_node
         end
 
+        def dig(...)
+          @fields.dig(...)
+        end
         def [](*path)
           @fields.dig(*path)
         end
@@ -241,6 +244,20 @@ module Praxis
             add_association(first, extended_fields) if resource.model._praxis_associations[first]
           end
         end
+        # If we have a property group, and the subfields want to selectively restrict what to depend on
+        if fields != true && resource.property_groups[name]
+          # Prepend the group name to fields if it's an inner hash
+          prefixed_fields = fields == true ? {} : fields.keys.each_with_object({}) {|k,h| h["#{name}_#{k}".to_sym] = k }
+          # Try to match all inner fields
+          prefixed_fields.each do |prefixedname, origfieldname|
+            next unless dependencies.include?(prefixedname)
+
+            fields_node.start_field(origfieldname) # Mark it as orig name
+            apply_dependency(prefixedname, fields[origfieldname])
+            fields_node.end_field
+          end
+        end
+
         dependencies&.each do |dependency|
           # To detect recursion, let's allow mapping depending fields to the same name of the property
           # but properly detecting if it's a real association...in which case we've already added it above
@@ -261,16 +278,16 @@ module Praxis
         add_association(head, new_fields)
       end
 
-      def apply_dependency(dependency)
+      def apply_dependency(dependency, fields=true)
         puts "APPLYING DEPENDENCY: #{dependency}"
         case dependency
         when Symbol
-          map_property(dependency, true)
+          map_property(dependency, fields)
         when String
           head, *tail = dependency.split('.').collect(&:to_sym)
           raise 'String dependencies can not be singular' if tail.nil?
 
-          add_association(head, tail.reverse.inject({}) { |hash, dep| { dep => hash } })
+          add_association(head, tail.reverse.inject(true) { |hash, dep| { dep => hash } })
         end
       end
 

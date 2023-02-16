@@ -117,6 +117,7 @@ module Praxis
       end
 
       def self._finalize!
+        validate_properties
         finalize_resource_delegates
         define_batch_processors
         define_model_accessors
@@ -124,6 +125,39 @@ module Praxis
 
         hookup_callbacks
         super
+      end
+
+      def self.validate_properties
+        # Disabled for now
+        # errors = detect_invalid_properties
+        # raise errors unless errors.empty?
+      end
+      
+      # Verifies if the system has badly defined properties
+      # For example, properties that correspond to an underlying association method (for which there is no
+      # overriden method in the resource) must not have dependencies defined, as it is clear the association is the only one
+      def self.detect_invalid_properties
+        return unless !model.nil? && model.respond_to?(:_praxis_associations)
+
+        invalid = {}
+        existing_associations = model._praxis_associations.keys
+        properties.slice(*existing_associations).each do |prop_name, data|
+          # If we have overriden the assoc with our own method, we allow you to define deps (or as: aliases)
+          next if instance_methods.include? prop_name
+
+          example_def = "property #{prop_name}"
+          example_def.concat("dependencies: #{data[:dependencies]}") if data[:dependencies].presence
+          example_def.concat("as: #{data[:as]}") if data[:as].presence
+          example_def.concat("through: #{data[:through]}") if data[:through].presence
+          # If we haven't overriden the method, we'll create an accessor, so defining deps does not make sense
+          error = "Error defining property '#{prop_name}' in resource #{name}. Method #{prop_name} is already an association " \
+                  "which will be properly wrapped with an accessor, so you do not need to define it as a property.\n" \
+                  'Only define properties for methods that you override in the resource, as a way to specify which dependencies ' \
+                  "that requires to use inside it\n" \
+                  "Current definition looks like: #{example_def}"
+          invalid[prop_name] = error
+        end
+        invalid
       end
 
       def self.define_batch_processors

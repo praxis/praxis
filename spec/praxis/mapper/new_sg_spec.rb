@@ -32,7 +32,28 @@ describe Praxis::Mapper::SelectorGenerator do
                 field_deps: {
                   fields: {
                     simple_name: {
-                      deps:%i[simple_name]
+                      deps: %i[simple_name]
+                    }
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
+          context 'using an aliased property' do
+            let(:fields) do
+              {
+                name: true
+              }
+            end
+            let(:selectors) do
+              {
+                model: SimpleModel,
+                columns: %i[simple_name],
+                field_deps: {
+                  fields: {
+                    name: {
+                      deps: %i[name nested_name simple_name]
                     }
                   }
                 }
@@ -72,7 +93,42 @@ describe Praxis::Mapper::SelectorGenerator do
             end
             it_behaves_like 'a proper selector'
           end
-
+          context 'using pure associations with the nested fields' do
+            let(:fields) do
+              {
+                other_model: {
+                  id: true
+                }
+              }
+            end
+            let(:selectors) do
+              {
+                model: SimpleModel,
+                columns: [:other_model_id],
+                field_deps: {
+                  fields: {
+                    other_model: {
+                      references: 'Linked to resource: OtherResource'
+                    }
+                  }
+                },
+                tracks: {
+                  other_model: {
+                    model: OtherModel,
+                    columns: [:id],
+                    field_deps: {
+                      fields: {
+                        id: {
+                          deps: %i[id]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
           context 'using a forwarding association name with 1 level deep' do
             let(:fields) do
               {
@@ -160,8 +216,133 @@ describe Praxis::Mapper::SelectorGenerator do
             end
             it_behaves_like 'a proper selector'
           end
+          context 'using a self forwarding association name with 2 levels deep' do
+            let(:fields) do
+              {
+                sub_struct: {
+                  name: true
+                }
+              }
+            end
+            let(:selectors) do
+              {
+                model: SimpleModel,
+                columns: %i[simple_name],
+                field_deps: {
+                  fields: {
+                    sub_struct: {
+                      deps: %i[sub_struct],
+                      fields: {
+                        name: {
+                          deps: %i[name nested_name simple_name],
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
+          context 'using a self forwarding association name with multiple levels which include deep forwarding associations' do
+            let(:fields) do
+              {
+                sub_struct: {
+                  name: true,
+                  deep_overriden_aliased_association: true
+                }
+              }
+            end
+            let(:selectors) do
+              {
+                model: SimpleModel,
+                columns: %i[simple_name parent_id],
+                field_deps: {
+                  fields: {
+                    sub_struct: {
+                      deps: %i[sub_struct],
+                      fields: {
+                        name: {
+                          deps: %i[name nested_name simple_name],
+                        },
+                        deep_overriden_aliased_association: {
+                          deps: %i[deep_overriden_aliased_association],
+                          references: 'Linked to resource: SimpleResource'
+                        }
+                      }
+                    }
+                  }
+                },
+                tracks: {
+                  parent: {
+                    model: ParentModel,
+                    columns: %i[id],
+                    field_deps: {
+                      fields: {
+                        aliased_simple_children: {
+                          deps: [:aliased_simple_children],
+                          references: 'Linked to resource: SimpleResource'
+                        },
+                        id: {
+                          deps: %i[id]
+                        }
+                      }
+                    },
+                    tracks: {
+                      simple_children: {
+                        model: SimpleModel,
+                        columns: %i[parent_id],
+                        field_deps: {
+                          fields: {
+                            parent_id: {
+                              deps: %i[parent_id]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
         end
         context 'with dependencies using TRUE' do
+          context 'redefined associations that add some extra columns (would need both the underlying association AND the columns in place)' do
+            let(:fields) do
+              { 
+                parent: true
+              }
+            end
+            let(:selectors) do
+              {
+                model: SimpleModel,
+                columns: %i[parent_id added_column],
+                field_deps: {
+                  fields: {
+                    parent: {
+                      deps: %i[parent added_column]
+                    }
+                  }
+                },
+                tracks: {
+                  parent: {
+                    columns: [:id],
+                    model: ParentModel,
+                    field_deps: {
+                      fields: {
+                        id: {
+                          deps: %i[id]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
           context 'that have recursive properties' do
             let(:fields) do
               {
@@ -298,6 +479,100 @@ describe Praxis::Mapper::SelectorGenerator do
               }
             end
             it_behaves_like 'a proper selector'
+          end
+
+          context 'string associations' do
+            context 'that specify a direct existing colum in the target dependency' do
+              let(:fields) { { direct_other_name: true } }
+              let(:selectors) do
+                {
+                  model: SimpleModel,
+                  columns: [:other_model_id],
+                  field_deps: {
+                    fields: {
+                      direct_other_name: {
+                        deps: %i[direct_other_name],
+                      }
+                    }
+                  },
+                  tracks: {
+                    other_model: {
+                      model: OtherModel,
+                      columns: %i[id name],
+                      field_deps: {
+                        fields: {
+                          id: {
+                            deps: %i[id]
+                          },
+                          name: {
+                            deps: %i[name]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              end
+              it_behaves_like 'a proper selector'
+            end
+            context 'that specify an aliased property in the target dependency' do
+              let(:fields) { { aliased_other_name: true } }
+              let(:selectors) do
+                {
+                  model: SimpleModel,
+                  columns: [:other_model_id],
+                  field_deps: {
+                    fields: {
+                      aliased_other_name: {
+                        deps: %i[aliased_other_name],
+                      }
+                    }
+                  },
+                  tracks: {
+                    other_model: {
+                      model: OtherModel,
+                      columns: %i[id name],
+                      field_deps: {
+                        fields: {
+                          id: {
+                            deps: %i[id]
+                          },
+                          display_name: {
+                            deps: %i[display_name name]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              end
+              it_behaves_like 'a proper selector'
+            end
+            context 'for a property that requires all fields from an association' do
+              let(:fields) { { everything_from_parent: true } }
+              let(:selectors) do
+                {
+                  model: SimpleModel,
+                  columns: [:parent_id],
+                  field_deps: {
+                    fields: {
+                      everything_from_parent: {
+                        deps: %i[everything_from_parent]
+                      }
+                    }
+                  },
+                  tracks: {
+                    parent: {
+                      model: ParentModel,
+                      columns: [:*],
+                      field_deps: {
+                      }
+                    }
+                  }
+                }
+              end
+              it_behaves_like 'a proper selector'
+            end
           end
         end
 
@@ -447,6 +722,337 @@ describe Praxis::Mapper::SelectorGenerator do
             it_behaves_like 'a proper selector'
           end
         end
+
+        context 'required extra select fields due to associations' do
+          context 'many_to_one' do
+            let(:fields) { { other_model: true } }
+            let(:selectors) do
+              {
+                model: SimpleModel,
+                columns: [:other_model_id], # FK of the other_model association
+                field_deps: {
+                  fields: {
+                    other_model: {
+                      references: 'Linked to resource: OtherResource'
+                    }
+                  }
+                },
+                tracks: {
+                  other_model: {
+                    columns: [:id],
+                    model: OtherModel,
+                    field_deps: {
+                      fields: {
+                        id: {
+                          deps: %i[id]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
+          context 'one_to_many' do
+            let(:resource) { ParentResource }
+            let(:fields) { { simple_children: true } }
+            let(:selectors) do
+              {
+                model: ParentModel,
+                columns: [:id], # No FKs in the source model for one_to_many
+                field_deps: {
+                  fields: {
+                    simple_children: {
+                      references: 'Linked to resource: SimpleResource'
+                    }
+                  }
+                },
+                tracks: {
+                  simple_children: {
+                    columns: [:parent_id],
+                    model: SimpleModel,
+                    field_deps: {
+                      fields: {
+                        parent_id: {
+                          deps: %i[parent_id]
+                        }
+                      }
+                    },
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
+          context 'many_to_many' do
+            let(:resource) { OtherResource }
+            let(:fields) { { simple_models: true } }
+            let(:selectors) do
+              {
+                model: OtherModel,
+                columns: [:id], # join key in the source model for many_to_many (where the middle table points to)
+                field_deps: {
+                  fields: {
+                    simple_models: {
+                      references: 'Linked to resource: SimpleResource'
+                    }
+                  }
+                },
+                tracks: {
+                  simple_models: {
+                    columns: [:id], # join key in the target model for many_to_many (where the middle table points to)
+                    model: SimpleModel,
+                    field_deps: {
+                      fields: {
+                        id: {
+                          deps: %i[id]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
+
+          context 'that are several attriutes deep' do
+            let(:fields) { { deep_nested_deps: true } }
+            let(:selectors) do
+              {
+                model: SimpleModel,
+                columns: [:parent_id],
+                field_deps: {
+                  fields: {
+                    deep_nested_deps: {
+                      deps: %i[deep_nested_deps]
+                    }
+                  }
+                },
+                tracks: {
+                  parent: {
+                    model: ParentModel,
+                    columns: [:id], # No FKs in the source model for one_to_many
+                    field_deps: {
+                      fields: {
+                        id: {
+                          deps: %i[id]
+                        },
+                        simple_children: {
+                          references: 'Linked to resource: SimpleResource'
+                        }
+                      }
+                    },
+                    tracks: {
+                      simple_children: {
+                        columns: %i[parent_id other_model_id],
+                        model: SimpleModel,
+                        field_deps: {
+                          fields: {
+                            other_model: {
+                              references: 'Linked to resource: OtherResource'
+                            },
+                            parent_id: {
+                              deps: %i[parent_id]
+                            }
+                          }
+                        },
+                        tracks: {
+                          other_model: {
+                            model: OtherModel,
+                            columns: %i[id parent_id],
+                            field_deps: {
+                              fields: {
+                                id: {
+                                  deps: %i[id]
+                                },
+                                parent: {
+                                  references: 'Linked to resource: ParentResource'
+                                }
+                              }
+                            },
+                            tracks: {
+                              parent: {
+                                model: ParentModel,
+                                columns: %i[id simple_name other_attribute],
+                                field_deps: {
+                                  fields: {
+                                    id: {
+                                      deps: %i[id]
+                                    },
+                                    display_name: {
+                                      deps: %i[display_name simple_name id other_attribute]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            end
+            it_behaves_like 'a proper selector'
+          end
+        end
+      end
+      context 'merging multiple tracks with the same name within a node' do
+        let(:fields) do
+          { # Both everything_from_parent and parent will track the underlying 'parent' assoc
+            # ...and the final respective fields and tracks will need to be merged together.
+            # columns will be merged by just *, and tracks will merge true with simple children
+            everything_from_parent: true,
+            parent: {
+              simple_children: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            columns: %i[parent_id added_column],
+            field_deps: {
+              fields: {
+                everything_from_parent: {
+                  deps: %i[everything_from_parent]
+                },
+                parent: {
+                  deps: %i[parent added_column]
+                }
+              }
+            },
+            tracks: {
+              parent: {
+                model: ParentModel,
+                columns: [:*],
+                field_deps: { # TODO: empty field deps is a bit odd
+                },
+                tracks: {
+                  simple_children: {
+                    model: SimpleModel,
+                    columns: %i[parent_id],
+                    field_deps: { # TODO: parent_id isn't a field, so while true it is a bit odd to see here
+                      fields: {
+                        parent_id: {
+                          deps: %i[parent_id]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
+      context 'Aliased underlying associations follows any nested fields...' do
+        let(:fields) do
+          {
+            parent_id: true,
+            aliased_association: {
+              display_name: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            columns: %i[other_model_id parent_id],
+            field_deps: {
+              fields: {
+                parent_id: {
+                  deps: %i[parent_id]
+                },
+                aliased_association: {
+                  deps: %i[aliased_association],
+                  references: 'Linked to resource: OtherResource'
+                }
+              }
+            },
+            tracks: {
+              other_model: {
+                model: OtherModel,
+                columns: %i[id name],
+                field_deps: {
+                  fields: {
+                    id: {
+                      deps: %i[id]
+                    },
+                    display_name: {
+                      deps: %i[display_name name]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
+      end
+      context 'Deep aliased underlying associations also follows any nested fields at the end of the chain...' do
+        let(:fields) do
+          {
+            parent_id: true,
+            deep_aliased_association: {
+              name: true
+            }
+          }
+        end
+        let(:selectors) do
+          {
+            model: SimpleModel,
+            columns: %i[parent_id],
+            field_deps: {
+              fields: {
+                parent_id: {
+                  deps: %i[parent_id]
+                },
+                deep_aliased_association: {
+                  deps: %i[deep_aliased_association],
+                  references: 'Linked to resource: ParentResource' # NOOOOOOOOO
+                }
+              }
+            },
+            tracks: {
+              parent: {
+                model: ParentModel,
+                columns: %i[id],
+                field_deps: {
+                  fields: {
+                    simple_children: {
+                      references: 'Linked to resource: SimpleResource'
+                    },
+                    id: {
+                      deps: %i[id]
+                    }
+                  }
+                },
+                tracks: {
+                  simple_children: {
+                    model: SimpleModel,
+                    columns: %i[parent_id simple_name],
+                    field_deps: {
+                      fields: {
+                        parent_id: {
+                          deps: %i[parent_id]
+                        },
+                        name: {
+                          deps: %i[name nested_name simple_name]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        end
+        it_behaves_like 'a proper selector'
       end
     end
   #     context 'single direct dependency that it association' do

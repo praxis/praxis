@@ -94,10 +94,12 @@ module Praxis
         end
 
         def start_field(field_name)
+          puts "    >>> STARTING FIELD: #{field_name}"
           @current_field.push field_name
         end
 
         def end_field
+          puts "    <<<  ENDING FIELD: #{@current_field.last}"
           @current_field.pop
         end
 
@@ -109,6 +111,7 @@ module Praxis
 
         # This should be a single thing no? i.e., set_reference ... instead of an array...
         def set_reference(selector_node)
+          puts "Setting reference for #{@current_field} to #{selector_node}"
           pointer = @current_field.empty? ? @fields[true] : @fields.dig(*@current_field)
           pointer.references = selector_node
         end
@@ -164,10 +167,9 @@ module Praxis
       def map_property(name, fields)
         praxis_compat_model = resource.model&.respond_to?(:_praxis_associations)
         if resource.properties.key?(name)
-          if resource.properties[name][:as]
+          if (target = resource.properties[name][:as])
             add_fwding_property(name, fields)
-            fields_node.set_reference(fields_node.last_forwarded)
-            # fields_node.last_forwarded = nil
+            fields_node.set_reference(fields_node.last_forwarded) unless target == :self
           else
             add_property(name, fields)
           end
@@ -183,6 +185,7 @@ module Praxis
 
       def add_association(name, fields, forwarding: false)
         puts "**************SWITCHING TO ASSOCIATION: #{name} *****************"
+        fields_node.retrieve_last_of_chain = true
         association = resource.model._praxis_associations.fetch(name) do
           raise "missing association for #{resource} with name #{name}"
         end
@@ -209,7 +212,7 @@ module Praxis
           fields_node.last_forwarded = node.fields_node.last_forwarded || node
         end
         merge_track(name, node)
-        puts "------------------ENDING ASSOCIATION: #{name} -------------------------"
+        puts "------------------ENDING ASSOCIATION: #{name} ---NODE: #{tracks[name]}------"
         node
       end
 
@@ -242,10 +245,16 @@ module Praxis
                   { prop => accum }
                 end
               end
+            # Assume (or check) that all forwarded properties need to be pure associations
+            # OR, run over the chain (getting the head)
+            # And then just add the fields to that?
 
             add_association(first, extended_fields,  forwarding: true) if resource.model._praxis_associations[first]
           end
         end
+        require 'pry'
+        binding.pry
+        puts 'asda'
       end
 
       def add_property(name, fields)
@@ -253,26 +262,30 @@ module Praxis
         # Always add the underlying association if we're overriding the name...
         if (praxis_compat_model = resource.model&.respond_to?(:_praxis_associations))
           aliased_as = resource.properties[name][:as]
-          raise "CANNOT BE!!" if aliased_as
-          if aliased_as == :self
-            # Special keyword to add itself as the association, but still continue procesing the fields
-            # This is useful when we expose resource fields tucked inside another sub-struct, this way
-            # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
-            add(fields)
-          else
-            first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
+          if aliased_as
+            if aliased_as == :self
+              # Special keyword to add itself as the association, but still continue procesing the fields
+              # This is useful when we expose resource fields tucked inside another sub-struct, this way
+              # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
+              add(fields)
+            else
+              first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
 
-            extended_fields = \
-              if rest.empty?
-                fields
-              else
-                rest.reverse.inject(fields) do |accum, prop|
-                  { prop => accum }
+              extended_fields = \
+                if rest.empty?
+                  fields
+                else
+                  rest.reverse.inject(fields) do |accum, prop|
+                    { prop => accum }
+                  end
                 end
-              end
 
-            
-            add_association(first, extended_fields) if resource.model._praxis_associations[first]
+              
+              add_association(first, extended_fields) if resource.model._praxis_associations[first]
+            end
+          elsif resource.model._praxis_associations[name]
+            # Not aliased ... but if there is an existing association for the propety name, we add it (and ignore any deps in place)
+            add_association(name, fields)
           end
         end
         # If we have a property group, and the subfields want to selectively restrict what to depend on

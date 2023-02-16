@@ -33,6 +33,29 @@ describe Praxis::Mapper::Resource do
         expect(properties[:name]).to eq(dependencies: [:nested_name], through: nil)
       end
     end
+
+    context 'detect_invalid_properties' do
+      subject { resource.detect_invalid_properties }
+      let(:resource) do
+        Class.new(Praxis::Mapper::Resource) do
+          model SimpleModel
+          property :parent
+          property :other_model, dependencies: %i[foo bar]
+          def other_model
+            _something = foo && bar
+            record.other_model
+          end
+        end
+      end
+      # Validates that defining properties that are direct associations shouldn't be done unless
+      # there is an overriden method that takes over (and therefore might need the dependencies defined for what it needs)
+      it 'detects the invalid ones' do
+        # Parent is defined, but it is already an association (and no overriden method for it)
+        expect(subject.keys).to match_array([:parent])
+        # Other model is an association, but it is overriden, so that's a valid way to specify properties
+        expect(subject.keys).to_not include(:other_model)
+      end
+    end
   end
 
   context 'retrieving resources' do

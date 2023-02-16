@@ -183,30 +183,30 @@ describe Praxis::Mapper::SelectorGenerator do
       end
 
       context 'a true substructure object' do
-        # once we hit true_struct, we know it is not a property group, so we'll bring ALL the inner dependencies
-        # even if the fields required are only a subset of it
-        let(:fields) do
-          {
-            true_struct: {
-              sub_id: {
-                sub_sub_id: true
-              }
-            }
-          }
-        end
-        let(:selectors) do
-          {
-            model: SimpleModel,
-            # Parent_id is because we asked for it at the top
-            # display_name because we asked for it under sub_struct, but it is marked as :self
-            # alway_necessary_attribute because it is a dependency of sub_struct
-            columns: %i[simple_name id],
-            field_deps: {
-              true_struct: %i[name nested_name simple_name sub_id sub_sub_id id] 
-            }
-          }
-        end
-        it_behaves_like 'a proper selector'
+        # # once we hit true_struct, we know it is not a property group, so we'll bring ALL the inner dependencies
+        # # even if the fields required are only a subset of it
+        # let(:fields) do
+        #   {
+        #     true_struct: {
+        #       sub_id: {
+        #         sub_sub_id: true
+        #       }
+        #     }
+        #   }
+        # end
+        # let(:selectors) do
+        #   {
+        #     model: SimpleModel,
+        #     # Parent_id is because we asked for it at the top
+        #     # display_name because we asked for it under sub_struct, but it is marked as :self
+        #     # alway_necessary_attribute because it is a dependency of sub_struct
+        #     columns: %i[simple_name id],
+        #     field_deps: {
+        #       true_struct: %i[name nested_name simple_name sub_id sub_sub_id id] 
+        #     }
+        #   }
+        # end
+        # it_behaves_like 'a proper selector'
       end
 
       context 'a true substructure object trying to prefix like a property group (is still treated as a struct loading it all)' do

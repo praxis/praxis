@@ -254,7 +254,7 @@ describe Praxis::Mapper::SelectorGenerator do
             end
             it_behaves_like 'a proper selector'
           end
-          pending 'Deep aliased underlying associations also follows any nested fields at the end of the chain...' do
+          context 'Deep aliased underlying associations also follows any nested fields at the end of the chain...' do
             let(:fields) do
               {
                 parent_id: true,

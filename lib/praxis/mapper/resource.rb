@@ -132,7 +132,7 @@ module Praxis
         # errors = detect_invalid_properties
         # raise errors unless errors.empty?
       end
-      
+
       # Verifies if the system has badly defined properties
       # For example, properties that correspond to an underlying association method (for which there is no
       # overriden method in the resource) must not have dependencies defined, as it is clear the association is the only one
@@ -202,6 +202,7 @@ module Praxis
       def self.define_aliased_methods
         with_different_alias_name = properties.reject { |name, opts| name == opts[:as] || opts[:as].nil? }
 
+        puts "TODO! HEre we need to chack that the as: symbol, or each of the dotten notation names are pure association names in the corresponding resources!!!!!!!!!!!"
         with_different_alias_name.each do |prop_name, opts|
           next if instance_methods.include? prop_name
 

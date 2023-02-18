@@ -279,13 +279,17 @@ module Praxis
                   { prop => accum }
                 end
               end
-            # Assume (or check) that all forwarded properties need to be pure associations
-            # OR, run over the chain (getting the head)
-            # And then just add the fields to that?
+            # Assumes (as: option of the property DSL should check check) that all forwarded properties need to be pure associations
+            # We know we've now added the chain of association dependencies under our node...so we'll start getting the 'first' of them
+            # and recurse down the node until the leaf.
+            # Then, we need to apply the incoming fields to that.
 
-            leaf_node = add_association(first, extended_fields,  forwarding: true)
-            leaf_node.add(fields)
-            # add_association(first, extended_fields,  forwarding: true) if resource.model._praxis_associations[first]
+            add_association(first, extended_fields,  forwarding: true)
+            direct = tracks[first]
+            leaf_node = rest.inject(direct) do |accum, assoc_name|
+              accum.tracks[assoc_name]
+            end
+            leaf_node.add(fields) unless fields == true # If true, no fields to apply
           end
         end
         # require 'pry'

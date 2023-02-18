@@ -183,9 +183,43 @@ module Praxis
         end
       end
 
+      def add_association_string(names_array)
+        puts "**************SWITCHING TO STRING ASSOCIATION: #{names_array} *****************"
+        name 
+        #fields_node.retrieve_last_of_chain = true
+        association = resource.model._praxis_associations.fetch(name) do
+          raise "missing association for #{resource} with name #{name}"
+        end
+        associated_resource = resource.model_map[association[:model]]
+        raise "Whoops! could not find a resource associated with model #{association[:model]} (root resource #{resource})" unless associated_resource
+
+        # Add the required columns in this model to make sure the association can be loaded
+        association[:local_key_columns].each { |col| add_select(col, add_field: false) }
+
+        node = SelectorGeneratorNode.new(associated_resource)
+        unless association[:remote_key_columns].empty?
+          # Make sure we add the required columns for this association to the remote model query
+          fields = {} if fields == true
+          new_fields_as_hash = association[:remote_key_columns].each_with_object({}) do |key, hash|
+            hash[key] = true
+          end
+          fields = fields.merge(new_fields_as_hash)
+        end
+
+        node.add(fields) unless fields == true
+        
+        # Track the forwarding if we know it is so
+        if forwarding
+          fields_node.last_forwarded = node.fields_node.last_forwarded || node
+        end
+        merge_track(name, node)
+        puts "------------------ENDING ASSOCIATION: #{name} ---NODE: #{tracks[name]}------"
+        node
+      end
+
       def add_association(name, fields, forwarding: false)
-        puts "**************SWITCHING TO ASSOCIATION: #{name} *****************"
-        fields_node.retrieve_last_of_chain = true
+        puts "**************SWITCHING TO ASSOCIATION: #{name} ******** FIELDS #{fields}*********"
+        #fields_node.retrieve_last_of_chain = true
         association = resource.model._praxis_associations.fetch(name) do
           raise "missing association for #{resource} with name #{name}"
         end
@@ -239,9 +273,9 @@ module Praxis
 
             extended_fields = \
               if rest.empty?
-                fields
+                {}
               else
-                rest.reverse.inject(fields) do |accum, prop|
+                rest.reverse.inject(true) do |accum, prop|
                   { prop => accum }
                 end
               end
@@ -249,12 +283,14 @@ module Praxis
             # OR, run over the chain (getting the head)
             # And then just add the fields to that?
 
-            add_association(first, extended_fields,  forwarding: true) if resource.model._praxis_associations[first]
+            leaf_node = add_association(first, extended_fields,  forwarding: true)
+            leaf_node.add(fields)
+            # add_association(first, extended_fields,  forwarding: true) if resource.model._praxis_associations[first]
           end
         end
-        require 'pry'
-        binding.pry
-        puts 'asda'
+        # require 'pry'
+        # binding.pry
+        # puts 'asda'
       end
 
       def add_property(name, fields)
@@ -353,13 +389,13 @@ module Praxis
         fields_node.last_forwarded = node.fields_node.last_forwarded unless fields_node.last_forwarded
       end
 
-      def dump
+      def dump(field_deps: false)
         hash = {}
         hash[:model] = resource.model
         if !@select.empty? || @select_star
           hash[:columns] = @select_star ? [:*] : @select.to_a
         end
-        hash[:field_deps] = @fields_node.dump
+        hash[:field_deps] = @fields_node.dump if field_deps
         hash[:tracks] = @tracks.transform_values(&:dump) unless @tracks.empty?
         hash
       end

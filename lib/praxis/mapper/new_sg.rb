@@ -78,7 +78,7 @@ module Praxis
 
       class FieldDependenciesNode
         attr_reader :deps, :fields
-        attr_accessor :references, :last_forwarded
+        attr_accessor :references
 
         def initialize(name:)
           @name = name
@@ -87,7 +87,6 @@ module Praxis
           end
           @deps = Set.new
           @references = nil
-          @last_forwarded = nil
           # We could translate the path to the actual pointer to the fields hash object but then the 'pop' is a bit more difficult
           # OR maybe we leave it like that, but we also have the direct pointer of the current field for lookups
           @current_field = []
@@ -152,13 +151,6 @@ module Praxis
         fields.each do |name, field|
           fields_node.start_field(name)
           map_property(name, field)
-          if resource.properties[name] && resource.properties[name][:as]
-            # puts "Ending property #{name} as a Forwarder"
-            # fields_node.last_forwarded= fields_node[name].references
-            # require 'pry'
-            # binding.pry
-            # puts 'asdfa'
-          end
           fields_node.end_field
         end
         self
@@ -212,18 +204,13 @@ module Praxis
         end
 
         node.add(fields) unless fields == true
-        leaf_node = nil
-        leaf_node = node.add_string_association(rest) unless rest.empty?
-        # # Track the forwarding if we know it is so
-        # if forwarding
-        #   fields_node.last_forwarded = node.fields_node.last_forwarded || node
-        # end
+        leaf_node = rest.empty? ? nil : node.add_string_association(rest)
         merge_track(first, node)
         puts "------------------ENDING ASSOCIATION: #{first} ---NODE: #{tracks[first]}------"
         leaf_node || node # Return the leaf (i.e., us, if we're the last component or the result of the string_association if there was one)
       end
 
-      def add_association(name, fields, forwarding: false)
+      def add_association(name, fields)
         puts "**************SWITCHING TO ASSOCIATION: #{name} ******** FIELDS #{fields}*********"
         #fields_node.retrieve_last_of_chain = true
         association = resource.model._praxis_associations.fetch(name) do
@@ -246,11 +233,7 @@ module Praxis
         end
 
         node.add(fields) unless fields == true
-        
-        # Track the forwarding if we know it is so
-        if forwarding
-          fields_node.last_forwarded = node.fields_node.last_forwarded || node
-        end
+
         merge_track(name, node)
         puts "------------------ENDING ASSOCIATION: #{name} ---NODE: #{tracks[name]}------"
         node
@@ -267,43 +250,20 @@ module Praxis
 
       def add_fwding_property(name, fields)
         aliased_as = resource.properties[name][:as]
-        # Always add the underlying association if we're overriding the name...
-        if resource.model&.respond_to?(:_praxis_associations) # NECESSARY???
-          if aliased_as == :self
-            # Special keyword to add itself as the association, but still continue procesing the fields
-            # This is useful when we expose resource fields tucked inside another sub-struct, this way
-            # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
-            add(fields) unless fields == true
-          else
-            # first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
-
-            # extended_fields = \
-            #   if rest.empty?
-            #     {}
-            #   else
-            #     rest.reverse.inject(true) do |accum, prop|
-            #       { prop => accum }
-            #     end
-            #   end
-            # Assumes (as: option of the property DSL should check check) that all forwarded properties need to be pure associations
-            # We know we've now added the chain of association dependencies under our node...so we'll start getting the 'first' of them
-            # and recurse down the node until the leaf.
-            # Then, we need to apply the incoming fields to that.
-            leaf_node = add_string_association(aliased_as.to_s.split('.').map(&:to_sym))
-            leaf_node.add(fields) unless fields == true # If true, no fields to apply
-            leaf_node
-            # require 'pry'
-            # binding.pry
-            # direct = tracks[first]
-            # leaf_node = rest.inject(direct) do |accum, assoc_name|
-            #   accum.tracks[assoc_name]
-            # end
-            # leaf_node.add(fields) unless fields == true # If true, no fields to apply
-          end
+        if aliased_as == :self
+          # Special keyword to add itself as the association, but still continue procesing the fields
+          # This is useful when we expose resource fields tucked inside another sub-struct, this way
+          # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
+          add(fields) unless fields == true
+        else
+          # Assumes (as: option of the property DSL should check check) that all forwarded properties need to be pure associations
+          # We know we've now added the chain of association dependencies under our node...so we'll start getting the 'first' of them
+          # and recurse down the node until the leaf.
+          # Then, we need to apply the incoming fields to that.
+          leaf_node = add_string_association(aliased_as.to_s.split('.').map(&:to_sym))
+          leaf_node.add(fields) unless fields == true # If true, no fields to apply
+          leaf_node
         end
-        # require 'pry'
-        # binding.pry
-        # puts 'asda'
       end
 
       def add_property(name, fields)
@@ -389,8 +349,6 @@ module Praxis
         else
           tracks[track_name] = node
         end
-        # Necessary?... don't think so
-        fields_node.last_forwarded = node.fields_node.last_forwarded unless fields_node.last_forwarded
       end
 
       # Debugging method for rspec, to easily match the desired output

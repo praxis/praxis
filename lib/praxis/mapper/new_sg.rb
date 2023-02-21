@@ -7,12 +7,12 @@ module Praxis
         puts "ADD fields: #{fields}"
         super
       end
-      def map_property(name, fields)
-        puts "MAP PROP #{name} fields: #{fields}"
+      def map_property(name, fields, **args)
+        puts "MAP PROP #{name} fields: #{fields} (args: #{args})"
         super
       end
-      def add_association(name, fields, forwarding: false)
-        puts "ADD ASSOCIATION #{name} fields: #{fields} (forwarding: #{forwarding})"
+      def add_association(name, fields, **args)
+        puts "ADD ASSOCIATION #{name} fields: #{fields} (args: #{args})"
         super
       end
       def add_select(name, add_field: true)
@@ -164,7 +164,7 @@ module Praxis
         self
       end
 
-      def map_property(name, fields)
+      def map_property(name, fields, as_dependency: false)
         praxis_compat_model = resource.model&.respond_to?(:_praxis_associations)
         if resource.properties.key?(name)
           if (target = resource.properties[name][:as])
@@ -177,7 +177,12 @@ module Praxis
         elsif praxis_compat_model && resource.model._praxis_associations.key?(name)
           add_association(name, fields)
           # Single association properties are also pointing to the corresponding tracked SelectorGeneratorNode
-          fields_node.set_reference(tracks[name])
+          # but only if they are implicit properties, without dependencies
+          if as_dependency
+            fields_node.add_local_dep(name)
+          else
+            fields_node.set_reference(tracks[name]) 
+          end
         else
           add_select(name)
         end
@@ -267,7 +272,7 @@ module Praxis
             # Special keyword to add itself as the association, but still continue procesing the fields
             # This is useful when we expose resource fields tucked inside another sub-struct, this way
             # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
-            add(fields)
+            add(fields) unless fields == true
           else
             first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
 
@@ -357,7 +362,7 @@ module Praxis
       def apply_dependency(dependency, fields=true)
         case dependency
         when Symbol
-          map_property(dependency, fields)
+          map_property(dependency, fields, as_dependency: true)
         when String
           head, *tail = dependency.split('.').collect(&:to_sym)
           raise 'String dependencies can not be singular' if tail.nil?
@@ -384,14 +389,24 @@ module Praxis
         fields_node.last_forwarded = node.fields_node.last_forwarded unless fields_node.last_forwarded
       end
 
-      def dump(field_deps: false)
+      # Debugging method for rspec, to easily match the desired output
+      # By default it only outputs the info related to computing columns and track dependencies.
+      # Overriding the mode will allow to dump the model and only the field dependencies
+      def dump(mode: :columns_and_tracks)
         hash = {}
         hash[:model] = resource.model
-        if !@select.empty? || @select_star
-          hash[:columns] = @select_star ? [:*] : @select.to_a
+        if mode == :columns_and_tracks
+          if !@select.empty? || @select_star
+            hash[:columns] = @select_star ? [:*] : @select.to_a
+          end
+        elsif mode == :fields
+          dumped_fields_node = @fields_node.dump
+          raise "Fields node has more keys than fields!! #{dumped_fields_node}" if dumped_fields_node.keys.size > 1
+          hash[:fields] = dumped_fields_node[:fields] if dumped_fields_node[:fields]
+        else
+          raise "Unknown mode #{mode} for dumping SelectorGenerator"
         end
-        hash[:field_deps] = @fields_node.dump if field_deps
-        hash[:tracks] = @tracks.transform_values(&:dump) unless @tracks.empty?
+        hash[:tracks] = @tracks.transform_values {|v| v.dump(mode: mode)} unless @tracks.empty?
         hash
       end
     end

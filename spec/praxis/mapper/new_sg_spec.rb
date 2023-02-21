@@ -8,17 +8,10 @@ describe Praxis::Mapper::SelectorGenerator do
 
   context '#add' do
     let(:resource) { SimpleResource }
-    shared_examples 'a more complex proper selector' do
-      # it do
-      #   dumped = generator.add(resource, fields).selectors.dump
-      #   puts JSON.pretty_generate(dumped)
-      #   expect(dumped).to be_deep_equal selectors
-      # end
-    end
     shared_examples 'a proper selector' do
       it do
         dumped = generator.add(resource, fields).selectors.dump
-        puts JSON.pretty_generate(dumped)
+        # puts JSON.pretty_generate(dumped)
         expect(dumped).to be_deep_equal selectors
       end
     end
@@ -27,7 +20,7 @@ describe Praxis::Mapper::SelectorGenerator do
       it do
         result = generator.add(resource, fields).selectors
         dumped = result.dump(mode: :fields)
-        puts JSON.pretty_generate(dumped)
+        # puts JSON.pretty_generate(dumped)
         expect(dumped).to be_deep_equal selectors
       end
     end
@@ -445,7 +438,7 @@ describe Praxis::Mapper::SelectorGenerator do
       end
     end
 
-    context 'selecting fields and subfields', focus: true do
+    context 'selecting fields and subfields' do
       context 'with nil dependencies' do
         let(:fields) do
           {
@@ -1061,7 +1054,7 @@ describe Praxis::Mapper::SelectorGenerator do
     end
 
 
-    pending 'Traversal of field deps experiments' do
+    context 'Traversal of field deps experiments' do
       context 'using a self forwarding association name with multiple levels which include deep forwarding associations' do
         let(:fields) do
           {
@@ -1094,10 +1087,6 @@ describe Praxis::Mapper::SelectorGenerator do
               parent: {
                 model: ParentModel,
                 fields: {
-                  aliased_simple_children: {
-                    deps: [:aliased_simple_children],
-                    references: 'Linked to resource: SimpleResource'
-                  },
                   id: {
                     deps: %i[id]
                   }
@@ -1108,7 +1097,11 @@ describe Praxis::Mapper::SelectorGenerator do
                     fields: {
                       parent_id: {
                         deps: %i[parent_id]
+                      },
+                      nested_name: {
+                        deps: %i[nested_name simple_name]
                       }
+
                     }
                   }
                 }
@@ -1121,8 +1114,14 @@ describe Praxis::Mapper::SelectorGenerator do
         # it 'works' do
         #   result = generator.add(resource, fields).selectors
         #   # result.fields_node.fields[:sub_struct][:deep_overriden_aliased_association].references.fields_node.fields[:parent_id]
+        #   fnode = result.fields_node
+        #   name_deps = fnode.visit(:sub_struct, :name).deps
+        #   deep_assoc_deps = fnode.visit(:sub_struct, :deep_aliased_association).deps
         #   require 'pry'
         #   binding.pry
+        #   deep_assoc_nested_namedeps = fnode.visit(:sub_struct, :deep_aliased_association, :nested_name).deps
+          
+        #   puts 'asdfa'
         # end
       end
     end

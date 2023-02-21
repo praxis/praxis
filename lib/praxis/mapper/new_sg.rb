@@ -33,7 +33,7 @@ module Praxis
       end
     end
     class SelectorGeneratorNode
-      prepend SelectorGeneratorNodeDebugger
+      # prepend SelectorGeneratorNodeDebugger # Uncomment this to see the traces of how methods are called
       attr_reader :select, :model, :resource, :tracks, :fields_node
 
       # FieldDependenciesNode, attached to a SelectorGeneratorNode, which will contain, for every field passed in (not properties, but fields), the
@@ -93,12 +93,10 @@ module Praxis
         end
 
         def start_field(field_name)
-          puts "    >>> STARTING FIELD: #{field_name}"
           @current_field.push field_name
         end
 
         def end_field
-          puts "    <<<  ENDING FIELD: #{@current_field.last}"
           @current_field.pop
         end
 
@@ -110,11 +108,22 @@ module Praxis
 
         # This should be a single thing no? i.e., set_reference ... instead of an array...
         def set_reference(selector_node)
-          puts "Setting reference for #{@current_field} to #{selector_node}"
           pointer = @current_field.empty? ? @fields[true] : @fields.dig(*@current_field)
           pointer.references = selector_node
         end
 
+        def visit(first, *rest)
+          raise "Invalid field name to visit #{first}. Available fields are: #{@fields.keys}" unless @fields.key?(first)
+          
+          next_node = @fields[first]
+          return next_node if rest.empty?
+
+          # Follow the reference if we need to go further down and there is one
+          next_node = next_node.references.fields_node if next_node.references
+          next_node.visit(*rest)
+        end
+
+        # TODO, do we need these?
         def dig(...)
           @fields.dig(...)
         end
@@ -180,10 +189,7 @@ module Praxis
         end
       end
 
-      def add_string_association(names_array)
-        puts "**************SWITCHING TO STRING ASSOCIATION: #{names_array} *****************"
-        first, *rest = names_array
-
+      def add_string_association(first, *rest)
         association = resource.model._praxis_associations.fetch(first) do
           raise "missing association for #{resource} with name #{first}"
         end
@@ -204,14 +210,12 @@ module Praxis
         end
 
         node.add(fields) unless fields == true
-        leaf_node = rest.empty? ? nil : node.add_string_association(rest)
+        leaf_node = rest.empty? ? nil : node.add_string_association(*rest)
         merge_track(first, node)
-        puts "------------------ENDING ASSOCIATION: #{first} ---NODE: #{tracks[first]}------"
         leaf_node || node # Return the leaf (i.e., us, if we're the last component or the result of the string_association if there was one)
       end
 
       def add_association(name, fields)
-        puts "**************SWITCHING TO ASSOCIATION: #{name} ******** FIELDS #{fields}*********"
         #fields_node.retrieve_last_of_chain = true
         association = resource.model._praxis_associations.fetch(name) do
           raise "missing association for #{resource} with name #{name}"
@@ -235,7 +239,6 @@ module Praxis
         node.add(fields) unless fields == true
 
         merge_track(name, node)
-        puts "------------------ENDING ASSOCIATION: #{name} ---NODE: #{tracks[name]}------"
         node
       end
 
@@ -260,7 +263,7 @@ module Praxis
           # We know we've now added the chain of association dependencies under our node...so we'll start getting the 'first' of them
           # and recurse down the node until the leaf.
           # Then, we need to apply the incoming fields to that.
-          leaf_node = add_string_association(aliased_as.to_s.split('.').map(&:to_sym))
+          leaf_node = add_string_association(*aliased_as.to_s.split('.').map(&:to_sym))
           leaf_node.add(fields) unless fields == true # If true, no fields to apply
           leaf_node
         end
@@ -299,7 +302,6 @@ module Praxis
         end
         # If we have a property group, and the subfields want to selectively restrict what to depend on
         if fields != true && resource.property_groups[name]
-          puts ">>>>>>>>>>>>>>>>FOUND A PROPERTY GROUP for #{name}"
           # Prepend the group name to fields if it's an inner hash
           prefixed_fields = fields == true ? {} : fields.keys.each_with_object({}) {|k,h| h["#{name}_#{k}".to_sym] = k }
           # Try to match all inner fields

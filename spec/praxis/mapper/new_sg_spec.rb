@@ -814,9 +814,6 @@ describe Praxis::Mapper::SelectorGenerator do
                 parent: {
                   model: ParentModel,
                   fields: {
-                    simple_children: {
-                      references: 'Linked to resource: SimpleResource'
-                    },
                     id: {
                       deps: %i[id]
                     }
@@ -912,10 +909,6 @@ describe Praxis::Mapper::SelectorGenerator do
                 parent: {
                   model: ParentModel,
                   fields: {
-                    aliased_simple_children: {
-                      deps: [:aliased_simple_children],
-                      references: 'Linked to resource: SimpleResource'
-                    },
                     id: {
                       deps: %i[id]
                     }

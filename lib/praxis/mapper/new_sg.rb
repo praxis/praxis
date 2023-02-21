@@ -168,10 +168,8 @@ module Praxis
         praxis_compat_model = resource.model&.respond_to?(:_praxis_associations)
         if resource.properties.key?(name)
           if (target = resource.properties[name][:as])
-            add_fwding_property(name, fields)
-            require 'pry'
-            binding.pry
-            fields_node.set_reference(fields_node.last_forwarded) unless target == :self
+            leaf_node = add_fwding_property(name, fields)
+            fields_node.set_reference(leaf_node) unless target == :self
           else
             add_property(name, fields)
           end
@@ -190,12 +188,12 @@ module Praxis
         end
       end
 
-      def add_association_string(names_array)
+      def add_string_association(names_array)
         puts "**************SWITCHING TO STRING ASSOCIATION: #{names_array} *****************"
-        name 
-        #fields_node.retrieve_last_of_chain = true
-        association = resource.model._praxis_associations.fetch(name) do
-          raise "missing association for #{resource} with name #{name}"
+        first, *rest = names_array
+
+        association = resource.model._praxis_associations.fetch(first) do
+          raise "missing association for #{resource} with name #{first}"
         end
         associated_resource = resource.model_map[association[:model]]
         raise "Whoops! could not find a resource associated with model #{association[:model]} (root resource #{resource})" unless associated_resource
@@ -206,7 +204,7 @@ module Praxis
         node = SelectorGeneratorNode.new(associated_resource)
         unless association[:remote_key_columns].empty?
           # Make sure we add the required columns for this association to the remote model query
-          fields = {} if fields == true
+          fields = {}
           new_fields_as_hash = association[:remote_key_columns].each_with_object({}) do |key, hash|
             hash[key] = true
           end
@@ -214,14 +212,15 @@ module Praxis
         end
 
         node.add(fields) unless fields == true
-        
+        leaf_node = nil
+        leaf_node = node.add_string_association(rest) unless rest.empty?
         # # Track the forwarding if we know it is so
         # if forwarding
         #   fields_node.last_forwarded = node.fields_node.last_forwarded || node
         # end
-        merge_track(name, node)
-        puts "------------------ENDING ASSOCIATION: #{name} ---NODE: #{tracks[name]}------"
-        node
+        merge_track(first, node)
+        puts "------------------ENDING ASSOCIATION: #{first} ---NODE: #{tracks[first]}------"
+        leaf_node || node # Return the leaf (i.e., us, if we're the last component or the result of the string_association if there was one)
       end
 
       def add_association(name, fields, forwarding: false)
@@ -276,27 +275,30 @@ module Praxis
             # we can make sure that if the fields necessary to compute things inside the struct, they are preloaded
             add(fields) unless fields == true
           else
-            first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
+            # first, *rest = aliased_as.to_s.split('.').map(&:to_sym)
 
-            extended_fields = \
-              if rest.empty?
-                {}
-              else
-                rest.reverse.inject(true) do |accum, prop|
-                  { prop => accum }
-                end
-              end
+            # extended_fields = \
+            #   if rest.empty?
+            #     {}
+            #   else
+            #     rest.reverse.inject(true) do |accum, prop|
+            #       { prop => accum }
+            #     end
+            #   end
             # Assumes (as: option of the property DSL should check check) that all forwarded properties need to be pure associations
             # We know we've now added the chain of association dependencies under our node...so we'll start getting the 'first' of them
             # and recurse down the node until the leaf.
             # Then, we need to apply the incoming fields to that.
-
-            add_association(first, extended_fields,  forwarding: true)
-            direct = tracks[first]
-            leaf_node = rest.inject(direct) do |accum, assoc_name|
-              accum.tracks[assoc_name]
-            end
+            leaf_node = add_string_association(aliased_as.to_s.split('.').map(&:to_sym))
             leaf_node.add(fields) unless fields == true # If true, no fields to apply
+            leaf_node
+            # require 'pry'
+            # binding.pry
+            # direct = tracks[first]
+            # leaf_node = rest.inject(direct) do |accum, assoc_name|
+            #   accum.tracks[assoc_name]
+            # end
+            # leaf_node.add(fields) unless fields == true # If true, no fields to apply
           end
         end
         # require 'pry'

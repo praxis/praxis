@@ -169,6 +169,8 @@ module Praxis
         if resource.properties.key?(name)
           if (target = resource.properties[name][:as])
             add_fwding_property(name, fields)
+            require 'pry'
+            binding.pry
             fields_node.set_reference(fields_node.last_forwarded) unless target == :self
           else
             add_property(name, fields)
@@ -213,10 +215,10 @@ module Praxis
 
         node.add(fields) unless fields == true
         
-        # Track the forwarding if we know it is so
-        if forwarding
-          fields_node.last_forwarded = node.fields_node.last_forwarded || node
-        end
+        # # Track the forwarding if we know it is so
+        # if forwarding
+        #   fields_node.last_forwarded = node.fields_node.last_forwarded || node
+        # end
         merge_track(name, node)
         puts "------------------ENDING ASSOCIATION: #{name} ---NODE: #{tracks[name]}------"
         node
@@ -418,8 +420,6 @@ module Praxis
       def add(resource, fields)
         @root = SelectorGeneratorNode.new(resource)
         @root.add(fields)
-        # require 'pry'
-        # binding.pry
         self
       end
 

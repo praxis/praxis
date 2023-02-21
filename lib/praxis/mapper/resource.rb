@@ -198,12 +198,31 @@ module Praxis
         end
       end
 
+      def self.validate_associations_path(model, path)
+          first, *rest = path
+
+        assoc = model._praxis_associations[first]
+        return first unless assoc
+
+        rest.presence ? validate_associations_path(assoc[:model], rest) : nil
+      end
+
       def self.define_aliased_methods
         with_different_alias_name = properties.reject { |name, opts| name == opts[:as] || opts[:as].nil? }
 
-        puts "TODO! HEre we need to chack that the as: symbol, or each of the dotten notation names are pure association names in the corresponding resources!!!!!!!!!!!"
         with_different_alias_name.each do |prop_name, opts|
           next if instance_methods.include? prop_name
+          # Check that the as: symbol, or each of the dotten notation names are pure association names in the corresponding resources, aliases aren't supported"
+          unless opts[:as] == :self
+            raise "No!!!" unless self.model&.respond_to?(:_praxis_associations)
+
+            errors = validate_associations_path(model, opts[:as].to_s.split('.').map(&:to_sym))
+            if errors.presence
+              require 'pry'
+              binding.pry
+              raise "INVALID PATH #{errors}" 
+            end
+          end
 
           # Straight call to another association method (that we will generate automatically in our association accessors)
           module_eval <<-RUBY, __FILE__, __LINE__ + 1

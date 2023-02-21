@@ -159,7 +159,7 @@ class SimpleResource < BaseResource
   property :deep_aliased_association, as: 'parent.simple_children'
   property :overriden_aliased_association, as: :other_model
   property :aliased_parent, as: :parent
-  property :deep_overriden_aliased_association, as: 'parent.aliased_simple_children' # TODO!!! if I change it to 'aliased_parent.aliased_simple_children' things come empty!!!
+  property :deep_overriden_aliased_association, as: 'parent.simple_children' # TODO!!! if I change it to 'aliased_parent.aliased_simple_children' things come empty!!!
   property :sub_struct, as: :self
 
   property :true_struct, dependencies: [:name, :sub_id]

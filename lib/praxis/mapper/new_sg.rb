@@ -352,15 +352,6 @@ module Praxis
             end
           end
         end
-
-        head, *tail = resource.properties[name][:through]
-        return if head.nil?
-
-        new_fields = tail.reverse.inject(fields) do |thing, step|
-          { step => thing }
-        end
-
-        add_association(head, new_fields)
       end
 
       def apply_dependency(dependency, fields=true)

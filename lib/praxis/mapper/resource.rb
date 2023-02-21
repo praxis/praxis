@@ -87,8 +87,8 @@ module Praxis
       # The `as:` can be used for properties that correspond to an underlying association of a different name. With this, the selector generator, is able to
       # follow and pass any incoming nested fields when necessary (as opposed to only add dependencies and discard nested fields)
       # No dependencies are allowed to be defined if `as:` is used (as the dependencies should be defined at the final aliased property)
-      def self.property(name, dependencies: nil, through: nil, as: nil) # rubocop:disable Naming/MethodParameterName
-        h = { dependencies: dependencies, through: through }
+      def self.property(name, dependencies: nil, as: nil) # rubocop:disable Naming/MethodParameterName
+        h = { dependencies: dependencies }
         if as
           raise 'Cannot use dependencies for a property when using the "as:" keyword' if dependencies.presence
 
@@ -148,7 +148,6 @@ module Praxis
           example_def = "property #{prop_name}"
           example_def.concat("dependencies: #{data[:dependencies]}") if data[:dependencies].presence
           example_def.concat("as: #{data[:as]}") if data[:as].presence
-          example_def.concat("through: #{data[:through]}") if data[:through].presence
           # If we haven't overriden the method, we'll create an accessor, so defining deps does not make sense
           error = "Error defining property '#{prop_name}' in resource #{name}. Method #{prop_name} is already an association " \
                   "which will be properly wrapped with an accessor, so you do not need to define it as a property.\n" \

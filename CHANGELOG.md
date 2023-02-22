@@ -1,6 +1,7 @@
 # Praxis Changelog
 
 ## next
+ * The api for batch computed has changed such that batch processors take a kwarg `ids` instead of `rows_by_id`
 
 ## 2.0.pre.29
   * Assorted set of fixes to generate cleaner and more compliant OpenApi documents.

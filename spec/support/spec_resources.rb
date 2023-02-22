@@ -107,9 +107,9 @@ class ParentResource < BaseResource
   def display_name
     "#{id}-#{name}"
   end
-  batch_computed(:computed_display, with_instance_method: false) do |rows_by_id:|
-    rows_by_id.transform_values do |v|
-      "BATCH_COMPUTED_#{v.display_name}"
+  batch_computed(:computed_display, with_instance_method: false) do |ids:|
+    ids.each_with_object({}) do |id, h|
+      h[id] = "BATCH_COMPUTED_#{id}"
     end
   end
 end
@@ -131,9 +131,9 @@ class SimpleResource < BaseResource
     record.other_model
   end
 
-  batch_computed(:computed_name) do |rows_by_id:|
-    rows_by_id.transform_values do |v|
-      "BATCH_COMPUTED_#{v.name}"
+  batch_computed(:computed_name) do |ids:|
+    ids.each_with_object({}) do |id, h|
+      h[id] = "BATCH_COMPUTED_#{id}"
     end
   end
 

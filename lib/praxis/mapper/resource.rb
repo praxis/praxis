@@ -71,7 +71,7 @@ module Praxis
         raise 'It is necessary to pass a block when using the batch_computed method' unless block_given?
 
         required_params = block.parameters.select { |t, _n| t == :keyreq }.map { |_a, b| b }.uniq
-        raise 'The block for batch_computed can only accept one required kw param named :rows_by_id' unless required_params == [:rows_by_id]
+        raise 'The block for batch_computed can only accept one required kw param named :ids' unless required_params == [:ids]
 
         @registered_batch_computations[attribute.to_sym] = { proc: block.to_proc, with_instance_method: with_instance_method }
       end
@@ -103,7 +103,7 @@ module Praxis
           # This can be turned off by setting :with_instance_method, in case the 'id' of a resource
           # it is not called 'id' (simply define an instance method similar to this one below)
           define_method(name) do
-            self.class::BatchProcessors.send(name, rows_by_id: { id => self })[id]
+            self.class::BatchProcessors.send(name, ids: [id])[id]
           end
         end
       end

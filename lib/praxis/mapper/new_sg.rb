@@ -77,19 +77,20 @@ module Praxis
       # }
 
       class FieldDependenciesNode
-        attr_reader :deps, :fields
+        attr_reader :deps, :fields, :selector_node
         attr_accessor :references
 
-        def initialize(name:)
+        def initialize(name:, selector_node:)
           @name = name
           @fields = Hash.new do |hash, key|
-            hash[key] = FieldDependenciesNode.new(name: key)
+            hash[key] = FieldDependenciesNode.new(name: key, selector_node: selector_node)
           end
           @deps = Set.new
           @references = nil
           # We could translate the path to the actual pointer to the fields hash object but then the 'pop' is a bit more difficult
           # OR maybe we leave it like that, but we also have the direct pointer of the current field for lookups
           @current_field = []
+          @selector_node = selector_node
         end
 
         def start_field(field_name)
@@ -152,7 +153,7 @@ module Praxis
 
         @select = Set.new
         @select_star = false
-        @fields_node = FieldDependenciesNode.new(name: '/')
+        @fields_node = FieldDependenciesNode.new(name: '/', selector_node: self)
         @tracks = {}
       end
 
@@ -378,6 +379,7 @@ module Praxis
     # Generates a set of selectors given a resource and
     # list of resource attributes.
     class SelectorGenerator
+      attr_reader :root
       # Entry point
       def add(resource, fields)
         @root = SelectorGeneratorNode.new(resource)

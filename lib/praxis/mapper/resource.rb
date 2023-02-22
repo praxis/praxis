@@ -20,10 +20,11 @@ module Praxis
 
       def self.for(names)
         Class.new(self) do
+          def_delegator :@target, :_resource
+          def_delegator :@target, :id, :_pk
           names.each do |(orig, forwarded)|
             def_delegator :@target, forwarded, orig
           end
-          def_delegator :@target, :_resource
         end
       end
 
@@ -40,6 +41,11 @@ module Praxis
       @properties = {}
       @property_groups = {}
       @cached_forwarders = {}
+
+      # By default every resource will have the main identifier (by default the id method) accessible through '_pk'
+      def _pk
+        id
+      end
 
       class << self
         attr_reader :model_map, :properties, :property_groups, :cached_forwarders
@@ -130,14 +136,16 @@ module Praxis
       def self.validate_properties
         # Disabled for now
         # errors = detect_invalid_properties
-        # raise errors unless errors.empty?
+        # unless errors.nil?
+        #   raise StandardError, errors
+        # end
       end
 
       # Verifies if the system has badly defined properties
       # For example, properties that correspond to an underlying association method (for which there is no
       # overriden method in the resource) must not have dependencies defined, as it is clear the association is the only one
       def self.detect_invalid_properties
-        return unless !model.nil? && model.respond_to?(:_praxis_associations)
+        return nil unless !model.nil? && model.respond_to?(:_praxis_associations)
 
         invalid = {}
         existing_associations = model._praxis_associations.keys
@@ -145,18 +153,23 @@ module Praxis
           # If we have overriden the assoc with our own method, we allow you to define deps (or as: aliases)
           next if instance_methods.include? prop_name
 
-          example_def = "property #{prop_name}"
+          example_def = "property #{prop_name} "
           example_def.concat("dependencies: #{data[:dependencies]}") if data[:dependencies].presence
           example_def.concat("as: #{data[:as]}") if data[:as].presence
           # If we haven't overriden the method, we'll create an accessor, so defining deps does not make sense
-          error = "Error defining property '#{prop_name}' in resource #{name}. Method #{prop_name} is already an association " \
+          error = "Bad definition of property '#{prop_name}'. Method #{prop_name} is already an association " \
                   "which will be properly wrapped with an accessor, so you do not need to define it as a property.\n" \
-                  'Only define properties for methods that you override in the resource, as a way to specify which dependencies ' \
-                  "that requires to use inside it\n" \
-                  "Current definition looks like: #{example_def}"
+                  "Current definition looks like: #{example_def}\n"
           invalid[prop_name] = error
         end
-        invalid
+        unless invalid.empty?
+          msg = "Error defining one or more propeties in resource #{name}.\n".dup
+          invalid.each_value {|err| msg.concat err}
+          msg.concat 'Only define properties for methods that you override in the resource, as a way to specify which dependencies ' \
+                  "that requires to use inside it\n"
+          return msg
+        end
+        nil
       end
 
       def self.define_batch_processors
@@ -169,11 +182,11 @@ module Praxis
           end
           next unless opts[:with_instance_method]
 
-          # Define the instance method for it to call the batch processor...passing its 'id' and value
+          # Define the instance method for it to call the batch processor...passing its _pk (i.e., 'id' by default) and value
           # This can be turned off by setting :with_instance_method, in case the 'id' of a resource
-          # it is not called 'id' (simply define an instance method similar to this one below)
+          # it is not called 'id' (simply define an instance method similar to this one below or redefine '_pk')
           define_method(name) do
-            self.class::BatchProcessors.send(name, rows_by_id: { id => self })[id]
+            self.class::BatchProcessors.send(name, rows_by_id: { id => self })[_pk]
           end
         end
       end

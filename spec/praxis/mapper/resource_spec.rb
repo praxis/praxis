@@ -18,19 +18,19 @@ describe Praxis::Mapper::Resource do
       subject(:properties) { resource.properties }
 
       it 'includes directly-set properties' do
-        expect(properties[:other_resource]).to eq(dependencies: [:other_model], through: nil)
+        expect(properties[:other_resource]).to eq(dependencies: [:other_model])
       end
 
       it 'includes aliases as well if different from name' do
-        expect(properties[:aliased_association]).to eq(dependencies: nil, through: nil, as: :other_model)
+        expect(properties[:aliased_association]).to eq(dependencies: nil, as: :other_model)
       end
 
       it 'inherits from a superclass' do
-        expect(properties[:href]).to eq(dependencies: [:id], through: nil)
+        expect(properties[:href]).to eq(dependencies: [:id])
       end
 
       it 'properly overrides a property from the parent' do
-        expect(properties[:name]).to eq(dependencies: [:nested_name], through: nil)
+        expect(properties[:name]).to eq(dependencies: [:nested_name])
       end
     end
 
@@ -51,9 +51,9 @@ describe Praxis::Mapper::Resource do
       # there is an overriden method that takes over (and therefore might need the dependencies defined for what it needs)
       it 'detects the invalid ones' do
         # Parent is defined, but it is already an association (and no overriden method for it)
-        expect(subject.keys).to match_array([:parent])
+        expect(subject).to match(/Bad definition of property 'parent'/)
         # Other model is an association, but it is overriden, so that's a valid way to specify properties
-        expect(subject.keys).to_not include(:other_model)
+        expect(subject).to_not match(/Bad definition of property 'other_model'/)
       end
     end
   end

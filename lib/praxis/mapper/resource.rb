@@ -94,6 +94,8 @@ module Praxis
       # follow and pass any incoming nested fields when necessary (as opposed to only add dependencies and discard nested fields)
       # No dependencies are allowed to be defined if `as:` is used (as the dependencies should be defined at the final aliased property)
       def self.property(name, dependencies: nil, as: nil) # rubocop:disable Naming/MethodParameterName
+        raise "Error defining property '#{name}' in #{self}. Property names must be symbols, not strings." unless name.is_a? Symbol
+
         h = { dependencies: dependencies }
         if as
           raise 'Cannot use dependencies for a property when using the "as:" keyword' if dependencies.presence

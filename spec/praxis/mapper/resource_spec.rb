@@ -34,6 +34,19 @@ describe Praxis::Mapper::Resource do
       end
     end
 
+    context 'using strings for names' do
+      let(:bad_resource) do
+        Class.new(Praxis::Mapper::Resource) do
+          property 'iamastring', dependencies: %i[foo]
+        end
+      end
+      it 'complains with the proper message right at definition time' do
+        expect{ bad_resource }.to raise_error(
+          RuntimeError, 
+          /Error defining property 'iamastring'.*Property names must be symbols, not strings/
+        )
+      end
+    end
     context 'detect_invalid_properties' do
       subject { resource.detect_invalid_properties }
       let(:resource) do

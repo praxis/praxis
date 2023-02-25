@@ -11,7 +11,7 @@ module <%= version_module %>
       # Retrieve all <%= plural_class %> with the right necessary associations
       # and render them appropriately with the requested field selection
       def index
-        objects = build_query(model_class).all
+        objects = build_query(model_class)
         display(objects)
       end
       <%- end -%>
@@ -42,14 +42,12 @@ module <%= version_module %>
       <%- if action_enabled?(:update) -%>
       # Updates some of the information of a <%= singular_class %>
       def update(id:)
-        # A good pattern is to call the same name method on the corresponding resource, 
-        # passing the incoming id and payload (or massaging it first)
-        updated_resource = Resources::<%= singular_class %>.update(
-          id: id,
-          payload: request.payload,
-        )
-        return Praxis::Responses::NotFound.new unless updated_resource
+        # A good pattern is to retrieve the resource instance by id, and then
+        # call the same name method on it, by passing the incoming payload (or massaging it first)
+        resource = Resources::<%= singular_class %>.get(id: id)
+        return Praxis::Responses::NotFound.new unless resource
 
+        resource.update(payload: request.payload)
         Praxis::Responses::NoContent.new
       end
       <%- end -%>
@@ -57,13 +55,12 @@ module <%= version_module %>
       <%- if action_enabled?(:delete) -%>
       # Deletes an existing <%= singular_class %>
       def delete(id:)
-        # A good pattern is to call the same name method on the corresponding resource,
-        # maybe passing the already loaded model
-        deleted_resource = Resources::<%= singular_class %>.delete(
-          id: id
-        )
-        return Praxis::Responses::NotFound.new unless deleted_resource
+        # A good pattern is to retrieve the resource instance by id, and then
+        # call the same name method on it
+        resource = Resources::<%= singular_class %>.get(id: id)
+        return Praxis::Responses::NotFound.new unless resource
 
+        resource.delete(payload: request.payload)
         Praxis::Responses::NoContent.new
       end
       <%- end -%>

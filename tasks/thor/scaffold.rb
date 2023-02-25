@@ -13,6 +13,8 @@ module PraxisGen
 
     desc 'g', 'Generates an API design and implementation scaffold for managing a collection of <collection_name>'
     argument :collection_name, required: true
+    option :base, required: false,
+                  desc: 'Module name to enclose all generated files. Empty by default. You can pass things like MyApp, or MyApp::SubModule'
     option :version, required: false, default: '1',
                      desc: 'Version string for the API endpoint. This also dictates the directory structure (i.e., v1/endpoints/...))'
     option :design, type: :boolean, default: true,
@@ -65,16 +67,20 @@ module PraxisGen
         collection_name.singularize.camelize
       end
 
+      def base_module
+        options[:base]
+      end
+
       def version
         options[:version]
       end
 
       def version_module
-        "V#{version}"
+        base_module.presence ? "#{base_module}::V#{version}" : "V#{version}"
       end
 
       def version_dir
-        version_module.camelize(:lower)
+        "v#{version}"
       end
 
       def action_enabled?(action)

@@ -15,7 +15,7 @@ module PraxisGen
     argument :collection_name, required: true
     option :base, required: false,
                   desc: 'Module name to enclose all generated files. Empty by default. You can pass things like MyApp, or MyApp::SubModule'
-    option :version, required: false, default: '1',
+    option :version, required: false,
                      desc: 'Version string for the API endpoint. This also dictates the directory structure (i.e., v1/endpoints/...))'
     option :design, type: :boolean, default: true,
                     desc: 'Include the Endpoint and MediaType files for the collection'
@@ -28,6 +28,9 @@ module PraxisGen
     option :actions, type: :string, default: 'crud', enum: %w[cr cru crud u ud d],
                      desc: 'Specifies the actions to generate for the API. cr=create, u=update, d=delete. Index and show actions are always generated'
     def g
+      incorporate_config_options
+      options[:version] = '1' unless options[:version].presence
+
       self.class.check_name(collection_name)
       @actions_hash = self.class.compose_actions_hash(options[:actions])
       env_rb = Pathname.new(destination_root) + Pathname.new('config/environment.rb')
@@ -55,10 +58,38 @@ module PraxisGen
         template 'implementation/controllers/collection.rb', "app/#{version_dir}/controllers/#{collection_name}.rb"
       end
       nil
+      save_last_config_options
     end
 
     # Helper functions (which are available in the ERB contexts)
     no_commands do
+      def scaffold_config_file
+        "#{Dir.pwd}/.praxis_scaffold"
+      end
+
+      def incorporate_config_options
+        return unless File.exist?(scaffold_config_file)
+
+        self.options = options.dup
+        begin
+          contents = File.read(scaffold_config_file)
+          config = JSON.parse(contents, symbolize_names: true)
+
+          options[:base] = config[:base] unless options[:base].presence
+          options[:version] = config[:version] unless options[:version].presence
+        rescue StandardError # rubocop:disable Lint/SuppressedException
+        end
+      end
+
+      def save_last_config_options
+        # Let's autocreate only at first use (i.e., if it wasn't there already)
+        return if File.exist?(scaffold_config_file)
+
+        puts "Saving base and version defaults into #{scaffold_config_file}"
+        conf = JSON.pretty_generate(options.slice('base', 'version'))
+        File.write(scaffold_config_file, conf)
+      end
+
       def plural_class
         collection_name.camelize
       end

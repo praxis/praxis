@@ -46,9 +46,8 @@ module Praxis
               h.merge!(type: 'array', items: items)
             else # Attributor::Struct, etc
               required_attributes = (type.describe[:requirements] || []).filter { |r| r[:type] == :all }.map { |r| r[:attributes] }.flatten.compact.uniq
-              props = type.attributes.transform_values.with_index do |definition, index|
+              props = type.attributes.transform_values do |definition|
                 # if type has an attribute in its requirements all, then it should be marked as required here
-                field_name = type.attributes.keys[index]
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
               h = { type: :object }

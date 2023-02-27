@@ -7,6 +7,7 @@
     * Resource properties, using the `as:` option, are now enforced to be real associations (will not accept other resource names and unroll their dependencies)
     * OpenAPI: Disable overriding a description when the schema is a ref (there are known issues with UI browsers)
     * Internal: use `_pk` in batch processor invocation instead of `id` (resources will now have a `_pk` method which defaults to `id`)
+    * Bumped gemspec Ruby dependency to >=2.7 (but note, that this is just a little relaxed for older codebase, we're fully building for 3.x)
   * Enhanced ordering semantics for pagination to allow for sorting of deep associated fields:
     * Right now, you can sort by fields such as `books.author.name` as one of the sorting components (with `+` or `-` still available)
   * Introduced better attribute grouping concepts, that help in defining subgroups of attributes of the same object, and allow lazy loading of only partial subsets so that one can have expensive computations on some of them, but they will never be invoked unless necessary. See MediaType.`group` and Resoruce.`property_group` explanations below.

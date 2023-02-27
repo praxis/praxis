@@ -41,13 +41,13 @@ module Praxis
           pointer.deps.add name
         end
 
-        def set_reference(selector_node)
+        def save_reference(selector_node)
           pointer = @current_field.empty? ? @fields[true] : @fields.dig(*@current_field)
           pointer.references = selector_node
         end
 
         def dig(...)
-          @fields[...]
+          @fields.dig(...) # rubocop:disable Style/SingleArgumentDig
         end
 
         def [](*path)
@@ -94,7 +94,7 @@ module Praxis
         if resource.properties.key?(name)
           if (target = resource.properties[name][:as])
             leaf_node = add_fwding_property(name, fields)
-            fields_node.set_reference(leaf_node) unless target == :self
+            fields_node.save_reference(leaf_node) unless target == :self
           else
             add_property(name, fields)
           end
@@ -106,7 +106,7 @@ module Praxis
           if as_dependency
             fields_node.add_local_dep(name)
           else
-            fields_node.set_reference(tracks[name])
+            fields_node.save_reference(tracks[name])
           end
         else
           add_select(name)
@@ -215,7 +215,6 @@ module Praxis
                     { prop => accum }
                   end
                 end
-
 
               add_association(first, extended_fields) if resource.model._praxis_associations[first]
             end
@@ -355,6 +354,5 @@ module Praxis
         super
       end
     end
-
   end
 end

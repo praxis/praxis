@@ -5,7 +5,6 @@ namespace :praxis do
   task :console do
     # Use irb if available (which it almost always is).
     require 'irb'
-    have_irb = true
 
     Rake::Task['praxis:environment'].invoke
 

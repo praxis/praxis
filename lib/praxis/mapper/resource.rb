@@ -230,14 +230,9 @@ module Praxis
 
           # Check that the as: symbol, or each of the dotten notation names are pure association names in the corresponding resources, aliases aren't supported"
           unless opts[:as] == :self
-            raise 'No!!!' unless model&.respond_to?(:_praxis_associations)
+            raise "Cannot define property #{prop_name} with an `as:` option (#{opts[:as]}) for resource (#{name}) because it does not have associations!" unless model.respond_to?(:_praxis_associations)
 
-            errors = validate_associations_path(model, opts[:as].to_s.split('.').map(&:to_sym))
-            if errors.presence
-              require 'pry'
-              binding.pry
-              raise "INVALID PATH #{errors}"
-            end
+            raise "Invalid property definition named #{prop_name} for `as:` value '#{opts[:as]}': this association name/path does not exist" if validate_associations_path(model, opts[:as].to_s.split('.').map(&:to_sym))
           end
 
           # Straight call to another association method (that we will generate automatically in our association accessors)

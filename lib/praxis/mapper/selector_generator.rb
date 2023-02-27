@@ -47,8 +47,9 @@ module Praxis
         end
 
         def dig(...)
-          @fields.dig(...)
+          @fields[...]
         end
+
         def [](*path)
           @fields.dig(*path)
         end
@@ -63,7 +64,7 @@ module Praxis
             # type, but it seems good enough for checking things in specs
             hash[:references] = "Linked to resource: #{@references.resource}"
           end
-          field_deps = @fields.each_with_object({}) do |(name,node), h|
+          field_deps = @fields.each_with_object({}) do |(name, node), h|
             dumped = node.dump
             h[name] = dumped unless dumped.empty?
           end
@@ -105,7 +106,7 @@ module Praxis
           if as_dependency
             fields_node.add_local_dep(name)
           else
-            fields_node.set_reference(tracks[name]) 
+            fields_node.set_reference(tracks[name])
           end
         else
           add_select(name)
@@ -139,7 +140,7 @@ module Praxis
       end
 
       def add_association(name, fields)
-        #fields_node.retrieve_last_of_chain = true
+        # fields_node.retrieve_last_of_chain = true
         association = resource.model._praxis_associations.fetch(name) do
           raise "missing association for #{resource} with name #{name}"
         end
@@ -170,7 +171,7 @@ module Praxis
         return if @select_star
 
         # Do not add a field dependency, if we know we're just adding a Local/FK constraint
-        @fields_node.add_local_dep(name) if add_field 
+        @fields_node.add_local_dep(name) if add_field
         @select.add name
       end
 
@@ -215,7 +216,7 @@ module Praxis
                   end
                 end
 
-              
+
               add_association(first, extended_fields) if resource.model._praxis_associations[first]
             end
           elsif resource.model._praxis_associations[name]
@@ -226,7 +227,7 @@ module Praxis
         # If we have a property group, and the subfields want to selectively restrict what to depend on
         if fields != true && resource.property_groups[name]
           # Prepend the group name to fields if it's an inner hash
-          prefixed_fields = fields == true ? {} : fields.keys.each_with_object({}) {|k,h| h["#{name}_#{k}".to_sym] = k }
+          prefixed_fields = fields == true ? {} : fields.keys.each_with_object({}) { |k, h| h["#{name}_#{k}".to_sym] = k }
           # Try to match all inner fields
           prefixed_fields.each do |prefixedname, origfieldname|
             next unless dependencies.include?(prefixedname)
@@ -248,7 +249,7 @@ module Praxis
         end
       end
 
-      def apply_dependency(dependency, fields=true)
+      def apply_dependency(dependency, fields = true)
         case dependency
         when Symbol
           map_property(dependency, fields, as_dependency: true)
@@ -282,18 +283,20 @@ module Praxis
       def dump(mode: :columns_and_tracks)
         hash = {}
         hash[:model] = resource.model
-        if mode == :columns_and_tracks
+        case mode
+        when :columns_and_tracks
           if !@select.empty? || @select_star
             hash[:columns] = @select_star ? [:*] : @select.to_a
           end
-        elsif mode == :fields
+        when :fields
           dumped_fields_node = @fields_node.dump
           raise "Fields node has more keys than fields!! #{dumped_fields_node}" if dumped_fields_node.keys.size > 1
+
           hash[:fields] = dumped_fields_node[:fields] if dumped_fields_node[:fields]
         else
           raise "Unknown mode #{mode} for dumping SelectorGenerator"
         end
-        hash[:tracks] = @tracks.transform_values {|v| v.dump(mode: mode)} unless @tracks.empty?
+        hash[:tracks] = @tracks.transform_values { |v| v.dump(mode: mode) } unless @tracks.empty?
         hash
       end
     end
@@ -302,6 +305,7 @@ module Praxis
     # list of resource attributes.
     class SelectorGenerator
       attr_reader :root
+
       # Entry point
       def add(resource, fields)
         @root = SelectorGeneratorNode.new(resource)
@@ -313,39 +317,44 @@ module Praxis
         @root
       end
     end
-    
+
     # Includeable module to trace the execution of the method call tree while building the Nodes
     module SelectorGeneratorNodeDebugger
       def add(fields)
         puts "ADD fields: #{fields}"
         super
       end
+
       def map_property(name, fields, **args)
         puts "MAP PROP #{name} fields: #{fields} (args: #{args})"
         super
       end
+
       def add_association(name, fields, **args)
         puts "ADD ASSOCIATION #{name} fields: #{fields} (args: #{args})"
         super
       end
+
       def add_select(name, add_field: true)
         puts "ADD SELECT #{name} (add field: #{add_field})"
         super
       end
+
       def add_fwding_property(name, fields)
         puts "ADD FWD ASSOC #{name} fields: #{fields}"
         super
       end
+
       def add_property(name, fields)
         puts "ADD PROP #{name} fields: #{fields}"
         super
       end
-      def apply_dependency(dependency, fields=true)
+
+      def apply_dependency(dependency, fields = true)
         puts "APPLY DEP #{dependency} fields: #{fields}"
         super
       end
     end
-      
+
   end
 end
-  

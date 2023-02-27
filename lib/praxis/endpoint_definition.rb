@@ -232,7 +232,7 @@ module Praxis
               action.sister_post_action # Avoid appending prefix
             else
               # Make sure to cleanup the leading '/' if any, as we're always adding it below
-              cleaned_path = action.sister_post_action.start_with?('/') ? action.sister_post_action[1..-1] : action.sister_post_action
+              cleaned_path = action.sister_post_action.start_with?('/') ? action.sister_post_action[1..] : action.sister_post_action
               "#{action.route.prefixed_path}/#{cleaned_path}"
             end
 

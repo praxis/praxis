@@ -168,9 +168,9 @@ module Praxis
             parsed_order = order.split(',').each_with_object([]) do |order_string, arr|
               item = case order_string[0]
                      when '-'
-                       { desc: order_string[1..-1].to_s }
+                       { desc: order_string[1..].to_s }
                      when '+'
-                       { asc: order_string[1..-1].to_s }
+                       { asc: order_string[1..].to_s }
                      else
                        { asc: order_string.to_s }
                      end

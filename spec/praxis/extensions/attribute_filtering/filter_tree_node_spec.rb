@@ -15,7 +15,7 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
       { name: 'rel1.rel2.b1', op: '=', value: 11 },
       { name: 'rel1.rel2.b2', op: '=', value: 12, node_object: dummy_object },
       { name: 'rel3', op: '!', value: nil },
-      { name: 'rel4.rel5', op: '!', value: nil },
+      { name: 'rel4.rel5', op: '!', value: nil }
     ]
   end
   context 'initialization' do
@@ -26,9 +26,9 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
       expect(subject.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
                                                                                  { name: 'one', op: '>', value: 1 },
                                                                                  { name: 'one', op: '<', value: 10 },
-                                                                                 { name: 'rel3', op: '!', value: nil },
+                                                                                 { name: 'rel3', op: '!', value: nil }
                                                                                ])
-      expect(subject.children.keys).to eq(['rel1', 'rel4'])
+      expect(subject.children.keys).to eq(%w[rel1 rel4])
       expect(subject.children['rel1']).to be_kind_of(described_class)
     end
 
@@ -44,7 +44,7 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
       expect(rel1.conditions.size).to eq(2)
       expect(rel1.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
                                                                               { name: 'a1', op: '=', value: 1 },
-                                                                              { name: 'a2', op: '=', value: 2 },
+                                                                              { name: 'a2', op: '=', value: 2 }
                                                                             ])
       expect(rel1.children.keys).to eq(['rel2'])
       expect(rel1.children['rel2']).to be_kind_of(described_class)
@@ -63,7 +63,7 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
       expect(rel4.path).to eq(['rel4'])
       expect(rel4.conditions.size).to eq(1)
       expect(rel4.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
-                                                                              { name: 'rel5', op: '!', value: nil },
+                                                                              { name: 'rel5', op: '!', value: nil }
                                                                             ])
       expect(rel4.children.keys).to be_empty
     end

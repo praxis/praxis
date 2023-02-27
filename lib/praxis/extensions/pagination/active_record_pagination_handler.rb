@@ -75,7 +75,7 @@ module Praxis
             related_resource = resource.model_map[association.klass]
             if rest.presence
               result = association_info_for(related_resource, rest)
-              { resource: result[:resource], includes: { mapped_name => result[:includes]}, attribute: result[:attribute] }
+              { resource: result[:resource], includes: { mapped_name => result[:includes] }, attribute: result[:attribute] }
             else # Ends with an association (i.e., for ! or !! attributes)
               { resource: related_resource, includes: { mapped_name => {} }, attribute: nil }
             end

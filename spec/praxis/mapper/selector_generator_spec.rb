@@ -329,7 +329,7 @@ describe Praxis::Mapper::SelectorGenerator do
             end
             it_behaves_like 'a proper selector'
           end
-    
+
           context 'for a property that requires all fields from an association' do
             let(:fields) { { everything_from_parent: true } }
             let(:selectors) do
@@ -399,7 +399,7 @@ describe Praxis::Mapper::SelectorGenerator do
             end
             it_behaves_like 'a proper selector'
           end
-    
+
           context 'that are several attriutes deep' do
             let(:fields) { { deep_nested_deps: true } }
             let(:selectors) do
@@ -621,8 +621,7 @@ describe Praxis::Mapper::SelectorGenerator do
                 other_model: {
                   model: OtherModel,
                   fields: {
-                    id: { deps: %i[id]
-                    }
+                    id: { deps: %i[id] }
                   }
                 }
               }
@@ -689,7 +688,7 @@ describe Praxis::Mapper::SelectorGenerator do
                 model: SimpleModel,
                 fields: {
                   direct_other_name: {
-                    deps: %i[direct_other_name],
+                    deps: %i[direct_other_name]
                   }
                 },
                 tracks: {
@@ -716,7 +715,7 @@ describe Praxis::Mapper::SelectorGenerator do
                 model: SimpleModel,
                 fields: {
                   aliased_other_name: {
-                    deps: %i[aliased_other_name],
+                    deps: %i[aliased_other_name]
                   }
                 },
                 tracks: {
@@ -889,7 +888,7 @@ describe Praxis::Mapper::SelectorGenerator do
                   deps: %i[sub_struct],
                   fields: {
                     name: {
-                      deps: %i[name nested_name simple_name],
+                      deps: %i[name nested_name simple_name]
                     },
                     deep_aliased_association: {
                       deps: %i[deep_aliased_association],
@@ -930,7 +929,7 @@ describe Praxis::Mapper::SelectorGenerator do
             {
               grouped: {
                 # id: true,
-                name: true,
+                name: true
                 # moar_tags
               }
             }
@@ -1053,7 +1052,6 @@ describe Praxis::Mapper::SelectorGenerator do
       end
     end
 
-
     context 'Traversal of field deps experiments' do
       context 'using a self forwarding association name with multiple levels which include deep forwarding associations' do
         let(:fields) do
@@ -1074,7 +1072,7 @@ describe Praxis::Mapper::SelectorGenerator do
                 deps: %i[sub_struct],
                 fields: {
                   name: {
-                    deps: %i[name nested_name simple_name],
+                    deps: %i[name nested_name simple_name]
                   },
                   deep_aliased_association: {
                     deps: %i[deep_aliased_association],

@@ -5,10 +5,10 @@ module Resources
     model ::ActiveAuthor
 
     filters_mapping(
-      'books.name': 'books.name',
+      'books.name': 'books.name'
     )
     order_mapping(
-      'display_name': 'name',
+      'display_name': 'name'
     )
     property :display_name, dependencies: [:name]
 

@@ -41,8 +41,8 @@ describe Praxis::Mapper::Resource do
         end
       end
       it 'complains with the proper message right at definition time' do
-        expect{ bad_resource }.to raise_error(
-          RuntimeError, 
+        expect { bad_resource }.to raise_error(
+          RuntimeError,
           /Error defining property 'iamastring'.*Property names must be symbols, not strings/
         )
       end

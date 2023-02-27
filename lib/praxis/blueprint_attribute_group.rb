@@ -13,7 +13,7 @@ module Praxis
       reference_type = @media_type
       # Construct a group-derived class with the given mediatype as the reference
       ::Class.new(self) do
-        @reference  = reference_type
+        @reference = reference_type
         attributes(**options, &attribute_definition)
       end
     end

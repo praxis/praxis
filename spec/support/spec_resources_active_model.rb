@@ -88,7 +88,7 @@ class ActiveAuthorResource < ActiveBaseResource
   model ActiveAuthor
 
   order_mapping(
-    'display_name': 'name',
+    'display_name': 'name'
   )
   property :display_name, dependencies: [:name]
 end

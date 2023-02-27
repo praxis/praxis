@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Praxis
-  module Mapper  
+  module Mapper
     class SelectorGeneratorNode
       # prepend SelectorGeneratorNodeDebugger # Uncomment this to see the traces of how methods are called
       attr_reader :select, :model, :resource, :tracks, :fields_node

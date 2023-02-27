@@ -13,7 +13,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
       default by: :id
     end
   end
-  
+
   let(:book_ordering_params_attribute) do
     Attributor::Attribute.new(Praxis::Types::OrderingParams.for(Book)) do
       enforce_for :all
@@ -175,7 +175,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
       it 'works' do
         expect(subject).to eq({
                                 resource: Resources::Tag,
-                                includes: { 'taggings' => { 'tag' => {} }},
+                                includes: { 'taggings' => { 'tag' => {} } },
                                 attribute: 'name'
                               })
       end

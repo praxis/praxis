@@ -166,7 +166,7 @@ module Praxis
         end
         unless invalid.empty?
           msg = "Error defining one or more propeties in resource #{name}.\n".dup
-          invalid.each_value {|err| msg.concat err}
+          invalid.each_value { |err| msg.concat err }
           msg.concat 'Only define properties for methods that you override in the resource, as a way to specify which dependencies ' \
                   "that requires to use inside it\n"
           return msg
@@ -214,7 +214,7 @@ module Praxis
       end
 
       def self.validate_associations_path(model, path)
-          first, *rest = path
+        first, *rest = path
 
         assoc = model._praxis_associations[first]
         return first unless assoc
@@ -227,15 +227,16 @@ module Praxis
 
         with_different_alias_name.each do |prop_name, opts|
           next if instance_methods.include? prop_name
+
           # Check that the as: symbol, or each of the dotten notation names are pure association names in the corresponding resources, aliases aren't supported"
           unless opts[:as] == :self
-            raise "No!!!" unless self.model&.respond_to?(:_praxis_associations)
+            raise 'No!!!' unless model&.respond_to?(:_praxis_associations)
 
             errors = validate_associations_path(model, opts[:as].to_s.split('.').map(&:to_sym))
             if errors.presence
               require 'pry'
               binding.pry
-              raise "INVALID PATH #{errors}" 
+              raise "INVALID PATH #{errors}"
             end
           end
 

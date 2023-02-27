@@ -24,7 +24,7 @@ class Books < BaseClass
 
   def show(id:, **_args)
     model = build_query(base_query.where(id: id)).first
-    return Praxis::Mapper::ResourceNotFound.new(id: id, type: self.model_class) if model.nil?
+    return Praxis::Mapper::ResourceNotFound.new(id: id, type: model_class) if model.nil?
 
     display(model)
   end

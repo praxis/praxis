@@ -2,6 +2,27 @@
 
 ## next
 
+  * A few cleanup and robustness additions:
+    * Enforce property names are symbols
+    * Resource properties, using the `as:` option, are now enforced to be real associations (will not accept other resource names and unroll their dependencies)
+    * OpenAPI: Disable overriding a description when the schema is a ref (there are known issues with UI browsers)
+    * Internal: use `_pk` in batch processor invocation instead of `id` (resources will now have a `_pk` method which defaults to `id`)
+  * Enhanced ordering semantics for pagination to allow for sorting of deep associated fields:
+    * Right now, you can sort by fields such as `books.author.name` as one of the sorting components (with `+` or `-` still available)
+  * Introduced better attribute grouping concepts, that help in defining subgroups of attributes of the same object, and allow lazy loading of only partial subsets so that one can have expensive computations on some of them, but they will never be invoked unless necessary. See MediaType.`group` and Resoruce.`property_group` explanations below.
+  * Introduced a 'group' stanza in MediaTypes, to specify a structure of attributes that exist in the main object, but that we want to neatly expose as a subset (instead of having them unrolled at the top):
+    * You can now use things like `group subinfo do ... end` blocks, defining which attributes to group
+    * Internal: Underneath, the system will create a BlueprintAttributeGroup (instead of a Struct) as a way to ensure that only the individual attributes that need to be rendered, are accessed (and not load the whole struct at once). While the behavior, to the outside, is gonna be identical to a Struct (i.e., exposes attributes as methods), this distinct object implementation is very important as it allows you to have attributes in the subgroup that are expensive to compute, and can be rest assured that they will not be accessed/computed unless they are required for rendering.
+  * Introduced the `property_group` stanza in resources, to indicate that a property contains a substructure of attributes, each of which must be able to be loaded only when necessary. This commonly goes hand in hand with a `group` stanza in the resource's MediaType:
+    * Usage of property group requires the name of the substructure (a symbol), and the associated mediatype that contains the definition of the `group` struct, under the same name of the property.
+    * Internally, this stanza, will define a normal property, and include as dependencies all of the sub attributes read from the MediaType's property, but appending the name (and `_`) to them to avoid collisions.
+    * Also, it will define a method with the property name which will return a Forwarding object, which will delegate each of the attribute methods back to the original self objects. This allows the object to avoid being 'loaded' as a whole as it happens with Struct, therefore only materializing/calling the attribute that we actually need to use, selectively.
+    * For example, if we have the `Book` MediaType which has a group atrribute called `subinfo` with a few attributes (like `name` and `pages`), we can use `property_group :subinfo, Book` on its domain object, so that the system will:
+      * define a `subinfo` property which will depend on `subinfo_name` and `subinfo_pages`
+      * define a `subinfo` method that will return a Forwarding object, that will forward `name` and `pages` methods to `subinfo_name` and `subinfo_pages` methods of the self resource.
+      * with that, we just need to define our `subinfo_name` and `subinfo_page` methods in the resource (and also define property dependencies for them if we need to)
+    
+
 ## 2.0.pre.29
   * Assorted set of fixes to generate cleaner and more compliant OpenApi documents.
     * Mostly in the area of multipart generation, and requirements and nullability for OpenApi 3.0

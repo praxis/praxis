@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Resources
   class Base < Praxis::Mapper::Resource
     include Praxis::Mapper::Resources::QueryMethods # So we can directly get wrapped models with get, all, first, last...

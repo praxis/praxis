@@ -1,18 +1,22 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
 
+source 'https://rubygems.org'
+
+gem 'activerecord', '~> 6'
+gem 'link_header' # For pagination extensions
+gem 'oj' # For fast JSON de/serialization handlers
+gem 'parslet' # For field selection extension
 gem 'praxis'
+gem 'puma' # A much better web server than the default webrick
 gem 'rack'
 gem 'sqlite3'
-gem 'activerecord'
-gem 'puma' # A much better web server than the default webrick
-gem 'parslet' # For field selection extension
-gem 'link_header' # For pagination extensions
 
 group :development, :test do
-  gem 'rake'
-  gem 'rack-test'
-  gem "rspec" # needed for rake task
   gem 'database_cleaner' # For transactional DB tests
+  gem 'rack-test'
+  gem 'rake'
+  gem 'rspec' # needed for rake task
+  gem 'webrick' # For serving the API documentation browser preview
 
   gem 'pry'
   gem 'pry-byebug'

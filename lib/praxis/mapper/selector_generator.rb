@@ -81,6 +81,10 @@ module Praxis
         @tracks = {}
       end
 
+      def inspect
+        "<#{self.class}# @resource=#{@resource.name} @select=#{@select} @select_star=#{@select_star} tracking: #{@tracks.keys} (recursion omited)>"
+      end
+
       def add(fields)
         fields.each do |name, field|
           fields_node.start_field(name)
@@ -314,6 +318,10 @@ module Praxis
 
       def selectors
         @root
+      end
+
+      def inspect
+        "<#{self.class}# @root=#{@root.inspect}>"
       end
     end
 

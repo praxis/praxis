@@ -87,6 +87,9 @@ end
 class ActiveAuthorResource < ActiveBaseResource
   model ActiveAuthor
 
+  order_mapping(
+    'display_name': 'name'
+  )
   property :display_name, dependencies: [:name]
 end
 
@@ -109,11 +112,22 @@ class ActiveBookResource < ActiveBaseResource
                    end,
     'category.books.name': 'category.books.simple_name'
   )
+
+  order_mapping(
+    'name': 'simple_name',
+    'writer': 'author'
+  )
   # Forces to add an extra column (added_column)...and yet another (author_id) that will serve
   # to check that if that's already automatically added due to an association, it won't interfere or duplicate
   property :author, dependencies: %i[author added_column author_id]
 
   property :name, dependencies: [:simple_name]
+  property :writer, dependencies: %i[author]
+
+  # Silly alias to test dependencies and order aliasing
+  def writer
+    author
+  end
 end
 
 def seed_data

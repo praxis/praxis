@@ -2,31 +2,26 @@
 
 require 'spec_helper'
 
-require_relative '../support/spec_resources_active_model'
 require 'praxis/extensions/pagination'
 
-class Book < Praxis::MediaType
-  attributes do
-    attribute :id, Integer
-    attribute :simple_name, String
-    attribute :category_uuid, String
-  end
-end
-Book.finalize!
-BookPaginationParamsAttribute = Attributor::Attribute.new(Praxis::Types::PaginationParams.for(Book)) do
-  max_items 3
-  page_size 2
-  #   disallow :paging
-  default by: :id
-end
-
-BookOrderingParamsAttribute = Attributor::Attribute.new(Praxis::Types::OrderingParams.for(Book)) do
-  enforce_for :all
-end
-
 describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
+  let(:book_pagination_params_attribute) do
+    Attributor::Attribute.new(Praxis::Types::PaginationParams.for(Book)) do
+      max_items 3
+      page_size 2
+      #   disallow :paging
+      default by: :id
+    end
+  end
+
+  let(:book_ordering_params_attribute) do
+    Attributor::Attribute.new(Praxis::Types::OrderingParams.for(Book)) do
+      enforce_for :all
+    end
+  end
+
   shared_examples 'sorts_the_same' do |op, expected|
-    let(:order_params) { BookOrderingParamsAttribute.load(op) }
+    let(:order_params) { book_ordering_params_attribute.load(op) }
     it do
       loaded_ids = subject.all.map(&:id)
       expected_ids = expected.all.map(&:id)
@@ -35,7 +30,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
   end
 
   shared_examples 'paginates_the_same' do |par, expected|
-    let(:paginator_params) { BookPaginationParamsAttribute.load(par) }
+    let(:paginator_params) { book_pagination_params_attribute.load(par) }
     it do
       loaded_ids = subject.all.map(&:id)
       expected_ids = expected.all.map(&:id)
@@ -43,7 +38,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
     end
   end
 
-  let(:query) { ActiveBook }
+  let(:query) { ActiveBook.includes(:author) }
   let(:table) { ActiveBook.table_name }
   let(:paginator_params) { nil }
   let(:order_params) { nil }
@@ -52,7 +47,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
   end
 
   context '.paginate' do
-    subject { described_class.paginate(query, pagination) }
+    subject { described_class.paginate(query, pagination, root_resource: ActiveBookResource) }
 
     context 'empty struct' do
       let(:paginator_params) { nil }
@@ -93,7 +88,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
     end
 
     context 'including order' do
-      let(:order_params) { BookOrderingParamsAttribute.load(op_string) }
+      let(:order_params) { book_ordering_params_attribute.load(op_string) }
 
       context 'when compatible with cursor' do
         let(:op_string) { 'id' }
@@ -104,7 +99,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
 
       context 'when incompatible with cursor' do
         let(:op_string) { 'id' }
-        let(:paginator_params) { BookPaginationParamsAttribute.load('by=simple_name,items=3') }
+        let(:paginator_params) { book_pagination_params_attribute.load('by=simple_name,items=3') }
         it do
           expect { subject.all }.to raise_error(described_class::PaginationException, /is incompatible with pagination/)
         end
@@ -113,7 +108,7 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
   end
 
   context '.order' do
-    subject { described_class.order(query, pagination.order) }
+    subject { described_class.order(query, pagination.order, root_resource: ActiveBookResource) }
 
     it 'does not change the query with an empty struct' do
       expect(subject).to be(query)
@@ -127,5 +122,96 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
                     ::ActiveBook.order(simple_name: :desc, id: :asc)
     it_behaves_like 'sorts_the_same', '-simple_name,-id',
                     ::ActiveBook.order(simple_name: :desc, id: :desc)
+
+    context 'inner joining authors' do
+      let(:query) { ActiveBook.joins(:author) }
+      it_behaves_like 'sorts_the_same', '-author.name',
+                      ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc)
+    end
+
+    context 'with mapped order fields' do
+      it_behaves_like 'sorts_the_same', 'name', # name => simple_name
+                      ::ActiveBook.order(simple_name: :asc)
+
+      context 'with deeper joins that map names' do
+        let(:query) { ActiveBook.joins(:author) }
+        context 'of intermediate associations (writer => author)' do
+          it_behaves_like 'sorts_the_same', '-writer.name',
+                          ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc)
+        end
+        context 'of leaf properties (display_name => name)' do
+          it_behaves_like 'sorts_the_same', '-author.display_name',
+                          ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc)
+        end
+        context 'of both intermediate and leaf properties ((writer => author AND display_name => name)' do
+          it_behaves_like 'sorts_the_same', '-writer.display_name,author.id,',
+                          ::ActiveBook.joins(:author).references(:author).order('active_authors.name': :desc, 'active_authors.id': :asc)
+        end
+        context 'of deep associations' do
+          it_behaves_like 'sorts_the_same', '-writer.books.name,author.id',
+                          ::ActiveBook.joins(author: :books).references(:author, 'books_active_authors')
+                                      .order('books_active_authors.simple_name': :desc, 'active_authors.id': :asc)
+        end
+      end
+    end
+  end
+
+  context '.association_info_for' do
+    let(:resource) { Resources::Book }
+    subject { described_class.association_info_for(resource, path.split('.')) }
+    context 'book -> author.name' do
+      let(:path) { 'author.name' }
+      it 'works' do
+        expect(subject).to eq({
+                                resource: Resources::Author,
+                                includes: { 'author' => {} },
+                                attribute: 'name'
+                              })
+      end
+    end
+
+    context 'book -> taggings.tag.name' do
+      let(:path) { 'taggings.tag.name' }
+      it 'works' do
+        expect(subject).to eq({
+                                resource: Resources::Tag,
+                                includes: { 'taggings' => { 'tag' => {} } },
+                                attribute: 'name'
+                              })
+      end
+    end
+    context 'book -> tags' do
+      let(:path) { 'tags' }
+      it 'works' do
+        expect(subject).to eq({
+                                resource: Resources::Tag,
+                                includes: { 'tags' => {} },
+                                attribute: nil
+                              })
+      end
+    end
+
+    context 'with mapped/aliased names' do
+      context 'book -> writer.name' do
+        let(:path) { 'writer.name' }
+        it 'works' do
+          expect(subject).to eq({
+                                  resource: Resources::Author,
+                                  includes: { 'author' => {} },
+                                  attribute: 'name'
+                                })
+        end
+      end
+      context 'book -> writer.name' do
+        let(:path) { 'writer.display_name' }
+        it 'works' do
+          expect(subject).to eq({
+                                  resource: Resources::Author,
+                                  includes: { 'author' => {} },
+                                  attribute: 'name'
+                                })
+        end
+      end
+    end
   end
 end

@@ -18,19 +18,55 @@ describe Praxis::Mapper::Resource do
       subject(:properties) { resource.properties }
 
       it 'includes directly-set properties' do
-        expect(properties[:other_resource]).to eq(dependencies: [:other_model], through: nil, as: :other_resource)
+        expect(properties[:other_resource]).to eq(dependencies: [:other_model])
       end
 
       it 'includes aliases as well if different from name' do
-        expect(properties[:aliased_association]).to eq(dependencies: [:name], through: nil, as: :other_model)
+        expect(properties[:aliased_association]).to eq(dependencies: nil, as: :other_model)
       end
 
       it 'inherits from a superclass' do
-        expect(properties[:href]).to eq(dependencies: [:id], through: nil, as: :href)
+        expect(properties[:href]).to eq(dependencies: [:id])
       end
 
       it 'properly overrides a property from the parent' do
-        expect(properties[:name]).to eq(dependencies: [:simple_name], through: nil, as: :name)
+        expect(properties[:name]).to eq(dependencies: [:nested_name])
+      end
+    end
+
+    context 'using strings for names' do
+      let(:bad_resource) do
+        Class.new(Praxis::Mapper::Resource) do
+          property 'iamastring', dependencies: %i[foo]
+        end
+      end
+      it 'complains with the proper message right at definition time' do
+        expect { bad_resource }.to raise_error(
+          RuntimeError,
+          /Error defining property 'iamastring'.*Property names must be symbols, not strings/
+        )
+      end
+    end
+    context 'detect_invalid_properties' do
+      subject { resource.detect_invalid_properties }
+      let(:resource) do
+        Class.new(Praxis::Mapper::Resource) do
+          model SimpleModel
+          property :parent
+          property :other_model, dependencies: %i[foo bar]
+          def other_model
+            _something = foo && bar
+            record.other_model
+          end
+        end
+      end
+      # Validates that defining properties that are direct associations shouldn't be done unless
+      # there is an overriden method that takes over (and therefore might need the dependencies defined for what it needs)
+      it 'detects the invalid ones' do
+        # Parent is defined, but it is already an association (and no overriden method for it)
+        expect(subject).to match(/Bad definition of property 'parent'/)
+        # Other model is an association, but it is overriden, so that's a valid way to specify properties
+        expect(subject).to_not match(/Bad definition of property 'other_model'/)
       end
     end
   end

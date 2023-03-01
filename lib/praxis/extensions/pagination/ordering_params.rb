@@ -25,12 +25,15 @@ module Praxis
         class DSLCompiler < Attributor::DSLCompiler
           def by_fields(*fields)
             requested = fields.map(&:to_sym)
-            non_matching = requested - target.media_type.attributes.keys
-            unless non_matching.empty?
-              raise "Error, you've requested to order by fields that do not exist in the mediatype!\n" \
-              "The following #{non_matching.size} field/s do not exist in media type #{target.media_type.name} :\n" +
-                    non_matching.join(',').to_s
+
+            errors = []
+            requested.each do |field|
+              if (failed_field = self.class.validate_field(target.media_type, field.to_s.split('.').map(&:to_sym)))
+                errors += ["Cannot order by field: '#{field}'. It seems that the '#{failed_field}' attribute is not defined in the current #{target.media_type} structure (or its subtree)."]
+              end
             end
+            raise errors.join('\n') unless errors.empty?
+
             target.fields_allowed = requested
           end
 
@@ -43,6 +46,17 @@ module Praxis
             else
               raise "Error: unknown parameter for the 'enforce_for' : #{which}. Only :all or :first are allowed"
             end
+          end
+
+          def self.validate_field(type, path)
+            main, rest = path
+            next_attribute = type.respond_to?(:member_attribute) ? type.member_type.attributes[main] : type.attributes[main]
+
+            return main unless next_attribute
+
+            return nil if rest.nil?
+
+            validate_field(next_attribute.type, rest)
           end
         end
 
@@ -154,9 +168,9 @@ module Praxis
             parsed_order = order.split(',').each_with_object([]) do |order_string, arr|
               item = case order_string[0]
                      when '-'
-                       { desc: order_string[1..-1].to_s }
+                       { desc: order_string[1..].to_s }
                      when '+'
-                       { asc: order_string[1..-1].to_s }
+                       { asc: order_string[1..].to_s }
                      else
                        { asc: order_string.to_s }
                      end
@@ -199,11 +213,12 @@ module Praxis
               field = field.to_sym
               next if self.class.fields_allowed.include?(field)
 
-              errors << if self.class.media_type.attributes.key?(field)
-                          "Ordering by field \'#{field}\' is disallowed. Ordering is only allowed using the following fields: " +
+              field_path = field.to_s.split('.').map(&:to_sym)
+              errors << if valid_attribute_path?(self.class.media_type, field_path)
+                          "Ordering by field \'#{field}\' in media type #{self.class.media_type.name} is disallowed. Ordering is only allowed using the following fields: " +
                           self.class.fields_allowed.map { |f| "\'#{f}\'" }.join(', ').to_s
                         else
-                          "Ordering by field \'#{field}\' is not possible as this field does not exist in " \
+                          "Ordering by field \'#{field}\' is not possible as this field is not reachable from " \
                           "media type #{self.class.media_type.name}"
                         end
             end
@@ -225,6 +240,19 @@ module Praxis
 
         def each(&block)
           items.each(&block)
+        end
+
+        # Looks up if the given path (with symbol attribute names at each component) is actually
+        # a valid path from the given mediatype
+        def valid_attribute_path?(media_type, path)
+          first, *rest = path
+          # Get the member type if this is a collection
+          media_type = media_type.member_type if media_type.respond_to?(:member_attribute)
+          if (attribute = media_type.attributes[first])
+            rest.empty? ? true : valid_attribute_path?(attribute.type, rest)
+          else
+            false
+          end
         end
       end
     end

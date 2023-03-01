@@ -103,6 +103,7 @@ class ParentResource < BaseResource
   model ParentModel
 
   property :display_name, dependencies: %i[simple_name id other_attribute]
+  property :aliased_simple_children, as: :simple_children
 
   def display_name
     "#{id}-#{name}"
@@ -137,12 +138,14 @@ class SimpleResource < BaseResource
     end
   end
 
+  property :multi_column, dependencies: %i[column1 simple_name]
   property :aliased_method, dependencies: %i[column1 other_model]
   property :other_resource, dependencies: [:other_model]
-
   property :parent, dependencies: %i[parent added_column]
 
-  property :name, dependencies: [:simple_name]
+  property :name, dependencies: [:nested_name]
+  property :nested_name, dependencies: [:simple_name]
+
   property :direct_other_name, dependencies: ['other_model.name']
   property :aliased_other_name, dependencies: ['other_model.display_name']
 
@@ -150,13 +153,23 @@ class SimpleResource < BaseResource
   property :everything_from_parent, dependencies: ['parent.*']
   property :circular_dep, dependencies: %i[circular_dep column1]
   property :no_deps, dependencies: []
-
   property :deep_nested_deps, dependencies: ['parent.simple_children.other_model.parent.display_name']
-  property :aliased_association, as: :other_model, dependencies: [:name]
-  property :overriden_aliased_association, as: :other_model, dependencies: [:name]
-  property :deep_aliased_association, as: 'parent.simple_children' , dependencies: [:name]
 
-  property :sub_struct, as: :self, dependencies: [:alway_necessary_attribute]
+  property :aliased_association, as: :other_model
+  property :deep_aliased_association, as: 'parent.simple_children'
+  property :overriden_aliased_association, as: :other_model
+  property :aliased_parent, as: :parent
+  property :deep_overriden_aliased_association, as: 'parent.simple_children' # TODO!!! if I change it to 'aliased_parent.aliased_simple_children' things come empty!!!
+  property :sub_struct, as: :self
+
+  property :true_struct, dependencies: %i[name sub_id]
+  # property :true_struct, dependencies: [:sub_id]
+  property :sub_id, dependencies: [:inner_sub_id]
+  property :inner_sub_id, dependencies: [:id]
+
+  property :agroup, dependencies: %i[agroup_id agroup_name]
+  property :agroup_id, dependencies: [:id]
+  property :agroup_name, dependencies: [:name]
 
   before(:update!, :do_before_update)
   around(:update!, :do_around_update_nested)

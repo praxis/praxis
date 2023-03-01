@@ -31,11 +31,13 @@ module Praxis
 
         def dump_schema(shallow: false, allow_ref: false)
           # We will dump schemas for mediatypes by simply creating a reference to the components' section
-          if type < Attributor::Container && ! (type < Praxis::Types::MultipartArray)
+          if type < Attributor::Container && !(type < Praxis::Types::MultipartArray)
             if (type < Praxis::Blueprint || type < Attributor::Model) && allow_ref && !type.anonymous?
-              # TODO: Do we even need a description?
-              h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
-
+              # TODO: Technically OpenAPI/JSON schema support passing a description when pointing to a $ref (to override it)
+              # However, it seems that UI browsers like redoc or elements have bugs where if that's done, they get into a loop and crash
+              # so for now, we're gonna avoid overriding the description until that is solved
+              # h = @attribute_options[:description] ? { 'description' => @attribute_options[:description] } : {}
+              h = {}
               Praxis::Docs::OpenApiGenerator.instance.register_seen_component(type)
               h.merge!('$ref' => "#/components/schemas/#{type.id}")
             elsif @collection
@@ -44,12 +46,11 @@ module Praxis
               h.merge!(type: 'array', items: items)
             else # Attributor::Struct, etc
               required_attributes = (type.describe[:requirements] || []).filter { |r| r[:type] == :all }.map { |r| r[:attributes] }.flatten.compact.uniq
-              props = type.attributes.transform_values.with_index do |definition, index|
+              props = type.attributes.transform_values do |definition|
                 # if type has an attribute in its requirements all, then it should be marked as required here
-                field_name = type.attributes.keys[index]
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
-              h = { type: :object}
+              h = { type: :object }
               h[:properties] = props if props.presence
               h[:required] = required_attributes unless required_attributes.empty?
             end

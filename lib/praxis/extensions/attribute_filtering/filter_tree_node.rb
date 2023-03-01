@@ -7,7 +7,6 @@ module Praxis
         attr_reader :path, :conditions, :children
 
         # Parsed_filters is an Array of {name: X, op: Y, value: Z} ... exactly the format of the FilteringParams.load method
-        # It can also contain a :node_object
         def initialize(parsed_filters, path: [])
           @path = path # Array that marks the tree 'path' to this node (with respect to the absolute root)
           @conditions = [] # Conditions to apply directly to this node

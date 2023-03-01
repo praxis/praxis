@@ -39,6 +39,10 @@ module Praxis
       @logger = Logger.new($stdout)
     end
 
+    def inspect
+      "<#{self.class}##{object_id} root: #{@root}>"
+    end
+
     def setup(root: '.')
       return self unless @app.nil?
 

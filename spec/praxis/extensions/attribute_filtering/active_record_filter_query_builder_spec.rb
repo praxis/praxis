@@ -2,7 +2,6 @@
 
 require 'spec_helper'
 
-require_relative '../support/spec_resources_active_model'
 require 'praxis/extensions/attribute_filtering'
 require 'praxis/extensions/attribute_filtering/active_record_filter_query_builder'
 
@@ -349,6 +348,17 @@ describe Praxis::Extensions::AttributeFiltering::ActiveRecordFilterQueryBuilder 
 
       context 'adds multiple where clauses for same nested relationship join (instead of multiple joins with 1 clause each)' do
         let(:filters_string) { 'taggings.label=primary|taggings.tag_id=2' }
+        it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:taggings).where('active_taggings.label' => 'primary')
+                                                           .or(ActiveBook.joins(:taggings).where('active_taggings.tag_id' => 2))
+        it_behaves_like 'subject_matches_sql', <<~SQL
+          SELECT "active_books".* FROM "active_books"
+            LEFT OUTER JOIN "active_taggings" "/taggings" ON "/taggings"."book_id" = "active_books"."id"
+            WHERE ("/taggings"."id" IS NOT NULL) AND ("/taggings"."label" = 'primary' OR "/taggings"."tag_id" = 2)
+        SQL
+      end
+
+      context 'adds multiple where clauses for same nested relationship join even if it is a ! or !! filter without a value (instead of multiple joins with 1 clause each)' do
+        let(:filters_string) { 'taggings!&(taggings.label=primary|taggings.tag_id=2)' }
         it_behaves_like 'subject_equivalent_to', ActiveBook.joins(:taggings).where('active_taggings.label' => 'primary')
                                                            .or(ActiveBook.joins(:taggings).where('active_taggings.tag_id' => 2))
         it_behaves_like 'subject_matches_sql', <<~SQL

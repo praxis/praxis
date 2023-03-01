@@ -26,7 +26,7 @@ describe Praxis::RequestStages::Action do
 
   context '.execute' do
     before do
-      expect(controller).to receive(action_stage.name) do |args|
+      expect(controller).to receive(action_stage.name) do |**args|
         if args
           expect(args).to eq({})
         else

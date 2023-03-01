@@ -13,15 +13,42 @@ module Praxis
       end
     end
 
+    # Simple Object that will respond to a set of methods, by simply delegating to the target (will also delegate _resource)
+    class ForwardingStruct
+      extend Forwardable
+      attr_accessor :target
+
+      def self.for(names)
+        Class.new(self) do
+          def_delegator :@target, :_resource
+          def_delegator :@target, :id, :_pk
+          names.each do |(orig, forwarded)|
+            def_delegator :@target, forwarded, orig
+          end
+        end
+      end
+
+      def initialize(target)
+        @target = target
+      end
+    end
+
     class Resource
       extend Praxis::Finalizable
 
       attr_accessor :record
 
       @properties = {}
+      @property_groups = {}
+      @cached_forwarders = {}
+
+      # By default every resource will have the main identifier (by default the id method) accessible through '_pk'
+      def _pk
+        id
+      end
 
       class << self
-        attr_reader :model_map, :properties
+        attr_reader :model_map, :properties, :property_groups, :cached_forwarders
         # Names of the memoizable things (without the @__ prefix)
         attr_accessor :memoized_variables
       end
@@ -42,8 +69,11 @@ module Praxis
                        end
 
           @properties = superclass.properties.clone
+          @property_groups = superclass.property_groups.clone
+          @cached_forwarders = superclass.cached_forwarders.clone
           @registered_batch_computations = {} # hash of attribute_name -> {proc: , with_instance_method: }
           @_filters_map = {}
+          @_order_map = {}
           @memoized_variables = []
         end
       end
@@ -60,10 +90,24 @@ module Praxis
         end
       end
 
-      # The `as:` can be used for properties that correspond to an underlying association of a different name. With this the selector generator, is able to not only add
-      # any extra dependencies needed for the property, but it also follow and pass any incoming nested fields when necessary (as opposed to only add dependencies and discard nested fields)
-      def self.property(name, dependencies: nil, through: nil, as: name) # rubocop:disable Naming/MethodParameterName
-        properties[name] = { dependencies: dependencies, through: through, as: as }
+      # The `as:` can be used for properties that correspond to an underlying association of a different name. With this, the selector generator, is able to
+      # follow and pass any incoming nested fields when necessary (as opposed to only add dependencies and discard nested fields)
+      # No dependencies are allowed to be defined if `as:` is used (as the dependencies should be defined at the final aliased property)
+      def self.property(name, dependencies: nil, as: nil) # rubocop:disable Naming/MethodParameterName
+        raise "Error defining property '#{name}' in #{self}. Property names must be symbols, not strings." unless name.is_a? Symbol
+
+        h = { dependencies: dependencies }
+        if as
+          raise 'Cannot use dependencies for a property when using the "as:" keyword' if dependencies.presence
+
+          h.merge!({ as: as })
+        end
+        properties[name] = h
+      end
+
+      # Saves the name of the group, and the associated mediatype where the group attributes are defined at
+      def self.property_group(name, media_type)
+        property_groups[name] = media_type
       end
 
       def self.batch_computed(attribute, with_instance_method: true, &block)
@@ -81,12 +125,53 @@ module Praxis
       end
 
       def self._finalize!
+        validate_properties
         finalize_resource_delegates
         define_batch_processors
         define_model_accessors
+        define_property_groups
 
         hookup_callbacks
         super
+      end
+
+      def self.validate_properties
+        # Disabled for now
+        # errors = detect_invalid_properties
+        # unless errors.nil?
+        #   raise StandardError, errors
+        # end
+      end
+
+      # Verifies if the system has badly defined properties
+      # For example, properties that correspond to an underlying association method (for which there is no
+      # overriden method in the resource) must not have dependencies defined, as it is clear the association is the only one
+      def self.detect_invalid_properties
+        return nil unless !model.nil? && model.respond_to?(:_praxis_associations)
+
+        invalid = {}
+        existing_associations = model._praxis_associations.keys
+        properties.slice(*existing_associations).each do |prop_name, data|
+          # If we have overriden the assoc with our own method, we allow you to define deps (or as: aliases)
+          next if instance_methods.include? prop_name
+
+          example_def = "property #{prop_name} "
+          example_def.concat("dependencies: #{data[:dependencies]}") if data[:dependencies].presence
+          example_def.concat("as: #{data[:as]}") if data[:as].presence
+          # If we haven't overriden the method, we'll create an accessor, so defining deps does not make sense
+          error = "Bad definition of property '#{prop_name}'. Method #{prop_name} is already an association " \
+                  "which will be properly wrapped with an accessor, so you do not need to define it as a property.\n" \
+                  "Current definition looks like: #{example_def}\n"
+          invalid[prop_name] = error
+        end
+        unless invalid.empty?
+          msg = "Error defining one or more propeties in resource #{name}.\n".dup
+          invalid.each_value { |err| msg.concat err }
+          msg.concat 'Only define properties for methods that you override in the resource, as a way to specify which dependencies ' \
+                  "that requires to use inside it\n"
+          return msg
+        end
+        nil
       end
 
       def self.define_batch_processors
@@ -99,11 +184,11 @@ module Praxis
           end
           next unless opts[:with_instance_method]
 
-          # Define the instance method for it to call the batch processor...passing its 'id' and value
+          # Define the instance method for it to call the batch processor...passing its _pk (i.e., 'id' by default) and value
           # This can be turned off by setting :with_instance_method, in case the 'id' of a resource
-          # it is not called 'id' (simply define an instance method similar to this one below)
+          # it is not called 'id' (simply define an instance method similar to this one below or redefine '_pk')
           define_method(name) do
-            self.class::BatchProcessors.send(name, rows_by_id: { id => self })[id]
+            self.class::BatchProcessors.send(name, rows_by_id: { id => self })[_pk]
           end
         end
       end
@@ -128,10 +213,27 @@ module Praxis
         end
       end
 
+      def self.validate_associations_path(model, path)
+        first, *rest = path
+
+        assoc = model._praxis_associations[first]
+        return first unless assoc
+
+        rest.presence ? validate_associations_path(assoc[:model], rest) : nil
+      end
+
       def self.define_aliased_methods
-        with_different_alias_name = properties.reject { |name, opts| name == opts[:as] }
+        with_different_alias_name = properties.reject { |name, opts| name == opts[:as] || opts[:as].nil? }
+
         with_different_alias_name.each do |prop_name, opts|
           next if instance_methods.include? prop_name
+
+          # Check that the as: symbol, or each of the dotten notation names are pure association names in the corresponding resources, aliases aren't supported"
+          unless opts[:as] == :self
+            raise "Cannot define property #{prop_name} with an `as:` option (#{opts[:as]}) for resource (#{name}) because it does not have associations!" unless model.respond_to?(:_praxis_associations)
+
+            raise "Invalid property definition named #{prop_name} for `as:` value '#{opts[:as]}': this association name/path does not exist" if validate_associations_path(model, opts[:as].to_s.split('.').map(&:to_sym))
+          end
 
           # Straight call to another association method (that we will generate automatically in our association accessors)
           module_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -139,6 +241,29 @@ module Praxis
               #{opts[:as]}
             end
           RUBY
+        end
+      end
+
+      # Defines the dependencies and the method of a property group
+      # The dependencies are going to be defined as the methods that wrap the group's attributes i.e., 'group_attribute1'
+      # The method defined will return a ForwardingStruct object instance, that will simply define a method name for each existing property
+      # which simply calls the underlying 'group name' prefixed methods on the original object
+      # For example: if we have a group named 'grouping', which has 'name' and 'phone' attributes defined.
+      # - the property dependencies will be defined as: property :grouping, dependencies: [:name, :phone]
+      # - the 'grouping' method will return an instance object, that will respond to 'name' (and forward to 'grouping_name') and to 'phone'
+      #   (and forward to 'grouping_phone')
+      def self.define_property_groups
+        property_groups.each do |(name, media_type)|
+          # Set a property for their dependencies using the "group"_"attribute"
+          prefixed_property_deps = media_type.attribute.attributes[name].type.attributes.keys.each_with_object({}) do |key, hash|
+            hash[key] = "#{name}_#{key}".to_sym
+          end
+          property name, dependencies: prefixed_property_deps.values
+          @cached_forwarders[name] = ForwardingStruct.for(prefixed_property_deps)
+
+          define_method(name) do
+            self.class.cached_forwarders[name].new(self)
+          end
         end
       end
 
@@ -229,15 +354,16 @@ module Praxis
 
         return unless association_resource_class
 
+        association_resource_class_name = "::#{association_resource_class}" # Ensure we point at classes globally
         memoized_variables << name
 
         # Add the call to wrap (for true collections) or simply for_record if it's a n:1 association
         wrapping = \
           case association_spec.fetch(:type)
           when :one_to_many, :many_to_many
-            "@__#{name} ||= #{association_resource_class}.wrap(records)"
+            "@__#{name} ||= #{association_resource_class_name}.wrap(records)"
           else
-            "@__#{name} ||= #{association_resource_class}.for_record(records)"
+            "@__#{name} ||= #{association_resource_class_name}.for_record(records)"
           end
 
         module_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -322,6 +448,21 @@ module Praxis
           end
       end
 
+      def self.order_mapping(definition = nil)
+        if definition.nil?
+          @_order_map ||= {} # initialize to empty hash by default
+          return @_order_map
+        end
+
+        @_order_map = \
+          case definition
+          when Hash
+            definition.transform_values(&:to_s)
+          else
+            raise 'Resource.orders_mapping only allows a hash'
+          end
+      end
+
       def self.craft_filter_query(base_query, filters:)
         if filters
           raise "To use API filtering, you must define the mapping of api-names to resource properties (using the `filters_mapping` method in #{self})" unless @_filters_map
@@ -342,15 +483,15 @@ module Praxis
         base_query
       end
 
-      def self.craft_pagination_query(base_query, pagination:)
+      def self.craft_pagination_query(base_query, pagination:, selectors:)
         handler_klass = model._pagination_query_builder_class
         return base_query unless handler_klass && (pagination.paginator || pagination.order)
 
         # Gather and save the count if required
         pagination.total_count = handler_klass.count(base_query.dup) if pagination.paginator&.total_count
 
-        base_query = handler_klass.order(base_query, pagination.order)
-        handler_klass.paginate(base_query, pagination)
+        base_query = handler_klass.order(base_query, pagination.order, root_resource: selectors.resource)
+        handler_klass.paginate(base_query, pagination, root_resource: selectors.resource)
       end
 
       def initialize(record)

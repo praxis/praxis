@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 namespace :praxis do
-  desc "Run interactive pry/irb console"
+  desc 'Run interactive pry/irb console'
   task :console do
     # Use irb if available (which it almost always is).
-    require "irb"
-    have_irb = true
+    require 'irb'
 
-    Rake::Task["praxis:environment"].invoke
+    Rake::Task['praxis:environment'].invoke
 
     # Keep IRB.setup from complaining about bad ARGV options
     old_argv = ARGV.dup
@@ -17,7 +16,7 @@ namespace :praxis do
 
     # Allow reentrant IRB
     IRB.conf[:MAIN_CONTEXT] = IRB::Irb.new.context
-    require "irb/ext/multi-irb"
+    require 'irb/ext/multi-irb'
 
     # Remove main object from prompt (its stringify is not useful)
     nickname = File.basename(::Praxis::Application.instance.root)

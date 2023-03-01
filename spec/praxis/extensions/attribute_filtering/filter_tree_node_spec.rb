@@ -13,19 +13,22 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
       { name: 'rel1.a1', op: '=', value: 1 },
       { name: 'rel1.a2', op: '=', value: 2 },
       { name: 'rel1.rel2.b1', op: '=', value: 11 },
-      { name: 'rel1.rel2.b2', op: '=', value: 12, node_object: dummy_object }
+      { name: 'rel1.rel2.b2', op: '=', value: 12, node_object: dummy_object },
+      { name: 'rel3', op: '!', value: nil },
+      { name: 'rel4.rel5', op: '!', value: nil }
     ]
   end
   context 'initialization' do
     subject { described_class.new(filters) }
     it 'holds the top conditions and the child in a TreeNode' do
       expect(subject.path).to eq([])
-      expect(subject.conditions.size).to eq(2)
+      expect(subject.conditions.size).to eq(3)
       expect(subject.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
                                                                                  { name: 'one', op: '>', value: 1 },
-                                                                                 { name: 'one', op: '<', value: 10 }
+                                                                                 { name: 'one', op: '<', value: 10 },
+                                                                                 { name: 'rel3', op: '!', value: nil }
                                                                                ])
-      expect(subject.children.keys).to eq(['rel1'])
+      expect(subject.children.keys).to eq(%w[rel1 rel4])
       expect(subject.children['rel1']).to be_kind_of(described_class)
     end
 
@@ -54,6 +57,15 @@ describe Praxis::Extensions::AttributeFiltering::FilterTreeNode do
                                                                                   { name: 'b2', op: '=', value: 12 }
                                                                                 ])
       expect(rel1rel2.children.keys).to be_empty
+
+      # ! operators have the condition on the association, not the leaf (i.e,. have a condition, no children)
+      rel4 = subject.children['rel4']
+      expect(rel4.path).to eq(['rel4'])
+      expect(rel4.conditions.size).to eq(1)
+      expect(rel4.conditions.map { |i| i.slice(:name, :op, :value) }).to eq([
+                                                                              { name: 'rel5', op: '!', value: nil }
+                                                                            ])
+      expect(rel4.children.keys).to be_empty
     end
   end
 end

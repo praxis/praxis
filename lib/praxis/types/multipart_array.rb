@@ -372,7 +372,7 @@ module Praxis
       end
 
       def self.dump_for_openapi(example)
-        example.map {|part| MultipartPart.dump_for_openapi(part)}
+        example.map { |part| MultipartPart.dump_for_openapi(part) }
       end
     end
   end

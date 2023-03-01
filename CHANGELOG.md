@@ -2,12 +2,15 @@
 
 ## next
 
+## 2.0.pre.30
   * A few cleanup and robustness additions:
-    * Enforce property names are symbols
-    * Resource properties, using the `as:` option, are now enforced to be real associations (will not accept other resource names and unroll their dependencies)
     * OpenAPI: Disable overriding a description when the schema is a ref (there are known issues with UI browsers)
     * Internal: use `_pk` in batch processor invocation instead of `id` (resources will now have a `_pk` method which defaults to `id`)
     * Bumped gemspec Ruby dependency to >=2.7 (but note, that this is just a little relaxed for older codebase, we're fully building for 3.x)
+  * Backwards incompatible changes:
+    * Enforces property names are symbols (before strings were allowed)
+    * Resource properties, using the `as:` option, are now enforced to be real association names (will not accept other resource names and unroll their dependencies)
+    * Deprecated the `:through` option for a property. You can just use `as:` with a long, dot-separated association path directly.
   * Enhanced ordering semantics for pagination to allow for sorting of deep associated fields:
     * Right now, you can sort by fields such as `books.author.name` as one of the sorting components (with `+` or `-` still available)
   * Introduced better attribute grouping concepts, that help in defining subgroups of attributes of the same object, and allow lazy loading of only partial subsets so that one can have expensive computations on some of them, but they will never be invoked unless necessary. See MediaType.`group` and Resoruce.`property_group` explanations below.
@@ -22,7 +25,6 @@
       * define a `subinfo` property which will depend on `subinfo_name` and `subinfo_pages`
       * define a `subinfo` method that will return a Forwarding object, that will forward `name` and `pages` methods to `subinfo_name` and `subinfo_pages` methods of the self resource.
       * with that, we just need to define our `subinfo_name` and `subinfo_page` methods in the resource (and also define property dependencies for them if we need to)
-    
 
 ## 2.0.pre.29
   * Assorted set of fixes to generate cleaner and more compliant OpenApi documents.

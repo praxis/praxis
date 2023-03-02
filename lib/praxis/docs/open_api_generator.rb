@@ -171,30 +171,25 @@ module Praxis
         File.open("#{filename}.yml", 'w') { |f| f.write(YAML.dump(converted_full_data)) }
 
         html = <<-HTML
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>ReDoc</title>
-              <!-- needed for adaptive design -->
-              <meta charset="utf-8"/>
-              <meta name="viewport" content="width=device-width, initial-scale=1">
-              <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Elements in HTML</title>
+  
+    <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">
+  </head>
+  <body>
 
-              <!--
-              ReDoc doesn't change outer page styles
-              -->
-              <style>
-                body {
-                  margin: 0;
-                  padding: 0;
-                }
-              </style>
-            </head>
-            <body>
-              <redoc spec-url='http://localhost:9090/#{version_file}/openapi.json'></redoc>
-              <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"> </script>
-            </body>
-          </html>
+    <elements-api
+      apiDescriptionUrl="http://localhost:9090/#{version_file}/openapi.json"
+      router="hash"
+    />
+
+  </body>
+</html>
         HTML
         html_file = File.join(doc_root_dir, version_file, 'index.html')
         File.write(html_file, html)

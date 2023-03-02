@@ -1,6 +1,8 @@
 # Praxis Changelog
 
 ## next
+  * Switch the locally generated index.html file to browse the generated OpenAPI docs to use `elements` instead of `reDoc`
+  * Spruce up the initial Gemfile for the generated example app
 
 ## 2.0.pre.30
   * A few cleanup and robustness additions:

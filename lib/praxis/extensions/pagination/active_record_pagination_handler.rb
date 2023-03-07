@@ -36,7 +36,7 @@ module Praxis
             column_prefix = dotted.empty? ? root_resource.model.table_name : ([''] + dotted).join(AttributeFiltering::ActiveRecordFilterQueryBuilder::REFERENCES_STRING_SEPARATOR)
 
             # If the sorting refers to a deeper association, make sure to add the join and the special reference
-            if column_prefix
+            if column_prefix && column_prefix != root_resource.model.table_name
               refval = AttributeFiltering::ActiveRecordFilterQueryBuilder.build_reference_value(column_prefix, query: query)
               # Outter join hash needs to be a string based hash format!! (if it's in symbols, it won't match it and we'll cause extra joins)
               query = query.left_outer_joins(info[:includes]).references(refval)

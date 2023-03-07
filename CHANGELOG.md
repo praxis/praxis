@@ -3,6 +3,9 @@
 ## next
   * Switch the locally generated index.html file to browse the generated OpenAPI docs to use `elements` instead of `reDoc`
   * Spruce up the initial Gemfile for the generated example app
+  * Fix Praxis::Mapper ordering code, to not prefix top level columns with the table name, as this completely confuses ActiveRecord which
+    switches to full-on eager loading all of the associations in the top query. i.e., passing an invalid table/column name in a
+    `references` method will trigger that (seemingly a current bug)
 
 ## 2.0.pre.30
   * A few cleanup and robustness additions:

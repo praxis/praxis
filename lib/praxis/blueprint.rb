@@ -333,23 +333,31 @@ module Praxis
       errors = []
       keys_provided = []
 
-      self.class.attributes.each do |key, attribute|
+      keys_provided = object.contents.keys
+
+      keys_provided.each do |key|
         sub_context = self.class.generate_subcontext(context, key)
-        value = _get_attr(key)
-        keys_provided << key if @object.key?(key)
+        attribute = self.class.attributes[key]
 
-        next if value.respond_to?(:validating) && value.validating # really, it's a thing with sub-attributes
-
-        # Isn't this handled by the requirements validation? NO! we might want to combine
-        errors.concat ["Attribute #{Attributor.humanize_context(sub_context)} is required."] if attribute.options[:required] && !@object.key?(key)
-        if @object[key].nil?
-          errors.concat ["Attribute #{Attributor.humanize_context(sub_context)} is not nullable."] if !Attributor::Attribute.nullable_attribute?(attribute.options) && @object.key?(key) # It is only nullable if there's an explicite null: true (undefined defaults to false)
+        if object.contents[key].nil?
+          errors.concat ["Attribute #{Attributor.humanize_context(sub_context)} is not nullable."] if !Attributor::Attribute.nullable_attribute?(attribute.options) && object.contents.key?(key) # It is only nullable if there's an explicite null: true (undefined defaults to false)
           # No need to validate the attribute further if the key wasn't passed...(or we would get nullable errors etc..cause the attribute has no
           # context if its containing key was even passed (and there might not be a containing key for a top level attribute anyways))
         else
+          value = _get_attr(key)
+          next if value.respond_to?(:validating) && value.validating # really, it's a thing with sub-attributes
+
           errors.concat attribute.validate(value, sub_context)
         end
       end
+
+      leftover = self.class.attributes.keys - keys_provided
+      leftover.each do |key|
+        attribute = self.class.attributes[key]
+
+        errors.concat ["Attribute #{Attributor.humanize_context(sub_context)} is required."] if attribute.options[:required]
+      end
+
       self.class.attribute.type.requirements.each do |requirement|
         validation_errors = requirement.validate(keys_provided, context)
         errors.concat(validation_errors) unless validation_errors.empty?

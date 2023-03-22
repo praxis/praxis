@@ -29,7 +29,9 @@ module PraxisGen
                      desc: 'Specifies the actions to generate for the API. cr=create, u=update, d=delete. Index and show actions are always generated'
     def g
       incorporate_config_options
+      # Good defaults
       options[:version] = '1' unless options[:version].presence
+      options[:models_dir] = 'app/models' unless options[:models_dir]
 
       self.class.check_name(collection_name)
       @actions_hash = self.class.compose_actions_hash(options[:actions])
@@ -64,29 +66,32 @@ module PraxisGen
     # Helper functions (which are available in the ERB contexts)
     no_commands do
       def scaffold_config_file
-        "#{Dir.pwd}/.praxis_scaffold"
+        PraxisGenerator.scaffold_config_file
       end
 
       def incorporate_config_options
+        @saved_original_options = options
+        self.options = options.dup
         return unless File.exist?(scaffold_config_file)
 
-        self.options = options.dup
         begin
           contents = File.read(scaffold_config_file)
           config = JSON.parse(contents, symbolize_names: true)
 
           options[:base] = config[:base] unless options[:base].presence
           options[:version] = config[:version] unless options[:version].presence
+          options[:models_dir] = config[:models_dir] if config[:models_dir]
         rescue StandardError # rubocop:disable Lint/SuppressedException
         end
       end
 
       def save_last_config_options
-        # Let's autocreate only at first use (i.e., if it wasn't there already)
-        return if File.exist?(scaffold_config_file)
+        # Let's autocreate only at first use (i.e., if it wasn't there already and we haven't explicitly asked for a base/version)
+        return if File.exist?(scaffold_config_file) && @saved_original_options.slice('base', 'version').empty?
 
         puts "Saving base and version defaults into #{scaffold_config_file}"
-        conf = JSON.pretty_generate(options.slice('base', 'version'))
+        current_config = JSON.parse(File.read(scaffold_config_file))
+        conf = JSON.pretty_generate(current_config.merge(options.slice('base', 'version')))
         File.write(scaffold_config_file, conf)
       end
 

@@ -65,34 +65,24 @@ module PraxisGen
 
     # Helper functions (which are available in the ERB contexts)
     no_commands do
-      def scaffold_config_file
-        PraxisGenerator.scaffold_config_file
-      end
-
       def incorporate_config_options
         @saved_original_options = options
         self.options = options.dup
-        return unless File.exist?(scaffold_config_file)
+        return if PraxisGenerator.scaffold_config.empty?
 
         begin
-          contents = File.read(scaffold_config_file)
-          config = JSON.parse(contents, symbolize_names: true)
-
-          options[:base] = config[:base] unless options[:base].presence
-          options[:version] = config[:version] unless options[:version].presence
-          options[:models_dir] = config[:models_dir] if config[:models_dir]
+          options[:base] = PraxisGenerator.scaffold_config[:base] unless PraxisGenerator.scaffold_config[:base].presence
+          options[:version] = PraxisGenerator.scaffold_config[:version] unless PraxisGenerator.scaffold_config[:version].presence
+          options[:models_dir] = PraxisGenerator.scaffold_config[:models_dir] if PraxisGenerator.scaffold_config[:models_dir]
         rescue StandardError # rubocop:disable Lint/SuppressedException
         end
       end
 
       def save_last_config_options
-        # Let's autocreate only at first use (i.e., if it wasn't there already and we haven't explicitly asked for a base/version)
-        return if File.exist?(scaffold_config_file) && @saved_original_options.slice('base', 'version').empty?
+        return if @saved_original_options.slice('base', 'version').empty?
 
-        puts "Saving base and version defaults into #{scaffold_config_file}"
-        current_config = JSON.parse(File.read(scaffold_config_file))
-        conf = JSON.pretty_generate(current_config.merge(options.slice('base', 'version')))
-        File.write(scaffold_config_file, conf)
+        opts_to_save = options.slice('base', 'version').transform_keys(&:to_sym).reject{|k,v| v.nil?}
+        PraxisGenerator.scaffold_config.merge!(opts_to_save)
       end
 
       def plural_class

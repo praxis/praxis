@@ -31,4 +31,13 @@ describe Praxis::Controller do
       expect(subject).to eq(PeopleResource.controller)
     end
   end
+
+  describe '#inspect' do
+    it 'includes name, object ID and request' do
+      SomeController = subject # de-anonymize class name
+      expect(subject.new('eioio').inspect).to match(
+        /#<SomeController#[0-9]+ @request="eioio">/
+      )
+    end
+  end
 end

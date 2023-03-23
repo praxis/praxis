@@ -321,7 +321,7 @@ module Praxis
       end
 
       def inspect
-        "<#{self.class}# @root=#{@root.inspect}>"
+        "#<#{self.class} @resource=#{@resource.name.inspect} @select=#{@select.inspect} @select_star=#{@select_star.inspect} @tracking.keys=#{@tracks.keys} (recursion omitted)>"
       end
     end
 

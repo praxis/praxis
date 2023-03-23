@@ -35,6 +35,10 @@ module Praxis
       @response = response
     end
 
+    def inspect
+      "#<#{self.class}##{object_id} @request=#{@request.inspect}>"
+    end
+
     def definition
       self.class.definition
     end

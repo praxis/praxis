@@ -146,6 +146,16 @@ describe Praxis::Request do
     end
   end
 
+  context '#inspect' do
+    it 'includes action and params' do
+      request.action = 'eioio'
+      request.params = 'zzyzx'
+      expect(request.inspect).to match(
+        /#<Praxis::Request#[0-9]+ @action="eioio" @params="zzyzx">/
+      )
+    end
+  end
+
   context '#load_headers' do
     it 'is done preserving the original case' do
       request.load_headers(context[:headers])

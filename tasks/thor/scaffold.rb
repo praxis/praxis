@@ -81,7 +81,7 @@ module PraxisGen
       def save_last_config_options
         return if @saved_original_options.slice('base', 'version').empty?
 
-        opts_to_save = options.slice('base', 'version').transform_keys(&:to_sym).reject{|k,v| v.nil?}
+        opts_to_save = options.slice('base', 'version').transform_keys(&:to_sym).reject { |_k, v| v.nil? }
         PraxisGenerator.scaffold_config.merge!(opts_to_save)
       end
 

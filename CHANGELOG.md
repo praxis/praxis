@@ -2,143 +2,169 @@
 
 ## next
 
+- Spruced up the scaffolding generation, to be more configurable using a `.praxis_scaffold` file at the root, where one can specify things like
+  the base module for all generated classes (`base`), the path of the models directory (`models_dir`) and the version to use (`version`). These, except the models directory can also be passed and overriden by command line arguments (and they would be saved into the config file to be usable in future invocations)
+
 ## 2.0.pre.31
-  * Switch the locally generated index.html file to browse the generated OpenAPI docs to use `elements` instead of `reDoc`
-  * Spruce up the initial Gemfile for the generated example app
-  * Fix Praxis::Mapper ordering code, to not prefix top level columns with the table name, as this completely confuses ActiveRecord which switches to full-on eager loading all of the associations in the top query. i.e., passing an invalid table/column name in a `references` method will trigger that (seemingly a current bug)
+
+- Switch the locally generated index.html file to browse the generated OpenAPI docs to use `elements` instead of `reDoc`
+- Spruce up the initial Gemfile for the generated example app
+- Fix Praxis::Mapper ordering code, to not prefix top level columns with the table name, as this completely confuses ActiveRecord which switches to full-on eager loading all of the associations in the top query. i.e., passing an invalid table/column name in a `references` method will trigger that (seemingly a current bug)
 
 ## 2.0.pre.30
-  * A few cleanup and robustness additions:
-    * OpenAPI: Disable overriding a description when the schema is a ref (there are known issues with UI browsers)
-    * Internal: use `_pk` in batch processor invocation instead of `id` (resources will now have a `_pk` method which defaults to `id`)
-    * Bumped gemspec Ruby dependency to >=2.7 (but note, that this is just a little relaxed for older codebase, we're fully building for 3.x)
-  * Backwards incompatible changes:
-    * Enforces property names are symbols (before strings were allowed)
-    * Resource properties, using the `as:` option, are now enforced to be real association names (will not accept other resource names and unroll their dependencies)
-    * Deprecated the `:through` option for a property. You can just use `as:` with a long, dot-separated association path directly.
-  * Enhanced ordering semantics for pagination to allow for sorting of deep associated fields:
-    * Right now, you can sort by fields such as `books.author.name` as one of the sorting components (with `+` or `-` still available)
-  * Introduced better attribute grouping concepts, that help in defining subgroups of attributes of the same object, and allow lazy loading of only partial subsets so that one can have expensive computations on some of them, but they will never be invoked unless necessary. See MediaType.`group` and Resoruce.`property_group` explanations below.
-  * Introduced a 'group' stanza in MediaTypes, to specify a structure of attributes that exist in the main object, but that we want to neatly expose as a subset (instead of having them unrolled at the top):
-    * You can now use things like `group subinfo do ... end` blocks, defining which attributes to group
-    * Internal: Underneath, the system will create a BlueprintAttributeGroup (instead of a Struct) as a way to ensure that only the individual attributes that need to be rendered, are accessed (and not load the whole struct at once). While the behavior, to the outside, is gonna be identical to a Struct (i.e., exposes attributes as methods), this distinct object implementation is very important as it allows you to have attributes in the subgroup that are expensive to compute, and can be rest assured that they will not be accessed/computed unless they are required for rendering.
-  * Introduced the `property_group` stanza in resources, to indicate that a property contains a substructure of attributes, each of which must be able to be loaded only when necessary. This commonly goes hand in hand with a `group` stanza in the resource's MediaType:
-    * Usage of property group requires the name of the substructure (a symbol), and the associated mediatype that contains the definition of the `group` struct, under the same name of the property.
-    * Internally, this stanza, will define a normal property, and include as dependencies all of the sub attributes read from the MediaType's property, but appending the name (and `_`) to them to avoid collisions.
-    * Also, it will define a method with the property name which will return a Forwarding object, which will delegate each of the attribute methods back to the original self objects. This allows the object to avoid being 'loaded' as a whole as it happens with Struct, therefore only materializing/calling the attribute that we actually need to use, selectively.
-    * For example, if we have the `Book` MediaType which has a group atrribute called `subinfo` with a few attributes (like `name` and `pages`), we can use `property_group :subinfo, Book` on its domain object, so that the system will:
-      * define a `subinfo` property which will depend on `subinfo_name` and `subinfo_pages`
-      * define a `subinfo` method that will return a Forwarding object, that will forward `name` and `pages` methods to `subinfo_name` and `subinfo_pages` methods of the self resource.
-      * with that, we just need to define our `subinfo_name` and `subinfo_page` methods in the resource (and also define property dependencies for them if we need to)
+
+- A few cleanup and robustness additions:
+  - OpenAPI: Disable overriding a description when the schema is a ref (there are known issues with UI browsers)
+  - Internal: use `_pk` in batch processor invocation instead of `id` (resources will now have a `_pk` method which defaults to `id`)
+  - Bumped gemspec Ruby dependency to >=2.7 (but note, that this is just a little relaxed for older codebase, we're fully building for 3.x)
+- Backwards incompatible changes:
+  - Enforces property names are symbols (before strings were allowed)
+  - Resource properties, using the `as:` option, are now enforced to be real association names (will not accept other resource names and unroll their dependencies)
+  - Deprecated the `:through` option for a property. You can just use `as:` with a long, dot-separated association path directly.
+- Enhanced ordering semantics for pagination to allow for sorting of deep associated fields:
+  - Right now, you can sort by fields such as `books.author.name` as one of the sorting components (with `+` or `-` still available)
+- Introduced better attribute grouping concepts, that help in defining subgroups of attributes of the same object, and allow lazy loading of only partial subsets so that one can have expensive computations on some of them, but they will never be invoked unless necessary. See MediaType.`group` and Resoruce.`property_group` explanations below.
+- Introduced a 'group' stanza in MediaTypes, to specify a structure of attributes that exist in the main object, but that we want to neatly expose as a subset (instead of having them unrolled at the top):
+  - You can now use things like `group subinfo do ... end` blocks, defining which attributes to group
+  - Internal: Underneath, the system will create a BlueprintAttributeGroup (instead of a Struct) as a way to ensure that only the individual attributes that need to be rendered, are accessed (and not load the whole struct at once). While the behavior, to the outside, is gonna be identical to a Struct (i.e., exposes attributes as methods), this distinct object implementation is very important as it allows you to have attributes in the subgroup that are expensive to compute, and can be rest assured that they will not be accessed/computed unless they are required for rendering.
+- Introduced the `property_group` stanza in resources, to indicate that a property contains a substructure of attributes, each of which must be able to be loaded only when necessary. This commonly goes hand in hand with a `group` stanza in the resource's MediaType:
+  - Usage of property group requires the name of the substructure (a symbol), and the associated mediatype that contains the definition of the `group` struct, under the same name of the property.
+  - Internally, this stanza, will define a normal property, and include as dependencies all of the sub attributes read from the MediaType's property, but appending the name (and `_`) to them to avoid collisions.
+  - Also, it will define a method with the property name which will return a Forwarding object, which will delegate each of the attribute methods back to the original self objects. This allows the object to avoid being 'loaded' as a whole as it happens with Struct, therefore only materializing/calling the attribute that we actually need to use, selectively.
+  - For example, if we have the `Book` MediaType which has a group atrribute called `subinfo` with a few attributes (like `name` and `pages`), we can use `property_group :subinfo, Book` on its domain object, so that the system will:
+    - define a `subinfo` property which will depend on `subinfo_name` and `subinfo_pages`
+    - define a `subinfo` method that will return a Forwarding object, that will forward `name` and `pages` methods to `subinfo_name` and `subinfo_pages` methods of the self resource.
+    - with that, we just need to define our `subinfo_name` and `subinfo_page` methods in the resource (and also define property dependencies for them if we need to)
 
 ## 2.0.pre.29
-  * Assorted set of fixes to generate cleaner and more compliant OpenApi documents.
-    * Mostly in the area of multipart generation, and requirements and nullability for OpenApi 3.0
+
+- Assorted set of fixes to generate cleaner and more compliant OpenApi documents.
+  - Mostly in the area of multipart generation, and requirements and nullability for OpenApi 3.0
+
 ## 2.0.pre.28
-  * Enhance the mapper's Resource property to allow for a couple more powerful options using the `as:` keyword:
-    * `as: :self` will provide a way to map any further incoming fields on top of the already existing object. This is useful when we want to expose some properties for a resource, grouped within a sub structure, but that in reality they exist directly in the resource's underlying model (i.e., to organize the information of the model in a more structured/groupable way).
-    * `as: 'association1.association2'` allows us to traverse more than 1 association, and continue applying the incoming fields under that. This is commonly used when we want to expose a relationship on a resource, which is really coming from more than a single association level depth.
+
+- Enhance the mapper's Resource property to allow for a couple more powerful options using the `as:` keyword:
+  - `as: :self` will provide a way to map any further incoming fields on top of the already existing object. This is useful when we want to expose some properties for a resource, grouped within a sub structure, but that in reality they exist directly in the resource's underlying model (i.e., to organize the information of the model in a more structured/groupable way).
+  - `as: 'association1.association2'` allows us to traverse more than 1 association, and continue applying the incoming fields under that. This is commonly used when we want to expose a relationship on a resource, which is really coming from more than a single association level depth.
+
 ## 2.0.pre.27
-  * Introduce a new `as:` option for resource's `property`, to indicate that the underlying association method it is connected to, has a different name.
-    * This also will create a delegation function for the property name, that instead of calling the underlying association on the record, and wrapping the result with a resource instance, it will simply call the aliased method name (which is likely gonna hit the autogenerated code for that properyty, unless we have overriden it)
-    * With this change, the selector generator (i.e., the thing that looks at the incoming `fields` parameters and calculates which select and includes are necessary to query all the data we need), will be able to understand this aliasing cases, and properly pass along, and continue expanding any nested fields that are under the property name (before this, and further inner fields would be not included as soon as we hit a property that didn't have that direct association underneath).
+
+- Introduce a new `as:` option for resource's `property`, to indicate that the underlying association method it is connected to, has a different name.
+  - This also will create a delegation function for the property name, that instead of calling the underlying association on the record, and wrapping the result with a resource instance, it will simply call the aliased method name (which is likely gonna hit the autogenerated code for that properyty, unless we have overriden it)
+  - With this change, the selector generator (i.e., the thing that looks at the incoming `fields` parameters and calculates which select and includes are necessary to query all the data we need), will be able to understand this aliasing cases, and properly pass along, and continue expanding any nested fields that are under the property name (before this, and further inner fields would be not included as soon as we hit a property that didn't have that direct association underneath).
 
 ## 2.0.pre.26
-  * Make POST action forwarding more robust against technically malformed GET requests with no body but passing `Content-Type`. This could cause issues when using the `enable_large_params_proxy_action` DSL.
+
+- Make POST action forwarding more robust against technically malformed GET requests with no body but passing `Content-Type`. This could cause issues when using the `enable_large_params_proxy_action` DSL.
 
 ## 2.0.pre.25
-  * Improve surfacing of requirement attributes in Structs for OpenApi generated documentation
-  * Introduction of a new dsl `enable_large_params_proxy_action` for GET verb action definitions. When used, two things will happen:
-    * A new POST verb equivalent action will be defined:
-      * It will have a `payload` matching the shape of the original GET's params (with the exception of any param that was originally in the URL)
-      * By default, the route for this new POST request is gonna have the same URL as the original GET action, but appending `/actions/<action_name>` to it. This can be customized by passing the path with the `at:` parameter of the DSL. I.e., `enable_large_params_proxy_action at: /actions/myspecialname` will change the generated path (can use the `//...` syntax to not include the prefix defined for the endpoint). NOTE: this route needs to be compatible with any params that might be defined for the URL (i.e., `:id` and such).
-      * This action will be fully visible and fully documented in the API generated docs. However, it will not need to have a corresponding controller implementation since it will special-forward it to the original GET action switching the parameters for the payload.
-    * Specifically, upon receiving a request to the POST equivalent action, Praxis will detect it is a special action and will:
-      * use directly the original action (i.e., will do the before/after filters and call the controller's method)
-      * will load the parameters for the action from the incoming payload
-    * This functionality is to allow having a POST counterpart to any GET requests that require long query strings, and for which the client cannot use a payload bodies (i.e,. Browser JS clients cannot send payload on GET requests).
-  * Performance improvement:
-    * Cache praxis associations' computation for ActiveRecord (so no communication with AR or DB happens after that)
-  * Performance improvement: Use OJ as the (faster) default JSON renderer.
-  * Introduce batch computation of resource attributes: This defines an optional DSL (`batch_computed`) to enable easier calculation of expensive attributes that can be calculated much more efficiently in group:
-    * The new DSL takes an attribute name (Symbol), options and an implementation block that is able to get a list of resource instances (a hash of them, indexed by id) and perform the computation for all of them at once.
-    * Defining an attribute this way, resources can be used to be much more efficiently to calculate values that can be retrieved much more efficiently in bulk, and/or that depend on other resources of the same type to do so (i.e., things that to calculate that attribute for one single resource can be greatly amortized by doing it for many).
-    * The provided block to calculate the value of the attribute for a collection of resources of the same type is stored as a method inside an inner module of the resource class called BatchProcessors
-    * The class level method is callable through `::BatchProcessors.<property_name>(rows_by_id: xxx)`. The rows_by_id: parameter has resource 'ids' as keys, and the resource instances themselves a values
-    * By default an instance method of the same `<property_name>` name will also be created, with a default implementation that will call the `BatchProcessor.<property_name>` with only its instance id and instance, and will return only its result from it.
-    * If creating the helper instance method is not desired, one can pass `with_instance_method: false` when defining the batched_computed block. This might be necessary if we want to define the method ourselves, or in cases where the resource itself has an 'id' property that is not called 'id' (in which case the implementation would not be correct as it uses the `id` property of the resource). If that's the case, disable the creation, and add your own instance method that uses the defined BatchProcessor method passing the right parameters.
-    * It is also possible to query which attributes for a resource class are batch computed. This is done through .batched_attributes (which returns and array of symbol names)
-    * NOTE: Defining batch_computed attributes needs to be done before finalization
+
+- Improve surfacing of requirement attributes in Structs for OpenApi generated documentation
+- Introduction of a new dsl `enable_large_params_proxy_action` for GET verb action definitions. When used, two things will happen:
+  - A new POST verb equivalent action will be defined:
+    - It will have a `payload` matching the shape of the original GET's params (with the exception of any param that was originally in the URL)
+    - By default, the route for this new POST request is gonna have the same URL as the original GET action, but appending `/actions/<action_name>` to it. This can be customized by passing the path with the `at:` parameter of the DSL. I.e., `enable_large_params_proxy_action at: /actions/myspecialname` will change the generated path (can use the `//...` syntax to not include the prefix defined for the endpoint). NOTE: this route needs to be compatible with any params that might be defined for the URL (i.e., `:id` and such).
+    - This action will be fully visible and fully documented in the API generated docs. However, it will not need to have a corresponding controller implementation since it will special-forward it to the original GET action switching the parameters for the payload.
+  - Specifically, upon receiving a request to the POST equivalent action, Praxis will detect it is a special action and will:
+    - use directly the original action (i.e., will do the before/after filters and call the controller's method)
+    - will load the parameters for the action from the incoming payload
+  - This functionality is to allow having a POST counterpart to any GET requests that require long query strings, and for which the client cannot use a payload bodies (i.e,. Browser JS clients cannot send payload on GET requests).
+- Performance improvement:
+  - Cache praxis associations' computation for ActiveRecord (so no communication with AR or DB happens after that)
+- Performance improvement: Use OJ as the (faster) default JSON renderer.
+- Introduce batch computation of resource attributes: This defines an optional DSL (`batch_computed`) to enable easier calculation of expensive attributes that can be calculated much more efficiently in group:
+  - The new DSL takes an attribute name (Symbol), options and an implementation block that is able to get a list of resource instances (a hash of them, indexed by id) and perform the computation for all of them at once.
+  - Defining an attribute this way, resources can be used to be much more efficiently to calculate values that can be retrieved much more efficiently in bulk, and/or that depend on other resources of the same type to do so (i.e., things that to calculate that attribute for one single resource can be greatly amortized by doing it for many).
+  - The provided block to calculate the value of the attribute for a collection of resources of the same type is stored as a method inside an inner module of the resource class called BatchProcessors
+  - The class level method is callable through `::BatchProcessors.<property_name>(rows_by_id: xxx)`. The rows_by_id: parameter has resource 'ids' as keys, and the resource instances themselves a values
+  - By default an instance method of the same `<property_name>` name will also be created, with a default implementation that will call the `BatchProcessor.<property_name>` with only its instance id and instance, and will return only its result from it.
+  - If creating the helper instance method is not desired, one can pass `with_instance_method: false` when defining the batched_computed block. This might be necessary if we want to define the method ourselves, or in cases where the resource itself has an 'id' property that is not called 'id' (in which case the implementation would not be correct as it uses the `id` property of the resource). If that's the case, disable the creation, and add your own instance method that uses the defined BatchProcessor method passing the right parameters.
+  - It is also possible to query which attributes for a resource class are batch computed. This is done through .batched_attributes (which returns and array of symbol names)
+  - NOTE: Defining batch_computed attributes needs to be done before finalization
 
 ## 2.0.pre.24
- Assorted set of fixes and cleanup:
-  * better forwarding signature for query methods
-  * Fix the way with which to decide how to wrap an association (based on Enumerable isn't right, as Hashes are Enumerable as well). Wrapping decision
-    is now made based on the association type, and not the shape of the resulting type.
-  * Built handling of some multivalue and/or fuzzy matching cases in filtering params
-  * unrestrict mustermann's dependent version
-  * Support options and even passing a full type (instead of a block) in signature definitions (TypedMethods for resources)
+
+Assorted set of fixes and cleanup:
+
+- better forwarding signature for query methods
+- Fix the way with which to decide how to wrap an association (based on Enumerable isn't right, as Hashes are Enumerable as well). Wrapping decision
+  is now made based on the association type, and not the shape of the resulting type.
+- Built handling of some multivalue and/or fuzzy matching cases in filtering params
+- unrestrict mustermann's dependent version
+- Support options and even passing a full type (instead of a block) in signature definitions (TypedMethods for resources)
 
 ## 2.0.pre.22
-  * Small fix in OpenAPI doc generation, which would detect and report more output types, even if they are only defined within the
-    children of anonymous types.
+
+- Small fix in OpenAPI doc generation, which would detect and report more output types, even if they are only defined within the
+  children of anonymous types.
 
 ## 2.0.pre.22
-  * Introduced Resource callbacks (an includeable concern). Callbacks allow you to define methods or blocks to be executed `before`, `after` or `around` any existing method in the resource. Class-level callbacks are defined with `self.xxxxx`. These methods will be executed within the instance of the resource (i.e., in the same context of the original) and must be defined with the same parameter signature. For around methods, only blocks can be used, and to call the original (inner) one, one needs to yield.
-  * Introduced QueryMethods for resources (an includeable concern). QueryMethods expose handy querying methods (`.get`, `.get!`, `.all`, `.first` and `.last` ) which will reach into the underlying ORM (i.e., right now, only ActiveModelCompat is supported) to perform the desired loading of data (and subsequent wrapping of results in resource instances).
-    * For ActiveRecord `.get` takes a condition hash that will translate to `.find_by`, and `.all` gets a condition hash that will translate to `.where`. 
-    * `.get!` is a `.get` but that will raise a `Praxis::Mapper::ResourceNotFound` exception if nothing was found.
-    * There is an `.including(<spec>)` function that can be use to preload the underlying associations. I.e., the `<spec>` argument will translate to `.includes(<spec>)` in ActiveRecord.
-  * Introduced method signatures and validations for resources.
-    * One can define a method signature with the `signature(<name>)` stanza, passing a block defining Attributor parameters. For instance method signatures, the `<name>` is just a symbol with the name of the method. For class level methods use a string, and prepend `self.` to it (i.e., `self.create`).
-    * Signatures can only work for methods that either have a single argument (taken as a whole hash), or that have only keyword arguments (i.e., no mixed args and kwargs). It would be basically impossible to validate that combo against an Attributor Struct.
-    * The calls to typed methods will be intercepted (using an around callback), and the incoming parameters will be validated against the Attributor Struct defined in the siguature, coerced if necessary and passed onto the original method. If the incoming parameters fail validation, a `IncompatibleTypeForMethodArguments` exception will be thrown.
+
+- Introduced Resource callbacks (an includeable concern). Callbacks allow you to define methods or blocks to be executed `before`, `after` or `around` any existing method in the resource. Class-level callbacks are defined with `self.xxxxx`. These methods will be executed within the instance of the resource (i.e., in the same context of the original) and must be defined with the same parameter signature. For around methods, only blocks can be used, and to call the original (inner) one, one needs to yield.
+- Introduced QueryMethods for resources (an includeable concern). QueryMethods expose handy querying methods (`.get`, `.get!`, `.all`, `.first` and `.last` ) which will reach into the underlying ORM (i.e., right now, only ActiveModelCompat is supported) to perform the desired loading of data (and subsequent wrapping of results in resource instances).
+  - For ActiveRecord `.get` takes a condition hash that will translate to `.find_by`, and `.all` gets a condition hash that will translate to `.where`.
+  - `.get!` is a `.get` but that will raise a `Praxis::Mapper::ResourceNotFound` exception if nothing was found.
+  - There is an `.including(<spec>)` function that can be use to preload the underlying associations. I.e., the `<spec>` argument will translate to `.includes(<spec>)` in ActiveRecord.
+- Introduced method signatures and validations for resources.
+  - One can define a method signature with the `signature(<name>)` stanza, passing a block defining Attributor parameters. For instance method signatures, the `<name>` is just a symbol with the name of the method. For class level methods use a string, and prepend `self.` to it (i.e., `self.create`).
+  - Signatures can only work for methods that either have a single argument (taken as a whole hash), or that have only keyword arguments (i.e., no mixed args and kwargs). It would be basically impossible to validate that combo against an Attributor Struct.
+  - The calls to typed methods will be intercepted (using an around callback), and the incoming parameters will be validated against the Attributor Struct defined in the siguature, coerced if necessary and passed onto the original method. If the incoming parameters fail validation, a `IncompatibleTypeForMethodArguments` exception will be thrown.
 
 ## 2.0.pre.21
-  * Fix nullable attribute in OpenApi generation
+
+- Fix nullable attribute in OpenApi generation
+
 ## 2.0.pre.20
-* Changed the behavior of dev-mode when validate_responses. Now they return a 500 status code (instead of a 400) but with the same validation error format body.
-  * validate_responses is meant to catch the application returning non-compliant responses for development only. As such, a 500 is much more appropriate and clear, as the validation is done on the behavior of the server, and not on the information sent by the client (i.e., it is a server problem, not reacting the way the API is defined)
-* Introduced a method to reload a Resouce (.reload), which will clear the memoized values and call record.reload as well
-* Open API Generation enhancements:
-  * Fixed type discovery (where some types wouldn't be included in the output)
-  * Changed the generation to output named types into components, and use `$ref` to point to them whenever appropriate
-  * Report nullable attributes
+
+- Changed the behavior of dev-mode when validate_responses. Now they return a 500 status code (instead of a 400) but with the same validation error format body.
+  - validate_responses is meant to catch the application returning non-compliant responses for development only. As such, a 500 is much more appropriate and clear, as the validation is done on the behavior of the server, and not on the information sent by the client (i.e., it is a server problem, not reacting the way the API is defined)
+- Introduced a method to reload a Resouce (.reload), which will clear the memoized values and call record.reload as well
+- Open API Generation enhancements:
+  - Fixed type discovery (where some types wouldn't be included in the output)
+  - Changed the generation to output named types into components, and use `$ref` to point to them whenever appropriate
+  - Report nullable attributes
+
 ## 2.0.pre.19
-* Introduced a new DSL for the `FilteringParams` type that allows filters for common attributes in your Media Types:
-  * The new `any` DSL allows you to define which final leaf attribute to always allow, and with which operators and/or fuzzy restrictions.
-  * For example, you can add `any updated_at, using: ['>','<']` which would allow the type to accept filters like `updated_at>2000-01-01`, or any existing nested fields like `posts.comments.updated_at>2000-01-01`
-  * Note that the path of attributes passed in, will still need to exist and will be validated. Also, you still need to make sure that you have the right `filters_mapping` defined in your resources.
-* Changed `filters_mapping` to allow implicitly any filter path that is a valid representation of existing columns and associations. I.e., you do not have to explicitly define long nested filters that correspond to the same underlying path of associations and columns.
+
+- Introduced a new DSL for the `FilteringParams` type that allows filters for common attributes in your Media Types:
+  - The new `any` DSL allows you to define which final leaf attribute to always allow, and with which operators and/or fuzzy restrictions.
+  - For example, you can add `any updated_at, using: ['>','<']` which would allow the type to accept filters like `updated_at>2000-01-01`, or any existing nested fields like `posts.comments.updated_at>2000-01-01`
+  - Note that the path of attributes passed in, will still need to exist and will be validated. Also, you still need to make sure that you have the right `filters_mapping` defined in your resources.
+- Changed `filters_mapping` to allow implicitly any filter path that is a valid representation of existing columns and associations. I.e., you do not have to explicitly define long nested filters that correspond to the same underlying path of associations and columns.
+
 ## 2.0.pre.18
-* Upgraded to newest Attributor, which cleans up the required: true semantics to only work on keys, and introduces null: true for nullability of values (independent from presence of keys or not)
-* Fixed a selector generator bug that would occur when using deep nested resource dependencies as strings 'foo.bar.baz.bam'. In this cases only partial tracking of relationships would be built, which could cause to not fully eager load DB queries.
+
+- Upgraded to newest Attributor, which cleans up the required: true semantics to only work on keys, and introduces null: true for nullability of values (independent from presence of keys or not)
+- Fixed a selector generator bug that would occur when using deep nested resource dependencies as strings 'foo.bar.baz.bam'. In this cases only partial tracking of relationships would be built, which could cause to not fully eager load DB queries.
+
 ## 2.0.pre.17
-* Changed the Parameter Filtering to use left outer joins (and extra conditions), to allow for the proper results when OR clauses are involved in certain configurations.
-* Built support for allowing filtering directly on associations using `!` and `!!` operators. This allows to filter results where 
-there are no associated rows (`!!`) or if there are some associated rows (`!`)
-* Allow implicit definition of `filters_mapping` for filter names that match top-level associations of the model (i.e., like we do for the columns)
+
+- Changed the Parameter Filtering to use left outer joins (and extra conditions), to allow for the proper results when OR clauses are involved in certain configurations.
+- Built support for allowing filtering directly on associations using `!` and `!!` operators. This allows to filter results where
+  there are no associated rows (`!!`) or if there are some associated rows (`!`)
+- Allow implicit definition of `filters_mapping` for filter names that match top-level associations of the model (i.e., like we do for the columns)
+
 ## 2.0.pre.16
 
-* Updated `Resource.property` signature to only accept known named arguments (`dependencies` and `though` at this time) to spare anyone else from going insane wondering why their `depednencies` aren't working.
-* Fixed issue with Filtering Params, that occurred with using the ! or !! operators on String-typed fields.
+- Updated `Resource.property` signature to only accept known named arguments (`dependencies` and `though` at this time) to spare anyone else from going insane wondering why their `depednencies` aren't working.
+- Fixed issue with Filtering Params, that occurred with using the ! or !! operators on String-typed fields.
 
 ## 2.0.pre.14
 
-* More encoding/decoding robustness for filters. 
-  * Specs for how to encode filters are now properly defined by:
-    * The "value" of the filters query string needs to be URI encoded (like any other query string value). This encoding is subject to the normal rules, and therefore "could" leave some of the URI unreserved characters (i.e., 'markers') unencoded depending on the client (Section 2.2 of https://tools.ietf.org/html/rfc2396).
-    * The "values" for any of the conditions in the contents of the filters, however, will need to be properly "escaped" as well (prior to URL-encoding the whole syntax string itself like described above). This means that any match value needs to ensure that it has (at least) "(",")","|","&" and "," escaped as they are reserved characters for the filter expression syntax. For example, if I want to search for a name with value "Rocket&(Pants)", I need to first compose the syntax by: "name=<escaped Rocket&(Pants)>, which is "name=Rocket%26%28Pants%29" and then, just URI encode that query string value for the filters parameter in the URL like any other. For example: "filters=name%3DRocket%2526%2528Pants%2529"
-    * When using a multi-match (csv-separated) list of values, you need to escape each of the values as well, leaving the 'comma' unescape, as that's part of the syntax. Then uri-encode it all for the filters query string parameter value like above.
-  * Now, one can properly differentiate between fuzzy query prefix/postfix, and the literal data to search for (which can be or include '*'). Report that multi-matches (i.e., csv separated values for a single field, which translate into "IN" clauses) is not allowed if fuzzy matches are received (need to use multiple OR clauses for it).
+- More encoding/decoding robustness for filters.
+  - Specs for how to encode filters are now properly defined by:
+    - The "value" of the filters query string needs to be URI encoded (like any other query string value). This encoding is subject to the normal rules, and therefore "could" leave some of the URI unreserved characters (i.e., 'markers') unencoded depending on the client (Section 2.2 of https://tools.ietf.org/html/rfc2396).
+    - The "values" for any of the conditions in the contents of the filters, however, will need to be properly "escaped" as well (prior to URL-encoding the whole syntax string itself like described above). This means that any match value needs to ensure that it has (at least) "(",")","|","&" and "," escaped as they are reserved characters for the filter expression syntax. For example, if I want to search for a name with value "Rocket&(Pants)", I need to first compose the syntax by: "name=<escaped Rocket&(Pants)>, which is "name=Rocket%26%28Pants%29" and then, just URI encode that query string value for the filters parameter in the URL like any other. For example: "filters=name%3DRocket%2526%2528Pants%2529"
+    - When using a multi-match (csv-separated) list of values, you need to escape each of the values as well, leaving the 'comma' unescape, as that's part of the syntax. Then uri-encode it all for the filters query string parameter value like above.
+  - Now, one can properly differentiate between fuzzy query prefix/postfix, and the literal data to search for (which can be or include '\*'). Report that multi-matches (i.e., csv separated values for a single field, which translate into "IN" clauses) is not allowed if fuzzy matches are received (need to use multiple OR clauses for it).
 
 ## 2.0.pre.13
 
-* Fix filters parser regression, which would incorrectly decode url-encoded values
+- Fix filters parser regression, which would incorrectly decode url-encoded values
 
 ## 2.0.pre.12
 
-* Rebuilt API filters to support a much richer syntax. One can now use ANDs and ORs (with ANDs having order precedence), as well as group them with parenthesis. The same individual filter operands are supported. For example: 'email=*@gmail.com&(friends.first_name=Joe*,Patty|friends.last_name=Smith)
+- Rebuilt API filters to support a much richer syntax. One can now use ANDs and ORs (with ANDs having order precedence), as well as group them with parenthesis. The same individual filter operands are supported. For example: 'email=_@gmail.com&(friends.first_name=Joe_,Patty|friends.last_name=Smith)
 
 ## 2.0.pre.11
 
@@ -152,7 +178,7 @@ there are no associated rows (`!!`) or if there are some associated rows (`!`)
 - Simple, but pervasive breaking change: Rename `ResourceDefinition` to `EndpointDefinition` (but same functionality).
 - Remove all deprecated features (and raise error describing it's not supported yet)
 - Remove `Links` and `LinkBuilder`. Those seem unnecessary from a Framework point of view as they aren't clear most
-applications would benefit from it. Applications can choose to add that functionality on their own if so desire.
+  applications would benefit from it. Applications can choose to add that functionality on their own if so desire.
 - Rebuilt app generators: for new empty app, and example app.
 - Updated default layout to match new naming structure and more concepts commonly necessary for normal applications.
 - Completely removed the native Praxis API documentation browser in lieu of OpenAPI 3.x standards, and reDoc.
@@ -190,6 +216,7 @@ applications would benefit from it. Applications can choose to add that function
 - Added support for OpenAPI 3.x document generation. Consider this in Beta state, although it is fairly close to feature complete.
 
 ## 2.0.pre.4
+
 - Reworked the field selection DB query generation to support full tree of eager loaded dependencies
   - Built support for both ActiveRecord and Sequel gems
   - Selected DB fields will include/map the defined resource properties and will always include any necessary fields on both sides of the joins for the given associations.

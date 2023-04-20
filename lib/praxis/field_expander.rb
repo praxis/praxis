@@ -68,7 +68,7 @@ module Praxis
       end
 
       # just include the full thing if it has no attributes
-      return true if object.attributes.empty?
+      return fields if object.attributes.empty?
 
       # True, expands to the default fieldset for blueprints
       fields = object.default_fieldset if object < Praxis::Blueprint && fields == true

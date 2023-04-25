@@ -77,6 +77,7 @@ module <%= version_module %>
           # attribute :name
         end
         response :no_content
+        response :not_found
         response :bad_request
       end
       <%- end -%>

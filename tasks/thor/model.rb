@@ -13,6 +13,8 @@ module PraxisGen
     argument :model_name, required: true
     option :orm, required: false, default: 'activerecord', enum: %w[activerecord sequel]
     def g
+      models_dir = 'app/models'
+      models_dir = PraxisGenerator.scaffold_config[:models_dir] if PraxisGenerator.scaffold_config[:models_dir]
       # self.class.check_name(model_name)
       template_file = \
         if options[:orm] == 'activerecord'
@@ -21,7 +23,7 @@ module PraxisGen
           'models/sequel.rb'
         end
       puts "Generating Model for #{model_name}"
-      template template_file, "app/models/#{model_name}.rb"
+      template template_file, "#{models_dir}/#{model_name}.rb"
       nil
     end
     # Helper functions (which are available in the ERB contexts)

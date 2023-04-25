@@ -5,7 +5,7 @@ module <%= version_module %>
     class <%= singular_class %> < Praxis::MediaType
       identifier 'application/json'
 
-      domain_model '<%= version_module %>::Resources::<%= singular_class %>'
+      domain_model 'Resources::<%= singular_class %>'
       description 'Structural definition of a <%= singular_class %>'
 
       attributes do

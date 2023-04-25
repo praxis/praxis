@@ -170,26 +170,26 @@ module Praxis
         converted_full_data = JSON.parse(json_data) # So symbols disappear
         File.open("#{filename}.yml", 'w') { |f| f.write(YAML.dump(converted_full_data)) }
 
-        html = <<-HTML
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Elements in HTML</title>
-  
-    <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">
-  </head>
-  <body>
+        html = <<~HTML
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+              <title>Elements in HTML</title>
+          #{'  '}
+              <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
+              <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">
+            </head>
+            <body>
 
-    <elements-api
-      apiDescriptionUrl="http://localhost:9090/#{version_file}/openapi.json"
-      router="hash"
-    />
+              <elements-api
+                apiDescriptionUrl="http://localhost:9090/#{version_file}/openapi.json"
+                router="hash"
+              />
 
-  </body>
-</html>
+            </body>
+          </html>
         HTML
         html_file = File.join(doc_root_dir, version_file, 'index.html')
         File.write(html_file, html)

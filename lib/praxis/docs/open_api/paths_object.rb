@@ -39,7 +39,7 @@ module Praxis
             templetized_path = OpenApiGenerator.templatize_url(url[:path])
             path_entry = paths[templetized_path]
             # Let's fill in verb stuff within the working hash
-            raise "VERB #{_verb} already defined for #{id}!?!?!" if path_entry[verb]
+            raise "VERB #{verb} already defined for #{id}!?!?!" if path_entry[verb]
 
             action_uid = "action-#{action_name}-#{id}"
             # Add a tag matching the resource name (hoping all actions of a resource are grouped)

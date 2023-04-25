@@ -47,6 +47,8 @@ path_to_loader = format('%<path>s/tasks/loader.thor', path: path_to_praxis)
 load path_to_loader
 
 class PraxisGenerator < Thor
+  SCAFFOLD_CONFIG_FILE = "#{Dir.pwd}/.praxis_scaffold"
+
   # Include a few fake thor action descriptions (for the rake tasks above) so they can show up in the same usage messages
   desc 'routes [json]', 'Prints the route table of the application. Defaults to table format, but can produce json'
   def routes; end
@@ -91,7 +93,9 @@ class PraxisGenerator < Thor
   # Cannot use the argument below or it will apply to all commands (the action in the class has it)
   # argument :collection_name, required: false
   # The options, however, since they're optional are fine (But need to be duplicated from the class :( )
-  option :version, required: false, default: '1',
+  option :base, required: false,
+                desc: 'Module name to enclose all generated files. Empty by default. You can pass things like MyApp, or MyApp::SubModule'
+  option :version, required: false,
                    desc: 'Version string for the API endpoint. This also dictates the directory structure (i.e., v1/endpoints/...))'
   option :design, type: :boolean, default: true,
                   desc: 'Include the Endpoint and MediaType files for the collection'
@@ -120,6 +124,25 @@ class PraxisGenerator < Thor
     opts = { orm: options[:model] }
     opts[:orm] = 'activerecord' if opts[:orm] == 'model' # value is model param passed by no value
     ::PraxisGen::Model.new([collection_name.singularize], opts).invoke(:g)
+    self.class.save_scaffolding_config
+  end
+
+  # Read and pass the hash around in the class, so callers can read and modify it if desired
+  # Final contents will be saved at the end of scaffolding generation
+  def self.scaffold_config
+    return @current_config if @current_config
+
+    @current_config = File.exist?(SCAFFOLD_CONFIG_FILE) ? JSON.parse(File.read(SCAFFOLD_CONFIG_FILE), symbolize_names: true) : {}
+  end
+
+  def self.save_scaffolding_config
+    if File.exist?(SCAFFOLD_CONFIG_FILE)
+      contents_from_file = JSON.parse(File.read(SCAFFOLD_CONFIG_FILE), symbolize_names: true)
+      return if contents_from_file == @current_config
+    end
+
+    puts "Saving new scaffolding config into #{SCAFFOLD_CONFIG_FILE}"
+    File.write(SCAFFOLD_CONFIG_FILE, JSON.pretty_generate(scaffold_config))
   end
 
   # Initially, the idea was to build some quick model generator, but I think it's better to keep it

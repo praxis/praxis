@@ -31,6 +31,15 @@ module Praxis
             # security: [{}]
             # servers: [{}]
           }
+
+          # Handle versioning header/params for the action in a special way, by linking to the existing component
+          # spec that will be generated globally
+          api_info = ApiDefinition.instance.infos[action.endpoint_definition.version]
+          if (version_with = api_info.version_with)
+            all_parameters.push('$ref' => '#/components/parameters/ApiVersionHeader') if version_with.include?(:header)
+            all_parameters.push('$ref' => '#/components/parameters/ApiVersionParam') if version_with.include?(:params)
+          end
+
           h[:description] = action.description if action.description
           h[:tags] = all_tags.uniq unless all_tags.empty?
           h[:parameters] = all_parameters unless all_parameters.empty?

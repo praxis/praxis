@@ -109,7 +109,15 @@ module Praxis
 
         info_object = OpenApi::InfoObject.new(version: version, api_definition_info: @infos[version])
         # We only support a server in Praxis ... so we'll use the base path
-        server_object = OpenApi::ServerObject.new(url: @infos[version].base_path)
+        server_params = {}
+        if(server_info = @infos[version].server)
+          server_params[:url] = server_info[:url]
+          server_params[:variables] = server_info[:variables] if server_info[:variables]
+        else
+          server_params[:url] = @infos[version].base_path
+        end
+        server_params[:description] = server_info[:description] if server_info[:description]
+        server_object = OpenApi::ServerObject.new(**server_params)
 
         paths_object = OpenApi::PathsObject.new(resources: resources_by_version[version])
 
@@ -150,6 +158,28 @@ module Praxis
         full_data[:components] = {
           schemas: component_schemas
         }
+
+        # Common params/headers for versioning (actions will link to them when appropriate, by name)
+        if (version_with = @infos[version].version_with)
+          common_params = {}
+          if version_with.include?(:header)
+            common_params['ApiVersionHeader'] = { 
+              in: 'header',
+              name: 'X-Api-Version',
+              schema: { type: 'string', enum: [version]},
+              required: version_with.size == 1
+            }
+          end
+          if version_with.include?(:params)
+            common_params['ApiVersionParam'] = { 
+              in: :query,
+              name: 'api_version',
+              schema: { type: 'string', enum: [version]},
+              required: version_with.size == 1
+            }
+          end
+          full_data[:components][:parameters] = common_params
+        end
 
         # REDOC specific grouping of sidebar
         resource_tags = { name: 'Resources', tags: tags_for_resources.map { |t| t[:name] } }

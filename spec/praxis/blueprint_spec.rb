@@ -166,12 +166,27 @@ describe Praxis::Blueprint do
       it { should be_empty }
     end
 
+    context 'with a valid nested blueprint' do
+      let(:hash) { { name: 'bob', myself: { name: 'PseudoBob'}} }
+
+      it { should be_empty }
+    end
+
     context 'with invalid sub-attribute' do
       let(:hash) { { name: 'bob', address: { state: 'ME' } } }
 
       it { should have(1).item }
       its(:first) { should =~ /Attribute \$.address.state/ }
     end
+
+    context 'with an invalid nested blueprint' do
+      let(:hash) { { name: 'bob', myself: { name: 'PseudoBob', address: { state: 'ME' }}} }
+
+      it { should have(1).item }
+      its(:first) { should =~ /Attribute \$.myself.address.state/ }
+
+    end
+
 
     context 'for objects of the wrong type' do
       it 'raises an error' do

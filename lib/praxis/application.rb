@@ -40,7 +40,7 @@ module Praxis
     end
 
     def inspect
-      "<#{self.class}##{object_id} root: #{@root}>"
+      "#<#{self.class}##{object_id} @root=#{@root}>"
     end
 
     def setup(root: '.')

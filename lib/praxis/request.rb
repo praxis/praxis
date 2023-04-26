@@ -184,7 +184,7 @@ module Praxis
     # Override the inspect instance method of a request, as, by default, the kernel inspect will go nuts
     # traversing the action and app_instance and therefore all associated instance variables reachable through that
     def inspect
-      "'@env' => #{@env.inspect},\n'@headers' => #{@headers.inspect},\n'@params' => #{@params.inspect},\n'@query' => #{@query.inspect}"
+      "#<#{self.class}##{object_id} @action=#{@action.inspect} @params=#{@params.inspect}>"
     end
   end
 end

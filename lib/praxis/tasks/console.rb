@@ -27,6 +27,9 @@ namespace :praxis do
       PROMPT_C: "%N(#{nickname}):%03n:%i* "
     }
 
+    # Disable inefficient, distracting autocomplete
+    IRB.conf[:USE_AUTOCOMPLETE] = false
+
     # Set the IRB main object.
     IRB.irb(nil, Praxis::Application.instance)
   end

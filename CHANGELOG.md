@@ -2,10 +2,14 @@
 
 ## next
 
+## 2.0.pre.32
 - Spruced up the scaffolding generation, to be more configurable using a `.praxis_scaffold` file at the root, where one can specify things like
   the base module for all generated classes (`base`), the path of the models directory (`models_dir`) and the version to use (`version`). These, except the models directory can also be passed and overriden by command line arguments (and they would be saved into the config file to be usable in future invocations)
 - More efficient validation of Blueprint structures
 - Fix pseudo bug where the field expander capped subfields as soon as it encountered a type without explicit attributes (i.e., Hash). Instead, it allows any of the subfields to percolate through.
+- OpenApi generation improvements:
+  - Add global parameters for versioning (ApiVersionHeader and ApiVersionParam) appropriately if the API is versioned by them. Have actions point to these definitions by $ref
+  - Expect the 'server' definition in the APIDefinition to contain url/description and 'variables' sections which might define variables in the server url
 
 ## 2.0.pre.31
 

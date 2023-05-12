@@ -91,10 +91,6 @@ module Praxis
 
             ::Class.new(self) do
               @media_type = media_type
-              if media_type
-                # By default all fields in the mediatype are allowed (but defining a DSL block will override it to more specific ones)
-                @fields_allowed = media_type.attributes.keys
-              end
               # Default is to only enforce the allowed fields in the first ordering position (the one typicall uses an index if there)
               @enforce_all = OrderingParams.enforce_all_fields
             end

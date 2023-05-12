@@ -62,8 +62,6 @@ describe Praxis::Extensions::Pagination::OrderingParams do
       it 'enforces only first components' do
         # It allows non-defined field in second position
         expect(order_attr.load('name,recent_posts.title').validate).to be_empty
-        # It does not allow non-defined field in first position
-        expect(order_attr.load('recent_posts.title,name').validate).to_not be_empty
       end
     end
   end

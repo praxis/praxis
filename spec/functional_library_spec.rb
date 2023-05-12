@@ -139,8 +139,9 @@ describe 'Functional specs for books with connected DB' do
     let(:filters_q) { '' }
     let(:fields_q) { '' }
     let(:order_q) { '' }
+    let(:pagination_q) { '' }
     subject do
-      get '/api/authors', api_version: '1.0', fields: fields_q, filters: filters_q, order: order_q
+      get '/api/authors', api_version: '1.0', fields: fields_q, filters: filters_q, order: order_q, pagination: pagination_q
     end
 
     context 'all authors' do
@@ -148,37 +149,67 @@ describe 'Functional specs for books with connected DB' do
       let(:base_query) do
         ActiveAuthor.joins(books: :author).where('active_books.simple_name LIKE ?', 'book%').where('authors_active_books.id > ?', 0)
       end
-      it 'is successful' do
-        expect(subject).to be_successful
-        expect(subject.headers['Content-Type']).to eq('application/vnd.acme.author; type=collection')
+      context 'using any filters/order/pagination attributes works, since they have been defined empty in the block definition' do
+        it 'is successful' do
+          expect(subject).to be_successful
+          expect(subject.headers['Content-Type']).to eq('application/vnd.acme.author; type=collection')
 
-        expect(parsed_response.size).to eq base_query.count
-      end
-      context 'ordering' do
-        context 'using direct attributes' do
-          let(:order_q) { '-name,id' }
-          it { expect(subject).to be_successful }
+          expect(parsed_response.size).to eq base_query.count
         end
-        context 'using nested attributes' do
-          let(:order_q) { '-name,books.name' }
-          it 'is successful' do
-            expect(subject).to be_successful
-            ids = base_query.order('active_authors.name DESC', 'active_books.simple_name DESC').pluck(:id)
+        context 'ordering' do
+          context 'using direct attributes' do
+            let(:order_q) { '-name,id' }
+            it { expect(subject).to be_successful }
+          end
+          context 'using nested attributes' do
+            let(:order_q) { '-name,books.name' }
+            it 'is successful' do
+              expect(subject).to be_successful
+              ids = base_query.order('active_authors.name DESC', 'active_books.simple_name DESC').pluck(:id)
 
-            expect(parsed_response.map { |book| book[:id] }).to eq ids
+              expect(parsed_response.map { |book| book[:id] }).to eq ids
+            end
           end
         end
-      end
-      context 'filtering and sorting' do
-        context 'using the same tables, including the base query one' do
-          let(:order_q) { '-name,books.name' }
-          let(:filters_q) { 'books.name!' }
-          let(:fields_q) { 'id,books{name}' }
-          it 'is successful' do
-            expect(subject).to be_successful
-            ids = base_query.order('active_authors.name DESC', 'active_books.simple_name DESC').pluck(:id)
+        context 'filtering and sorting' do
+          context 'using the same tables, including the base query one' do
+            let(:order_q) { '-name,books.author.name' }
+            let(:filters_q) { 'books.name!' }
+            let(:fields_q) { 'id,books{name}' }
+            it 'is successful' do
+              expect(subject).to be_successful
+              ids = base_query.order('active_authors.name DESC', 'active_books.simple_name DESC').pluck(:id)
 
-            expect(parsed_response.map { |book| book[:id] }).to eq ids
+              expect(parsed_response.map { |book| book[:id] }).to eq ids
+            end
+          end
+        end
+        context 'with page-based pagination' do
+          context 'using the same tables, including the base query one' do
+            let(:order_q) { '-name,books.author.name' }
+            let(:filters_q) { 'books.name!' }
+            let(:fields_q) { 'id,books{name}' }
+            let(:pagination_q) { 'page=1,items=2' }
+            it 'is successful' do
+              expect(subject).to be_successful
+              ids = base_query.order('active_authors.name DESC', 'active_books.simple_name DESC').limit(2).pluck(:id)
+
+              expect(parsed_response.map { |book| book[:id] }).to eq ids
+            end
+          end
+        end
+        context 'with cursor-based pagination' do
+          context 'using the same tables, including the base query one' do
+            let(:order_q) { '-name,books.author.name' }
+            let(:filters_q) { 'books.name!' }
+            let(:fields_q) { 'id,books{name}' }
+            let(:pagination_q) { 'by=name,items=2' }
+            it 'is successful' do
+              expect(subject).to be_successful
+              ids = base_query.order('active_authors.name DESC', 'active_books.simple_name DESC').limit(2).pluck(:id)
+
+              expect(parsed_response.map { |book| book[:id] }).to eq ids
+            end
           end
         end
       end

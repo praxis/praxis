@@ -7,6 +7,280 @@ describe Praxis::Blueprint do
 
   its(:family) { should eq('hash') }
 
+  # This context might seem a duplication of tests that should be covered by the underlying attributor gem
+  # but while it is in structure, it is different because we're doing it with Blueprints (not Attributor Models)
+  # to make sure our Blueprints are behaving as expected.
+  context 'type resolution, option inheritance for attributes with and without references' do
+    # Overall strategy
+    # 1) When no type is specified:
+    #   1.1) if it is a leaf (no block)
+    #     1.1.1) with an reference with an attr with the same name
+    #          - type copied from reference
+    #          - reference options are inherited as well (and can be overridden by local attribute ones)
+    #     1.1.2) without a ref (or the ref does not have same attribute name)
+    #          - Fail. Cannot determine type
+    #   1.2) if it has a block
+    #     1.2.1) with an reference with an attr with the same name
+    #          - We assume you're re/defining a new Struct (or Struct[]), and we will incorporate the reference type 
+    #           for the matching name in case you are indeed redefining a subset of the attributes, so you can enjoy inheritance
+    #     1.2.2) without a ref (or the ref does not have same attribute name)
+    #          - defaulted to Struct (if you meant Collection.of(Struct) things would fail later somehow)
+    #          - options are NOT inherited at all (This is something we should ponder more about)
+    # 2) When type is specified:
+    #   2.1) if it is a leaf (no block)
+    #     - ignore ref if there is one (with or without matching attribute name).
+    #     - simply use provided type, and provided options (no inheritance)
+    #   2.2) if it has a block
+    #     - Same as above: use type and options provided, ignore ref if there is one (with or without matching attribute name).
+
+    let(:mytype) do 
+      Praxis::Blueprint.finalize!
+      Class.new(Praxis::Blueprint, &myblock).tap{|c| c._finalize!}
+    end
+    context 'with no explicit type specified' do
+      context 'without a block (if it is a leaf)' do
+        context 'that has a reference with an attribute with the same name' do
+          let(:myblock) { 
+            Proc.new do
+              attributes reference: PersonBlueprint do
+                attribute :age, required: true, min: 42
+              end
+            end
+          }
+          it 'uses type from reference' do
+            expect(mytype.attributes).to have_key(:age)
+            expect(mytype.attributes[:age].type).to eq(PersonBlueprint.attributes[:age].type)
+          end
+          it 'copies over reference options and allows the attribute to override/add some' do
+            merged_options = PersonBlueprint.attributes[:age].options.merge(required: true, min: 42)
+            expect(mytype.attributes[:age].options).to include(merged_options)
+          end
+        end
+        context 'with a reference, but that does not have a matching attribute name' do
+          let(:myblock) { 
+            Proc.new do
+              attributes reference: AddressBlueprint do
+                attribute :age
+              end
+            end
+          }
+          it 'fails resolving' do
+            expect{mytype.attributes}.to raise_error(/Type for attribute with name: age could not be determined./)
+          end
+        end
+        context 'without a reference' do
+          let(:myblock) { 
+            Proc.new do
+              attributes do
+                attribute :age
+              end
+            end
+          }
+          it 'fails resolving' do
+            expect{mytype.attributes}.to raise_error(/Type for attribute with name: age could not be determined./)
+          end
+        end
+      end
+      context 'with block (if it is NOT a leaf)' do
+        context 'that has a reference with an attribute with the same name' do
+          context 'which is not a collection type' do
+            let(:myblock) { 
+              Proc.new do
+                attributes reference: PersonBlueprint do
+                  attribute :age , description: 'I am fully redefining' do
+                    attribute :foobar, Integer, min: 42
+                  end
+                end
+              end
+            }
+            it 'picks Struct, and makes sure to pass the reference of the attribute along' do
+              expect(mytype.attributes).to have_key(:age)
+              age_attribute = mytype.attributes[:age]
+              # Resolves to Struct
+              expect(age_attribute.type).to be < Attributor::Struct
+              # does NOT brings any ref options (except the right reference)
+              expect(age_attribute.options).to include(description: 'I am fully redefining')
+              # Yes, there is no way we can ever use an Integer when we're defining a Struct...but if the parent was a Struct, we would
+              expect(age_attribute.options).to include(reference: Attributor::Integer) 
+              # And the nested attribute is correctly resolved as well, and ensures options are there
+              expect(age_attribute.type.attributes[:foobar].type).to eq(Attributor::Integer)
+              expect(age_attribute.type.attributes[:foobar].options).to eq(min: 42)
+            end
+          end
+          context 'which is a collection type' do
+            let(:myblock) { 
+              Proc.new do
+                attributes reference: PersonBlueprint do
+                  attribute :prior_addresses , description: 'I am fully redefining' do
+                    attribute :street, required: true
+                    attribute :new_attribute, String, default: 'foo'
+                  end
+                end
+              end
+            }
+            it 'picks Struct, and makes sure to pass the reference of the attribute along' do
+              expect(mytype.attributes).to have_key(:prior_addresses)
+              prior_addresses_attribute = mytype.attributes[:prior_addresses]
+              # Resolves to Struct[]
+              expect(prior_addresses_attribute.type).to be < Attributor::Collection
+              expect(prior_addresses_attribute.type.member_type).to be < Attributor::Struct
+              # does NOT brings any ref options (except the right reference)
+              expect(prior_addresses_attribute.options).to include(description: 'I am fully redefining')
+              # Yes, there is no way we can ever use an Integer when we're defining a Struct...but if the parent was a Struct, we would
+              expect(prior_addresses_attribute.options).to include(reference: PersonBlueprint.attributes[:prior_addresses].type.member_type) 
+              # And the nested attributes are correctly resolved as well, and ensures options are there
+              street_options_from_ref = PersonBlueprint.attributes[:prior_addresses].type.member_type.attributes[:street].options
+              expect(prior_addresses_attribute.type.member_type.attributes[:street].type).to eq(Attributor::String)
+              expect(prior_addresses_attribute.type.member_type.attributes[:street].options).to eq(street_options_from_ref.merge(required: true))
+
+              expect(prior_addresses_attribute.type.member_type.attributes[:new_attribute].type).to eq(Attributor::String)
+              expect(prior_addresses_attribute.type.member_type.attributes[:new_attribute].options).to eq(default: 'foo')
+            end
+          end
+          context 'in the unlikely case that the reference type has an anonymous Struct (or collection of)' do
+            let(:myblock) { 
+              Proc.new do
+                attributes reference: PersonBlueprint do
+                  attribute :funny_attribute, description: 'Funny business' do
+                    attribute :foobar, Integer, min: 42
+                  end
+                end
+              end
+            }
+            it 'correctly inherits it (same result as defaulting to Struct) and brings in the reference' do
+              expect(mytype.attributes).to have_key(:funny_attribute)
+              # Resolves to Struct, and brings (and merges) the ref options with the attribute's
+              expect(mytype.attributes[:funny_attribute].type).to be < Attributor::Struct
+              merged_options = {reference: PersonBlueprint.attributes[:funny_attribute].type}.merge(description: 'Funny business')
+              expect(mytype.attributes[:funny_attribute].options).to include(merged_options)
+              # And the nested attribute is correctly resolved as well, and ensures options are there
+              expect(mytype.attributes[:funny_attribute].type.attributes[:foobar].type).to eq(Attributor::Integer)
+              expect(mytype.attributes[:funny_attribute].type.attributes[:foobar].options).to eq(min: 42)
+            end
+          end
+        end
+        context 'with a reference, but that does not have a matching attribute name' do
+          let(:myblock) { 
+            Proc.new do
+              attributes reference: AddressBlueprint do
+                attribute :age, description: 'I am redefining' do
+                  attribute :foobar, Integer, min: 42
+                end
+              end
+            end
+          }
+          it 'correctly defaults to Struct uses only the local options (same exact as if it had no reference)' do
+            expect(mytype.attributes).to have_key(:age)
+            age_attribute = mytype.attributes[:age]
+            # Resolves to Struct
+            expect(age_attribute.type).to be < Attributor::Struct
+            # does NOT brings any ref options 
+            expect(age_attribute.options).to  eq(description: 'I am redefining')
+            # And the nested attribute is correctly resolved as well, and ensures options are there
+            expect(age_attribute.type.attributes[:foobar].type).to eq(Attributor::Integer)
+            expect(age_attribute.type.attributes[:foobar].options).to eq(min: 42)
+          end
+        end
+        context 'without a reference' do
+          let(:myblock) { 
+            Proc.new do
+              attributes do
+                attribute :age, description: 'I am redefining' do
+                  attribute :foobar, Integer, min: 42
+                end
+              end
+            end
+          }
+          it 'correctly defaults to Struct uses only the local options' do
+            expect(mytype.attributes).to have_key(:age)
+            age_attribute = mytype.attributes[:age]
+            # Resolves to Struct
+            expect(age_attribute.type).to be < Attributor::Struct
+            # does NOT brings any ref options 
+            expect(age_attribute.options).to  eq(description: 'I am redefining')
+            # And the nested attribute is correctly resolved as well, and ensures options are there
+            expect(age_attribute.type.attributes[:foobar].type).to eq(Attributor::Integer)
+            expect(age_attribute.type.attributes[:foobar].options).to eq(min: 42)
+          end
+        end
+      end
+    end
+    context 'with an explicit type specified' do
+      context 'without a reference' do
+        let(:myblock) { 
+          Proc.new do
+            attributes do
+              attribute :age, String, description: 'I am a String now'
+            end
+          end
+        }
+        it 'always uses the provided type and local options specified' do
+          expect(mytype.attributes).to have_key(:age)
+          age_attribute = mytype.attributes[:age]
+          # Resolves to String
+          expect(age_attribute.type).to eq(Attributor::String)
+          # copies local options
+          expect(age_attribute.options).to  eq(description: 'I am a String now')
+        end
+      end
+      context 'with a reference' do
+        let(:myblock) { 
+          Proc.new do
+            attributes reference: PersonBlueprint do
+              attribute :age, String, description: 'I am a String now'
+            end
+          end
+        }
+        it 'always uses the provided type and local options specified (same as if it had no reference)' do
+          expect(mytype.attributes).to have_key(:age)
+          age_attribute = mytype.attributes[:age]
+          # Resolves to String
+          expect(age_attribute.type).to eq(Attributor::String)
+          # copies local options
+          expect(age_attribute.options).to  eq(description: 'I am a String now')
+        end
+      end
+
+      context 'with a reference, which can further percolate down' do
+        let(:myblock) { 
+          Proc.new do
+            attributes reference: PersonBlueprint do
+              attribute :age, String, description: 'I am a String now'
+              attribute :address, Struct, description: 'Address subset' do
+                attribute :street, required: true
+              end
+              attribute :tags
+            end
+          end
+        }
+        
+        it 'brings the child reference for address so we can redefine it' do
+          expect(mytype.attributes.keys).to eq([:age, :address, :tags])
+          age_attribute = mytype.attributes[:age]
+          expect(age_attribute.type).to eq(Attributor::String)
+          expect(age_attribute.options).to  eq(description: 'I am a String now')
+
+          address_attribute = mytype.attributes[:address]
+          expect(address_attribute.type).to be < Attributor::Struct
+          # It brings in our local options AND percolates down the reference type for address
+          expect(address_attribute.options).to include(description: 'Address subset', reference: AddressBlueprint)
+
+          # Address fields are properly resolved to match the corresponding AddressBlueprint
+          expect(address_attribute.type.attributes.keys).to eq([:street])
+          street_attribute = address_attribute.type.attributes[:street]
+          expect(street_attribute.type).to eq(AddressBlueprint.attributes[:street].type)
+          # Makes sure our local options on the street are kept
+          expect(street_attribute.options).to include(required: true)
+          # And brings in other options from the inherited street attribute
+          expect(street_attribute.options).to include(description: 'The street')
+        
+          # It also properly resolves the direct tags attribute from the reference, pointing to the same type
+          tags_attribute = mytype.attributes[:tags]
+          expect(tags_attribute.type).to eq PersonBlueprint.attributes[:tags].type
+        end
+      end
+    end
+  end
   context 'deterministic examples' do
     it 'works' do
       person1 = PersonBlueprint.example('person 1')
@@ -221,22 +495,23 @@ describe Praxis::Blueprint do
     end
   end
 
-  context 'with a provided :reference option on attributes' do
-    context 'that does not match the value set on the class' do
-      subject(:mismatched_reference) do
-        Class.new(Praxis::Blueprint) do
-          self.reference = Class.new(Praxis::Blueprint)
-          attributes(reference: Class.new(Praxis::Blueprint)) {}
-        end
-      end
+  # TODO: Think about this 'feature' ...
+  # context 'with a provided :reference option on attributes' do
+  #   context 'that does not match the value set on the class' do
+  #     subject(:mismatched_reference) do
+  #       Class.new(Praxis::Blueprint) do
+  #         self.reference = Class.new(Praxis::Blueprint)
+  #         attributes(reference: Class.new(Praxis::Blueprint)) {}
+  #       end
+  #     end
 
-      it 'should raise an error' do
-        expect do
-          mismatched_reference.attributes
-        end.to raise_error(/Reference mismatch/)
-      end
-    end
-  end
+  #     it 'should raise an error' do
+  #       expect do
+  #         mismatched_reference.attributes
+  #       end.to raise_error(/Reference mismatch/)
+  #     end
+  #   end
+  # end
 
   context '.example' do
     context 'with some attribute values provided' do

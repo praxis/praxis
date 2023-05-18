@@ -5,7 +5,9 @@ class PersonBlueprint < Praxis::Blueprint
     attribute :name, String, example: /[:first_name:]/
     attribute :email, String, example: proc { |person| "#{person.name}@example.com" }
 
-    attribute :age, Integer
+    attribute :age, Integer, min: 0
+    # Weird, anonymous attribute built for specs only
+    attribute :funny_attribute, Attributor::Struct, allow_extra: true
 
     attribute :full_name, FullName
     attribute :aliases, Attributor::Collection.of(FullName)
@@ -44,7 +46,7 @@ class AddressBlueprint < Praxis::Blueprint
   attributes do
     attribute :id, Integer
     attribute :name, String
-    attribute :street, String
+    attribute :street, String, description: 'The street'
     attribute :state, String, values: %w[OR CA]
 
     attribute :resident, PersonBlueprint, example: proc { |address, context| PersonBlueprint.example(context, address: address) }

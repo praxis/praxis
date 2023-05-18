@@ -13,7 +13,7 @@ class Book < Praxis::MediaType
     attribute :author, Author
     attribute :tags, Praxis::Collection.of(Tag)
 
-    group :grouped do
+    group :grouped, reference: Book do
       attribute :id
       attribute :name
       attribute :moar_tags, Praxis::Collection.of(Tag)

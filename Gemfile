@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-source 'https://rubygems.org'
+source "https://rubygems.org"
 gemspec
 
-gem 'rubocop'
-
+gem "rubocop"
+gem "attributor", path: "/Users/blanquer/dev/praxis/attributor"
 group :test do
-  gem 'builder'
+  gem "builder"
 
-  gem 'link_header'
-  gem 'oj'
-  gem 'parslet'
+  gem "link_header"
+  gem "oj"
+  gem "parslet"
 end

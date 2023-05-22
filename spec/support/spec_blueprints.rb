@@ -21,7 +21,7 @@ class PersonBlueprint < Praxis::Blueprint
       attribute :mother, String
     end
 
-    attribute :tags, Attributor::Collection.of(String)
+    attribute :tags, Attributor::String[]
     attribute :href, String
     attribute :alive, Attributor::Boolean, default: true
     attribute :myself, PersonBlueprint, null: true

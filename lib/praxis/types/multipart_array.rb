@@ -219,13 +219,13 @@ module Praxis
         hash[:part_name] = { type: name_type.describe(true) }
 
         unless shallow
-          hash[:attributes] = {} if attributes.keys.any? { |name| name.is_a? String }
+          hash[:attributes] = {} if attributes.keys.any? { |name| name.is_a? ::String }
           hash[:pattern_attributes] = {} if attributes.keys.any? { |name| name.is_a? Regexp }
 
           if hash.key?(:attributes) || hash.key?(:pattern_attributes)
             describe_attributes(shallow, example: example).each do |name, sub_hash|
               case name
-              when String
+              when ::String
                 hash[:attributes][name] = sub_hash
               when Regexp
                 hash[:pattern_attributes][name.source] = sub_hash
@@ -305,7 +305,7 @@ module Praxis
           return self << part
         elsif self.class.options[:case_insensitive_load]
           name = self.class.attributes.keys.find do |k|
-            k.is_a?(String) && key.downcase == k.downcase
+            k.is_a?(::String) && key.downcase == k.downcase
           end
           if name
             part.name = name

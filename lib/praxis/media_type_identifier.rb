@@ -204,7 +204,7 @@ module Praxis
       obj.type = type
       obj.subtype = subtype
       target_suffix = suffix || self.suffix
-      obj.suffix = redundant_suffix(target_suffix) ? String.new : target_suffix
+      obj.suffix = redundant_suffix(target_suffix) ? ::String.new : target_suffix
       obj.parameters = self.parameters.merge(parameters)
 
       obj

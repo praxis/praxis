@@ -10,3 +10,6 @@ branches:
   only:
     - master
     - /.*/
+gemfile:
+  - gemfiles/active_6.gemfile
+  - gemfiles/active_7.gemfile

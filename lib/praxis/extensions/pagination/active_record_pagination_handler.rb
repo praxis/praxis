@@ -45,6 +45,8 @@ module Praxis
             quoted_prefix = AttributeFiltering::ActiveRecordFilterQueryBuilder.quote_column_path(query: query, prefix: column_prefix, column_name: info[:attribute])
             order_clause = Arel.sql(ActiveRecord::Base.sanitize_sql_array("#{quoted_prefix} #{direction}"))
             query = query.order(order_clause)
+            # Add a select for any order clause (unless we're already selecting *), as latest MySQL versions require it for DISTINCT queries
+            query = query.select(quoted_prefix) unless query.select_values.empty?
           end
           query
         end

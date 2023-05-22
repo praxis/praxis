@@ -154,6 +154,34 @@ describe Praxis::Extensions::Pagination::ActiveRecordPaginationHandler do
         end
       end
     end
+    context 'adds SELECT fields when necessary' do
+      let(:order_params) { book_ordering_params_attribute.load(op) }
+      context 'when query comes with SELECT *' do
+        let(:query) { ActiveBook.includes(:author) }
+        let(:op) { '-writer.books.name' }
+        it 'does not add any specific SELECT' do
+          expect(subject.all.select_values).to be_empty
+        end
+      end
+      context 'when query comes with some SELECT fields' do
+        let(:query) { ActiveBook.includes(:author).select('simple_name') }
+        context 'with one ordering field' do
+          let(:op) { '-writer.books.name' }
+          it 'adds the field to SELECT (and keeps the original one)' do
+            expect(subject.all.select_values).to include('"/author/books"."simple_name"')
+            expect(subject.all.select_values).to include('simple_name')
+          end
+        end
+        context 'with multiple ordering fields' do
+          let(:op) { '-writer.books.name,author.id' }
+          it 'adds both fields to SELECT (and keeps the original one)' do
+            expect(subject.all.select_values).to include('"/author/books"."simple_name"')
+            expect(subject.all.select_values).to include('"/author"."id"')
+            expect(subject.all.select_values).to include('simple_name')
+          end
+        end
+      end
+    end
   end
 
   context '.association_info_for' do

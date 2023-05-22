@@ -1,6 +1,8 @@
 # Praxis Changelog
 
 ## next
+- Better support for ordefing in newer versions of MySQL:
+  * Some versions will complain on an invalid query if you use an ORDER BY component that does not have the corresponding SELECT field
 
 ## 2.0.pre.32
 - Spruced up the scaffolding generation, to be more configurable using a `.praxis_scaffold` file at the root, where one can specify things like

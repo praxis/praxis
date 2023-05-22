@@ -7,10 +7,10 @@ class PersonBlueprint < Praxis::Blueprint
 
     attribute :age, Integer, min: 0
     # Weird, anonymous attribute built for specs only
-    attribute :funny_attribute, Attributor::Struct, allow_extra: true
+    attribute :funny_attribute, Struct, allow_extra: true
 
     attribute :full_name, FullName
-    attribute :aliases, Attributor::Collection.of(FullName)
+    attribute :aliases, FullName[]
 
     attribute :address, AddressBlueprint, null: true, example: proc { |person, context| AddressBlueprint.example(context, resident: person) }
     attribute :work_address, AddressBlueprint, null: true

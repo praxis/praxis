@@ -97,7 +97,7 @@ module Praxis
 
     def self.attributes(opts = {}, &block)
       if block_given?
-        raise 'Redefining Blueprint attributes is not currently supported' if const_defined?(:Struct, false)
+        raise 'Redefining Blueprint attributes is not currently supported' if const_defined?(:InnerStruct, false)
 
         @options.merge!(opts.merge(dsl_compiler: DSLCompiler))
         @block = block
@@ -129,7 +129,7 @@ module Praxis
           new(value)
         end
       else
-        if value.is_a?(domain_model) || value.is_a?(self::Struct)
+        if value.is_a?(domain_model) || value.is_a?(self::InnerStruct)
           # Wrap the value directly
           new(value)
         else
@@ -249,7 +249,7 @@ module Praxis
       @attribute = Attributor::Attribute.new(Attributor::Struct, @options, &@block)
       @block = nil
       @attribute.type.anonymous_type true
-      const_set(:Struct, @attribute.type)
+      const_set(:InnerStruct, @attribute.type)
     end
 
     def self.define_readers!

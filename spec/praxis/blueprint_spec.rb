@@ -349,7 +349,7 @@ describe Praxis::Blueprint do
   end
 
   it 'has an inner Struct class for the attributes' do
-    expect(blueprint_class.attribute.type).to be blueprint_class::Struct
+    expect(blueprint_class.attribute.type).to be blueprint_class::InnerStruct
   end
 
   context 'an instance' do

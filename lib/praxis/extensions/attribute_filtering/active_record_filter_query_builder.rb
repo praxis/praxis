@@ -34,7 +34,7 @@ module Praxis
           @model = model
           @filters_map = filters_map
           @logger = debug ? Logger.new($stdout) : nil
-          @active_record_version_maj = ActiveRecord.gem_version.segments[0]
+          @active_record_version = ActiveRecord.gem_version
         end
 
         def debug_query(msg, query)
@@ -86,7 +86,8 @@ module Praxis
             )
           end
 
-          if @active_record_version_maj < 6
+          
+          if @active_record_version < Gem::Version.new('6')
             # ActiveRecord < 6 does not support '.and' so no nested things can be done
             # But we can still support the case of 1+ flat conditions of the same AND/OR type
             if root_parent_group.is_a?(FilteringParams::Condition)
@@ -347,8 +348,7 @@ module Praxis
         end
 
         # The value that we need to stick in the references method is different in the latest Rails
-        maj, min, = ActiveRecord.gem_version.segments
-        if maj == 5 || (maj == 6 && min.zero?)
+        if ActiveRecord.gem_version < Gem::Version.new('6')
           # In AR 6 (and 6.0) the references are simple strings
           def self.build_reference_value(column_prefix, **_args)
             column_prefix

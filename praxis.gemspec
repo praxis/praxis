@@ -32,6 +32,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake', '>= 12.3.3'
+  spec.add_development_dependency "appraisal"
 
   if RUBY_PLATFORM !~ /java/
     spec.add_development_dependency 'pry'
@@ -50,7 +51,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 3'
   spec.add_development_dependency 'rspec-collection_matchers', '~> 1'
   spec.add_development_dependency 'rspec-its', '~> 1'
-  # Just for the query selector extensions etc...
-  spec.add_development_dependency 'activerecord', '> 4', '< 7'
-  spec.add_development_dependency 'sequel', '~> 5'
 end

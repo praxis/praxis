@@ -13,6 +13,8 @@ when 6
   else
     require_relative 'active_record_patches/6_1_plus'
   end
+when 7
+  require_relative 'active_record_patches/6_1_plus'
 else
-  raise 'Filtering only supported for ActiveRecord >= 5 && <= 6'
+  # raise 'Filtering only supported for ActiveRecord >= 5 && <= 6'
 end

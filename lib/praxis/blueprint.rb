@@ -63,7 +63,6 @@ module Praxis
 
     class << self
       attr_reader :attribute, :options
-      # attr_accessor :reference
     end
 
     def self.inherited(klass)

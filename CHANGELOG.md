@@ -7,6 +7,7 @@
   bring the ability to define collections with `<T>[]` which is equivalent to the current `Attributor::Collection.of(<T>). For example, you can now do things
   like `String[]`, `MyMediaType[]`, etc..
 - Tightened a few type comparisons throughout the framework, and built full specs for struct/collection definitions in Blueprints.
+- Built config for the Appraisals gem, so we can continuously test some of our extensions against different versions of ActiveRecord as it evolves (6x and7x for now)
 
 ## 2.0.pre.32
 - Spruced up the scaffolding generation, to be more configurable using a `.praxis_scaffold` file at the root, where one can specify things like

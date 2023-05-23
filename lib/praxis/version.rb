@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Praxis
-  VERSION = '2.0.pre.32'
+  VERSION = '2.0.pre.33'
 end

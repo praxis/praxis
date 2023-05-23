@@ -7,7 +7,6 @@ module V1
       included do
         around :action do |controller, callee|
           begin
-            # TODO: Support Sequel as well
             ActiveRecord::Base.transaction do
               callee.call
               res = controller.response

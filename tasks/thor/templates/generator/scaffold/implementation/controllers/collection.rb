@@ -60,7 +60,7 @@ module <%= version_module %>
         resource = Resources::<%= singular_class %>.get(id: id)
         return Praxis::Responses::NotFound.new unless resource
 
-        resource.delete(payload: request.payload)
+        resource.delete
         Praxis::Responses::NoContent.new
       end
       <%- end -%>

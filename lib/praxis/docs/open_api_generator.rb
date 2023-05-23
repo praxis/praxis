@@ -113,10 +113,10 @@ module Praxis
         if(server_info = @infos[version].server)
           server_params[:url] = server_info[:url]
           server_params[:variables] = server_info[:variables] if server_info[:variables]
+          server_params[:description] = server_info[:description] if server_info[:description]
         else
           server_params[:url] = @infos[version].base_path
         end
-        server_params[:description] = server_info[:description] if server_info[:description]
         server_object = OpenApi::ServerObject.new(**server_params)
 
         paths_object = OpenApi::PathsObject.new(resources: resources_by_version[version])

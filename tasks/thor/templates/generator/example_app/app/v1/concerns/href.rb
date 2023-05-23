@@ -14,13 +14,19 @@ module V1
         end
 
         module ClassMethods
+          mutex = Mutex.new
+          
           def endpoint_path_template
             # memoize a templated path for an endpoint, like
-            # /im/contacts/%{id}
-            return @endpoint_path_template if @endpoint_path_template
+            # /users/%{id}
+            return @endpoint_path_template if @endpoint_path_template # rubocop:disable ThreadSafety/InstanceVariableInClassMethod
 
-            path = self.base_module.const_get(:Endpoints).const_get(model.name.split(':').last.pluralize).canonical_path.route.path
-            @endpoint_path_template = path.names.inject(path.to_s) { |p, name| p.sub(':' + name, "%{#{name}}") }
+            mutex.synchronize do
+              return @endpoint_path_template if @endpoint_path_template # rubocop:disable ThreadSafety/InstanceVariableInClassMethod
+
+              path = self.base_module.const_get(:Endpoints).const_get(model.name.split(':').last.pluralize).canonical_path.route.path
+              @endpoint_path_template = path.names.inject(path.to_s) { |p, name| p.sub(':' + name, "%{#{name}}") }  
+            end
           end
         end
 

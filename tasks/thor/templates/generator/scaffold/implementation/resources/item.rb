@@ -30,7 +30,7 @@ module <%= version_module %>
       <%- end -%>
 
       <%- if action_enabled?(:delete) -%>
-      def self.delete(id:)
+      def delete
         record.destroy
         self
       end

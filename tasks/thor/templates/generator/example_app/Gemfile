@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-gem 'activerecord', '~> 6'
+gem 'activerecord'
 gem 'link_header' # For pagination extensions
 gem 'oj' # For fast JSON de/serialization handlers
 gem 'parslet' # For field selection extension

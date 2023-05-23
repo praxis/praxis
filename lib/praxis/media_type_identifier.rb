@@ -45,7 +45,7 @@ module Praxis
     # @see Attributor::Model#load
     def self.load(value, context = Attributor::DEFAULT_ROOT_CONTEXT, recurse: false, **options)
       case value
-      when String
+      when ::String
         return nil if value.blank?
 
         base, *parameters = value.split(PARAMETER_SEPARATOR)
@@ -66,7 +66,7 @@ module Praxis
         else
           obj.type = 'application'
           obj.subtype = base.split(WORD_SEPARATOR, 2).first
-          obj.suffix = String.new
+          obj.suffix = ::String.new
           obj.parameters = {}
         end
         obj
@@ -126,7 +126,7 @@ module Praxis
     # @return [String] canonicalized representation of the media type including all suffixes and parameters
     def to_s
       # Our handcrafted media types consist of a rich chocolatey center
-      s = String.new("#{type}/#{subtype}")
+      s = ::String.new("#{type}/#{subtype}")
 
       # coated in a hard candy shell
       s << '+' << suffix unless suffix.empty?
@@ -204,7 +204,7 @@ module Praxis
       obj.type = type
       obj.subtype = subtype
       target_suffix = suffix || self.suffix
-      obj.suffix = redundant_suffix(target_suffix) ? String.new : target_suffix
+      obj.suffix = redundant_suffix(target_suffix) ? ::String.new : target_suffix
       obj.parameters = self.parameters.merge(parameters)
 
       obj

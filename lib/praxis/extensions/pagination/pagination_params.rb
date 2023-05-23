@@ -89,7 +89,7 @@ module Praxis
           end
 
           def default(spec)
-            unless spec.is_a?(Hash) && spec.keys.size == 1 && %i[by page].include?(spec.keys.first)
+            unless spec.is_a?(::Hash) && spec.keys.size == 1 && %i[by page].include?(spec.keys.first)
               raise "'default' syntax for pagination takes exactly one key specification. Either by: <:fieldname> or page: <num>" \
                     "#{spec} is invalid"
             end
@@ -101,7 +101,7 @@ module Praxis
 
                          { by: value }
                        when :page
-                         raise "Error setting default pagination. Initial page should be a integer (but got #{value})" unless value.is_a?(Integer)
+                         raise "Error setting default pagination. Initial page should be a integer (but got #{value})" unless value.is_a?(::Integer)
                          raise 'Cannot define a default pagination that is page-based, if page-based pagination is disallowed.' if target.defaults[:disallow_paging]
 
                          { page: value }

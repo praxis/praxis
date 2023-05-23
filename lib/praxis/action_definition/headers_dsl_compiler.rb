@@ -18,7 +18,7 @@ module Praxis
         case val
         when Regexp
           options[:regexp] = val
-        when String
+        when ::String
           options[:values] = [val]
         when nil
           # Defining the existence without any other options can only mean that it is required (otherwise it is a useless definition)

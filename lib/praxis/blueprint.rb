@@ -10,7 +10,8 @@ module Praxis
       # aren't invoked by just merely loading, and only really invoked when we've asked to render them
       # It takes the name of the group, and passes the attributes block that needs to be a subset of the MediaType where the group resides
       def group(name, **options, &block)
-        attribute(name, Praxis::BlueprintAttributeGroup.for(target.options[:reference]), **options, &block)
+        # Pass the reference to the target type by default. But allow overriding it if needed
+        attribute(name, Praxis::BlueprintAttributeGroup.for(target), **{reference: target}.merge(options), &block)
       end
     end
 
@@ -62,7 +63,6 @@ module Praxis
 
     class << self
       attr_reader :attribute, :options
-      attr_accessor :reference
     end
 
     def self.inherited(klass)
@@ -97,11 +97,7 @@ module Praxis
 
     def self.attributes(opts = {}, &block)
       if block_given?
-        raise 'Redefining Blueprint attributes is not currently supported' if const_defined?(:Struct, false)
-
-        raise "Reference mismatch in #{inspect}. Given :reference option #{opts[:reference].inspect}, while using #{reference.inspect}" if opts.key?(:reference) && opts[:reference] != reference
-
-        opts[:reference] = (reference || self)
+        raise 'Redefining Blueprint attributes is not currently supported' if const_defined?(:InnerStruct, false)
 
         @options.merge!(opts.merge(dsl_compiler: DSLCompiler))
         @block = block
@@ -133,7 +129,7 @@ module Praxis
           new(value)
         end
       else
-        if value.is_a?(domain_model) || value.is_a?(self::Struct)
+        if value.is_a?(domain_model) || value.is_a?(self::InnerStruct)
           # Wrap the value directly
           new(value)
         else
@@ -253,7 +249,7 @@ module Praxis
       @attribute = Attributor::Attribute.new(Attributor::Struct, @options, &@block)
       @block = nil
       @attribute.type.anonymous_type true
-      const_set(:Struct, @attribute.type)
+      const_set(:InnerStruct, @attribute.type)
     end
 
     def self.define_readers!
@@ -288,6 +284,8 @@ module Praxis
       attributes.each do |name, attr|
         the_type = attr.type < Attributor::Collection ? attr.type.member_type : attr.type
         next if the_type < Blueprint
+        # TODO: Allow groups in the default fieldset?? or perhaps better to make people explicitly define them?
+        # next if (the_type < Blueprint && !(the_type < BlueprintAttributeGroup))
 
         # NOTE: we won't try to expand fields here, as we want to be lazy (and we're expanding)
         # every time a request comes in anyway. This could be an optimization we do at some point
@@ -353,6 +351,7 @@ module Praxis
 
       leftover = self.class.attributes.keys - keys_provided
       leftover.each do |key|
+        sub_context = self.class.generate_subcontext(context, key)
         attribute = self.class.attributes[key]
 
         errors.concat ["Attribute #{Attributor.humanize_context(sub_context)} is required."] if attribute.options[:required]

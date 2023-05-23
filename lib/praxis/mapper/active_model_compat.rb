@@ -67,19 +67,17 @@ module Praxis
         end
 
         def _join_foreign_key_for(assoc_reflection)
-          maj, min, = ActiveRecord.gem_version.segments
-          if maj >= 6 && min >= 1
+          if ActiveRecord.gem_version >= Gem::Version.new('6.1')
             assoc_reflection.join_foreign_key.to_sym
-          else
+          else # below 6.1
             assoc_reflection.join_keys.foreign_key.to_sym
           end
         end
 
         def _join_primary_key_for(assoc_reflection)
-          maj, min, = ActiveRecord.gem_version.segments
-          if maj >= 6 && min >= 1
+          if ActiveRecord.gem_version >= Gem::Version.new('6.1')
             assoc_reflection.join_primary_key.to_sym
-          else
+          else # below 6.1
             assoc_reflection.join_keys.key.to_sym
           end
         end

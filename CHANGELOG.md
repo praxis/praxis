@@ -3,6 +3,10 @@
 ## next
 - Better support for ordefing in newer versions of MySQL:
   * Some versions will complain on an invalid query if you use an ORDER BY component that does not have the corresponding SELECT field
+- Use the newest Attributor gem, which revamps and hardnens the struct/collection definion DSL, and provides much better error messages and safety. It also
+  bring the ability to define collections with `<T>[]` which is equivalent to the current `Attributor::Collection.of(<T>). For example, you can now do things
+  like `String[]`, `MyMediaType[]`, etc..
+- Tightened a few type comparisons throughout the framework, and built full specs for struct/collection definitions in Blueprints.
 
 ## 2.0.pre.32
 - Spruced up the scaffolding generation, to be more configurable using a `.praxis_scaffold` file at the root, where one can specify things like

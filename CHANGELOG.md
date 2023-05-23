@@ -1,6 +1,9 @@
 # Praxis Changelog
 
 ## next
+- Allow filtering, ordering and pagination to freely use any attributes (potentially deep ones) when no block for the definition is provided. When continuing to define the allowed fields from within the block, those would still be enforced.
+
+## 2.0.pre.33
 - Better support for ordefing in newer versions of MySQL:
   * Some versions will complain on an invalid query if you use an ORDER BY component that does not have the corresponding SELECT field
 - Use the newest Attributor gem, which revamps and hardnens the struct/collection definion DSL, and provides much better error messages and safety. It also
@@ -8,8 +11,7 @@
   like `String[]`, `MyMediaType[]`, etc..
 - Tightened a few type comparisons throughout the framework, and built full specs for struct/collection definitions in Blueprints.
 - Built config for the Appraisals gem, so we can continuously test some of our extensions against different versions of ActiveRecord as it evolves (6x and7x for now)
-- Allow filtering, ordering and pagination to freely use any attributes (potentially deep ones) when no block for the definition is provided. When continuing to define the
-   allowed fields from within the block, those would still be enforced.
+
 ## 2.0.pre.32
 - Spruced up the scaffolding generation, to be more configurable using a `.praxis_scaffold` file at the root, where one can specify things like
   the base module for all generated classes (`base`), the path of the models directory (`models_dir`) and the version to use (`version`). These, except the models directory can also be passed and overriden by command line arguments (and they would be saved into the config file to be usable in future invocations)

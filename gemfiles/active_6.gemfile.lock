@@ -82,6 +82,7 @@ GEM
     lumberjack (1.2.8)
     method_source (1.0.0)
     mime (0.4.4)
+    mini_portile2 (2.8.2)
     minitest (5.18.0)
     mustermann (3.0.0)
       ruby2_keywords (~> 0.0.1)
@@ -153,6 +154,8 @@ GEM
       json (>= 1.8, < 3)
       simplecov-html (~> 0.10.0)
     simplecov-html (0.10.2)
+    sqlite3 (1.6.1)
+      mini_portile2 (~> 2.8.0)
     sqlite3 (1.6.1-x86_64-darwin)
     sqlite3 (1.6.1-x86_64-linux)
     sync (0.5.0)
@@ -168,6 +171,7 @@ GEM
     zeitwerk (2.6.8)
 
 PLATFORMS
+  ruby
   x86_64-darwin-20
   x86_64-linux
 

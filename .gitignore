@@ -11,9 +11,4 @@ node_modules/
 *.css.map
 pkg
 
-lib/api_browser/node_modules/
-lib/api_browser/app/bower_components/
-lib/api_browser/.tmp/
-lib/api_browser/bower.json
-
 development.sqlite3

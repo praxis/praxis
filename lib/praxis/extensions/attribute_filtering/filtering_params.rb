@@ -229,6 +229,11 @@ module Praxis
         end
 
         def validate(_context = Attributor::DEFAULT_ROOT_CONTEXT)
+          # Treat a blank block definition for the filters, as a way to allow any valid filter, on any operator and fuz
+          # Obviously, the filter names need to be valid, but that's checked below.
+          # Also, in some circumstances, you'd need to make sure there is a filters_map entry for the ones that aren't directly translatable to query associations/columns
+          return [] if allowed_filters.blank? && allowed_leaves.blank?
+
           parsed_array.each_with_object([]) do |item, errors|
             attr_name = item[:name]
             attr_filters = allowed_filters[attr_name]

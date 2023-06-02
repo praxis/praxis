@@ -11,13 +11,9 @@ module ApiResources
       routing { get '' }
       params do
         attribute :fields, Praxis::Types::FieldSelector.for(Author), description: 'Fields with which to render the result.'
-        attribute :filters, Praxis::Types::FilteringParams.for(Author) do
-          filter 'books.name', using: %w[= != !], fuzzy: true
-          filter 'id', using: %w[= !=]
-        end
-        attribute :order, Praxis::Extensions::Pagination::OrderingParams.for(Author) do
-          by_fields :id, :name, 'books.name'
-        end
+        attribute :filters, Praxis::Types::FilteringParams.for(Author) # No block for allowing any filtering
+        attribute :order, Praxis::Extensions::Pagination::OrderingParams.for(Author) # No block for allowing any sorting
+        attribute :pagination, Praxis::Types::PaginationParams.for(Author) # No block for allowing any field pagination
       end
       response :ok, media_type: Praxis::Collection.of(Author)
     end

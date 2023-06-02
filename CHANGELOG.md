@@ -1,6 +1,9 @@
 # Praxis Changelog
 
 ## next
+- Allow filtering, ordering and pagination to freely use any attributes (potentially deep ones) when no block for the definition is provided. When continuing to define the allowed fields from within the block, those would still be enforced.
+
+## 2.0.pre.33
 - Better support for ordefing in newer versions of MySQL:
   * Some versions will complain on an invalid query if you use an ORDER BY component that does not have the corresponding SELECT field
 - Use the newest Attributor gem, which revamps and hardnens the struct/collection definion DSL, and provides much better error messages and safety. It also

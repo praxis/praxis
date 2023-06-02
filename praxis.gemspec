@@ -42,7 +42,7 @@ Gem::Specification.new do |spec|
   else
     spec.add_development_dependency 'jdbc-sqlite3'
   end
-  spec.add_development_dependency 'coveralls-ruby'
+  spec.add_development_dependency 'coveralls_reborn', '~> 0.27.0'
   spec.add_development_dependency 'fuubar', '~> 2'
   spec.add_development_dependency 'guard', '~> 2'
   spec.add_development_dependency 'guard-bundler', '~> 2'

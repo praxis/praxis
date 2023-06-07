@@ -132,6 +132,38 @@ describe 'Functional specs for books with connected DB' do
           end
         end
       end
+
+      context 'with protected attributes' do
+        let(:fields_q) { 'id,special,multi' }
+        before do
+          expect(::Book.attributes[:special].options[:displayable]).to eq(['special#read'])
+          expect(::Book.attributes[:multi].options[:displayable]).to eq(['special#read','normal#read'])
+        end
+        context 'using the API' do
+          context 'when the user has the privilege for an attribute' do
+            before { allow(::BaseClass).to receive(:current_user_privs).and_return(['special#read']) }
+            it 'renders it' do
+              expect(parsed_response.keys).to include(:special)
+              expect(parsed_response.keys).to_not include(:multi)
+            end
+          end
+
+          context 'when the user does not have the privilege' do
+            before { allow(::BaseClass).to receive(:current_user_privs).and_return(['anotherpriv!']) }
+            it 'does not render it' do
+              expect(parsed_response.keys).to_not include(:special)
+              expect(parsed_response.keys).to_not include(:multi)
+            end
+          end
+
+          context 'when the user has multiple privilege for multiple attributes' do
+            before { allow(::BaseClass).to receive(:current_user_privs).and_return(['special#read','normal#read']) }
+            it 'renders both' do
+              expect(parsed_response.keys).to include(:special,:multi)
+            end
+          end
+        end
+      end
     end
   end
 

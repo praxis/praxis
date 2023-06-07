@@ -12,6 +12,8 @@ class Book < Praxis::MediaType
     attribute :category_uuid, String
     attribute :author, Author
     attribute :tags, Praxis::Collection.of(Tag)
+    attribute :special, String, displayable: 'special#read'
+    attribute :multi, String, displayable: ['special#read', 'normal#read']
 
     group :grouped do
       attribute :id

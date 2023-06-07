@@ -2,19 +2,29 @@
 
 module Praxis
   class FieldExpander
-    def self.expand(object, fields = true)
-      new.expand(object, fields)
+    def self.expand(object, fields = true, displayable_filter = nil)
+      # check the displayability of the whole type/attr object at the top as well, not just the inner ones
+      if( privs = object.options[:displayable] )
+        if( privs && displayable_filter)
+          return {} unless displayable_filter.call(Array(privs))
+        else
+          raise "Attempting to expand fields for a type that uses :displayable, but the system (or at least this controller) does not have a displayable_filter setup."
+        end
+      end
+      new(displayable_filter: displayable_filter).expand(object, fields)
     end
 
     attr_reader :stack, :history
 
-    def initialize
+    # displayable_filter is a proc that takes a set of strings (representing privileges of sort) and returns true if it should be displayed
+    def initialize(displayable_filter: nil)
       @stack = Hash.new do |hash, key|
         hash[key] = Set.new
       end
       @history = Hash.new do |hash, key|
         hash[key] = {}
       end
+      @displayable_filter = displayable_filter
     end
 
     def expand(object, fields = true)
@@ -50,6 +60,16 @@ module Praxis
       end
 
       attributes.each_with_object({}) do |(name, dumpable), hash|
+        # Filter out attributes that are not displayable (if a filter is provided and there is a displayable option)
+        if( privs = dumpable.options[:displayable] )
+          if( privs && @displayable_filter)
+            next unless @displayable_filter.call(Array(privs))
+          else
+            raise "Found field named #{name} using :displayable, but the system (or at least this controller) does not have a displayable_filter setup."
+          end
+        end
+        
+
         sub_fields = case fields
                      when true
                        true

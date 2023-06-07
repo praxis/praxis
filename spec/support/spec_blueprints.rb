@@ -73,3 +73,18 @@ class SimpleHashCollection < Attributor::Model
     attribute :hash_collection, Attributor::Collection.of(Hash)
   end
 end
+
+class RestrictedBlueprint < Praxis::Blueprint
+  attributes(displayable: 'restricted#read') do
+    attribute :id, Integer
+    attribute :secret_data, String
+    attribute :pii_data, String, displayable: 'pii#read'
+  end
+end
+
+class PseudoRestrictedBlueprint < Praxis::Blueprint
+  attributes do
+    attribute :id, Integer
+    attribute :restricted, RestrictedBlueprint
+  end
+end

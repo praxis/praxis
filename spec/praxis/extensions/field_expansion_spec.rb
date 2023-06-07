@@ -35,8 +35,8 @@ describe Praxis::Extensions::FieldExpansion do
 
   let(:test_attributes) {}
   let(:test_params) { double('test_params', attributes: test_attributes) }
-
-  subject(:expansion) { test_instance.expanded_fields(request, media_type) }
+  let(:expansion_filter) { nil }
+  subject(:expansion) { test_instance.expanded_fields(request, media_type, expansion_filter) }
 
   context '#expanded_fields' do
     context 'with fields and view params defined' do

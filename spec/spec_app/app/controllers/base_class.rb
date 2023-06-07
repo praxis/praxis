@@ -12,4 +12,16 @@ class BaseClass
   # I.e., you can use class inheritance in cases where it makes sense from an OO point of view
   # but for the most part, you can probably share code through modules/concerns too.
   def this_is_shared; end
+
+  # Just a dummy method to use as if it was an Authenticated concern for the current request...
+  def self.current_user_privs
+    ['special#read']
+  end
+
+  def display_attribute?(privs)
+    # Do not expand, unless the current user has all the required privileges
+    return nil unless ((self.class.current_user_privs & privs) == privs)
+
+    true
+  end
 end

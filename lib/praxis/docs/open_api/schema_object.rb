@@ -54,17 +54,16 @@ module Praxis
               items = OpenApi::SchemaObject.new(info: type.member_type).dump_schema(allow_ref: allow_ref, shallow: false)
               base_options.merge!(type: 'array', items: items)
             else # Attributor::Struct, etc
-              described = (attribute || type).describe
               # Requirements are reported at the outter schema layer, we we need to gather them from the description here
-              reqs = described[:requirements]
+              reqs = type < Praxis::Blueprint ? type.attribute.type.requirements : type.requirements
               # Full requirements specified at the struct level that apply to all are considered required attributes
-              required_attributes = ( reqs || []).filter { |r| r[:type] == :all }.map { |r| r[:attributes] }.flatten.compact
+              required_attributes = ( reqs || []).filter { |r| r.type == :all }.map { |r| r.attr_names }.flatten.compact
               # Also, if any inner attribute has the required: true option, that, obviously means required as well
               sub_attributes = (attribute || type).attributes
               direct_required = sub_attributes ? sub_attributes.select{|_,a| a.options[:required] == true}.keys : []
               required_attributes.concat(direct_required)
               required_attributes.uniq!
-              props = type.attributes.transform_values do |definition|
+              props = sub_attributes.transform_values do |definition|
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
 

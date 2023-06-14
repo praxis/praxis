@@ -1,6 +1,8 @@
 # Praxis Changelog
 
 ## next
+
+## 2.0.pre.34
 - Allow filtering, ordering and pagination to freely use any attributes (potentially deep ones) when no block for the definition is provided. When continuing to define the allowed fields from within the block, those would still be enforced.
 - Added the ability to easily control the hiding/displayability of MediaType attributes in responses.
   - it introduces a :displayable custom attribute that accepts an array of opaque strings, which can represent some sort of 'privileges' required to have for it to be renderable.

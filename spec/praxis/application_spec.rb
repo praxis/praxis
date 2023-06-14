@@ -98,11 +98,16 @@ describe Praxis::Application do
   end
 
   describe '#inspect' do
-    let(:klass) { Class.new(Praxis::Application) }
+    let(:klass) do
+      Class.new(Praxis::Application) do
+        def self.to_s
+          'SomeApplication'
+        end
+      end
+    end
     subject { klass.instance }
 
     it 'includes name, object ID and root' do
-      SomeApplication = klass # de-anonymize class name
       klass.instance.instance_variable_set(:@root, '/tmp')
       expect(subject.inspect).to match(%r{#<SomeApplication#[0-9]+ @root=/tmp>})
     end

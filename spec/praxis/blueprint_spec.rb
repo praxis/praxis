@@ -35,7 +35,7 @@ describe Praxis::Blueprint do
 
     let(:mytype) do
       Praxis::Blueprint.finalize!
-      Class.new(Praxis::Blueprint, &myblock).tap { |c| c._finalize! }
+      Class.new(Praxis::Blueprint, &myblock).tap(&:_finalize!)
     end
     context 'with no explicit type specified' do
       context 'without a block (if it is a leaf)' do

@@ -23,6 +23,10 @@ describe Praxis::Controller do
       def index; end
 
       def show; end
+
+      def self.to_s
+        'SomeController'
+      end
     end
   end
 
@@ -34,7 +38,6 @@ describe Praxis::Controller do
 
   describe '#inspect' do
     it 'includes name, object ID and request' do
-      SomeController = subject # de-anonymize class name
       expect(subject.new('eioio').inspect).to match(
         /#<SomeController#[0-9]+ @request="eioio">/
       )

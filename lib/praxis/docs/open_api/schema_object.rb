@@ -37,7 +37,7 @@ module Praxis
           end
           # Tag on OpenAPI specific requirements that aren't already added in the underlying JSON schema model
           # Nullable: (it seems we need to ensure there is a null option to the enum, if there is one)
-          base_options[:nullable] = !!base_options.delete(:null) if base_options.key?(:null)
+          base_options[:nullable] = !base_options.delete(:null).nil? if base_options.key?(:null)
 
           # We will dump schemas for mediatypes by simply creating a reference to the components' section
           if type < Attributor::Container && !(type < Praxis::Types::MultipartArray)
@@ -55,7 +55,7 @@ module Praxis
               # Requirements are reported at the outter schema layer, we we need to gather them from the description here
               reqs = type < Praxis::Blueprint ? type.attribute.type.requirements : type.requirements
               # Full requirements specified at the struct level that apply to all are considered required attributes
-              required_attributes = (reqs || []).filter { |r| r.type == :all }.map { |r| r.attr_names }.flatten.compact
+              required_attributes = (reqs || []).filter { |r| r.type == :all }.map(&:attr_names).flatten.compact
               # Also, if any inner attribute has the required: true option, that, obviously means required as well
               sub_attributes = (attribute || type).attributes
               direct_required = sub_attributes ? sub_attributes.select { |_, a| a.options[:required] == true }.keys : []

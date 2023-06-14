@@ -168,7 +168,7 @@ module Praxis
         # Save the read body part.
         body << @buf.slice!(0, @buf.size - (@boundary_size + 4)) if head && (@boundary_size + 4 < @buf.size)
 
-        content = @io.read(@content_length && BUFSIZE >= @content_length ? @content_length : BUFSIZE)
+        content = @io.read(@content_length && @content_length <= BUFSIZE ? @content_length : BUFSIZE)
         raise EOFError, 'bad content body' if content.nil? || content.empty?
 
         @buf << content

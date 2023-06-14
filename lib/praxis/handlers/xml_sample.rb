@@ -48,7 +48,7 @@ module Praxis
 
         case type
         when nil
-          if (node.children.size == 1 && node.child.text?) || node.children.size.zero?
+          if (node.children.size == 1 && node.child.text?) || node.children.empty?
             # leaf text node
             node.content
           else

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 appraise 'active-6' do
   # Just for the query selector/filtering/ordering extensions etc...
   gem 'activerecord', '> 4', '< 7'

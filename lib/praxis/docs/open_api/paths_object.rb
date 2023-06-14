@@ -32,7 +32,7 @@ module Praxis
           id = resource.id
           # fill in the paths hash with a key for each path for each action/route
           resource.actions.each do |action_name, action|
-            params_example = action.params ? action.params.example(nil) : nil
+            params_example = action.params&.example(nil)
             url = ActionDefinition.url_description(route: action.route, params: action.params, params_example: params_example)
 
             verb = url[:verb].downcase

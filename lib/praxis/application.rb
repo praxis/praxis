@@ -5,6 +5,9 @@ require 'mustermann'
 require 'logger'
 
 module Praxis
+  # Setup the option early, since things like MediaTypes and EndpointDefinitions might need it
+  Attributor::Attribute.custom_option :displayable, Types::SplattableStringArray.of(String)
+
   class Application
     include Singleton
 

@@ -39,5 +39,14 @@ module Resources
     end
 
     property :grouped_moar_tags, as: :tags
+
+    property :special, dependencies: [:simple_name]
+    def special
+      record.simple_name.reverse # just to make it different
+    end
+    property :multi, dependencies: [:simple_name]
+    def multi
+      record.simple_name.upcase # just to make it different
+    end
   end
 end

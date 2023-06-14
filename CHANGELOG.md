@@ -2,6 +2,11 @@
 
 ## next
 - Allow filtering, ordering and pagination to freely use any attributes (potentially deep ones) when no block for the definition is provided. When continuing to define the allowed fields from within the block, those would still be enforced.
+- Added the ability to easily control the hiding/displayability of MediaType attributes in responses.
+  - it introduces a :displayable custom attribute that accepts an array of opaque strings, which can represent some sort of 'privileges' required to have for it to be renderable.
+  - the expander tooling now, will use such `display_attribute?` method to decide if a given attribute needs to be expanded/displayed or not.
+  - The glue to all this requires defining a `display_attribute?` method in the controllers (with takes an array of string opaque privileges), which needs to return true/false to decide if a given attribute is displayable or now. This method will commonly be connected to the `authz` pieces of your app, and would look at the assigned 'privileges' of the currently logged in 'principal', and simply lookup if the required set of privileges received in the method, fall within the currently assigned ones.
+- Cleanup in the OpenAPI generation for schemas, to more properly surface existing custom attributes into x-{name} attributes as well.
 
 ## 2.0.pre.33
 - Better support for ordefing in newer versions of MySQL:

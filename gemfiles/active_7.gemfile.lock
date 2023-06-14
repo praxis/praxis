@@ -3,7 +3,7 @@ PATH
   specs:
     praxis (2.0.pre.33)
       activesupport (>= 3)
-      attributor (>= 7.0)
+      attributor (>= 7.1)
       mime (~> 0)
       mustermann (>= 1.1)
       rack (>= 1)
@@ -28,7 +28,7 @@ GEM
       rake
       thor (>= 0.14.0)
     ast (2.4.2)
-    attributor (7.0)
+    attributor (7.1)
       activesupport (>= 3)
       hashie (~> 3)
       randexp (~> 0)

@@ -52,7 +52,6 @@ module Praxis
   autoload :BlueprintAttributeGroup, 'praxis/blueprint_attribute_group'
   autoload :FieldExpander, 'praxis/field_expander'
   autoload :Renderer, 'praxis/renderer'
-
   autoload :Notifications, 'praxis/notifications'
   autoload :MiddlewareApp, 'praxis/middleware_app'
 
@@ -67,6 +66,7 @@ module Praxis
     autoload :FuzzyHash, 'praxis/types/fuzzy_hash'
     autoload :MediaTypeCommon, 'praxis/types/media_type_common'
     autoload :MultipartArray, 'praxis/types/multipart_array'
+    autoload :SplattableStringArray, 'praxis/types/splattable_string_array'
   end
 
   autoload :MediaType, 'praxis/media_type'

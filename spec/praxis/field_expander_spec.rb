@@ -13,6 +13,52 @@ describe Praxis::FieldExpander do
     AddressBlueprint.default_fieldset
   end
 
+  context '.expand' do
+    let(:display_attribute_filter) { ->(required) {(required & allowed) == required } }
+    let(:all_fields) { {id: true, secret_data: true, pii_data: true} }
+    subject { described_class.expand(object_type, all_fields, display_attribute_filter) }
+    context 'with a displayable attribute at the top' do
+      let(:object_type) { RestrictedBlueprint }
+      context 'when it has the right permissions for the top and inner ones' do
+        let(:allowed) { ['restricted#read','pii#read'] }
+        it 'calls the underlying expander instance (i.e., expands it all)' do
+          expect(subject).to eq(id: true, secret_data: true, pii_data: true)
+        end
+      end
+      context 'when it has the right permissions for the top, but not the inner' do
+        let(:allowed) { ['restricted#read'] }
+        it 'calls the underlying expander instance (i.e., expands it all)' do
+          expect(subject).to eq(id: true, secret_data: true)
+        end
+      end
+      context 'when it does NOT have the right permissions on the top' do
+        let(:allowed) { ['pii#read'] } # Yet it would have the inner one
+        it 'directly returns empty hash (i.e., nothing is expanded)' do
+          expect(subject).to eq({})
+        end
+      end
+    end
+
+    context 'with type that has an attribute that points to another type with a displayable attribute at the top' do
+      let(:object_type) { PseudoRestrictedBlueprint }
+      let(:all_fields) { {id: true, restricted: true} }
+      context 'when it has the right permissions for the top of the inner one' do
+        let(:allowed) { ['restricted#read'] }
+        it 'calls the underlying expander instance including the inner type' do
+          expect(subject).to eq(id: true, restricted: {id: true, secret_data: true})
+          expect(subject[:restricted].keys).to_not include(:pii_data)
+        end
+      end
+      context 'when it does NOT have the right permissions for the top of the inner one' do
+        let(:allowed) { ['another#read'] }
+        it 'does not expand it' do
+          expect(subject).to eq(id: true)
+          expect(subject.keys).to_not include(:restricted)
+        end
+      end
+    end
+  end
+
   context 'expanding attributes of a PersonBlueprint blueprint' do
     it 'with fields=true, expands all fields on the default fieldset' do
       expect(field_expander.expand(PersonBlueprint, true)).to eq(expanded_person_default_fieldset)

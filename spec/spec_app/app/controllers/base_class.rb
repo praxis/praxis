@@ -20,7 +20,7 @@ class BaseClass
 
   def display_attribute?(privs)
     # Do not expand, unless the current user has all the required privileges
-    return nil unless ((self.class.current_user_privs & privs) == privs)
+    return nil unless (self.class.current_user_privs & privs) == privs
 
     true
   end

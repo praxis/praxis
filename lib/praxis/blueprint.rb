@@ -11,7 +11,7 @@ module Praxis
       # It takes the name of the group, and passes the attributes block that needs to be a subset of the MediaType where the group resides
       def group(name, **options, &block)
         # Pass the reference to the target type by default. But allow overriding it if needed
-        attribute(name, Praxis::BlueprintAttributeGroup.for(target), **{reference: target}.merge(options), &block)
+        attribute(name, Praxis::BlueprintAttributeGroup.for(target), **{ reference: target }.merge(options), &block)
       end
     end
 
@@ -284,6 +284,7 @@ module Praxis
       attributes.each do |name, attr|
         the_type = attr.type < Attributor::Collection ? attr.type.member_type : attr.type
         next if the_type < Blueprint
+
         # TODO: Allow groups in the default fieldset?? or perhaps better to make people explicitly define them?
         # next if (the_type < Blueprint && !(the_type < BlueprintAttributeGroup))
 

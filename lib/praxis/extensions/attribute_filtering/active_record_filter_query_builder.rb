@@ -86,7 +86,6 @@ module Praxis
             )
           end
 
-          
           if @active_record_version < Gem::Version.new('6')
             # ActiveRecord < 6 does not support '.and' so no nested things can be done
             # But we can still support the case of 1+ flat conditions of the same AND/OR type

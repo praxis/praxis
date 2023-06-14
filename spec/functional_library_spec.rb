@@ -137,7 +137,7 @@ describe 'Functional specs for books with connected DB' do
         let(:fields_q) { 'id,special,multi' }
         before do
           expect(::Book.attributes[:special].options[:displayable]).to eq(['special#read'])
-          expect(::Book.attributes[:multi].options[:displayable]).to eq(['special#read','normal#read'])
+          expect(::Book.attributes[:multi].options[:displayable]).to eq(['special#read', 'normal#read'])
         end
         context 'using the API' do
           context 'when the user has the privilege for an attribute' do
@@ -157,9 +157,9 @@ describe 'Functional specs for books with connected DB' do
           end
 
           context 'when the user has multiple privilege for multiple attributes' do
-            before { allow(::BaseClass).to receive(:current_user_privs).and_return(['special#read','normal#read']) }
+            before { allow(::BaseClass).to receive(:current_user_privs).and_return(['special#read', 'normal#read']) }
             it 'renders both' do
-              expect(parsed_response.keys).to include(:special,:multi)
+              expect(parsed_response.keys).to include(:special, :multi)
             end
           end
         end

@@ -26,20 +26,18 @@ module Praxis
         end
 
         def dump_schema(shallow: false, allow_ref: false)
-          important_options = [:description, :null]
+          important_options = %i[description null]
           # Compile all options from the underlying tye and attribute (if any), translating them
           # to OpenAPI schema options with the x- prefix for our custom ones
-          base_options = _slice_options(type,important_options)
-          base_options.merge! _slice_options(type, Attributor::Attribute::custom_options, prefix: 'x')
+          base_options = _slice_options(type, important_options)
+          base_options.merge! _slice_options(type, Attributor::Attribute.custom_options, prefix: 'x')
           if attribute
             base_options.merge! _slice_options(attribute, important_options, prefix: 'x')
-            base_options.merge! _slice_options(attribute, Attributor::Attribute::custom_options, prefix: 'x')
+            base_options.merge! _slice_options(attribute, Attributor::Attribute.custom_options, prefix: 'x')
           end
           # Tag on OpenAPI specific requirements that aren't already added in the underlying JSON schema model
           # Nullable: (it seems we need to ensure there is a null option to the enum, if there is one)
-          if base_options.key?(:null)
-            base_options[:nullable] = !!base_options.delete(:null)
-          end
+          base_options[:nullable] = !!base_options.delete(:null) if base_options.key?(:null)
 
           # We will dump schemas for mediatypes by simply creating a reference to the components' section
           if type < Attributor::Container && !(type < Praxis::Types::MultipartArray)
@@ -57,17 +55,17 @@ module Praxis
               # Requirements are reported at the outter schema layer, we we need to gather them from the description here
               reqs = type < Praxis::Blueprint ? type.attribute.type.requirements : type.requirements
               # Full requirements specified at the struct level that apply to all are considered required attributes
-              required_attributes = ( reqs || []).filter { |r| r.type == :all }.map { |r| r.attr_names }.flatten.compact
+              required_attributes = (reqs || []).filter { |r| r.type == :all }.map { |r| r.attr_names }.flatten.compact
               # Also, if any inner attribute has the required: true option, that, obviously means required as well
               sub_attributes = (attribute || type).attributes
-              direct_required = sub_attributes ? sub_attributes.select{|_,a| a.options[:required] == true}.keys : []
+              direct_required = sub_attributes ? sub_attributes.select { |_, a| a.options[:required] == true }.keys : []
               required_attributes.concat(direct_required)
               required_attributes.uniq!
               props = sub_attributes.transform_values do |definition|
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
 
-              base_options.merge!( type: :object )
+              base_options.merge!(type: :object)
               base_options[:properties] = props if props.presence
               base_options[:required] = required_attributes unless required_attributes.empty?
             end
@@ -129,6 +127,7 @@ module Praxis
             raise "Unknown praxis family type: #{praxis_type[:family]}"
           end
         end
+
         def _slice_options(object, names, prefix: nil)
           subset = object.options.slice(*names)
           return subset if prefix.nil?

@@ -10,11 +10,11 @@ module Praxis
       end
 
       def expanded_fields
-        @expanded_fields ||= 
-        begin
-          expansion_filter = self.respond_to?(:display_attribute?) ? self.method(:display_attribute?) : nil
-          request.action.expanded_fields(request, media_type, expansion_filter)
-        end
+        @expanded_fields ||=
+          begin
+            expansion_filter = respond_to?(:display_attribute?) ? method(:display_attribute?) : nil
+            request.action.expanded_fields(request, media_type, expansion_filter)
+          end
       end
 
       module ActionDefinitionExtension

@@ -93,7 +93,7 @@ module Praxis
       # The `as:` can be used for properties that correspond to an underlying association of a different name. With this, the selector generator, is able to
       # follow and pass any incoming nested fields when necessary (as opposed to only add dependencies and discard nested fields)
       # No dependencies are allowed to be defined if `as:` is used (as the dependencies should be defined at the final aliased property)
-      def self.property(name, dependencies: nil, as: nil) # rubocop:disable Naming/MethodParameterName
+      def self.property(name, dependencies: nil, as: nil)
         raise "Error defining property '#{name}' in #{self}. Property names must be symbols, not strings." unless name.is_a? Symbol
 
         h = { dependencies: dependencies }

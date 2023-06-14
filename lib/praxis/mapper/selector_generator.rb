@@ -47,7 +47,7 @@ module Praxis
         end
 
         def dig(...)
-          @fields.dig(...) # rubocop:disable Style/SingleArgumentDig
+          @fields.dig(...)
         end
 
         def [](*path)

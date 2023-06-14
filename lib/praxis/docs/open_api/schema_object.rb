@@ -54,10 +54,17 @@ module Praxis
               items = OpenApi::SchemaObject.new(info: type.member_type).dump_schema(allow_ref: allow_ref, shallow: false)
               base_options.merge!(type: 'array', items: items)
             else # Attributor::Struct, etc
-              reqs = (attribute || type).describe[:requirements]
-              required_attributes = ( reqs || []).filter { |r| r[:type] == :all }.map { |r| r[:attributes] }.flatten.compact.uniq
+              described = (attribute || type).describe
+              # Requirements are reported at the outter schema layer, we we need to gather them from the description here
+              reqs = described[:requirements]
+              # Full requirements specified at the struct level that apply to all are considered required attributes
+              required_attributes = ( reqs || []).filter { |r| r[:type] == :all }.map { |r| r[:attributes] }.flatten.compact
+              # Also, if any inner attribute has the required: true option, that, obviously means required as well
+              sub_attributes = (attribute || type).attributes
+              direct_required = sub_attributes ? sub_attributes.select{|_,a| a.options[:required] == true}.keys : []
+              required_attributes.concat(direct_required)
+              required_attributes.uniq!
               props = type.attributes.transform_values do |definition|
-                # if type has an attribute in its requirements all, then it should be marked as required here
                 OpenApi::SchemaObject.new(info: definition).dump_schema(allow_ref: true, shallow: shallow)
               end
 
@@ -66,10 +73,11 @@ module Praxis
               base_options[:required] = required_attributes unless required_attributes.empty?
             end
           else
+            desc = (attribute || type).as_json_schema(shallow: shallow, example: nil)
             # OpenApi::SchemaObject.new(info:target).dump_schema(allow_ref: allow_ref, shallow: shallow)
             # TODO...we need to make sure we can use refs in the underlying components after the first level...
             # ... maybe we need to loop over the attributes if it's an object/struct?...
-            base_options.merge!((attribute || type).as_json_schema(shallow: shallow, example: nil))
+            base_options.merge!(desc)
           end
 
           base_options

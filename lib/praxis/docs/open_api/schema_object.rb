@@ -37,7 +37,10 @@ module Praxis
           end
           # Tag on OpenAPI specific requirements that aren't already added in the underlying JSON schema model
           # Nullable: (it seems we need to ensure there is a null option to the enum, if there is one)
-          base_options[:nullable] = !base_options.delete(:null).nil? if base_options.key?(:null)
+          if base_options.key?(:null)
+            base_options[:nullable] = Attributor::Attribute::nullable_attribute?(base_options)
+            base_options.delete(:null)
+          end
 
           # We will dump schemas for mediatypes by simply creating a reference to the components' section
           if type < Attributor::Container && !(type < Praxis::Types::MultipartArray)

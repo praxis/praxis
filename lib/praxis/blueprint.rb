@@ -374,6 +374,8 @@ module Praxis
 
     # Delegates the json-schema methods to the underlying attribute/member_type
     def self.as_json_schema(**args)
+      # TODO: Aren't we loosing the attribute options if we just call the type?? (e.g. description, etc)
+      # Also, we might want to add a 'title' for MTs, to be the class name (without prefixing) ...
       @attribute.type.as_json_schema(args)
     end
 

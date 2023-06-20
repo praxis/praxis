@@ -1,6 +1,7 @@
 # Praxis Changelog
 
 ## next
+- Fix reported nullability property in OpenAPI generation. Looking at null: true | false isn't enough. The system needs to look at the default null behavior from Attributor, to properly ascertain if the exclusion of a 'null' option means nullable or not. This PR fixes this.
 
 ## 2.0.pre.34
 - Allow filtering, ordering and pagination to freely use any attributes (potentially deep ones) when no block for the definition is provided. When continuing to define the allowed fields from within the block, those would still be enforced.

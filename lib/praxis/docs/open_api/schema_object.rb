@@ -40,6 +40,11 @@ module Praxis
           if base_options.key?(:null)
             base_options[:nullable] = Attributor::Attribute::nullable_attribute?(base_options)
             base_options.delete(:null)
+          else
+            # Even though no :null option is passed in, still see if the default is 'nullable', and if so, pass it in.
+            # This is to handle the case where a type is defined as nullable by default, but the user didn't explicitly
+            # pass in the null: true option
+            base_options[:nullable] = true if Attributor::Attribute.default_for_null            
           end
 
           # We will dump schemas for mediatypes by simply creating a reference to the components' section

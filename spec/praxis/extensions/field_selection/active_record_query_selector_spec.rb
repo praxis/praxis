@@ -127,22 +127,32 @@ describe Praxis::Extensions::FieldSelection::ActiveRecordQuerySelector do
         end
       end
 
-      context 'and fields that contain transitive dependencies on the root model' do
-        let(:selector_fields) { { author: { books: { isbn: true } } } }
+      context 'transitivity' do
+        let(:selector_fields) { { author: {} } }
+
         let(:expected_select_from_to_query) do
           # The columns to select from the top Simple model
           [
             :id, # We always load the primary keys
-            :isbn, # from the transitive author.books.isbn
             :author_id, # the FK needed for the author association
             :added_column, # from the extra column defined in the parent property
           ]
         end
-        it 'hoists transitive columns to the root' do
-          final_query = subject.generate
-          expect(final_query.select_values).to match_array(
+
+        it 'includes the root columns' do
+          expect(subject.generate.select_values).to match_array(
             expected_select_from_to_query,
           )
+        end
+
+        context 'with references to the root model' do
+          let(:selector_fields) { { author: { books: { isbn: true } } } }
+
+          it 'hoists transitive columns to the root' do
+            expect(subject.generate.select_values).to match_array(
+              expected_select_from_to_query + [:isbn], # from the transitive author.books.isbn
+            )
+          end
         end
       end
     end

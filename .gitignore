@@ -1,5 +1,6 @@
 coverage
 *.swp
+*.gemfile.lock
 Gemfile.lock
 _site/
 .sass-cache/

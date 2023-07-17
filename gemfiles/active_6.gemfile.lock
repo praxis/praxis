@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    praxis (2.0.pre.34)
+    praxis (2.0.pre.35)
       activesupport (>= 3)
       attributor (>= 7.1)
       mime (~> 0)

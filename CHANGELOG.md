@@ -1,6 +1,8 @@
 # Praxis Changelog
 
 ## next
+ - OpenAPI generation enhancement:
+   - expose nullable: true, in situations where the 'null:' key isn't specified in an attribute, but the builtin default behavior is true
 
 ## 2.0.pre.35
 - Fix reported nullability property in OpenAPI generation. Looking at null: true | false isn't enough. The system needs to look at the default null behavior from Attributor, to properly ascertain if the exclusion of a 'null' option means nullable or not. This PR fixes this.

@@ -3,6 +3,14 @@
 ## next
  - OpenAPI generation enhancement:
    - expose nullable: true, in situations where the 'null:' key isn't specified in an attribute, but the builtin default behavior is true
+ - Change ActiveRecord query planner strategy for selecting fields in the root model when that model is also appearing in inner joins/associations (triggered by a new AR7 behavior)
+   - Until now, our AR planner would only select the necessary fields for the top level model of the query, and would simply select * for any inner associations (as that's what AR allows)
+   - AR7 has change its behavior (in our mind, a bug) where if there are inner associations that point to the same model type of the root query ... instead of loading and creating new instances of those, it now simply points to already
+     existing instances in memory that might have previously been loaded for the same id. This can certainly reduce the amount of memory and DB round trips if there's a lot of overlap, however, this change does not have in mind that
+     the already loaded model might not actually have all fields, therefore if we're loading an inner association of a model, where we expect to use any of its fields...but that inner model, instead of being loaded with "SELECT *", simply
+     points to a loaded model with the same 'id' ... then we're at the mercy of whatever fields that initial model was loaded with.
+     The current solution we've adopted, is to make our query planner smarter, and make sure that we use a top level model select clause that includes ALL of possible fields for that model, regardless of how deep the inner associations might be.
+     This can technically add more loaded fields at the top (i.e., some memory bloat), but if that's the case, it is very likely that such extra bloat on field memory is compensated by the fact that any of the inner associations using the same model type will now likely not have to be loaded and instantiated. It really depends on the pattern of the query and the cardinality of such associations
 
 ## 2.0.pre.35
 - Fix reported nullability property in OpenAPI generation. Looking at null: true | false isn't enough. The system needs to look at the default null behavior from Attributor, to properly ascertain if the exclusion of a 'null' option means nullable or not. This PR fixes this.

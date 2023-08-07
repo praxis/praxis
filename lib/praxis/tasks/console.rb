@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 namespace :praxis do
-  desc 'Run interactive pry/irb console'
+  desc 'Run interactive REPL'
   task :console do
     # Use irb if available (which it almost always is).
     require 'irb'
@@ -14,9 +14,14 @@ namespace :praxis do
     IRB.setup nil
     ARGV.concat(old_argv)
 
-    # Allow reentrant IRB
+    # Ensure that multi-irb has a context to work with (and, indirectly an instance of IRB::Irb).
     IRB.conf[:MAIN_CONTEXT] = IRB::Irb.new.context
+
+    # Allow reentrant IRB
     require 'irb/ext/multi-irb'
+
+    # Ensure that we save history just like normal IRB
+    require 'irb/ext/save-history'
 
     # Remove main object from prompt (its stringify is not useful)
     nickname = File.basename(::Praxis::Application.instance.root)
@@ -24,13 +29,14 @@ namespace :praxis do
       PROMPT_I: "%N(#{nickname}):%03n:%i> ",
       PROMPT_N: "%N(#{nickname}):%03n:%i> ",
       PROMPT_S: "%N(#{nickname}):%03n:%i%l ",
-      PROMPT_C: "%N(#{nickname}):%03n:%i* "
+      PROMPT_C: "%N(#{nickname}):%03n:%i* ",
     }
 
     # Disable inefficient, distracting autocomplete
     IRB.conf[:USE_AUTOCOMPLETE] = false
 
-    # Set the IRB main object.
+    # Invoke the REPL, then cleanly shut down
     IRB.irb(nil, Praxis::Application.instance)
+    IRB.irb_at_exit
   end
 end

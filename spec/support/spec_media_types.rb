@@ -6,7 +6,7 @@ class Person < Praxis::MediaType
 
   attributes do
     attribute :id, Integer
-    attribute :name, String, example: /[:name:]/
+    attribute :name, String, example: proc { Faker::Name.full_name }
     attribute :href, String, example: proc { |person| "/people/#{person.id}" }
   end
 
@@ -115,9 +115,9 @@ class Post < Praxis::MediaType
               description: 'Href for use with this API'
 
     attribute :title, String,
-              example: /\w+/
+              example: proc { Faker::Lorem.sentence }
     attribute :content, String,
-              example: /[:sentence:]{4,5}/
+              example: proc { Faker::Lorem.words(10) }
     attribute :url, String,
               description: 'URL for a web browser',
               example: proc { |o, _ctx| "example.com/posts/#{o.id}" }
@@ -163,8 +163,8 @@ class User < Praxis::MediaType
     attribute :href, String,
               example: proc { |o, _ctx| "/api/v1.0/users/#{o.id}" }
 
-    attribute :first, String, example: /[:first_name:]/
-    attribute :last, String, example: /[:last_name:]/
+    attribute :first, String, example: proc { Faker::Name.first_name }
+    attribute :last, String, example: proc { Faker::Name.last_name }
     attribute :posts, Attributor::Collection.of(Post)
 
     attribute :post_matrix, Attributor::Collection.of(Attributor::Collection.of(Post)),

@@ -5,7 +5,7 @@ class VolumeSnapshot < Praxis::MediaType
 
   attributes do
     attribute :id, Integer
-    attribute :name, String, regexp: /snapshot-(\w+)/
+    attribute :name, String, regexp: /snapshot-(\w+)/, example: proc { "snapshot-#{Faker::Number.number(digits: 8) }" }
   end
 
   default_fieldset do
@@ -17,7 +17,7 @@ class VolumeSnapshot < Praxis::MediaType
     identifier 'application/json'
 
     attributes do
-      attribute :name, String, regexp: /snapshots-(\w+)/
+      attribute :name, String, regexp: /snapshots-(\w+)/, example: proc { "snapshot-#{Faker::Number.number(digits: 8) }" }
       attribute :size, Integer
       attribute :href, String
     end

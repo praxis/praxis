@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.bindir = 'bin'
   spec.executables << 'praxis'
 
-  spec.add_dependency 'activesupport', '~> 6'
+  spec.add_dependency 'activesupport', '>= 6'
   spec.add_dependency 'attributor', '>= 8.0'
   spec.add_dependency 'mime', '~> 0'
   spec.add_dependency 'mustermann', '>=1.1'

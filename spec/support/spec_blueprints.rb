@@ -2,7 +2,7 @@
 
 class PersonBlueprint < Praxis::Blueprint
   attributes do
-    attribute :name, String, example: /[:first_name:]/
+    attribute :name, String, example: proc { Faker::Name.first_name }
     attribute :email, String, example: proc { |person| "#{person.name}@example.com" }
 
     attribute :age, Integer, min: 0
@@ -55,8 +55,8 @@ end
 
 class FullName < Attributor::Model
   attributes do
-    attribute :first, String, example: /[:first_name:]/
-    attribute :last, String, example: /[:last_name:]/
+    attribute :first, String, example: proc { Faker::Name.first_name }
+    attribute :last, String, example: proc { Faker::Name.last_name }
   end
 end
 

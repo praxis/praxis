@@ -22,8 +22,8 @@ Gem::Specification.new do |spec|
   spec.bindir = 'bin'
   spec.executables << 'praxis'
 
-  spec.add_dependency 'activesupport', '>= 3'
-  spec.add_dependency 'attributor', '>= 7.1'
+  spec.add_dependency 'activesupport', '>= 6'
+  spec.add_dependency 'attributor', '>= 8.0'
   spec.add_dependency 'mime', '~> 0'
   spec.add_dependency 'mustermann', '>=1.1'
   spec.add_dependency 'rack', '>= 1'
@@ -42,6 +42,7 @@ Gem::Specification.new do |spec|
   else
     spec.add_development_dependency 'jdbc-sqlite3'
   end
+  spec.add_development_dependency 'activerecord', '~> 6'
   spec.add_development_dependency 'coveralls_reborn', '~> 0.27.0'
   spec.add_development_dependency 'fuubar', '~> 2'
   spec.add_development_dependency 'guard', '~> 2'
@@ -51,4 +52,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 3'
   spec.add_development_dependency 'rspec-collection_matchers', '~> 1'
   spec.add_development_dependency 'rspec-its', '~> 1'
+  spec.add_development_dependency 'sequel', '~> 5'
 end

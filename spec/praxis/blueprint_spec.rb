@@ -392,7 +392,7 @@ describe Praxis::Blueprint do
           email: 'bob@example.com',
           aliases: [],
           prior_addresses: [],
-          parents: { father: Randgen.first_name, mother: Randgen.first_name },
+          parents: { father: Faker::Name.first_name, mother: Faker::Name.first_name },
           href: 'www.example.com',
           alive: true
         }

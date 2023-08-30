@@ -16,7 +16,7 @@ describe Praxis::Types::MultipartArray do
 
       file 'files', multiple: true do
         header 'Content-Type', 'application/octet-stream'
-        filename String, regexp: /file/
+        filename String, regexp: /file/, example: 'file'
         payload Attributor::Tempfile
       end
 

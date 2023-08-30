@@ -3,9 +3,9 @@
 require 'spec_helper'
 
 describe Praxis::MediaType do
-  let(:owner_resource) { instance_double(Person, id: 100, name: /[:name:]/.gen, href: '/') }
-  let(:manager_resource) { instance_double(Person, id: 101, name: /[:name:]/.gen, href: '/') }
-  let(:custodian_resource) { instance_double(Person, id: 102, name: /[:name:]/.gen, href: '/') }
+  let(:owner_resource) { instance_double(Person, id: 100, name: Faker::Name.first_name, href: '/') }
+  let(:manager_resource) { instance_double(Person, id: 101, name: Faker::Name.first_name, href: '/') }
+  let(:custodian_resource) { instance_double(Person, id: 102, name: Faker::Name.first_name, href: '/') }
   let(:residents_summary_resource) do
     instance_double(Person::CollectionSummary, href: '/people', size: 2)
   end

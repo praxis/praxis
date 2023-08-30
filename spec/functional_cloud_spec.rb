@@ -366,8 +366,10 @@ describe 'Functional specs' do
   end
 
   context 'auth_plugin' do
+    let(:content_type) { 'application/json' }
+
     it 'can terminate' do
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session, 'CONTENT_TYPE' => content_type
       expect(last_response.status).to eq(200)
     end
 

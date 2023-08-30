@@ -1,6 +1,7 @@
 # Praxis Changelog
 
-## next
+## 2.0.pre.37
+
  - OpenAPI generation enhancement:
    - expose nullable: true, in situations where the 'null:' key isn't specified in an attribute, but the builtin default behavior is true
  - Change ActiveRecord query planner strategy for selecting fields in the root model when that model is also appearing in inner joins/associations (triggered by a new AR7 behavior)
@@ -11,6 +12,7 @@
      points to a loaded model with the same 'id' ... then we're at the mercy of whatever fields that initial model was loaded with.
      The current solution we've adopted, is to make our query planner smarter, and make sure that we use a top level model select clause that includes ALL of possible fields for that model, regardless of how deep the inner associations might be.
      This can technically add more loaded fields at the top (i.e., some memory bloat), but if that's the case, it is very likely that such extra bloat on field memory is compensated by the fact that any of the inner associations using the same model type will now likely not have to be loaded and instantiated. It really depends on the pattern of the query and the cardinality of such associations
+ - Update attributor to 8.0, this replaces the use of Randexp with (Faker)[https://github.com/faker-ruby/faker] and means support for generating examples from regular expressions is no longer supported.
 
 ## 2.0.pre.35
 - Fix reported nullability property in OpenAPI generation. Looking at null: true | false isn't enough. The system needs to look at the default null behavior from Attributor, to properly ascertain if the exclusion of a 'null' option means nullable or not. This PR fixes this.

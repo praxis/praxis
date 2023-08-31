@@ -8,12 +8,6 @@ module Praxis
       # @raise [Praxis::Exceptions::InvalidConfiguration] if the handler is unsupported
       def initialize
         require 'oj'
-        begin
-          require 'json'
-        rescue LoadError # rubocop:disable Lint/SuppressedException
-        end
-        # Enable mimicing needs to be done after loading the JSON gem (if there)
-        ::Oj.mimic_JSON
       rescue LoadError
         # Should never happen since JSON is a default gem; might as well be cautious!
         raise Praxis::Exceptions::InvalidConfiguration,

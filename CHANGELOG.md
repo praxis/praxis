@@ -1,5 +1,9 @@
 # Praxis Changelog
 
+## 2.0.pre.38
+
+- Stoped calling ::Oj.mimic_JSON in Praxis::Handlers::JSON. It breaks ActiveSupport::JSON's html escaping when called.
+
 ## 2.0.pre.37
 
  - OpenAPI generation enhancement:

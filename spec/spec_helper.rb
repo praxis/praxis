@@ -25,6 +25,10 @@ require 'rack/test'
 require 'rspec/its'
 require 'rspec/collection_matchers'
 
+require 'oj'
+require 'json'
+Oj.mimic_JSON
+
 Dir["#{File.dirname(__FILE__)}/../lib/praxis/plugins/*.rb"].sort.each do |file|
   require file
 end

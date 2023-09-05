@@ -25,17 +25,13 @@ require 'rack/test'
 require 'rspec/its'
 require 'rspec/collection_matchers'
 
-require 'oj'
 require 'json'
-Oj.mimic_JSON
 
 Dir["#{File.dirname(__FILE__)}/../lib/praxis/plugins/*.rb"].sort.each do |file|
   require file
 end
 
-Dir["#{File.dirname(__FILE__)}/support/*.rb"].sort.each do |file|
-  require file
-end
+Dir["#{File.dirname(__FILE__)}/support/*.rb"].sort.each { |file| require file }
 
 def suppress_output
   original_stdout = $stdout.clone
@@ -57,9 +53,7 @@ RSpec.configure do |config|
   end
 
   config.before(:each) do
-    Praxis::Blueprint.cache = Hash.new do |hash, key|
-      hash[key] = {}
-    end
+    Praxis::Blueprint.cache = Hash.new { |hash, key| hash[key] = {} }
   end
 
   config.before(:all) do

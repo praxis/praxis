@@ -1,6 +1,6 @@
 # Praxis Changelog
 
-## Unreleased
+## 2.0.pre.39
 
 - Revert JSON handler back to `json` gem, as `oj` was too unstable when used with ActiveSupport.
 

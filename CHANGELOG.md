@@ -1,8 +1,12 @@
 # Praxis Changelog
 
+## Unreleased
+
+- Revert JSON handler back to `json` gem, as `oj` was too unstable when used with ActiveSupport.
+
 ## 2.0.pre.38
 
-- Stoped calling ::Oj.mimic_JSON in Praxis::Handlers::JSON. It breaks ActiveSupport::JSON's html escaping when called.
+- Stopped calling ::Oj.mimic_JSON in Praxis::Handlers::JSON. It breaks ActiveSupport::JSON's html escaping when called.
 
 ## 2.0.pre.37
 

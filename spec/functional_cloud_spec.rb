@@ -12,30 +12,39 @@ describe 'Functional specs' do
   context 'index' do
     context 'with a valid request' do
       it 'is successful' do
-        get '/api/clouds/1/instances?api_version=1.0', nil, 'global_session' => session
+        get '/api/clouds/1/instances?api_version=1.0',
+            nil,
+            'global_session' => session
         expect(last_response.headers['Content-Type']).to(
-          eq('application/vnd.acme.instance;type=collection')
+          eq('application/vnd.acme.instance;type=collection'),
         )
       end
     end
 
     context 'with a path param that can not load' do
       it 'returns a useful error' do
-        get '/api/clouds/invalid/instances?api_version=1.0', nil, 'global_session' => session
+        get '/api/clouds/invalid/instances?api_version=1.0',
+            nil,
+            'global_session' => session
 
         expect(last_response.status).to eq 400
 
         response = JSON.parse(last_response.body)
         expect(response['name']).to eq 'ValidationError'
         expect(response['summary']).to eq 'Error loading params.'
-        expect(response['errors']).to match_array([/Error loading attribute \$\.params\.cloud_id/])
+        expect(response['errors']).to match_array(
+          [/Error loading attribute \$\.params\.cloud_id/],
+        )
         expect(response['cause']['name']).to eq 'ArgumentError'
       end
     end
 
     context 'with a header that can not load' do
       it 'returns a useful error' do
-        get '/api/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => 'invalid'
+        get '/api/clouds/1/instances?api_version=1.0',
+            nil,
+            'global_session' => session,
+            'HTTP_ACCOUNT_ID' => 'invalid'
 
         expect(last_response.status).to eq 400
 
@@ -43,14 +52,18 @@ describe 'Functional specs' do
 
         expect(response['name']).to eq 'ValidationError'
         expect(response['summary']).to eq 'Error loading headers.'
-        expect(response['errors']).to match_array([/Error loading attribute .*Account-Id"/])
+        expect(response['errors']).to match_array(
+          [/Error loading attribute .*Account-Id"/],
+        )
         expect(response['cause']['name']).to eq 'ArgumentError'
       end
     end
 
     context 'with a param that is invalid' do
       it 'returns a useful error' do
-        get '/api/clouds/-1/instances?api_version=1.0', nil, 'global_session' => session
+        get '/api/clouds/-1/instances?api_version=1.0',
+            nil,
+            'global_session' => session
 
         expect(last_response.status).to eq 400
 
@@ -58,13 +71,18 @@ describe 'Functional specs' do
 
         expect(response['name']).to eq 'ValidationError'
         expect(response['summary']).to eq 'Error validating request data.'
-        expect(response['errors']).to match_array([/.*cloud_id.*is smaller than the allowed min/])
+        expect(response['errors']).to match_array(
+          [/.*cloud_id.*is smaller than the allowed min/],
+        )
       end
     end
 
     context 'with a header that is invalid' do
       it 'returns a useful error' do
-        get '/api/clouds/1/instances?api_version=1.0', nil, 'global_session' => session, 'HTTP_ACCOUNT_ID' => '-1'
+        get '/api/clouds/1/instances?api_version=1.0',
+            nil,
+            'global_session' => session,
+            'HTTP_ACCOUNT_ID' => '-1'
 
         expect(last_response.status).to eq 400
 
@@ -72,7 +90,9 @@ describe 'Functional specs' do
 
         expect(response['name']).to eq 'ValidationError'
         expect(response['summary']).to eq 'Error validating request data.'
-        expect(response['errors']).to match_array([/.*headers.*Account-Id.*is smaller than the allowed min/])
+        expect(response['errors']).to match_array(
+          [/.*headers.*Account-Id.*is smaller than the allowed min/],
+        )
       end
     end
 
@@ -87,7 +107,10 @@ describe 'Functional specs' do
       end
 
       it 'fails to validate the response' do
-        get '/api/clouds/1/instances?response_content_type=somejunk&api_version=1.0', nil, 'HTTP_FOO' => 'bar', 'global_session' => session
+        get '/api/clouds/1/instances?response_content_type=somejunk&api_version=1.0',
+            nil,
+            'HTTP_FOO' => 'bar',
+            'global_session' => session
         expect(last_response.status).to eq(500)
         response = JSON.parse(last_response.body)
 
@@ -97,16 +120,22 @@ describe 'Functional specs' do
       end
 
       context 'with response validation disabled' do
-        let(:praxis_config) { double('praxis_config', validate_responses: false) }
+        let(:praxis_config) do
+          double('praxis_config', validate_responses: false)
+        end
         let(:config) { double('config', praxis: praxis_config) }
 
         before do
-          expect(Praxis::Application.instance.config).to receive(:praxis).and_return(praxis_config)
+          expect(Praxis::Application.instance.config).to receive(
+            :praxis,
+          ).and_return(praxis_config)
         end
 
         it 'does not validate the response and succeeds' do
           expect do
-            get '/api/clouds/1/instances?response_content_type=somejunk&api_version=1.0', nil, 'global_session' => session
+            get '/api/clouds/1/instances?response_content_type=somejunk&api_version=1.0',
+                nil,
+                'global_session' => session
           end.to_not raise_error
         end
       end
@@ -114,10 +143,14 @@ describe 'Functional specs' do
     context 'with a valid request but misusing request content-type' do
       it 'is still successful and does not get confused about the sister post action' do
         the_body = StringIO.new('') # This is a GET request passing a body
-        get '/api/clouds/1/instances?api_version=1.0', nil, 'rack.input' => the_body, 'CONTENT_TYPE' => 'application/json', 'global_session' => session
+        get '/api/clouds/1/instances?api_version=1.0',
+            nil,
+            'rack.input' => the_body,
+            'CONTENT_TYPE' => 'application/json',
+            'global_session' => session
         expect(last_response.status).to eq(200)
         expect(last_response.headers['Content-Type']).to(
-          eq('application/vnd.acme.instance;type=collection')
+          eq('application/vnd.acme.instance;type=collection'),
         )
       end
     end
@@ -126,30 +159,40 @@ describe 'Functional specs' do
   context 'index using POST sister action' do
     context 'with a valid request' do
       it 'is successful and round trips the content type we pass in the body' do
-        payload = { response_content_type: 'application/vnd.acme.instance; type=collection; other=thing' }
-        post '/api/clouds/1/instances/actions/index_using_post?api_version=1.0', JSON.dump(payload), 'CONTENT_TYPE' => 'application/json', 'global_session' => session
+        payload = {
+          response_content_type:
+            'application/vnd.acme.instance; type=collection; other=thing',
+        }
+        post '/api/clouds/1/instances/actions/index_using_post?api_version=1.0',
+             JSON.dump(payload),
+             'CONTENT_TYPE' => 'application/json',
+             'global_session' => session
         expect(last_response.status).to eq(200)
         expect(last_response.headers['Content-Type']).to(
-          eq(payload[:response_content_type])
+          eq(payload[:response_content_type]),
         )
       end
     end
   end
   it 'works' do
     the_body = StringIO.new('{}') # This is a funny, GET request expecting a body
-    get '/api/clouds/1/instances/2?junk=foo&api_version=1.0', nil, 'rack.input' => the_body, 'CONTENT_TYPE' => 'application/json', 'global_session' => session
+    get '/api/clouds/1/instances/2?junk=foo&api_version=1.0',
+        nil,
+        'rack.input' => the_body,
+        'CONTENT_TYPE' => 'application/json',
+        'global_session' => session
     expect(last_response.status).to eq(200)
     expected = {
       'cloud_id' => 1,
       'id' => 2,
       'junk' => 'foo',
       'other_params' => {
-        'some_date' => '2012-12-21T00:00:00.000+00:00',
-        'fail_filter' => false
+        'some_date' => '2012-12-21T00:00:00+00:00',
+        'fail_filter' => false,
       },
       'payload' => {
-        'optional' => 'not given'
-      }
+        'optional' => 'not given',
+      },
     }
 
     expect(JSON.parse(last_response.body)).to eq(expected)
@@ -160,13 +203,17 @@ describe 'Functional specs' do
   end
 
   it 'returns early when making the before filter break' do
-    get '/api/clouds/1/instances/2?junk=foo&api_version=1.0&fail_filter=true', nil, 'global_session' => session
+    get '/api/clouds/1/instances/2?junk=foo&api_version=1.0&fail_filter=true',
+        nil,
+        'global_session' => session
     expect(last_response.status).to eq(401)
   end
 
   context 'bulk_create multipart' do
     let(:instance) { Instance.example }
-    let(:instance_json) { JSON.pretty_generate(instance.render(fields: { id: true, name: true })) }
+    let(:instance_json) do
+      JSON.pretty_generate(instance.render(fields: { id: true, name: true }))
+    end
 
     let(:form) do
       form_data = MIME::Multipart::FormData.new
@@ -179,9 +226,13 @@ describe 'Functional specs' do
     let(:body) { form.body.to_s }
 
     it 'works' do
-      post '/api/clouds/1/instances?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
+      post '/api/clouds/1/instances?api_version=1.0',
+           body,
+           'CONTENT_TYPE' => content_type,
+           'global_session' => session
 
-      _reponse_preamble, response = Praxis::MultipartParser.parse(last_response.headers, last_response.body)
+      _reponse_preamble, response =
+        Praxis::MultipartParser.parse(last_response.headers, last_response.body)
       expect(response).to have(1).item
 
       instance_part = response.first
@@ -194,7 +245,9 @@ describe 'Functional specs' do
 
       response_instance = JSON.parse(instance_part.body)
       expect(response_instance['key']).to eq(instance.id)
-      expect(response_instance['value'].values).to eq(instance.render(fields: { id: true, name: true }).values)
+      expect(response_instance['value'].values).to eq(
+        instance.render(fields: { id: true, name: true }).values,
+      )
     end
   end
 
@@ -216,7 +269,10 @@ describe 'Functional specs' do
 
     context 'with a valid payload' do
       before do
-        post '/api/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
+        post '/api/clouds/1/instances/2/files?api_version=1.0',
+             body,
+             'CONTENT_TYPE' => content_type,
+             'global_session' => session
       end
 
       subject(:response) { JSON.parse(last_response.body) }
@@ -244,11 +300,16 @@ describe 'Functional specs' do
       let(:body) { form.body.to_s }
 
       it 'returns an error' do
-        post '/api/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
+        post '/api/clouds/1/instances/2/files?api_version=1.0',
+             body,
+             'CONTENT_TYPE' => content_type,
+             'global_session' => session
         response = JSON.parse(last_response.body)
 
         expect(response['name']).to eq('ValidationError')
-        expect(response['errors']).to eq(['Attribute $.payload.destination_path is required'])
+        expect(response['errors']).to eq(
+          ['Attribute $.payload.destination_path is required'],
+        )
       end
     end
 
@@ -273,9 +334,14 @@ describe 'Functional specs' do
       subject(:response) { JSON.parse(last_response.body) }
 
       before do
-        post '/api/clouds/1/instances/2/files?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
+        post '/api/clouds/1/instances/2/files?api_version=1.0',
+             body,
+             'CONTENT_TYPE' => content_type,
+             'global_session' => session
       end
-      its(:keys) { should eq(%w[destination_path name filename type contents options]) }
+      its(:keys) do
+        should eq(%w[destination_path name filename type contents options])
+      end
       its(['options']) { should eq({ 'extra_thing' => 'I am extra' }) }
     end
   end
@@ -283,11 +349,15 @@ describe 'Functional specs' do
   context 'not found and API versions' do
     context 'when no version is specified' do
       it 'it tells you which available api versions would match' do
-        get '/api/clouds/1/instances/2?junk=foo', nil, 'global_session' => session
+        get '/api/clouds/1/instances/2?junk=foo',
+            nil,
+            'global_session' => session
 
         expect(last_response.status).to eq(404)
         expect(last_response.headers['Content-Type']).to eq('text/plain')
-        expect(last_response.body).to eq('NotFound. Your request did not specify an API version. Available versions = "1.0".')
+        expect(last_response.body).to eq(
+          'NotFound. Your request did not specify an API version. Available versions = "1.0".',
+        )
       end
       it 'it just gives you a simple not found when nothing would have matched' do
         get '/foobar?junk=foo', nil, 'global_session' => session
@@ -300,43 +370,58 @@ describe 'Functional specs' do
 
     context 'when some version is specified, but wrong' do
       it 'it tells you which possible correcte api versions exist' do
-        get '/api/clouds/1/instances/2?junk=foo&api_version=50.0', nil, 'global_session' => session
+        get '/api/clouds/1/instances/2?junk=foo&api_version=50.0',
+            nil,
+            'global_session' => session
 
         expect(last_response.status).to eq(404)
         expect(last_response.headers['Content-Type']).to eq('text/plain')
-        expect(last_response.body).to eq('NotFound. Your request specified API version = "50.0". Available versions = "1.0".')
+        expect(last_response.body).to eq(
+          'NotFound. Your request specified API version = "50.0". Available versions = "1.0".',
+        )
       end
     end
   end
 
   context 'volumes' do
-    before do
-      header 'X-Api-Version', '1.0'
-    end
+    before { header 'X-Api-Version', '1.0' }
 
     context 'when no authorization header is passed' do
       it 'works as expected' do
-        get '/api/clouds/1/volumes/123?junk=stuff', nil, 'global_session' => session
+        get '/api/clouds/1/volumes/123?junk=stuff',
+            nil,
+            'global_session' => session
         expect(last_response.status).to eq(200)
         expect(Volume.load(last_response.body).validate).to be_empty
-        expect(last_response.headers['Content-Type']).to eq('application/vnd.acme.volume')
+        expect(last_response.headers['Content-Type']).to eq(
+          'application/vnd.acme.volume',
+        )
       end
     end
     context 'when an authorization header is passed' do
       it 'returns 401 when it does not match "secret" ' do
-        get '/api/clouds/1/volumes/123?junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'foobar', 'global_session' => session
+        get '/api/clouds/1/volumes/123?junk=stuff',
+            nil,
+            'HTTP_AUTHORIZATION' => 'foobar',
+            'global_session' => session
         expect(last_response.status).to eq(401)
         expect(last_response.body).to match(/Authentication info is invalid/)
       end
       it 'succeeds as expected when it matches "secret" ' do
-        get '/api/clouds/1/volumes/123?junk=stuff', nil, 'HTTP_AUTHORIZATION' => 'the secret', 'global_session' => session
+        get '/api/clouds/1/volumes/123?junk=stuff',
+            nil,
+            'HTTP_AUTHORIZATION' => 'the secret',
+            'global_session' => session
         expect(last_response.status).to eq(200)
       end
     end
 
     context 'index action with no args defined' do
       it 'dispatches successfully' do
-        get '/api/clouds/1/volumes', nil, 'HTTP_AUTHORIZATION' => 'the secret', 'global_session' => session
+        get '/api/clouds/1/volumes',
+            nil,
+            'HTTP_AUTHORIZATION' => 'the secret',
+            'global_session' => session
         expect(last_response.status).to eq(200)
       end
     end
@@ -345,22 +430,32 @@ describe 'Functional specs' do
   context 'wildcard verb routing' do
     let(:content_type) { 'application/json' }
     it 'can terminate instances with POST' do
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'CONTENT_TYPE' => content_type, 'global_session' => session
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0',
+           nil,
+           'CONTENT_TYPE' => content_type,
+           'global_session' => session
       expect(last_response.status).to eq(200)
     end
     it 'can terminate instances with DELETE' do
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'CONTENT_TYPE' => content_type, 'global_session' => session
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0',
+           nil,
+           'CONTENT_TYPE' => content_type,
+           'global_session' => session
       expect(last_response.status).to eq(200)
     end
   end
 
   context 'route options' do
     it 'reach the endpoint that does not match the except clause' do
-      get '/api/clouds/23/otherinstances/_action/test?api_version=1.0', nil, 'global_session' => session
+      get '/api/clouds/23/otherinstances/_action/test?api_version=1.0',
+          nil,
+          'global_session' => session
       expect(last_response.status).to eq(200)
     end
     it 'does NOT reach the endpoint that matches the except clause' do
-      get '/api/clouds/23/otherinstances/_action/exceptional?api_version=1.0', nil, 'global_session' => session
+      get '/api/clouds/23/otherinstances/_action/exceptional?api_version=1.0',
+          nil,
+          'global_session' => session
       expect(last_response.status).to eq(404)
     end
   end
@@ -369,12 +464,17 @@ describe 'Functional specs' do
     let(:content_type) { 'application/json' }
 
     it 'can terminate' do
-      post '/api/clouds/23/instances/1/terminate?api_version=1.0', nil, 'global_session' => session, 'CONTENT_TYPE' => content_type
+      post '/api/clouds/23/instances/1/terminate?api_version=1.0',
+           nil,
+           'global_session' => session,
+           'CONTENT_TYPE' => content_type
       expect(last_response.status).to eq(200)
     end
 
     it 'can not stop' do
-      post '/api/clouds/23/instances/1/stop?api_version=1.0', '', 'global_session' => session
+      post '/api/clouds/23/instances/1/stop?api_version=1.0',
+           '',
+           'global_session' => session
       expect(last_response.status).to eq(403)
     end
   end
@@ -384,13 +484,18 @@ describe 'Functional specs' do
     let(:content_type) { 'application/json' }
 
     before do
-      post '/api/clouds/1/instances/2/terminate?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
+      post '/api/clouds/1/instances/2/terminate?api_version=1.0',
+           body,
+           'CONTENT_TYPE' => content_type,
+           'global_session' => session
     end
 
     it 'returns a useful error message' do
       body = JSON.parse(last_response.body)
       expect(body['name']).to eq('ValidationError')
-      expect(body['summary']).to match("Error loading payload. Used Content-Type: 'application/json'")
+      expect(body['summary']).to match(
+        "Error loading payload. Used Content-Type: 'application/json'",
+      )
       expect(body['errors']).to_not be_empty
     end
   end
@@ -400,7 +505,10 @@ describe 'Functional specs' do
     let(:content_type) { 'application/json' }
 
     before do
-      patch '/api/clouds/1/instances/3?api_version=1.0', body, 'CONTENT_TYPE' => content_type, 'global_session' => session
+      patch '/api/clouds/1/instances/3?api_version=1.0',
+            body,
+            'CONTENT_TYPE' => content_type,
+            'global_session' => session
     end
 
     subject(:response_body) { JSON.parse(last_response.body) }
@@ -429,7 +537,11 @@ describe 'Functional specs' do
 
       its(['name']) { should eq 'ValidationError' }
       its(['summary']) { should eq 'Error validating response' }
-      its(['errors']) { should match_array [/\$\.name value \(Invalid Name\) does not match regexp/] }
+      its(['errors']) do
+        should match_array [
+                             /\$\.name value \(Invalid Name\) does not match regexp/,
+                           ]
+      end
 
       it 'returns a validation error' do
         expect(last_response.status).to eq(500)

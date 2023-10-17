@@ -11,7 +11,7 @@ namespace :praxis do
     Rake::Task['praxis:environment'].invoke
 
     basedir = ::Praxis::Application.instance.root
-    nickname = File.basename(::Praxis::Application.instance.root)
+    nickname = File.basename(basedir)
 
     # Keep IRB.setup from complaining about bad ARGV options
     old_argv = ARGV.dup
@@ -20,7 +20,6 @@ namespace :praxis do
     ARGV.concat(old_argv)
 
     # Remove main object from prompt (its stringify is not useful)
-    nickname = File.basename(::Praxis::Application.instance.root)
     IRB.conf[:PROMPT][:DEFAULT] = {
       PROMPT_I: "%N(#{nickname}):%03n:%i> ",
       PROMPT_N: "%N(#{nickname}):%03n:%i> ",

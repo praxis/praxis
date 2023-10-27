@@ -4,7 +4,10 @@
 
 source 'https://rubygems.org'
 
-gem 'activerecord', '>=7'
+# TODO: figure out incompatibility between ActiveRecord 7.1 and SQLite
+# @see https://github.com/praxis/praxis/pull/405#issuecomment-1780570599
+# Until then, we're pinned to 7.0.x for purposes of testing.
+gem 'activerecord', '~> 7.0.8'
 gem 'rubocop'
 gem 'sequel', '~> 5'
 

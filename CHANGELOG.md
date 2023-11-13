@@ -1,5 +1,9 @@
 # Praxis Changelog
 
+## 2.0.pre40
+
+- Prevent IRB from running console in a new Thread (#405)
+
 ## 2.0.pre.39
 
 - Revert JSON handler back to `json` gem, as `oj` was too unstable when used with ActiveSupport.

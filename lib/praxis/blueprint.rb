@@ -236,6 +236,12 @@ module Praxis
         end
         resolve_domain_model!
       end
+      # Make sure to add the given defined description to the underlying type, so it can show up in the docs, etc
+      # Blueprint groups do not have a description...
+      if respond_to?(:description) && description
+        options[:description] = description
+        @attribute.type.options[:description] = description
+      end
       super
     end
 

@@ -29,7 +29,7 @@ praxis example my-app && cd my-app && bundle
 rackup
 ```
 
-Or check the getting started tutorial and reference docs at https://www.praxis-framework.io all that Praxis has to offer.
+Or check the getting started tutorial and reference docs at https://site.praxis-framework.io all that Praxis has to offer.
 
 ## Mailing List
 Join our Google Groups for discussion, support and announcements.
@@ -39,9 +39,9 @@ Join our Google Groups for discussion, support and announcements.
 * [praxis-development](http://groups.google.com/d/forum/praxis-development) (discussion about the
   development of Praxis itself)
 
-Join our slack support and general announcements channel for on-the-spot answers to your questions:
+<!-- Join our slack support and general announcements channel for on-the-spot answers to your questions:
 * To join our slack chat please go to: http://praxis-framework.herokuapp.com and sign in for an account.
-* Once you have an account, hop onto the chat at http://praxis-framework.slack.com
+* Once you have an account, hop onto the chat at http://praxis-framework.slack.com -->
 
 And follow us on twitter: [@praxisapi](http://twitter.com/praxisapi)
 
@@ -52,7 +52,7 @@ for further details on what contributions are accepted and how to go about
 contributing.
 
 ## Requirements
-Praxis requires Ruby 2.5.0 or greater.
+Praxis requires Ruby 2.7.0 or greater, but it is best when used with the latest 3.x series.
 
 ## License
 

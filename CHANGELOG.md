@@ -1,5 +1,10 @@
 # Praxis Changelog
 
+# 2.0.0
+
+- The much expected official 2.0 release of Praxis, that has been pre-releasing in the 'preX' versions for a long time.
+- Includes all features included in 2.0.pre40 plus a simple OpenAPI enhancement to include 'description' test in MediaTypes (Schema objects)
+
 ## 2.0.pre40
 
 - Prevent IRB from running console in a new Thread (#405)

@@ -9,7 +9,7 @@ module Praxis
       module ClassMethods
         def as_json_schema(**args)
           the_type = @attribute&.type || member_type
-          the_type.as_json_schema(args)
+          the_type.as_json_schema(**args)
         end
 
         def json_schema_type

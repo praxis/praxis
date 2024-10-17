@@ -43,7 +43,7 @@ Join our Google Groups for discussion, support and announcements.
 * To join our slack chat please go to: http://praxis-framework.herokuapp.com and sign in for an account.
 * Once you have an account, hop onto the chat at http://praxis-framework.slack.com -->
 
-And follow us on twitter: [@praxisapi](http://twitter.com/praxisapi)
+And follow us on X (formerly Twitter): [@praxisapi](http://x.com/praxisapi)
 
 ## Contributions
 Contributions to make Praxis better are welcome. Please refer to

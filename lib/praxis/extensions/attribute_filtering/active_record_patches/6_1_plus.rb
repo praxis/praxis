@@ -20,7 +20,7 @@ module ActiveRecord
             next table, true
           end
 
-          table_name = @references[reflection.name.to_sym]
+          table_name = @references[reflection.name.to_sym] || @references[:"/#{reflection.name}"]
           # Praxis: set an alias_path in the JoinAssociation if its path matches a requested reference
           table_name ||= @references[child&.alias_path.join('/').to_sym]
 

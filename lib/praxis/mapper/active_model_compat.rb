@@ -37,6 +37,8 @@ module Praxis
           @_praxis_associations = orig.each_with_object({}) do |(k, v), hash|
             # Assume an 'id' primary key if the system is initializing without AR connected
             # (or without the tables created). This probably means that it's a rake task initializing or so...
+            next if v.polymorphic?
+
             pkey = \
               if v.klass.connected? && v.klass.table_exists?
                 v.klass.primary_key

@@ -1,5 +1,9 @@
 # Praxis Changelog
 
+# Unreleased
+
+- Relax the version specification for the terminal-table dependency
+
 # 2.0.0
 
 - The much expected official 2.0 release of Praxis, that has been pre-releasing in the 'preX' versions for a long time.

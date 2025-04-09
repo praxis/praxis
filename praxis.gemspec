@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'mime', '~> 0'
   spec.add_dependency 'mustermann', '>=1.1'
   spec.add_dependency 'rack', '>= 1'
-  spec.add_dependency 'terminal-table', '~> 1.4'
+  spec.add_dependency 'terminal-table'
   spec.add_dependency 'thor'
 
   spec.add_development_dependency 'appraisal'

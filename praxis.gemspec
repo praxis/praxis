@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'attributor', '>= 8.0'
   spec.add_dependency 'mime', '~> 0'
   spec.add_dependency 'mustermann', '>=1.1'
+  spec.add_dependency 'parslet', '~> 2.0'
   spec.add_dependency 'rack', '>= 1'
   spec.add_dependency 'terminal-table'
   spec.add_dependency 'thor'

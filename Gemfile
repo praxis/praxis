@@ -10,5 +10,4 @@ group :test do
 
   gem 'link_header'
   gem 'oj'
-  gem 'parslet'
 end

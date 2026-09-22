@@ -401,4 +401,19 @@ describe Praxis::Types::MultipartArray do
       end
     end
   end
+
+  describe '.identifier' do
+    it 'has the default identifier' do
+      expect(described_class.identifier.to_s).to eq('multipart/form-data')
+    end
+
+    it 'allows overriding the identifier (regression: was shadowed by attr_reader)' do
+      expect do
+        described_class.identifier('application/vnd.foo')
+      end.not_to raise_error
+
+      expect(described_class.identifier).to be_a(Praxis::MediaTypeIdentifier)
+      expect(described_class.identifier.to_s).to eq('application/vnd.foo')
+    end
+  end
 end

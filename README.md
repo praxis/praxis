@@ -1,9 +1,11 @@
-# Praxis [![TravisCI][travis-img-url]][travis-ci-url] [![Coverage Status][coveralls-img-url]][coveralls-url] 
+# Praxis [![TravisCI][travis-img-url]][travis-ci-url] [![Coverage Status][coveralls-img-url]][coveralls-url] [![License][license-img-url]][license-url]
 
 [travis-img-url]: https://app.travis-ci.com/praxis/praxis.svg?branch=master
 [travis-ci-url]: https://app.travis-ci.com/praxis/praxis
-[coveralls-img-url]:https://coveralls.io/repos/github/praxis/praxis/badge.svg?branch=master
-[coveralls-url]:https://coveralls.io/github/praxis/praxis?branch=master
+[coveralls-img-url]: https://coveralls.io/repos/github/praxis/praxis/badge.svg?branch=master
+[coveralls-url]: https://coveralls.io/github/praxis/praxis?branch=master
+[license-img-url]: https://img.shields.io/github/license/praxis/praxis
+[License-url]: https://github.com/praxis/praxis/blob/master/LICENSE
 
 A fast and highly efficient paradigm to build beautiful service APIs
 

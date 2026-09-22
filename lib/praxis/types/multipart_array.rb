@@ -33,7 +33,7 @@ module Praxis
       end
 
       class << self
-        attr_reader :attributes, :multiple, :options, :identifier
+        attr_reader :attributes, :multiple, :options
       end
 
       def self.constructable?
